@@ -52,7 +52,7 @@ android.private_storage = False
 # =============================================================
 
 # Bruk nyeste p4a for best Android 15-støtte
-p4a.branch = develop
+# p4a.branch - bruker standard (stabil) versjon
 p4a.bootstrap = sdl2
 
 # Tving ren Python-modus for protobuf (unngår C-kompileringsproblemer)
