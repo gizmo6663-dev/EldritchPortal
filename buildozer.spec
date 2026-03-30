@@ -34,16 +34,7 @@ android.ndk = 25b
 android.archs = arm64-v8a
 
 # Tillatelser (alle som trengs for bilder, musikk og nettverkscast)
-android.permissions = \
-    INTERNET, \
-    ACCESS_NETWORK_STATE, \
-    ACCESS_WIFI_STATE, \
-    CHANGE_WIFI_MULTICAST_STATE, \
-    READ_EXTERNAL_STORAGE, \
-    WRITE_EXTERNAL_STORAGE, \
-    READ_MEDIA_IMAGES, \
-    READ_MEDIA_AUDIO, \
-    READ_MEDIA_VIDEO
+android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_MULTICAST_STATE,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_AUDIO,READ_MEDIA_VIDEO
 
 # Skjerm og orientering
 orientation = portrait
