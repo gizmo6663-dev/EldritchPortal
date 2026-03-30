@@ -35,7 +35,7 @@ jobs:
 
       - name: Installer Buildozer
         run: |
-          pip install "cython<3.0" buildozer
+          pip install "cython<3.0" "buildozer @ git+https://github.com/kivy/buildozer.git"
 
       - name: Bygg APK
         run: |
