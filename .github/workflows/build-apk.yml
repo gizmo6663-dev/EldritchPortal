@@ -33,7 +33,7 @@ jobs:
 
       - name: Installer Buildozer og Cython
         run: |
-          pip install buildozer==1.5.0 cython
+          pip install "cython<3.0" buildozer==1.5.0
 
       - name: Cache Buildozer (SDK/NDK)
         uses: actions/cache@v4
@@ -41,12 +41,15 @@ jobs:
           path: |
             .buildozer
             ~/.buildozer
-          key: buildozer-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-v2-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
           restore-keys: |
-            buildozer-${{ runner.os }}-
+            buildozer-v2-${{ runner.os }}-
 
       - name: Bygg APK
+        env:
+          CYTHON_VERSION: "<3.0"
         run: |
+          pip install "cython<3.0"
           buildozer android debug
 
       - name: Last opp APK
