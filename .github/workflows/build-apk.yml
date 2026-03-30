@@ -1,60 +1,34 @@
 # .github/workflows/build-apk.yml
-# Bygger Eldritch Portal APK automatisk ved push til main-branch.
-# APK-en lastes opp som en "artifact" du kan laste ned fra GitHub.
-
+# Bygger Eldritch Portal APK med den offisielle Buildozer Docker-action.
+# Alle versjoner er ferdig konfigurert i containeren — ingen kompatibilitetsproblemer.
+ 
 name: Build APK
-
+ 
 on:
   push:
     branches: [main]
-  workflow_dispatch:  # Lar deg starte bygg manuelt fra GitHub
-
+  workflow_dispatch:
+ 
 jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-
+ 
     steps:
       - name: Checkout kode
         uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
+ 
+      - name: Bygg med Buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        id: buildozer
         with:
-          python-version: '3.11'
-
-      - name: Installer systemavhengigheter
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq \
-            build-essential git libncurses5-dev libffi-dev libssl-dev \
-            openjdk-17-jdk unzip zip autoconf libtool pkg-config \
-            zlib1g-dev libltdl-dev cmake
-
-      - name: Installer Buildozer og Cython
-        run: |
-          pip install "cython<3.0" buildozer==1.5.0
-
-      - name: Cache Buildozer (SDK/NDK)
-        uses: actions/cache@v4
-        with:
-          path: |
-            .buildozer
-            ~/.buildozer
-          key: buildozer-v2-${{ runner.os }}-${{ hashFiles('buildozer.spec') }}
-          restore-keys: |
-            buildozer-v2-${{ runner.os }}-
-
-      - name: Bygg APK
-        env:
-          CYTHON_VERSION: "<3.0"
-        run: |
-          pip install "cython<3.0"
-          buildozer android debug
-
+          command: buildozer android debug
+          buildozer_version: 1.5.0
+ 
       - name: Last opp APK
         uses: actions/upload-artifact@v4
         with:
           name: eldritch-portal-apk
-          path: bin/*.apk
+          path: ${{ steps.buildozer.outputs.filename }}
           retention-days: 30
+ 
