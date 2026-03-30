@@ -26,7 +26,7 @@ android.accept_sdk_license = True
 android.skip_update = False
 android.private_storage = False
 
-p4a.branch = v2023.09.16
+p4a.branch = p4a.branch = develop
 p4a.bootstrap = sdl2
 
 log_level = 2
