@@ -9,24 +9,20 @@ source.include_exts = py,png,jpg,kv,atlas
 
 version = 0.1
 
-requirements = python3,kivy==2.3.0,pillow,android
+requirements = python3,kivy,pillow,android
 
-android.api = 34
-android.minapi = 26
-android.ndk = 25b
-
+android.api = 35
+android.minapi = 21
 android.archs = arm64-v8a
 
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_MULTICAST_STATE,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_AUDIO,READ_MEDIA_VIDEO
 
 orientation = portrait
-fullscreen = 0
+fullscreen = 1
 
 android.accept_sdk_license = True
-android.skip_update = False
-android.private_storage = False
+android.private_storage = True
 
-p4a.branch = develop
 p4a.bootstrap = sdl2
 
 log_level = 2
