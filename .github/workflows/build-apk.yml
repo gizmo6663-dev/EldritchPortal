@@ -14,32 +14,13 @@ jobs:
       - name: Checkout kode
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Installer systemavhengigheter
+      - name: Bygg APK med Kivy Docker
         run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq \
-            build-essential git libncurses5-dev libffi-dev libssl-dev \
-            unzip zip autoconf libtool pkg-config \
-            zlib1g-dev libltdl-dev cmake
-
-      - name: Installer Buildozer
-        run: |
-          pip install "cython<3.0" "buildozer @ git+https://github.com/kivy/buildozer.git"
-
-      - name: Bygg APK
-        run: |
-          buildozer android debug
+          docker run \
+            -v "$PWD":/home/user/hostcwd \
+            -v "$HOME/.buildozer":/home/user/.buildozer \
+            kivy/buildozer \
+            android debug
 
       - name: Last opp APK
         uses: actions/upload-artifact@v4
