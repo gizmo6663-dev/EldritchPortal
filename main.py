@@ -10,7 +10,6 @@ def log(msg):
 log("=== APP START ===")
 
 try:
-    log("Importing kivy...")
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
     from kivy.uix.gridlayout import GridLayout
@@ -40,59 +39,74 @@ try:
         except Exception as e:
             log(f"Permission request failed: {e}")
 
-    class TestApp(App):
+    class EldritchApp(App):
         def build(self):
             log("build() called")
             Window.clearcolor = (0.08, 0.08, 0.10, 1)
+            self.title = "Eldritch Portal"
 
             root = BoxLayout(orientation='vertical', padding=10, spacing=10)
 
+            # Header
             root.add_widget(Label(
                 text="ELDRITCH PORTAL",
                 font_size=24, color=(0.75, 0.65, 0.2, 1),
                 size_hint_y=None, height=50
             ))
 
-            self.info = Label(text="Trykk OPPDATER", size_hint_y=None, height=30)
+            # Forhåndsvisning av bilde
+            self.preview = Image(
+                size_hint_y=0.4,
+                allow_stretch=True,
+                keep_ratio=True,
+            )
+            root.add_widget(self.preview)
+
+            # Info
+            self.info = Label(text="Trykk OPPDATER", size_hint_y=None, height=30,
+                            color=(0.85, 0.82, 0.75, 1))
             root.add_widget(self.info)
 
-            btn = Button(text="OPPDATER", size_hint_y=None, height=50)
+            # Oppdater-knapp
+            btn = Button(text="OPPDATER", size_hint_y=None, height=50,
+                        background_color=(0.18, 0.20, 0.22, 1),
+                        color=(0.85, 0.82, 0.75, 1))
             btn.bind(on_release=lambda x: self.load_images())
             root.add_widget(btn)
 
-            scroll = ScrollView(size_hint_y=0.5)
+            # Bildegalleri
+            scroll = ScrollView(size_hint_y=0.35)
             self.grid = GridLayout(cols=3, spacing=8, padding=8, size_hint_y=None)
             self.grid.bind(minimum_height=self.grid.setter('height'))
             scroll.add_widget(self.grid)
             root.add_widget(scroll)
 
             log("UI built OK")
-            # Be om tillatelser etter at UI er klar
             Clock.schedule_once(lambda dt: request_android_permissions(), 0.5)
             Clock.schedule_once(lambda dt: self.load_images(), 3)
             return root
 
         def load_images(self):
-            log(f"load_images() called, checking: {IMG_DIR}")
+            log("load_images() called")
             self.grid.clear_widgets()
             try:
-                # Logg mappens innhold for feilsøking
-                if os.path.exists(IMG_DIR):
-                    alt = os.listdir(IMG_DIR)
-                    log(f"All files in dir: {alt}")
-                else:
-                    log(f"DIR DOES NOT EXIST: {IMG_DIR}")
+                if not os.path.exists(IMG_DIR):
                     self.info.text = "Mappen finnes ikke!"
                     return
 
-                filer = sorted([f for f in alt
+                filer = sorted([f for f in os.listdir(IMG_DIR)
                                if f.lower().endswith(('.png','.jpg','.jpeg','.webp'))])
                 log(f"Found {len(filer)} images")
                 self.info.text = f"{len(filer)} bilder funnet"
 
                 for fname in filer:
                     path = os.path.join(IMG_DIR, fname)
-                    btn = Button(text=fname[:12], size_hint_y=None, height=120)
+                    btn = Button(
+                        text=fname[:15],
+                        size_hint_y=None, height=100,
+                        background_color=(0.18, 0.20, 0.22, 1),
+                        color=(0.85, 0.82, 0.75, 1),
+                    )
                     btn.bind(on_release=lambda x, p=path: self.select(p))
                     self.grid.add_widget(btn)
             except Exception as e:
@@ -101,10 +115,15 @@ try:
 
         def select(self, path):
             log(f"Selected: {path}")
-            self.info.text = os.path.basename(path)
+            try:
+                self.preview.source = path
+                self.info.text = os.path.basename(path)
+            except Exception as e:
+                log(f"select error: {e}")
+                self.info.text = f"Feil: {e}"
 
     log("Starting app...")
-    TestApp().run()
+    EldritchApp().run()
 
 except Exception as e:
     log(f"CRASH: {e}")
