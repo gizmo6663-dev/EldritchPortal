@@ -9,7 +9,7 @@ source.include_exts = py,png,jpg,kv,atlas
 
 version = 0.1
 
-requirements = python3,kivy,pillow,android
+requirements = python3,kivy,pillow,android,pychromecast,zeroconf,ifaddr,protobuf
 
 android.api = 35
 android.minapi = 21
