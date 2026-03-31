@@ -20,52 +20,72 @@ try:
     from kivy.uix.image import Image
     from kivy.clock import Clock
     from kivy.core.window import Window
+    from kivy.utils import platform
     log("Kivy imported OK")
 
     IMG_DIR = "/sdcard/Documents/EldritchPortal/images"
     os.makedirs(IMG_DIR, exist_ok=True)
 
+    def request_android_permissions():
+        if platform != 'android':
+            return
+        try:
+            from android.permissions import request_permissions, Permission
+            request_permissions([
+                Permission.READ_EXTERNAL_STORAGE,
+                Permission.READ_MEDIA_IMAGES,
+                Permission.READ_MEDIA_AUDIO,
+            ])
+            log("Permissions requested")
+        except Exception as e:
+            log(f"Permission request failed: {e}")
+
     class TestApp(App):
         def build(self):
             log("build() called")
             Window.clearcolor = (0.08, 0.08, 0.10, 1)
-            log("Window color set")
 
             root = BoxLayout(orientation='vertical', padding=10, spacing=10)
-            log("Root layout created")
 
             root.add_widget(Label(
                 text="ELDRITCH PORTAL",
                 font_size=24, color=(0.75, 0.65, 0.2, 1),
                 size_hint_y=None, height=50
             ))
-            log("Header added")
 
             self.info = Label(text="Trykk OPPDATER", size_hint_y=None, height=30)
             root.add_widget(self.info)
-            log("Info label added")
 
             btn = Button(text="OPPDATER", size_hint_y=None, height=50)
             btn.bind(on_release=lambda x: self.load_images())
             root.add_widget(btn)
-            log("Button added")
 
             scroll = ScrollView(size_hint_y=0.5)
             self.grid = GridLayout(cols=3, spacing=8, padding=8, size_hint_y=None)
             self.grid.bind(minimum_height=self.grid.setter('height'))
             scroll.add_widget(self.grid)
             root.add_widget(scroll)
-            log("Grid added")
 
             log("UI built OK")
-            Clock.schedule_once(lambda dt: self.load_images(), 1)
+            # Be om tillatelser etter at UI er klar
+            Clock.schedule_once(lambda dt: request_android_permissions(), 0.5)
+            Clock.schedule_once(lambda dt: self.load_images(), 3)
             return root
 
         def load_images(self):
-            log("load_images() called")
+            log(f"load_images() called, checking: {IMG_DIR}")
             self.grid.clear_widgets()
             try:
-                filer = sorted([f for f in os.listdir(IMG_DIR)
+                # Logg mappens innhold for feilsøking
+                if os.path.exists(IMG_DIR):
+                    alt = os.listdir(IMG_DIR)
+                    log(f"All files in dir: {alt}")
+                else:
+                    log(f"DIR DOES NOT EXIST: {IMG_DIR}")
+                    self.info.text = "Mappen finnes ikke!"
+                    return
+
+                filer = sorted([f for f in alt
                                if f.lower().endswith(('.png','.jpg','.jpeg','.webp'))])
                 log(f"Found {len(filer)} images")
                 self.info.text = f"{len(filer)} bilder funnet"
