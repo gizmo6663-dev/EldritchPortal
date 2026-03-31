@@ -21,9 +21,19 @@ try:
     from kivy.uix.slider import Slider
     from kivy.clock import Clock
     from kivy.core.window import Window
-    from kivy.core.audio import SoundLoader
     from kivy.utils import platform
     log("Kivy imported OK")
+
+    # Bruk Android MediaPlayer via jnius i stedet for SoundLoader
+    USE_JNIUS = False
+    if platform == 'android':
+        try:
+            from jnius import autoclass
+            MediaPlayer = autoclass('android.media.MediaPlayer')
+            USE_JNIUS = True
+            log("Using Android MediaPlayer")
+        except Exception as e:
+            log(f"jnius import failed: {e}")
 
     IMG_DIR = "/sdcard/Documents/EldritchPortal/images"
     MUSIC_DIR = "/sdcard/Documents/EldritchPortal/music"
@@ -50,15 +60,122 @@ try:
         except Exception as e:
             log(f"Permission request failed: {e}")
 
+    class AndroidPlayer:
+        """Wrapper rundt Android MediaPlayer - stabil sporbytte."""
+        def __init__(self):
+            self.mp = None
+            self.is_playing = False
+            self._volume = 0.7
+
+        def play(self, path):
+            log(f"AndroidPlayer.play: {path}")
+            self.stop()
+            try:
+                self.mp = MediaPlayer()
+                self.mp.setDataSource(path)
+                self.mp.setVolume(self._volume, self._volume)
+                self.mp.prepare()
+                self.mp.start()
+                self.is_playing = True
+                log("AndroidPlayer: playing OK")
+            except Exception as e:
+                log(f"AndroidPlayer error: {e}")
+                self.mp = None
+                self.is_playing = False
+
+        def stop(self):
+            if self.mp:
+                try:
+                    if self.mp.isPlaying():
+                        self.mp.stop()
+                    self.mp.release()
+                except Exception as e:
+                    log(f"AndroidPlayer stop error: {e}")
+                self.mp = None
+            self.is_playing = False
+
+        def pause(self):
+            if self.mp and self.is_playing:
+                try:
+                    self.mp.pause()
+                    self.is_playing = False
+                except Exception as e:
+                    log(f"AndroidPlayer pause error: {e}")
+
+        def resume(self):
+            if self.mp and not self.is_playing:
+                try:
+                    self.mp.start()
+                    self.is_playing = True
+                except Exception as e:
+                    log(f"AndroidPlayer resume error: {e}")
+
+        def set_volume(self, vol):
+            self._volume = vol
+            if self.mp:
+                try:
+                    self.mp.setVolume(vol, vol)
+                except Exception:
+                    pass
+
+    class FallbackPlayer:
+        """Fallback med SoundLoader for desktop."""
+        def __init__(self):
+            from kivy.core.audio import SoundLoader
+            self.SoundLoader = SoundLoader
+            self.sound = None
+            self.is_playing = False
+            self._volume = 0.7
+
+        def play(self, path):
+            self.stop()
+            try:
+                self.sound = self.SoundLoader.load(path)
+                if self.sound:
+                    self.sound.volume = self._volume
+                    self.sound.play()
+                    self.is_playing = True
+            except Exception as e:
+                log(f"FallbackPlayer error: {e}")
+
+        def stop(self):
+            if self.sound:
+                try:
+                    self.sound.stop()
+                except Exception:
+                    pass
+                self.sound = None
+            self.is_playing = False
+
+        def pause(self):
+            if self.sound and self.is_playing:
+                self.sound.stop()
+                self.is_playing = False
+
+        def resume(self):
+            if self.sound and not self.is_playing:
+                self.sound.play()
+                self.is_playing = True
+
+        def set_volume(self, vol):
+            self._volume = vol
+            if self.sound:
+                self.sound.volume = vol
+
     class EldritchApp(App):
         def build(self):
             log("build() called")
             Window.clearcolor = CLR_BG
             self.title = "Eldritch Portal"
-            self.sound = None
             self.tracks = []
             self.current_track = -1
-            self.is_playing = False
+
+            # Velg lydspiller basert paa plattform
+            if USE_JNIUS:
+                self.player = AndroidPlayer()
+            else:
+                self.player = FallbackPlayer()
+            log(f"Player: {type(self.player).__name__}")
 
             root = BoxLayout(orientation='vertical', spacing=0)
 
@@ -74,14 +191,12 @@ try:
             tab_bar.add_widget(self.tab_mus)
             root.add_widget(tab_bar)
 
-            # Innholdsomraade
             self.content = BoxLayout()
             self.img_panel = self._build_image_panel()
             self.mus_panel = self._build_music_panel()
             self.content.add_widget(self.img_panel)
             root.add_widget(self.content)
 
-            # Statuslinje
             self.status = Label(text="", size_hint_y=None, height=30,
                               font_size=12, color=CLR_TEXT)
             root.add_widget(self.status)
@@ -123,7 +238,6 @@ try:
                 color=CLR_TEXT, font_size=15)
             panel.add_widget(self.track_label)
 
-            # Kontroller
             controls = BoxLayout(size_hint_y=None, height=55, spacing=10, padding=[20, 5])
             for txt, cb in [("Forr", self.prev_track), ("Play", self.toggle_play),
                            ("Neste", self.next_track), ("Stopp", self.stop_music)]:
@@ -135,7 +249,6 @@ try:
                     self.btn_play = b
             panel.add_widget(controls)
 
-            # Volum
             vol_row = BoxLayout(size_hint_y=None, height=40, padding=[20, 0])
             vol_row.add_widget(Label(text="Vol:", color=CLR_TEXT, size_hint_x=0.15, font_size=13))
             self.vol_slider = Slider(min=0, max=1, value=0.7, size_hint_x=0.85)
@@ -143,7 +256,6 @@ try:
             vol_row.add_widget(self.vol_slider)
             panel.add_widget(vol_row)
 
-            # Sporliste
             scroll = ScrollView(size_hint_y=1)
             self.track_grid = GridLayout(cols=1, spacing=5, padding=8, size_hint_y=None)
             self.track_grid.bind(minimum_height=self.track_grid.setter('height'))
@@ -225,59 +337,31 @@ try:
             log(f"play_track({idx})")
             if idx < 0 or idx >= len(self.tracks):
                 return
-            # Stopp uten unload for aa unngaa krasj
-            try:
-                if self.sound:
-                    self.sound.stop()
-            except Exception:
-                pass
-            self.sound = None
-            self.is_playing = False
             self.current_track = idx
-            # Last og spill med kort forsinkelse
-            Clock.schedule_once(lambda dt: self._do_play(idx), 0.3)
-
-        def _do_play(self, idx):
             path = self.tracks[idx]
-            try:
-                self.sound = SoundLoader.load(path)
-                if self.sound:
-                    self.sound.volume = self.vol_slider.value
-                    self.sound.play()
-                    self.is_playing = True
-                    self.btn_play.text = "Pause"
-                    self.track_label.text = f"Spiller: {os.path.basename(path)}"
-                    log(f"Playing: {path}")
-                else:
-                    self.track_label.text = "Kunne ikke laste sporet"
-                    log(f"SoundLoader returned None for {path}")
-            except Exception as e:
-                log(f"_do_play error: {e}")
-                self.track_label.text = f"Feil: {e}"
+            self.player.play(path)
+            if self.player.is_playing:
+                self.btn_play.text = "Pause"
+                self.track_label.text = f"Spiller: {os.path.basename(path)}"
+            else:
+                self.track_label.text = "Kunne ikke spille sporet"
 
         def toggle_play(self):
-            if not self.sound:
+            if not self.player.is_playing and self.current_track < 0:
                 if self.tracks:
                     self.play_track(0)
                 return
-            if self.is_playing:
-                self.sound.stop()
-                self.is_playing = False
+            if self.player.is_playing:
+                self.player.pause()
                 self.btn_play.text = "Play"
             else:
-                self.sound.play()
-                self.is_playing = True
+                self.player.resume()
                 self.btn_play.text = "Pause"
 
         def stop_music(self):
-            try:
-                if self.sound:
-                    self.sound.stop()
-            except Exception as e:
-                log(f"stop_music error: {e}")
-            self.sound = None
-            self.is_playing = False
+            self.player.stop()
             self.btn_play.text = "Play"
+            self.track_label.text = "Stoppet"
 
         def next_track(self):
             if self.tracks:
@@ -288,11 +372,10 @@ try:
                 self.play_track((self.current_track - 1) % len(self.tracks))
 
         def _on_volume(self, slider, value):
-            if self.sound:
-                self.sound.volume = value
+            self.player.set_volume(value)
 
         def on_stop(self):
-            self.stop_music()
+            self.player.stop()
 
     log("Starting app...")
     EldritchApp().run()
