@@ -63,7 +63,7 @@ try:
             root = BoxLayout(orientation='vertical', spacing=0)
 
             # Fane-bar
-            tab_bar = BoxLayout(size_hint_y=None, height=50, spacing=2, padding=[5,2])
+            tab_bar = BoxLayout(size_hint_y=None, height=50, spacing=2, padding=[5, 2])
             self.tab_img = ToggleButton(text="BILDER", group='tabs', state='down',
                 background_normal='', background_color=CLR_BTN_ACTIVE, color=CLR_ACCENT, bold=True)
             self.tab_mus = ToggleButton(text="MUSIKK", group='tabs',
@@ -74,7 +74,7 @@ try:
             tab_bar.add_widget(self.tab_mus)
             root.add_widget(tab_bar)
 
-            # Innholdsområde
+            # Innholdsomraade
             self.content = BoxLayout()
             self.img_panel = self._build_image_panel()
             self.mus_panel = self._build_music_panel()
@@ -124,19 +124,19 @@ try:
             panel.add_widget(self.track_label)
 
             # Kontroller
-            controls = BoxLayout(size_hint_y=None, height=55, spacing=10, padding=[20,5])
-            for txt, cb in [("⏮", self.prev_track), ("▶", self.toggle_play),
-                           ("⏭", self.next_track), ("⏹", self.stop_music)]:
+            controls = BoxLayout(size_hint_y=None, height=55, spacing=10, padding=[20, 5])
+            for txt, cb in [("Forr", self.prev_track), ("Play", self.toggle_play),
+                           ("Neste", self.next_track), ("Stopp", self.stop_music)]:
                 b = Button(text=txt, background_normal='', background_color=CLR_BTN,
-                          color=CLR_TEXT, bold=True, font_size=20)
+                          color=CLR_TEXT, bold=True, font_size=16)
                 b.bind(on_release=lambda x, f=cb: f())
                 controls.add_widget(b)
-                if txt == "▶":
+                if txt == "Play":
                     self.btn_play = b
             panel.add_widget(controls)
 
             # Volum
-            vol_row = BoxLayout(size_hint_y=None, height=40, padding=[20,0])
+            vol_row = BoxLayout(size_hint_y=None, height=40, padding=[20, 0])
             vol_row.add_widget(Label(text="Vol:", color=CLR_TEXT, size_hint_x=0.15, font_size=13))
             self.vol_slider = Slider(min=0, max=1, value=0.7, size_hint_x=0.85)
             self.vol_slider.bind(value=self._on_volume)
@@ -179,7 +179,7 @@ try:
                     self.img_info.text = "Mappen finnes ikke!"
                     return
                 filer = sorted([f for f in os.listdir(IMG_DIR)
-                               if f.lower().endswith(('.png','.jpg','.jpeg','.webp'))])
+                               if f.lower().endswith(('.png', '.jpg', '.jpeg', '.webp'))])
                 self.img_info.text = f"{len(filer)} bilder"
                 for fname in filer:
                     path = os.path.join(IMG_DIR, fname)
@@ -208,7 +208,7 @@ try:
                     self.track_label.text = "Mappen finnes ikke!"
                     return
                 filer = sorted([f for f in os.listdir(MUSIC_DIR)
-                               if f.lower().endswith(('.mp3','.ogg','.wav','.flac'))])
+                               if f.lower().endswith(('.mp3', '.ogg', '.wav', '.flac'))])
                 self.track_label.text = f"{len(filer)} spor"
                 for i, fname in enumerate(filer):
                     self.tracks.append(os.path.join(MUSIC_DIR, fname))
@@ -234,8 +234,8 @@ try:
                     self.sound.volume = self.vol_slider.value
                     self.sound.play()
                     self.is_playing = True
-                    self.btn_play.text = "⏸"
-                    self.track_label.text = f"▶ {os.path.basename(path)}"
+                    self.btn_play.text = "Pause"
+                    self.track_label.text = f"Spiller: {os.path.basename(path)}"
                     log(f"Playing: {path}")
                 else:
                     self.track_label.text = "Kunne ikke laste sporet"
@@ -252,19 +252,26 @@ try:
             if self.is_playing:
                 self.sound.stop()
                 self.is_playing = False
-                self.btn_play.text = "▶"
+                self.btn_play.text = "Play"
             else:
                 self.sound.play()
                 self.is_playing = True
-                self.btn_play.text = "⏸"
+                self.btn_play.text = "Pause"
 
         def stop_music(self):
-            if self.sound:
-                self.sound.stop()
-                self.sound.unload()
+            try:
+                if self.sound:
+                    self.sound.stop()
+                    try:
+                        self.sound.unload()
+                    except Exception:
+                        pass
+                    self.sound = None
+            except Exception as e:
+                log(f"stop_music error: {e}")
                 self.sound = None
             self.is_playing = False
-            self.btn_play.text = "▶"
+            self.btn_play.text = "Play"
 
         def next_track(self):
             if self.tracks:
