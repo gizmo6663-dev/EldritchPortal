@@ -1,32 +1,30 @@
-[app]
+name: Build APK
 
-title = Eldritch Portal
-package.name = eldritchportal
-package.domain = org.rpg
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
 
-source.dir = .
-source.include_exts = py,png,jpg,kv,atlas
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
 
-version = 0.1
+    steps:
+      - name: Checkout kode
+        uses: actions/checkout@v4
 
-requirements = python3,kivy,pillow,android
+      - name: Bygg APK med Kivy Docker
+        run: |
+          docker run \
+            -v "$PWD":/home/user/hostcwd \
+            -v "$HOME/.buildozer":/home/user/.buildozer \
+            kivy/buildozer \
+            android debug
 
-android.api = 35
-android.minapi = 21
-android.archs = arm64-v8a
-
-android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_MULTICAST_STATE,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_AUDIO,READ_MEDIA_VIDEO
-
-orientation = portrait
-fullscreen = 1
-
-android.accept_sdk_license = True
-android.private_storage = True
-
-p4a.bootstrap = sdl2
-
-log_level = 2
-
-[buildozer]
-log_level = 2
-warn_on_root = 1
+      - name: Last opp APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: eldritch-portal-apk
+          path: bin/*.apk
+          retention-days: 30
