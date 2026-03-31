@@ -223,10 +223,21 @@ try:
 
         def play_track(self, idx):
             log(f"play_track({idx})")
-            self.stop_music()
             if idx < 0 or idx >= len(self.tracks):
                 return
+            # Stopp uten unload for aa unngaa krasj
+            try:
+                if self.sound:
+                    self.sound.stop()
+            except Exception:
+                pass
+            self.sound = None
+            self.is_playing = False
             self.current_track = idx
+            # Last og spill med kort forsinkelse
+            Clock.schedule_once(lambda dt: self._do_play(idx), 0.3)
+
+        def _do_play(self, idx):
             path = self.tracks[idx]
             try:
                 self.sound = SoundLoader.load(path)
@@ -241,7 +252,7 @@ try:
                     self.track_label.text = "Kunne ikke laste sporet"
                     log(f"SoundLoader returned None for {path}")
             except Exception as e:
-                log(f"play_track error: {e}")
+                log(f"_do_play error: {e}")
                 self.track_label.text = f"Feil: {e}"
 
         def toggle_play(self):
@@ -262,14 +273,9 @@ try:
             try:
                 if self.sound:
                     self.sound.stop()
-                    try:
-                        self.sound.unload()
-                    except Exception:
-                        pass
-                    self.sound = None
             except Exception as e:
                 log(f"stop_music error: {e}")
-                self.sound = None
+            self.sound = None
             self.is_playing = False
             self.btn_play.text = "Play"
 
