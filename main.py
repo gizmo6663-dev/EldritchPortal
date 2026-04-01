@@ -74,20 +74,32 @@ try:
     C_TENTACLE = (0.20, 0.12, 0.28, 1)
     HTTP_PORT = 8089
 
-    # === STEMNINGSLYDER (Pixabay CDN - direkte MP3) ===
+    # === STEMNINGSLYDER (Internet Archive - direkte MP3-lenker) ===
     AMBIENT_SOUNDS = [
-        {"name": "Regn og torden", "url": "https://cdn.pixabay.com/audio/2022/10/30/audio_711a259ca2.mp3"},
-        {"name": "Havboelger", "url": "https://cdn.pixabay.com/audio/2024/11/04/audio_81c0a31578.mp3"},
-        {"name": "Mork skog", "url": "https://cdn.pixabay.com/audio/2022/02/17/audio_4a0a6c8db2.mp3"},
-        {"name": "Vind og regn", "url": "https://cdn.pixabay.com/audio/2023/10/26/audio_3a63b9e63d.mp3"},
-        {"name": "Nattlyder", "url": "https://cdn.pixabay.com/audio/2024/09/26/audio_27a0c13363.mp3"},
-        {"name": "Skummel atmosfaere", "url": "https://cdn.pixabay.com/audio/2022/10/09/audio_440d506a0e.mp3"},
-        {"name": "Uhyggelig drone", "url": "https://cdn.pixabay.com/audio/2024/10/25/audio_3e25c930d4.mp3"},
-        {"name": "Gammel bygning", "url": "https://cdn.pixabay.com/audio/2022/07/19/audio_590e7361c8.mp3"},
-        {"name": "Mystisk grotte", "url": "https://cdn.pixabay.com/audio/2023/07/07/audio_1f05e59c82.mp3"},
-        {"name": "Urolig hav", "url": "https://cdn.pixabay.com/audio/2022/06/07/audio_b9bd4170e4.mp3"},
-        {"name": "Tett taake", "url": "https://cdn.pixabay.com/audio/2023/03/15/audio_c08c81e9d1.mp3"},
-        {"name": "Mork ambiens", "url": "https://cdn.pixabay.com/audio/2024/04/17/audio_faa63f047e.mp3"},
+        {"name": "Regn og torden",
+         "url": "https://archive.org/download/RainSound13/Gentle%20Rain%20and%20Thunder.mp3"},
+        {"name": "Havboelger",
+         "url": "https://archive.org/download/naturesounds-soundtheraphy/Birds%20With%20Ocean%20Waves%20on%20the%20Beach.mp3"},
+        {"name": "Nattregn",
+         "url": "https://archive.org/download/RainSound13/Night%20Rain%20Sound.mp3"},
+        {"name": "Vind og storm",
+         "url": "https://archive.org/download/rain-sounds-gentle-rain-thunderstorms/epic-storm-thunder-rainwindwaves-no-loops-106800.mp3"},
+        {"name": "Nattlyder (gresshopper)",
+         "url": "https://archive.org/download/rain-sounds-gentle-rain-thunderstorms/ambience-crickets-chirping-in-very-light-rain-followed-by-gentle-rolling-thunder-10577.mp3"},
+        {"name": "Havstorm",
+         "url": "https://archive.org/download/naturesounds-soundtheraphy/Sound%20Therapy%20-%20Sea%20Storm.mp3"},
+        {"name": "Lett regn",
+         "url": "https://archive.org/download/naturesounds-soundtheraphy/Light%20Gentle%20Rain.mp3"},
+        {"name": "Tordenstorm",
+         "url": "https://archive.org/download/RainSound13/Rain%20Sound%20with%20Thunderstorm.mp3"},
+        {"name": "Skummel atmosfaere",
+         "url": "https://archive.org/download/creepy-music-sounds/Creepy%20music%20%26%20sounds.mp3"},
+        {"name": "Uhyggelig drone",
+         "url": "https://archive.org/download/scary-sound-effects-8/Evil%20Demon%20Drone%20Movie%20Halloween%20Sounds.mp3"},
+        {"name": "Mork spenning",
+         "url": "https://archive.org/download/scary-sound-effects-8/Dramatic%20Suspense%20Sound%20Effects.mp3"},
+        {"name": "Urolig hav",
+         "url": "https://archive.org/download/RelaxingRainAndLoudThunderFreeFieldRecordingOfNatureSoundsForSleepOrMeditation/Relaxing%20Rain%20and%20Loud%20Thunder%20%28Free%20Field%20Recording%20of%20Nature%20Sounds%20for%20Sleep%20or%20Meditation%20Mp3%29.mp3"},
     ]
 
     def request_android_permissions():
