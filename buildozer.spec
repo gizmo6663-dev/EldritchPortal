@@ -4,7 +4,8 @@ title = Eldritch Portal
 package.name = eldritchportal
 package.domain = org.rpg
 
-source.dir = .
+source.include_dirs = fonts
+
 source.include_exts = py,png,jpg,kv,atlas,ttf
 source.include_patterns = assets/*,fonts/*,images/*
 
