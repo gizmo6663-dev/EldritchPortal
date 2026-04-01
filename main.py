@@ -76,6 +76,22 @@ try:
 
     # === STEMNINGSLYDER (Internet Archive - direkte MP3-lenker) ===
     AMBIENT_SOUNDS = [
+        # --- 1930-TALLS STEMNING ---
+        {"cat": "1930-talls stemning"},
+        {"name": "Jazz lounge (Lazy Rhapsody)",
+         "url": "https://archive.org/download/1930s-jazz-big-bands/Lazy%20Rhapsody.mp3"},
+        {"name": "Big band swing (San Sue Strut)",
+         "url": "https://archive.org/download/1930s-jazz-big-bands/San%20Sue%20Strut.mp3"},
+        {"name": "Ballade (Remember)",
+         "url": "https://archive.org/download/1930s-jazz-big-bands/Remember.mp3"},
+        {"name": "Hot jazz (Stealin' Apples)",
+         "url": "https://archive.org/download/1930s-jazz-big-bands/Stealin%27%20Apples.mp3"},
+        {"name": "Cocktailbar (Passionette)",
+         "url": "https://archive.org/download/1930s-jazz-big-bands/Passionette.mp3"},
+        {"name": "Blues (Jimtown Blues)",
+         "url": "https://archive.org/download/1930s-jazz-big-bands/Jimtown%20Blues.mp3"},
+        # --- NATUR OG VAER ---
+        {"cat": "Natur og vaer"},
         {"name": "Regn og torden",
          "url": "https://archive.org/download/RainSound13/Gentle%20Rain%20and%20Thunder.mp3"},
         {"name": "Havboelger",
@@ -92,14 +108,18 @@ try:
          "url": "https://archive.org/download/naturesounds-soundtheraphy/Light%20Gentle%20Rain.mp3"},
         {"name": "Tordenstorm",
          "url": "https://archive.org/download/RainSound13/Rain%20Sound%20with%20Thunderstorm.mp3"},
+        {"name": "Urolig hav",
+         "url": "https://archive.org/download/RelaxingRainAndLoudThunderFreeFieldRecordingOfNatureSoundsForSleepOrMeditation/Relaxing%20Rain%20and%20Loud%20Thunder%20%28Free%20Field%20Recording%20of%20Nature%20Sounds%20for%20Sleep%20or%20Meditation%20Mp3%29.mp3"},
+        # --- HORROR OG MYSTIKK ---
+        {"cat": "Horror og mystikk"},
         {"name": "Skummel atmosfaere",
          "url": "https://archive.org/download/creepy-music-sounds/Creepy%20music%20%26%20sounds.mp3"},
         {"name": "Uhyggelig drone",
          "url": "https://archive.org/download/scary-sound-effects-8/Evil%20Demon%20Drone%20Movie%20Halloween%20Sounds.mp3"},
         {"name": "Mork spenning",
          "url": "https://archive.org/download/scary-sound-effects-8/Dramatic%20Suspense%20Sound%20Effects.mp3"},
-        {"name": "Urolig hav",
-         "url": "https://archive.org/download/RelaxingRainAndLoudThunderFreeFieldRecordingOfNatureSoundsForSleepOrMeditation/Relaxing%20Rain%20and%20Loud%20Thunder%20%28Free%20Field%20Recording%20of%20Nature%20Sounds%20for%20Sleep%20or%20Meditation%20Mp3%29.mp3"},
+        {"name": "Horrorlyder",
+         "url": "https://archive.org/download/creepy-music-sounds/Horror%20Sound%20Effects.mp3"},
     ]
 
     def request_android_permissions():
@@ -667,9 +687,16 @@ try:
             g = GridLayout(cols=1, spacing=dp(4), padding=dp(4), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
             for snd in AMBIENT_SOUNDS:
-                b = ElButton(text=snd['name'], size_hint_y=None, height=dp(46))
-                b.bind(on_release=lambda x, u=snd['url'], n=snd['name']: self._play_amb(u, n))
-                g.add_widget(b)
+                if 'cat' in snd:
+                    # Kategori-overskrift
+                    lbl = Label(text=snd['cat'].upper(), font_size=sp(12), color=C_GOLD_DIM,
+                               bold=True, size_hint_y=None, height=dp(30), halign='left')
+                    lbl.bind(size=lbl.setter('text_size'))
+                    g.add_widget(lbl)
+                else:
+                    b = ElButton(text=snd['name'], size_hint_y=None, height=dp(46))
+                    b.bind(on_release=lambda x, u=snd['url'], n=snd['name']: self._play_amb(u, n))
+                    g.add_widget(b)
             scroll.add_widget(g)
             p.add_widget(scroll)
             p.add_widget(GoldDivider())
@@ -831,16 +858,23 @@ try:
         def _play_amb(self, url, name):
             log(f"Playing ambient: {name}")
             self.amb_status.text = f"Laster: {name}..."; self.amb_status.color = C_GOLD_DIM
+            self._amb_name = name
+            self._amb_checks = 0
             ok = self.stream_player.play_url(url)
             if ok:
-                Clock.schedule_once(lambda dt: self._upd_amb(name), 6)
+                Clock.schedule_interval(self._poll_amb, 2)
             else:
                 self.amb_status.text = "Ikke tilgjengelig"; self.amb_status.color = C_BLOOD
-        def _upd_amb(self, name):
+        def _poll_amb(self, dt):
+            self._amb_checks += 1
             if self.stream_player.is_playing:
-                self.amb_status.text = f"Spiller: {name}"; self.amb_status.color = C_GREEN
-            else:
-                self.amb_status.text = f"Feilet: {name}"; self.amb_status.color = C_BLOOD
+                self.amb_status.text = f"Spiller: {self._amb_name}"; self.amb_status.color = C_GREEN
+                return False  # stopp polling
+            if self._amb_checks >= 10:  # 20 sekunder
+                self.amb_status.text = f"Feilet: {self._amb_name}"; self.amb_status.color = C_BLOOD
+                return False  # stopp polling
+            # Fortsett aa vente
+            self.amb_status.text = f"Laster: {self._amb_name} ({self._amb_checks * 2}s)..."
         def _stop_amb(self):
             self.stream_player.stop(); self.amb_status.text = "Stoppet"; self.amb_status.color = C_TEXT_DIM
 
