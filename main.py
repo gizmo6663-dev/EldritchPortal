@@ -25,6 +25,7 @@ try:
     from kivy.core.window import Window
     from kivy.utils import platform
     from kivy.metrics import dp, sp
+    from kivy.animation import Animation
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -400,11 +401,20 @@ try:
             if self.cur_folder != IMG_DIR: self.cur_folder = os.path.dirname(self.cur_folder); self._load_imgs()
         def _sel_img(self, path):
             self.sel_img = path
-            if hasattr(self,'preview'): self.preview.source = path
             if hasattr(self,'img_lbl'): self.img_lbl.text = os.path.basename(path); self.img_lbl.color = GOLD
-            if self.auto_cast and self.cast.cc and self.cast.mc:
-                if hasattr(self,'img_lbl'): self.img_lbl.text = "Caster..."
-                self.cast.cast_img(self.server.url(path), cb=lambda ok: self._cdone(ok))
+            if not hasattr(self,'preview'): return
+            # Fade ut -> bytt bilde -> fade inn
+            Animation.cancel_all(self.preview, 'opacity')
+            fade_out = Animation(opacity=0, duration=0.3)
+            def _swap(*a):
+                self.preview.source = path
+                Animation(opacity=1, duration=0.4).start(self.preview)
+                # Cast etter bytte
+                if self.auto_cast and self.cast.cc and self.cast.mc:
+                    if hasattr(self,'img_lbl'): self.img_lbl.text = "Caster..."
+                    self.cast.cast_img(self.server.url(path), cb=lambda ok: self._cdone(ok))
+            fade_out.bind(on_complete=_swap)
+            fade_out.start(self.preview)
         def _cdone(self, ok):
             if hasattr(self,'img_lbl'): self.img_lbl.text = f"Castet!" if ok else "Feilet"
         def _toggle_ac(self):
