@@ -6,6 +6,7 @@ package.domain = org.rpg
 
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,ttf
+source.include_patterns = assets/*,fonts/*,images/*
 
 version = 0.1
 
