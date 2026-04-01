@@ -27,6 +27,7 @@ try:
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
     from kivy.graphics import Color, RoundedRectangle
+    from kivy.core.text import LabelBase
     log("Kivy imports OK")
 
     # --- KONFIGURASJON OG FARGER ---
@@ -34,9 +35,9 @@ try:
     FONT_DIR = os.path.join(BASE_DIR, "fonts")
     os.makedirs(FONT_DIR, exist_ok=True)
     
-    # Endre denne til navnet på din font-fil
+    # Registrer den tilpassede fonten
     FONT_PATH = os.path.join(FONT_DIR, "main.ttf")
-    DEFAULT_FONT = FONT_PATH if os.path.exists(FONT_PATH) else 'Roboto'
+    LabelBase.register(name="MainFont", fn_regular=FONT_PATH)
 
     BG      = [0.04, 0.04, 0.06, 1]
     BG_CARD = [0.08, 0.08, 0.12, 1]  # Lysere for karakterkort
@@ -74,16 +75,15 @@ try:
 
     def mkbtn(text, cb=None, accent=False, danger=False, small=False, **kw):
         c = GOLD if accent else (RED if danger else TXT)
-        # Bruker background_normal='' for å fjerne standard-gradienten til Kivy
         b = Button(text=text, background_normal='', background_color=BTN,
                    color=c, bold=True, font_size=sp(11) if small else sp(13),
-                   font_name=DEFAULT_FONT, **kw)
+                   font_name="MainFont", **kw)
         b.bind(pos=update_rect, size=update_rect)
         if cb: b.bind(on_release=lambda x: cb())
         return b
 
     def mklbl(text, color=TXT, size=12, bold=False, h=None, wrap=False):
-        kw = {'text':text, 'font_size':sp(size), 'color':color, 'bold':bold, 'font_name':DEFAULT_FONT}
+        kw = {'text':text, 'font_size':sp(size), 'color':color, 'bold':bold, 'font_name':"MainFont"}
         if h: kw['size_hint_y'] = None; kw['height'] = dp(h)
         l = Label(**kw)
         if wrap:
@@ -116,7 +116,7 @@ try:
             self.tab_holder = BoxLayout(size_hint_y=None, height=dp(48), spacing=dp(4), padding=[dp(4),0])
             for key, txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakterer'),('cast','Cast')]:
                 btn = ToggleButton(text=txt, group='tabs', state='down' if key=='img' else 'normal',
-                                  background_normal='', background_down='', font_name=DEFAULT_FONT)
+                                  background_normal='', background_down='', font_name="MainFont")
                 btn.bind(on_release=lambda x, k=key: self._tab(k))
                 self.tab_holder.add_widget(btn)
             root.add_widget(self.tab_holder)
@@ -126,7 +126,7 @@ try:
             root.add_widget(self.content)
 
             # Mini-status
-            self.status = Label(text="System klar", font_size=sp(10), color=DIM, size_hint_y=None, height=dp(20))
+            self.status = Label(text="System klar", font_size=sp(10), color=DIM, size_hint_y=None, height=dp(20), font_name="MainFont")
             root.add_widget(self.status)
 
             Clock.schedule_once(lambda dt: self._tab('img'), 0.1)
