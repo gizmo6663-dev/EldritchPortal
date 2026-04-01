@@ -29,10 +29,8 @@ try:
     from kivy.clock import Clock
     from kivy.core.window import Window
     from kivy.utils import platform
-    from kivy.graphics import Color, Rectangle, RoundedRectangle, Line, Ellipse, Triangle
-    from kivy.animation import Animation
+    from kivy.graphics import Color, Rectangle, Line, Ellipse
     from kivy.metrics import dp, sp
-    from kivy.properties import NumericProperty
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -100,124 +98,68 @@ try:
 
     # === WIDGETS ===
     class EldritchBG(Widget):
-        _time = NumericProperty(0)
         def __init__(self, **kw):
             super().__init__(**kw); self.bind(pos=self._draw, size=self._draw)
-            Clock.schedule_interval(self._tick, 1/15.0)
-        def _tick(self, dt): self._time += dt; self._draw()
         def _draw(self, *a):
-            self.canvas.clear(); w,h = self.size; x0,y0 = self.pos
-            if w<1 or h<1: return
-            t = self._time
+            self.canvas.clear()
             with self.canvas:
                 Color(*C_VOID); Rectangle(pos=self.pos, size=self.size)
-                for i in range(3):
-                    cx=x0+w*(0.2+i*0.3); cy=y0+h*(0.3+math.sin(t*0.3+i)*0.1)
-                    r=dp(40)+math.sin(t*0.5+i*2)*dp(15)
-                    Color(C_TENTACLE[0],C_TENTACLE[1],C_TENTACLE[2],0.03+math.sin(t*0.4+i)*0.015)
-                    Ellipse(pos=(cx-r,cy-r), size=(r*2,r*2))
-                for i in range(8):
-                    seed=i*137.5; px=x0+((seed+t*8)%w); py=y0+((seed*2.3+t*5)%h)
-                    Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.08+math.sin(t+seed)*0.04)
-                    Ellipse(pos=(px,py), size=(dp(1.5),dp(1.5)))
 
     class ElderSign(Widget):
-        _glow = NumericProperty(0.3)
         def __init__(self, **kw):
             super().__init__(**kw); self.size_hint=(None,None); self.size=(dp(30),dp(30))
-            self._anim(); self.bind(pos=self._draw, size=self._draw)
-        def _anim(self):
-            a=Animation(_glow=0.7,d=2)+Animation(_glow=0.3,d=2)
-            a.bind(on_progress=lambda *x:self._draw(), on_complete=lambda *x:self._anim()); a.start(self)
+            self.bind(pos=self._draw, size=self._draw)
         def _draw(self, *a):
             self.canvas.clear(); cx,cy=self.x+self.width/2,self.y+self.height/2; r=min(self.width,self.height)/2.5
             with self.canvas:
-                Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],self._glow*0.5); Line(circle=(cx,cy,r),width=dp(1))
-                Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],self._glow)
-                for j in range(5):
-                    a1,a2=math.radians(j*72-90),math.radians((j+2)*72-90)
-                    Line(points=[cx+r*0.9*math.cos(a1),cy+r*0.9*math.sin(a1),cx+r*0.9*math.cos(a2),cy+r*0.9*math.sin(a2)],width=dp(0.8))
-                Color(C_GOLD_BRIGHT[0],C_GOLD_BRIGHT[1],C_GOLD_BRIGHT[2],self._glow)
+                Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.5); Line(circle=(cx,cy,r),width=dp(1))
+                Color(C_GOLD_BRIGHT[0],C_GOLD_BRIGHT[1],C_GOLD_BRIGHT[2],0.5)
                 Ellipse(pos=(cx-dp(2),cy-dp(2)),size=(dp(4),dp(4)))
 
     class GoldDivider(Widget):
         def __init__(self, **kw):
-            super().__init__(**kw); self.size_hint_y=None; self.height=dp(12)
+            super().__init__(**kw); self.size_hint_y=None; self.height=dp(8)
             self.bind(pos=self._draw, size=self._draw); Clock.schedule_once(lambda dt:self._draw(),0)
         def _draw(self, *a):
-            self.canvas.clear(); w=self.width; cy=self.y+self.height/2; cx=self.x+w/2
+            self.canvas.clear(); cy=self.y+self.height/2
             with self.canvas:
-                Color(*C_GOLD_DIM,0.3); Rectangle(pos=(self.x+w*0.05,cy),size=(w*0.9,dp(1)))
-                Color(*C_GOLD,0.5); Rectangle(pos=(self.x+w*0.2,cy),size=(w*0.6,dp(1)))
-                Color(*C_GOLD,0.7); d=dp(4)
-                Triangle(points=[cx,cy+d,cx-d,cy,cx,cy-d]); Triangle(points=[cx,cy+d,cx+d,cy,cx,cy-d])
+                Color(*C_GOLD_DIM,0.4)
+                Line(points=[self.x+dp(10),cy,self.x+self.width-dp(10),cy],width=dp(0.5))
 
     class PulsingOrb(Widget):
-        _pulse = NumericProperty(0.3)
         def __init__(self, color=C_GOLD, **kw):
             super().__init__(**kw); self.size_hint=(None,None); self.size=(dp(14),dp(14))
-            self._color=color; self._active=False; self.bind(pos=self._draw, size=self._draw)
-        def start(self): self._active=True; self._go()
-        def stop(self): self._active=False; Animation.cancel_all(self,'_pulse'); self._pulse=0.2; self._draw()
-        def _go(self):
-            if not self._active: return
-            a=Animation(_pulse=1.0,d=1.2,t='in_out_sine')+Animation(_pulse=0.3,d=1.2,t='in_out_sine')
-            a.bind(on_progress=lambda *x:self._draw(), on_complete=lambda *x:self._go()); a.start(self)
+            self._color=color; self._on=False; self.bind(pos=self._draw, size=self._draw)
+        def start(self): self._on=True; self._draw()
+        def stop(self): self._on=False; self._draw()
         def _draw(self, *a):
             self.canvas.clear(); cx,cy=self.x+self.width/2,self.y+self.height/2
+            alpha=0.8 if self._on else 0.2
             with self.canvas:
-                Color(self._color[0],self._color[1],self._color[2],self._pulse*0.15)
-                Ellipse(pos=(cx-self.width,cy-self.height),size=(self.width*2,self.height*2))
-                Color(self._color[0],self._color[1],self._color[2],self._pulse*0.8)
+                Color(self._color[0],self._color[1],self._color[2],alpha)
                 r=self.width*0.3; Ellipse(pos=(cx-r,cy-r),size=(r*2,r*2))
 
     class ElButton(Button):
-        _ba = NumericProperty(0.25)
         def __init__(self, accent=False, danger=False, small=False, **kw):
-            super().__init__(**kw); self.background_normal=''; self.background_down=''; self.background_color=(0,0,0,0)
+            super().__init__(**kw); self.background_normal=''; self.background_down=''; self.background_color=C_SURFACE
             self._accent=accent; self._danger=danger
             self.color=C_GOLD if accent else ((0.8,0.3,0.3,1) if danger else C_TEXT)
             self.bold=True; self.font_size=sp(12) if small else sp(14)
-            self.bind(pos=self._draw, size=self._draw, state=self._on_state)
-            Clock.schedule_once(lambda dt:self._draw(),0)
-        def _on_state(self, *a):
-            Animation(_ba=0.8 if self.state=='down' else 0.25,d=0.15).start(self)
-            self.bind(_ba=lambda *x:self._draw())
-        def _draw(self, *a):
-            self.canvas.before.clear()
-            with self.canvas.before:
-                Color(*C_SURFACE); RoundedRectangle(pos=self.pos,size=self.size,radius=[dp(5)])
-                bc=C_GOLD if self._accent else (C_BLOOD if self._danger else C_GOLD_DIM)
-                Color(bc[0],bc[1],bc[2],self._ba)
-                Line(rounded_rectangle=(self.x,self.y,self.width,self.height,dp(5)),width=dp(0.8))
 
     class ElTab(ToggleButton):
-        _bw = NumericProperty(0)
         def __init__(self, **kw):
             super().__init__(**kw); self.background_normal=''; self.background_down=''; self.background_color=(0,0,0,0)
             self.color=C_TEXT_DIM; self.bold=True; self.font_size=sp(13)
-            self.bind(pos=self._draw, size=self._draw, state=self._on_state)
-            Clock.schedule_once(lambda dt:self._on_state(),0)
+            self.bind(state=self._on_state)
         def _on_state(self, *a):
-            if self.state=='down': self.color=C_GOLD; Animation(_bw=self.width*0.5,d=0.3,t='out_cubic').start(self)
-            else: self.color=C_TEXT_DIM; Animation(_bw=0,d=0.2).start(self)
-            self.bind(_bw=lambda *x:self._draw())
-        def _draw(self, *a):
-            self.canvas.after.clear()
-            if self._bw>1:
-                bx=self.x+(self.width-self._bw)/2
-                with self.canvas.after:
-                    Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.15)
-                    RoundedRectangle(pos=(bx-dp(4),self.y),size=(self._bw+dp(8),dp(6)),radius=[dp(3)])
-                    Color(*C_GOLD,0.85)
-                    RoundedRectangle(pos=(bx,self.y+dp(1)),size=(self._bw,dp(3)),radius=[dp(1.5)])
+            self.color=C_GOLD if self.state=='down' else C_TEXT_DIM
 
     def _frame(w, *a):
         w.canvas.before.clear()
         with w.canvas.before:
-            Color(*C_SURFACE); RoundedRectangle(pos=w.pos,size=w.size,radius=[dp(4)])
+            Color(*C_SURFACE); Rectangle(pos=w.pos,size=w.size)
             Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.2)
-            Line(rounded_rectangle=(w.x,w.y,w.width,w.height,dp(4)),width=dp(0.6))
+            Line(rectangle=(w.x,w.y,w.width,w.height),width=dp(0.6))
 
     class ImageCard(RelativeLayout):
         def __init__(self, image_path, on_tap=None, **kw):
@@ -225,7 +167,7 @@ try:
             self.image_path=image_path; self._on_tap=on_tap
             self.bind(pos=self._df, size=self._df)
             self.img=Image(source=image_path, allow_stretch=True, keep_ratio=True,
-                pos_hint={'center_x':0.5,'center_y':0.58}, size_hint=(0.85,0.68), mipmap=True, nocache=True)
+                pos_hint={'center_x':0.5,'center_y':0.58}, size_hint=(0.88,0.70), mipmap=True, nocache=True)
             self.add_widget(self.img)
             fn=os.path.basename(image_path); short=fn[:12]+".." if len(fn)>12 else fn
             self.add_widget(Label(text=short,font_size=sp(9),color=C_GOLD_DIM,pos_hint={'center_x':0.5,'y':0.0},size_hint=(1,0.15)))
@@ -233,13 +175,11 @@ try:
             btn.bind(on_release=lambda x:self._on_tap(self.image_path) if self._on_tap else None)
             self.add_widget(btn); Clock.schedule_once(lambda dt:self._df(),0)
         def _df(self, *a):
-            self.canvas.before.clear(); m=dp(4)
+            self.canvas.before.clear()
             with self.canvas.before:
-                Color(*C_ABYSS); RoundedRectangle(pos=self.pos,size=self.size,radius=[dp(3)])
-                Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.6)
-                Line(rounded_rectangle=(self.x+m,self.y+m,self.width-m*2,self.height-m*2,dp(2)),width=dp(1.2))
-                Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.25)
-                Line(rounded_rectangle=(self.x+m+dp(3),self.y+m+dp(3),self.width-m*2-dp(6),self.height-m*2-dp(6),dp(1)),width=dp(0.6))
+                Color(*C_ABYSS); Rectangle(pos=self.pos,size=self.size)
+                Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.5)
+                Line(rectangle=(self.x+dp(3),self.y+dp(3),self.width-dp(6),self.height-dp(6)),width=dp(1))
 
     class FolderCard(RelativeLayout):
         def __init__(self, folder_name, on_tap=None, **kw):
@@ -255,9 +195,9 @@ try:
         def _d(self, *a):
             self.canvas.before.clear()
             with self.canvas.before:
-                Color(*C_SURFACE); RoundedRectangle(pos=self.pos,size=self.size,radius=[dp(4)])
+                Color(*C_SURFACE); Rectangle(pos=self.pos,size=self.size)
                 Color(C_GOLD[0],C_GOLD[1],C_GOLD[2],0.3)
-                Line(rounded_rectangle=(self.x+dp(2),self.y+dp(2),self.width-dp(4),self.height-dp(4),dp(3)),width=dp(0.8))
+                Line(rectangle=(self.x+dp(2),self.y+dp(2),self.width-dp(4),self.height-dp(4)),width=dp(0.8))
 
     class MiniPlayer(BoxLayout):
         def __init__(self, app_ref, **kw):
@@ -275,7 +215,6 @@ try:
             self.canvas.before.clear()
             with self.canvas.before:
                 Color(*C_ABYSS); Rectangle(pos=self.pos,size=self.size)
-                Color(*C_GOLD_DIM,0.2); Line(points=[self.x,self.top,self.right,self.top],width=dp(0.5))
         def update(self, track_name=None, playing=False):
             if track_name: self.track_lbl.text=track_name; self.track_lbl.color=C_GOLD if playing else C_TEXT
             self.btn_play.text="Pause" if playing else "Play"
@@ -777,7 +716,7 @@ try:
                 self.ini_grid.add_widget(row)
         def _dir(self,w):
             w.canvas.before.clear()
-            with w.canvas.before: Color(*C_SURFACE,0.5); RoundedRectangle(pos=w.pos,size=w.size,radius=[dp(3)])
+            with w.canvas.before: Color(*C_SURFACE,0.5); Rectangle(pos=w.pos,size=w.size)
         def _rmc(self,i):
             if 0<=i<len(self.initiative_list): self.initiative_list.pop(i); self._rfi()
 
