@@ -1,19 +1,14 @@
+LabelBase:
 import os, sys, traceback, socket, threading, json, random
-
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
 from functools import partial
 
-
 LOG = "/sdcard/Documents/EldritchPortal/crash.log"
-
 os.makedirs(os.path.dirname(LOG), exist_ok=True)
-
 def log(msg):
     with open(LOG, "a") as f: f.write(msg + "\n")
-
 log("=== APP START (V2 - Optimized) ===")
-
 
 try:
     from kivy.app import App
