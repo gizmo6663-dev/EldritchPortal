@@ -4,10 +4,7 @@ package.name = eldritchportal
 package.domain = org.rpg
 
 source.dir = .
-source.include_exts = py,png,jpg,kv,atlas,ttf
-
-android.assets_dirs = fonts
-android.p4a_whitelist = fonts/**
+source.include_exts = py,png,jpg,kv,atlas
 
 version = 0.1
 
