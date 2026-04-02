@@ -1,4 +1,3 @@
-LabelBase:
 import os, sys, traceback, socket, threading, json, random
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 
