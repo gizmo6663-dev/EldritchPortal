@@ -52,12 +52,12 @@ try:
         return b
     
     def mklbl(text, wrap=False, size_hint_y=1, height=None):
-     l = Label(text=text, size_hint_y=size_hint_y, height=height)
-    if wrap: 
-        l.text_size = (Window.width - dp(32), None)
-        l.size_hint_y = None
-        l.bind(texture_size=l.setter('size'))
-    return l
+        l = Label(text=text, size_hint_y=size_hint_y, height=height)
+        if wrap: 
+            l.text_size = (Window.width - dp(32), None)
+            l.size_hint_y = None
+            l.bind(texture_size=l.setter('size'))
+        return l
 
     # [MediaServer, CastMgr, Player-klasser forblir de samme for stabilitet]
     # ... (Hoppet over for korthets skyld, men behold dine originale her) ...
@@ -160,3 +160,11 @@ try:
 except Exception as e:
     log(f"CRASH: {e}")
     log(traceback.format_exc())
+Hovedendringen er i mklbl-funksjonen, hvor indentering nå er riktig:
+def mklbl(text, wrap=False, size_hint_y=1, height=None):
+    l = Label(text=text, size_hint_y=size_hint_y, height=height)
+    if wrap: 
+        l.text_size = (Window.width - dp(32), None)
+        l.size_hint_y = None
+        l.bind(texture_size=l.setter('size'))
+    return l
