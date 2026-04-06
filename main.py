@@ -162,27 +162,24 @@ try:
             pass
 
     def mkbtn(text, cb=None, accent=False, danger=False, small=False, **kw):
-    c = GOLD if accent else (RED if danger else TXT)
-    kw['font_size'] = sp(11) if small else sp(13)
-    kw['background_color'] = BTN
-    kw['color'] = c
-    kw['bold'] = True
-    kw['background_normal'] = ''
-    b = Button(text=text, **kw)
-    # Tegn avrundet bakgrunn med én gang
-    b.bind(pos=update_rect, size=update_rect)
-    # Tving første tegning ved å kalle update_rect manuelt
-    Clock.schedule_once(lambda dt: update_rect(b, None), 0)
-    if cb:
-        b.bind(on_release=lambda x: cb())
-    return b
+        c = GOLD if accent else (RED if danger else TXT)
+        kw['font_size'] = sp(11) if small else sp(13)
+        kw['background_color'] = BTN
+        kw['color'] = c
+        kw['bold'] = True
+        kw['background_normal'] = ''
+        b = Button(text=text, **kw)
+        b.bind(pos=update_rect, size=update_rect)
+        if cb:
+            b.bind(on_release=lambda x: cb())
+        return b
 
     def update_rect(instance, value):
-    instance.canvas.before.clear()
-    with instance.canvas.before:
-        Color(rgba=instance.background_color)
-        RoundedRectangle(pos=instance.pos, size=instance.size, radius=[dp(8)])
-        
+        instance.canvas.before.clear()
+        with instance.canvas.before:
+            Color(rgba=instance.background_color)
+            RoundedRectangle(pos=instance.pos, size=instance.size, radius=[dp(8)])
+
     def mklbl(text, color=TXT, size=12, bold=False, h=None, wrap=False):
         kw = {'text': text, 'font_size': sp(size), 'color': color, 'bold': bold}
         if h:
