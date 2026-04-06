@@ -26,6 +26,7 @@ try:
     from kivy.utils import platform
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
+    from kivy.graphics import Color, RoundedRectangle
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -140,11 +141,22 @@ try:
         except: pass
 
     def mkbtn(text, cb=None, accent=False, danger=False, small=False, **kw):
-        c = GOLD if accent else (RED if danger else TXT)
-        b = Button(text=text, background_normal='', background_color=BTN,
-                   color=c, bold=True, font_size=sp(11) if small else sp(13), **kw)
-        if cb: b.bind(on_release=lambda x: cb())
-        return b
+    c = GOLD if accent else (RED if danger else TXT)
+    kw['font_size'] = sp(11) if small else sp(13)
+    kw['background_color'] = BTN
+    kw['color'] = c
+    kw['bold'] = True
+    kw['background_normal'] = ''
+    b = Button(text=text, **kw)
+    b.bind(pos=update_rect, size=update_rect)
+    if cb: b.bind(on_release=lambda x: cb())
+    return b
+
+    def update_rect(instance, value):
+    instance.canvas.before.clear()
+    with instance.canvas.before:
+        Color(rgba=instance.background_color)
+        RoundedRectangle(pos=instance.pos, size=instance.size, radius=[dp(8)])
 
     def mklbl(text, color=TXT, size=12, bold=False, h=None, wrap=False):
         kw = {'text':text, 'font_size':sp(size), 'color':color, 'bold':bold}
@@ -299,15 +311,19 @@ try:
             root.add_widget(Widget(size_hint_y=None, height=dp(30)))
             # Faner
             tabs = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(2), padding=[dp(4),0])
-            self._tabs = {}
-            for key,txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakterer'),('cast','Cast')]:
-                b = ToggleButton(text=txt, group='tabs', state='down' if key=='img' else 'normal',
-                    background_normal='', background_down='', font_size=sp(12), bold=True)
-                b.bind(state=self._tab_color)
-                b.bind(on_release=lambda x,k=key: self._tab(k))
-                self._tab_color(b, b.state)
-                tabs.add_widget(b); self._tabs[key] = b
-            root.add_widget(tabs)
+    tabs.canvas.before.clear()
+    with tabs.canvas.before:
+        Color(rgba=BTN)
+        RoundedRectangle(pos=tabs.pos, size=tabs.size, radius=[dp(8)])
+    self._tabs = {}
+    for key,txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakterer'),('cast','Cast')]:
+    b = ToggleButton(text=txt, group='tabs', state='down' if key=='img' else 'normal',
+        background_normal='', background_down='', font_size=sp(12), bold=True)
+    b.bind(state=self._tab_color)
+    b.bind(on_release=lambda x,k=key: self._tab(k))
+    self._tab_color(b, b.state)
+    tabs.add_widget(b); self._tabs[key] = b
+root.add_widget(tabs)
             # Innhold
             self.content = BoxLayout(); root.add_widget(self.content)
             # Mini-player
@@ -340,9 +356,11 @@ try:
             self.status.text = f"IP: {MediaServer.ip()}  |  Cast: {'Ja' if CAST_AVAILABLE else 'Nei'}"
 
         def _tab(self, k):
-            self.content.clear_widgets()
-            mk = {'img':self._mk_img,'mus':self._mk_mus,'amb':self._mk_amb,'cast':self._mk_cast,'tool':self._mk_tool}
-            if k in mk: self.content.add_widget(mk[k]())
+            self.content = BoxLayout(padding=[dp(8),dp(4),dp(8),dp(4)])
+self.content.canvas.before.clear()
+with self.content.canvas.before:
+    Color(rgba=BG2)
+    RoundedRectangle(pos=self.content.pos, size=self.content.size, radius=[dp(8)])
 
         # ============================================================
         # BILDER
@@ -445,16 +463,21 @@ try:
             self._load_tracks(); return p
 
         def _load_tracks(self):
-            if not hasattr(self,'trk_grid'): return
-            self.trk_grid.clear_widgets(); self.tracks = []
-            try:
-                if not os.path.exists(MUSIC_DIR): return
-                fl = sorted([f for f in os.listdir(MUSIC_DIR) if f.lower().endswith(('.mp3','.ogg','.wav','.flac'))])
-                if hasattr(self,'trk_lbl'): self.trk_lbl.text = f"{len(fl)} spor"
-                for i,fn in enumerate(fl):
-                    self.tracks.append(os.path.join(MUSIC_DIR,fn))
-                    self.trk_grid.add_widget(mkbtn(fn, lambda idx=i: self.play_track(idx), small=True, size_hint_y=None, height=dp(38)))
-            except Exception as e: log(f"load_tracks: {e}")
+    if not hasattr(self,'trk_grid'): return
+    self.trk_grid.clear_widgets(); self.tracks = []
+    try:
+        if not os.path.exists(MUSIC_DIR): return
+        fl = sorted([f for f in os.listdir(MUSIC_DIR) if f.lower().endswith(('.mp3','.ogg','.wav','.flac'))])
+        if hasattr(self,'trk_lbl'): self.trk_lbl.text = f"{len(fl)} spor"
+        for i,fn in enumerate(fl):
+            self.tracks.append(os.path.join(MUSIC_DIR,fn))
+            btn = mkbtn(fn, lambda idx=i: self.play_track(idx), small=True, size_hint_y=None, height=dp(38))
+            btn.canvas.before.clear()
+            with btn.canvas.before:
+                Color(rgba=BTN)
+                RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(6)])
+            self.trk_grid.add_widget(btn)
+    except Exception as e: log(f"load_tracks: {e}")
         def play_track(self, idx):
             if idx<0 or idx>=len(self.tracks): return
             self.ct=idx; self.player.play(self.tracks[idx]); n=os.path.basename(self.tracks[idx])
@@ -477,11 +500,12 @@ try:
         # AMBIENT
         # ============================================================
         def _mk_amb(self):
-            p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(4))
-            p.add_widget(mklbl("Stemningslyder", color=GOLD, size=15, bold=True, h=28))
-            scroll = ScrollView(size_hint_y=0.6)
-            g = GridLayout(cols=1, spacing=dp(3), padding=dp(4), size_hint_y=None)
-            g.bind(minimum_height=g.setter('height'))
+            btn = mkbtn(snd['name'], lambda u=snd['url'],n=snd['name']: self._pa(u,n), small=True, size_hint_y=None, height=dp(36))
+            btn.canvas.before.clear()
+            with btn.canvas.before:
+                Color(rgba=BTN)
+                RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(6)])
+            g.add_widget(btn)
             for snd in AMBIENT_SOUNDS:
                 if 'url' not in snd:
                     g.add_widget(mklbl(snd['name'], color=GDIM, size=11, bold=True, h=22))
