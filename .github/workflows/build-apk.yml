@@ -4,6 +4,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      clean_build:
+        description: 'Tving clean build (slett .buildozer)'
+        required: true
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 jobs:
   build:
@@ -11,16 +20,35 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Checkout kode
+      - name: Sjekk ut kode
         uses: actions/checkout@v4
 
-      - name: Bygg APK med Kivy Docker
+      - name: Sett opp Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Installer buildozer og dependencies
         run: |
-          docker run \
-            -v "$PWD":/home/user/hostcwd \
-            -v "$HOME/.buildozer":/home/user/.buildozer \
-            kivy/buildozer \
-            android debug
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libtinfo5 cmake libffi-dev libssl-dev
+          pip3 install --upgrade buildozer cython
+
+      - name: Cache buildozer-mappen
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildozer
+          key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build == 'true' && 'clean' || 'normal' }}
+          restore-keys: |
+            ${{ runner.os }}-buildozer-
+
+      - name: Bygg APK (clean hvis valgt)
+        run: |
+          if [[ "${{ github.event.inputs.clean_build }}" == "true" ]]; then
+            echo "🧹 Tvinger clean build – sletter .buildozer"
+            rm -rf ~/.buildozer
+          fi
+          buildozer android debug
 
       - name: Last opp APK
         uses: actions/upload-artifact@v4
@@ -28,4 +56,3 @@ jobs:
           name: eldritch-portal-apk
           path: bin/*.apk
           retention-days: 30
-
