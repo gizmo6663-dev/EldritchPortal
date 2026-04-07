@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04   # viktig: 20.04 har eldre autoconf som fungerer
+    runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
@@ -28,10 +28,20 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Installer systemavhengigheter
+      - name: Installer systemavhengigheter (og fiks autoconf)
         run: |
           sudo apt update
           sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+          # Fjern den nye autoconf og installer den stabile 2.69
+          sudo apt remove -y autoconf
+          cd /tmp
+          wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+          tar xvf autoconf-2.69.tar.gz
+          cd autoconf-2.69
+          ./configure --prefix=/usr
+          make
+          sudo make install
+          cd /
 
       - name: Installer buildozer og cython
         run: |
