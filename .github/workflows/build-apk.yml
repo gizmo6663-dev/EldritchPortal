@@ -1,4 +1,4 @@
-name: Build APK (Docker 2.0.0)
+name: Build APK (native med autoconf fix)
 
 on:
   push:
@@ -16,32 +16,62 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     timeout-minutes: 90
 
     steps:
       - name: Sjekk ut kode
         uses: actions/checkout@v4
 
+      - name: Sett opp Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: Installer systemavhengigheter (unntatt autoconf/automake)
+        run: |
+          sudo apt update
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+
+      - name: Installer autoconf 2.69 og automake 1.16.5 fra kilde
+        run: |
+          # Fjern evt. gamle versjoner
+          sudo apt remove -y autoconf automake || true
+          cd /tmp
+          wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+          tar xzf autoconf-2.69.tar.gz
+          cd autoconf-2.69
+          ./configure --prefix=/usr
+          make -j$(nproc)
+          sudo make install
+          cd /tmp
+          wget https://ftp.gnu.org/gnu/automake/automake-1.16.5.tar.gz
+          tar xzf automake-1.16.5.tar.gz
+          cd automake-1.16.5
+          ./configure --prefix=/usr
+          make -j$(nproc)
+          sudo make install
+          cd /
+
+      - name: Installer buildozer og cython
+        run: |
+          pip3 install --upgrade buildozer cython
+
       - name: Cache .buildozer
         uses: actions/cache@v4
         with:
           path: ~/.buildozer
-          key: ${{ runner.os }}-buildozer-docker-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build }}
+          key: ${{ runner.os }}-buildozer-native-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build }}
           restore-keys: |
-            ${{ runner.os }}-buildozer-docker-
+            ${{ runner.os }}-buildozer-native-
 
-      - name: Bygg APK med Docker (2.0.0)
+      - name: Bygg APK
         run: |
           if [[ "${{ github.event.inputs.clean_build }}" == "true" ]]; then
             echo "🧹 Sletter .buildozer-mappe for clean build"
             rm -rf ~/.buildozer
           fi
-          docker run --rm \
-            -v "$PWD":/home/user/hostcwd \
-            -v "$HOME/.buildozer":/home/user/.buildozer \
-            kivy/buildozer:2.0.0 \
-            bash -c "yes | buildozer android debug"
+          yes | buildozer android debug
 
       - name: Last opp APK
         uses: actions/upload-artifact@v4
