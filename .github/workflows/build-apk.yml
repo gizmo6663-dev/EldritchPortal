@@ -1,4 +1,4 @@
-name: Build APK (native med autoconf fix)
+name: Build APK (ubuntu-latest med libtool fix)
 
 on:
   push:
@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     timeout-minutes: 90
 
     steps:
@@ -28,26 +28,16 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Installer systemavhengigheter (unntatt autoconf/automake)
+      - name: Installer systemavhengigheter og bytt ut libtool
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
-
-      - name: Installer autoconf 2.69 og automake 1.16.5 fra kilde
-        run: |
-          # Fjern evt. gamle versjoner
-          sudo apt remove -y autoconf automake || true
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
+          # Fjern den nye libtool (2.4.7) og installer 2.4.6 fra kilde
+          sudo apt remove -y libtool
           cd /tmp
-          wget https://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
-          tar xzf autoconf-2.69.tar.gz
-          cd autoconf-2.69
-          ./configure --prefix=/usr
-          make -j$(nproc)
-          sudo make install
-          cd /tmp
-          wget https://ftp.gnu.org/gnu/automake/automake-1.16.5.tar.gz
-          tar xzf automake-1.16.5.tar.gz
-          cd automake-1.16.5
+          wget https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.gz
+          tar xzf libtool-2.4.6.tar.gz
+          cd libtool-2.4.6
           ./configure --prefix=/usr
           make -j$(nproc)
           sudo make install
@@ -61,9 +51,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.buildozer
-          key: ${{ runner.os }}-buildozer-native-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build }}
+          key: ${{ runner.os }}-buildozer-latest-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build }}
           restore-keys: |
-            ${{ runner.os }}-buildozer-native-
+            ${{ runner.os }}-buildozer-latest-
 
       - name: Bygg APK
         run: |
