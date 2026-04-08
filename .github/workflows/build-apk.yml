@@ -1,4 +1,4 @@
-name: Build APK (ubuntu-latest med libtool fix)
+name: Build APK (uten jnius)
 
 on:
   push:
@@ -28,11 +28,10 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Installer systemavhengigheter og bytt ut libtool
+      - name: Installer systemavhengigheter og libtool 2.4.6
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf automake libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
-          # Fjern den nye libtool (2.4.7) og installer 2.4.6 fra kilde
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf automake pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev cmake libffi-dev libssl-dev
           sudo apt remove -y libtool
           cd /tmp
           wget https://ftp.gnu.org/gnu/libtool/libtool-2.4.6.tar.gz
@@ -51,9 +50,9 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.buildozer
-          key: ${{ runner.os }}-buildozer-latest-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build }}
+          key: ${{ runner.os }}-buildozer-nojnius-${{ hashFiles('buildozer.spec') }}-${{ github.event.inputs.clean_build }}
           restore-keys: |
-            ${{ runner.os }}-buildozer-latest-
+            ${{ runner.os }}-buildozer-nojnius-
 
       - name: Bygg APK
         run: |
