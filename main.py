@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (ROUNDED CORNERS FIX) ===")
+log("=== APP START (KV Builder) ===")
 
 try:
     from kivy.app import App
@@ -27,7 +27,8 @@ try:
     from kivy.utils import platform
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
-    from kivy.graphics import Color, RoundedRectangle
+    from kivy.properties import ListProperty, NumericProperty
+    from kivy.lang import Builder
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -47,8 +48,8 @@ try:
         except:
             pass
 
-    BASE_DIR = "/sdcard/Documents/EldritchPortal"
-    IMG_DIR = os.path.join(BASE_DIR, "images")
+    BASE_DIR  = "/sdcard/Documents/EldritchPortal"
+    IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
     for d in [IMG_DIR, MUSIC_DIR]:
@@ -66,8 +67,66 @@ try:
     RED  = [0.75, 0.28, 0.28, 1]
     GRN  = [0.28, 0.68, 0.38, 1]
     BLUE = [0.28, 0.48, 0.75, 1]
-    IMG_EXT = ('.png','.jpg','.jpeg','.webp')
+    IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
+
+    # ============================================================
+    # KV REGLER
+    # Avrundede hjørner definert i KV-språket.
+    # KV binder pos/size/bg_color automatisk.
+    # Null canvas.before.clear(), null manuell binding.
+    # ============================================================
+    Builder.load_string('''
+<RBtn>:
+    background_normal: ''
+    background_down: ''
+    background_color: 0, 0, 0, 0
+    bold: True
+    canvas.before:
+        Color:
+            rgba: self.bg_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+
+<RToggle>:
+    background_normal: ''
+    background_down: ''
+    background_color: 0, 0, 0, 0
+    bold: True
+    canvas.before:
+        Color:
+            rgba: self.bg_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+
+<RBox>:
+    canvas.before:
+        Color:
+            rgba: self.bg_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+''')
+
+    class RBtn(Button):
+        """Knapp med avrundede hjørner. KV håndterer all tegning."""
+        bg_color = ListProperty(BTN)
+        radius = NumericProperty(dp(14))
+
+    class RToggle(ToggleButton):
+        """Faneknapp med avrundede hjørner."""
+        bg_color = ListProperty(BTN)
+        radius = NumericProperty(dp(14))
+
+    class RBox(BoxLayout):
+        """BoxLayout med avrundet bakgrunn."""
+        bg_color = ListProperty(BG2)
+        radius = NumericProperty(dp(20))
 
     # === LYDKILDER ===
     AMBIENT_SOUNDS = [
@@ -105,7 +164,6 @@ try:
         ("weapons","Vaapen"), ("talents","Pulp Talents"),
         ("backstory","Bakgrunn"), ("notes","Notater"),
     ]
-
     SKILLS = [
         ("Accounting","05"), ("Appraise","05"), ("Archaeology","01"),
         ("Art/Craft:","05"), ("Art/Craft 2:","05"),
@@ -163,41 +221,12 @@ try:
         except:
             pass
 
-    # ==========================================================
-    # AVRUNDEDE HJØRNER – SIKKER METODE
-    # Lagrer referanser til Color/RoundedRectangle og oppdaterer
-    # pos/size direkte. INGEN canvas.before.clear() noe sted.
-    # ==========================================================
-
-    def add_rounded_bg(widget, bg_color, radius=14):
-        """Legg til avrundet bakgrunn på en widget. Returnerer (color_instr, rect_instr)."""
-        with widget.canvas.before:
-            ci = Color(rgba=bg_color)
-            ri = RoundedRectangle(pos=widget.pos, size=widget.size, radius=[dp(radius)])
-        def _upd(*a):
-            ri.pos = widget.pos
-            ri.size = widget.size
-        widget.bind(pos=_upd, size=_upd)
-        widget._bg_ci = ci
-        widget._bg_ri = ri
-        return ci, ri
-
-    def set_rounded_bg_color(widget, color):
-        """Oppdater bakgrunnsfargen uten å cleare canvas."""
-        if hasattr(widget, '_bg_ci'):
-            widget._bg_ci.rgba = color
+    # === HJELPEFUNKSJONER ===
 
     def mkbtn(text, cb=None, accent=False, danger=False, small=False, **kw):
         c = GOLD if accent else (RED if danger else TXT)
-        kw['font_size'] = sp(11) if small else sp(13)
-        # KRITISK: Sett background_color til transparent slik at
-        # Kivy's innebygde rektangel ikke tegnes oppå vår RoundedRectangle
-        kw['background_color'] = [0, 0, 0, 0]
-        kw['color'] = c
-        kw['bold'] = True
-        kw['background_normal'] = ''
-        b = Button(text=text, **kw)
-        add_rounded_bg(b, BTN, radius=14)
+        b = RBtn(text=text, color=c, bg_color=BTN,
+                 font_size=sp(11) if small else sp(13), **kw)
         if cb:
             b.bind(on_release=lambda x: cb())
         return b
@@ -217,6 +246,15 @@ try:
 
     def mksep(h=6):
         return Widget(size_hint_y=None, height=dp(h))
+
+    def mkvol(callback, value=0.7):
+        """Volumkontroll-rad. Gjenbrukes i musikk- og ambient-faner."""
+        vr = BoxLayout(size_hint_y=None, height=dp(32), padding=[dp(10), 0])
+        vr.add_widget(Label(text="Vol", color=DIM, size_hint_x=0.08, font_size=sp(10)))
+        sl = Slider(min=0, max=1, value=value, size_hint_x=0.92)
+        sl.bind(value=lambda s, v: callback(v))
+        vr.add_widget(sl)
+        return vr
 
     # === SERVER / CAST / PLAYERS ===
     class QuietHandler(SimpleHTTPRequestHandler):
@@ -313,6 +351,7 @@ try:
             self.mc = None
 
     class APlayer:
+        """Musikk via Android MediaPlayer (jnius)."""
         def __init__(self):
             self.mp = None
             self.is_playing = False
@@ -362,6 +401,7 @@ try:
                     pass
 
     class SPlayer:
+        """Ambient streaming via Android MediaPlayer."""
         def __init__(self):
             self.mp = None
             self.is_playing = False
@@ -382,10 +422,8 @@ try:
                 except Exception as e:
                     log(f"Stream err: {e}")
                     if self.mp:
-                        try:
-                            self.mp.release()
-                        except:
-                            pass
+                        try: self.mp.release()
+                        except: pass
                         self.mp = None
                     self.is_playing = False
             threading.Thread(target=_s, daemon=True).start()
@@ -409,6 +447,7 @@ try:
                     pass
 
     class FPlayer:
+        """Fallback for desktop-testing (SoundLoader)."""
         def __init__(self):
             from kivy.core.audio import SoundLoader
             self.SL = SoundLoader
@@ -424,10 +463,8 @@ try:
                 self.is_playing = True
         def stop(self):
             if self.snd:
-                try:
-                    self.snd.stop()
-                except:
-                    pass
+                try: self.snd.stop()
+                except: pass
                 self.snd = None
             self.is_playing = False
         def pause(self):
@@ -446,7 +483,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD – ROUNDED CORNERS (ingen clear) ===")
+            log("=== BUILD (KV Builder) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
@@ -464,18 +501,17 @@ try:
             root = BoxLayout(orientation='vertical', spacing=0)
             root.add_widget(Widget(size_hint_y=None, height=dp(30)))
 
-            # FANEOMRÅDE – avrundet bakgrunn via referanser (ingen clear)
-            tabs = BoxLayout(size_hint_y=None, height=dp(52), spacing=dp(4), padding=[dp(8),0])
-            add_rounded_bg(tabs, BTN, radius=20)
+            # FANER
+            tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
+                        padding=[dp(8), 0], bg_color=BTN)
             self._tabs = {}
             for key, txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakterer'),('cast','Cast')]:
-                b = ToggleButton(text=txt, group='tabs', state='down' if key=='img' else 'normal',
-                                 background_normal='', background_down='',
-                                 background_color=[0, 0, 0, 0],  # transparent!
-                                 font_size=sp(13), bold=True)
-                # Avrundet bakgrunn for faner
-                add_rounded_bg(b, BTNH if key == 'img' else BTN, radius=14)
-                b.color = GOLD if key == 'img' else DIM
+                active = key == 'img'
+                b = RToggle(text=txt, group='tabs',
+                            state='down' if active else 'normal',
+                            bg_color=BTNH if active else BTN,
+                            color=GOLD if active else DIM,
+                            font_size=sp(13))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
                 tabs.add_widget(b)
@@ -483,39 +519,41 @@ try:
             root.add_widget(tabs)
 
             # HOVEDINNHOLD
-            self.content = BoxLayout()
-            add_rounded_bg(self.content, BG2, radius=20)
+            self.content = RBox(bg_color=BG2)
             root.add_widget(self.content)
 
             # MINI-PLAYER
-            mp = BoxLayout(size_hint_y=None, height=dp(48), spacing=dp(6), padding=[dp(10),dp(4)])
-            add_rounded_bg(mp, BTN, radius=20)
+            mp = RBox(size_hint_y=None, height=dp(48), spacing=dp(6),
+                      padding=[dp(10), dp(4)], bg_color=BTN)
             mp.add_widget(Widget(size_hint_x=None, width=dp(4)))
-            self.mp_lbl = Label(text="Ingen musikk", font_size=sp(11), color=DIM, size_hint_x=0.45, halign='left')
+            self.mp_lbl = Label(text="Ingen musikk", font_size=sp(11),
+                                color=DIM, size_hint_x=0.45, halign='left')
             self.mp_lbl.bind(size=self.mp_lbl.setter('text_size'))
             mp.add_widget(self.mp_lbl)
             for t, cb in [("<<", self.prev_track), (">>", self.next_track)]:
                 mp.add_widget(mkbtn(t, cb, small=True, size_hint_x=None, width=dp(44)))
-            self.mp_btn = mkbtn("Play", self.toggle_play, accent=True, small=True, size_hint_x=None, width=dp(60))
+            self.mp_btn = mkbtn("Play", self.toggle_play, accent=True,
+                                small=True, size_hint_x=None, width=dp(60))
             mp.add_widget(self.mp_btn)
             root.add_widget(mp)
 
-            self.status = Label(text="", font_size=sp(10), color=DIM, size_hint_y=None, height=dp(20))
+            self.status = Label(text="", font_size=sp(10), color=DIM,
+                                size_hint_y=None, height=dp(20))
             root.add_widget(self.status)
 
             self._tab('img')
-            log("UI built – rounded corners via stored refs")
+            log("UI built OK")
             Clock.schedule_once(lambda dt: request_android_permissions(), 0.5)
             Clock.schedule_once(lambda dt: self._init(), 3)
             return root
 
         def _tab_color(self, btn, state):
-            """Oppdater fane-farge uten canvas.before.clear()"""
+            """KV reagerer automatisk på bg_color-endring."""
             if state == 'down':
-                set_rounded_bg_color(btn, BTNH)
+                btn.bg_color = BTNH
                 btn.color = GOLD
             else:
-                set_rounded_bg_color(btn, BTN)
+                btn.bg_color = BTN
                 btn.color = DIM
 
         def _init(self):
@@ -526,16 +564,13 @@ try:
 
         def _tab(self, k):
             self.content.clear_widgets()
-            if k == 'img':
-                self.content.add_widget(self._mk_img())
-            elif k == 'mus':
-                self.content.add_widget(self._mk_mus())
-            elif k == 'amb':
-                self.content.add_widget(self._mk_amb())
-            elif k == 'tool':
-                self.content.add_widget(self._mk_tool())
-            elif k == 'cast':
-                self.content.add_widget(self._mk_cast())
+            builders = {
+                'img': self._mk_img, 'mus': self._mk_mus,
+                'amb': self._mk_amb, 'tool': self._mk_tool,
+                'cast': self._mk_cast,
+            }
+            if k in builders:
+                self.content.add_widget(builders[k]())
 
         # ---------- BILDER ----------
         def _mk_img(self):
@@ -544,11 +579,12 @@ try:
             if self.sel_img:
                 self.preview.source = self.sel_img
             p.add_widget(self.preview)
-            p.add_widget(Label(text="ELDRITCH PORTAL", font_size=sp(18), color=GDIM, bold=True,
-                               size_hint_y=None, height=dp(28)))
-            self.img_lbl = Label(text="", font_size=sp(12), color=DIM, size_hint_y=None, height=dp(20))
+            p.add_widget(Label(text="ELDRITCH PORTAL", font_size=sp(18), color=GDIM,
+                               bold=True, size_hint_y=None, height=dp(28)))
+            self.img_lbl = Label(text="", font_size=sp(12), color=DIM,
+                                 size_hint_y=None, height=dp(20))
             p.add_widget(self.img_lbl)
-            nav = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6), padding=[dp(6),0])
+            nav = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6), padding=[dp(6), 0])
             self.path_lbl = Label(text="", font_size=sp(10), color=DIM, size_hint_x=0.35)
             nav.add_widget(self.path_lbl)
             nav.add_widget(mkbtn("Opp", self.folder_up, small=True, size_hint_x=0.2))
@@ -570,18 +606,18 @@ try:
             self.img_grid.clear_widgets()
             f = self.cur_folder
             rel = os.path.relpath(f, IMG_DIR) if f != IMG_DIR else ""
-            if hasattr(self, 'path_lbl'):
-                self.path_lbl.text = f"/{rel}" if rel else "/"
+            self.path_lbl.text = f"/{rel}" if rel else "/"
             try:
                 if not os.path.exists(f):
                     return
                 items = sorted(os.listdir(f))
                 dirs = [d for d in items if os.path.isdir(os.path.join(f, d)) and not d.startswith('.')]
                 imgs = [x for x in items if x.lower().endswith(IMG_EXT)]
-                if hasattr(self, 'img_lbl'):
-                    self.img_lbl.text = f"{len(dirs)} mapper, {len(imgs)} bilder"
+                self.img_lbl.text = f"{len(dirs)} mapper, {len(imgs)} bilder"
                 for d in dirs:
-                    self.img_grid.add_widget(mkbtn(f"[{d}]", lambda dn=d: self._enter(dn), accent=True, small=True, size_hint_y=None, height=dp(70)))
+                    self.img_grid.add_widget(
+                        mkbtn(f"[{d}]", lambda dn=d: self._enter(dn),
+                              accent=True, small=True, size_hint_y=None, height=dp(70)))
                 for fn in imgs:
                     path = os.path.join(f, fn)
                     img = Image(source=path, allow_stretch=True, keep_ratio=True,
@@ -609,36 +645,30 @@ try:
 
         def _sel_img(self, path):
             self.sel_img = path
-            if hasattr(self, 'img_lbl'):
-                self.img_lbl.text = os.path.basename(path)
-                self.img_lbl.color = GOLD
-            if not hasattr(self, 'preview'):
-                return
+            self.img_lbl.text = os.path.basename(path)
+            self.img_lbl.color = GOLD
             Animation.cancel_all(self.preview, 'opacity')
             fade_out = Animation(opacity=0, duration=0.3)
             def _swap(*a):
                 self.preview.source = path
                 Animation(opacity=1, duration=0.4).start(self.preview)
-                if self.auto_cast and self.cast.cc and self.cast.mc:
-                    if hasattr(self, 'img_lbl'):
-                        self.img_lbl.text = "Caster..."
-                    self.cast.cast_img(self.server.url(path), cb=lambda ok: self._cdone(ok))
+                if self.auto_cast and self.cast.mc:
+                    self.img_lbl.text = "Caster..."
+                    self.cast.cast_img(self.server.url(path),
+                                       cb=lambda ok: setattr(self.img_lbl, 'text',
+                                                             "Castet!" if ok else "Feilet"))
             fade_out.bind(on_complete=_swap)
             fade_out.start(self.preview)
 
-        def _cdone(self, ok):
-            if hasattr(self, 'img_lbl'):
-                self.img_lbl.text = "Castet!" if ok else "Feilet"
-
         def _toggle_ac(self):
             self.auto_cast = not self.auto_cast
-            if hasattr(self, 'ac_btn'):
-                self.ac_btn.text = f"AC:{'PA' if self.auto_cast else 'AV'}"
+            self.ac_btn.text = f"AC:{'PA' if self.auto_cast else 'AV'}"
 
         # ---------- MUSIKK ----------
         def _mk_mus(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-            self.trk_lbl = Label(text="Velg et spor", font_size=sp(14), color=DIM, size_hint_y=None, height=dp(34), bold=True)
+            self.trk_lbl = Label(text="Velg et spor", font_size=sp(14), color=DIM,
+                                 size_hint_y=None, height=dp(34), bold=True)
             p.add_widget(self.trk_lbl)
             ctrl = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
             ctrl.add_widget(mkbtn("<<", self.prev_track, small=True))
@@ -646,12 +676,7 @@ try:
             ctrl.add_widget(mkbtn(">>", self.next_track, small=True))
             ctrl.add_widget(mkbtn("Stopp", self.stop_music, danger=True, small=True))
             p.add_widget(ctrl)
-            vr = BoxLayout(size_hint_y=None, height=dp(32), padding=[dp(10),0])
-            vr.add_widget(Label(text="Vol", color=DIM, size_hint_x=0.08, font_size=sp(10)))
-            sl = Slider(min=0, max=1, value=0.7, size_hint_x=0.92)
-            sl.bind(value=lambda s, v: self.player.vol(v))
-            vr.add_widget(sl)
-            p.add_widget(vr)
+            p.add_widget(mkvol(self.player.vol, 0.7))
             scroll = ScrollView()
             self.trk_grid = GridLayout(cols=1, spacing=dp(4), padding=dp(6), size_hint_y=None)
             self.trk_grid.bind(minimum_height=self.trk_grid.setter('height'))
@@ -668,13 +693,14 @@ try:
             try:
                 if not os.path.exists(MUSIC_DIR):
                     return
-                fl = sorted([f for f in os.listdir(MUSIC_DIR) if f.lower().endswith(('.mp3','.ogg','.wav','.flac'))])
-                if hasattr(self, 'trk_lbl'):
-                    self.trk_lbl.text = f"{len(fl)} spor"
+                fl = sorted([f for f in os.listdir(MUSIC_DIR)
+                             if f.lower().endswith(('.mp3','.ogg','.wav','.flac'))])
+                self.trk_lbl.text = f"{len(fl)} spor"
                 for i, fn in enumerate(fl):
                     self.tracks.append(os.path.join(MUSIC_DIR, fn))
-                    btn = mkbtn(fn, lambda idx=i: self.play_track(idx), small=True, size_hint_y=None, height=dp(42))
-                    self.trk_grid.add_widget(btn)
+                    self.trk_grid.add_widget(
+                        mkbtn(fn, lambda idx=i: self.play_track(idx),
+                              small=True, size_hint_y=None, height=dp(42)))
             except Exception as e:
                 log(f"load_tracks: {e}")
 
@@ -684,9 +710,8 @@ try:
             self.ct = idx
             self.player.play(self.tracks[idx])
             n = os.path.basename(self.tracks[idx])
-            if hasattr(self, 'trk_lbl'):
-                self.trk_lbl.text = f"Spiller: {n}"
-                self.trk_lbl.color = GOLD
+            self.trk_lbl.text = f"Spiller: {n}"
+            self.trk_lbl.color = GOLD
             self.mp_lbl.text = n
             self.mp_btn.text = "Pause"
 
@@ -706,8 +731,7 @@ try:
             self.player.stop()
             self.mp_btn.text = "Play"
             self.mp_lbl.text = "Stoppet"
-            if hasattr(self, 'trk_lbl'):
-                self.trk_lbl.text = "Stoppet"
+            self.trk_lbl.text = "Stoppet"
 
         def next_track(self):
             if self.tracks:
@@ -727,18 +751,15 @@ try:
                 if 'url' not in snd:
                     g.add_widget(mklbl(snd['name'], color=GDIM, size=11, bold=True, h=24))
                 else:
-                    btn = mkbtn(snd['name'], lambda u=snd['url'], n=snd['name']: self._pa(u, n),
-                                small=True, size_hint_y=None, height=dp(40))
-                    g.add_widget(btn)
+                    g.add_widget(
+                        mkbtn(snd['name'],
+                              lambda u=snd['url'], n=snd['name']: self._pa(u, n),
+                              small=True, size_hint_y=None, height=dp(40)))
             scroll.add_widget(g)
             p.add_widget(scroll)
-            p.add_widget(mkbtn("Stopp ambient", self._sa, danger=True, size_hint_y=None, height=dp(44)))
-            vr = BoxLayout(size_hint_y=None, height=dp(32), padding=[dp(10),0])
-            vr.add_widget(Label(text="Vol", color=DIM, size_hint_x=0.08, font_size=sp(10)))
-            sl = Slider(min=0, max=1, value=0.5, size_hint_x=0.92)
-            sl.bind(value=lambda s, v: self.streamer.vol(v))
-            vr.add_widget(sl)
-            p.add_widget(vr)
+            p.add_widget(mkbtn("Stopp ambient", self._sa, danger=True,
+                               size_hint_y=None, height=dp(44)))
+            p.add_widget(mkvol(self.streamer.vol, 0.5))
             self.amb_lbl = mklbl("", color=DIM, size=11, h=20)
             p.add_widget(self.amb_lbl)
             p.add_widget(Widget(size_hint_y=1))
@@ -747,32 +768,27 @@ try:
         def _pa(self, url, name):
             self._an = name
             self._ac = 0
-            if hasattr(self, 'amb_lbl'):
-                self.amb_lbl.text = f"Laster: {name}..."
+            self.amb_lbl.text = f"Laster: {name}..."
             if self.streamer.play_url(url):
                 Clock.schedule_interval(self._poll, 2)
 
         def _poll(self, dt):
             self._ac += 1
             if self.streamer.is_playing:
-                if hasattr(self, 'amb_lbl'):
-                    self.amb_lbl.text = f"Spiller: {self._an}"
-                    self.amb_lbl.color = GRN
+                self.amb_lbl.text = f"Spiller: {self._an}"
+                self.amb_lbl.color = GRN
                 return False
             if self._ac >= 10:
-                if hasattr(self, 'amb_lbl'):
-                    self.amb_lbl.text = f"Feilet: {self._an}"
-                    self.amb_lbl.color = RED
+                self.amb_lbl.text = f"Feilet: {self._an}"
+                self.amb_lbl.color = RED
                 return False
-            if hasattr(self, 'amb_lbl'):
-                self.amb_lbl.text = f"Laster: {self._an} ({self._ac*2}s)..."
+            self.amb_lbl.text = f"Laster: {self._an} ({self._ac*2}s)..."
             return True
 
         def _sa(self):
             self.streamer.stop()
-            if hasattr(self, 'amb_lbl'):
-                self.amb_lbl.text = "Stoppet"
-                self.amb_lbl.color = DIM
+            self.amb_lbl.text = "Stoppet"
+            self.amb_lbl.color = DIM
 
         # ---------- CAST ----------
         def _mk_cast(self):
@@ -782,8 +798,10 @@ try:
                 return p
             self.cast_lbl = mklbl("Ikke tilkoblet", color=DIM, size=13, h=30)
             p.add_widget(self.cast_lbl)
-            p.add_widget(mkbtn("Sok etter enheter", self._scan, accent=True, size_hint_y=None, height=dp(46)))
-            self.cast_sp = Spinner(text="Velg enhet...", values=[], size_hint_y=None, height=dp(46),
+            p.add_widget(mkbtn("Sok etter enheter", self._scan, accent=True,
+                               size_hint_y=None, height=dp(46)))
+            self.cast_sp = Spinner(text="Velg enhet...", values=[],
+                                   size_hint_y=None, height=dp(46),
                                    background_color=BTN, color=TXT)
             p.add_widget(self.cast_sp)
             r = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(10))
@@ -794,34 +812,30 @@ try:
             return p
 
         def _scan(self):
-            if hasattr(self, 'cast_lbl'):
-                self.cast_lbl.text = "Soker..."
+            self.cast_lbl.text = "Soker..."
             self.cast.scan(cb=self._od)
 
         def _od(self, n):
-            if n and hasattr(self, 'cast_sp'):
+            if n:
                 self.cast_sp.values = n
                 self.cast_sp.text = n[0]
-            if hasattr(self, 'cast_lbl'):
-                self.cast_lbl.text = f"Fant {len(n)}" if n else "Ingen"
+            self.cast_lbl.text = f"Fant {len(n)}" if n else "Ingen"
 
         def _cn(self):
-            if not hasattr(self, 'cast_sp'):
-                return
             n = self.cast_sp.text
             if not n or n == "Velg enhet...":
                 return
-            self.cast.connect(n, cb=lambda ok: setattr(self.cast_lbl, 'text', "Tilkoblet!" if ok else "Feilet") if hasattr(self, 'cast_lbl') else None)
+            self.cast.connect(n, cb=lambda ok: setattr(
+                self.cast_lbl, 'text', "Tilkoblet!" if ok else "Feilet"))
 
         def _dc(self):
             self.cast.disconnect()
-            if hasattr(self, 'cast_lbl'):
-                self.cast_lbl.text = "Frakoblet"
+            self.cast_lbl.text = "Frakoblet"
 
         # ---------- KARAKTERER ----------
         def _mk_tool(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-            tb = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6), padding=[dp(6),0])
+            tb = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6), padding=[dp(6), 0])
             tb.add_widget(mkbtn("+ Ny", self._new_char, accent=True, size_hint_x=0.35))
             tb.add_widget(mkbtn("Oppdater", self._show_list, small=True, size_hint_x=0.35))
             tb.add_widget(mklbl("Karakterer", color=GOLD, size=14, bold=True))
@@ -832,29 +846,29 @@ try:
             return p
 
         def _show_list(self):
-            if not hasattr(self, 'tool_area'):
-                return
             self.tool_area.clear_widgets()
             scroll = ScrollView()
             g = GridLayout(cols=1, spacing=dp(6), padding=dp(6), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
             if not self.chars:
-                g.add_widget(mklbl("Ingen karakterer ennaa.\nTrykk '+ Ny' for aa lage en.", color=DIM, size=12, h=50))
+                g.add_widget(mklbl("Ingen karakterer ennaa.\nTrykk '+ Ny' for aa lage en.",
+                                   color=DIM, size=12, h=50))
             else:
                 for i, ch in enumerate(self.chars):
-                    nm = ch.get('name', '?')
-                    tp = ch.get('type', 'PC')
+                    nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
                     oc = ch.get('occ', '')
                     c = GRN if tp == 'PC' else GOLD
                     txt = f"[{tp}]  {nm}"
                     if oc:
                         txt += f"  -  {oc}"
                     row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
-                    b = mkbtn(txt, lambda idx=i: self._view_char(idx), small=True, size_hint_x=0.72)
+                    b = mkbtn(txt, lambda idx=i: self._view_char(idx),
+                              small=True, size_hint_x=0.72)
                     b.color = c
                     b.halign = 'left'
                     row.add_widget(b)
-                    row.add_widget(mkbtn("Rediger", lambda idx=i: self._edit_char(idx), accent=True, small=True, size_hint_x=0.28))
+                    row.add_widget(mkbtn("Rediger", lambda idx=i: self._edit_char(idx),
+                                        accent=True, small=True, size_hint_x=0.28))
                     g.add_widget(row)
             scroll.add_widget(g)
             self.tool_area.add_widget(scroll)
@@ -867,43 +881,33 @@ try:
             p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(6))
             top = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6))
             top.add_widget(mkbtn("Tilbake", self._show_list, small=True, size_hint_x=0.3))
-            top.add_widget(mkbtn("Rediger", lambda: self._edit_char(idx), accent=True, small=True, size_hint_x=0.3))
-            top.add_widget(mkbtn("Slett", lambda: self._del_char(idx), danger=True, small=True, size_hint_x=0.3))
+            top.add_widget(mkbtn("Rediger", lambda: self._edit_char(idx),
+                                 accent=True, small=True, size_hint_x=0.3))
+            top.add_widget(mkbtn("Slett", lambda: self._del_char(idx),
+                                 danger=True, small=True, size_hint_x=0.3))
             p.add_widget(top)
             scroll = ScrollView()
             g = GridLayout(cols=1, spacing=dp(4), padding=dp(6), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
-            nm = ch.get('name', '?')
-            tp = ch.get('type', 'PC')
+            nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
             g.add_widget(mklbl(f"[{tp}]  {nm}", color=GOLD, size=18, bold=True, h=34))
             for key, lbl in CHAR_INFO:
                 v = ch.get(key, '')
                 if v and key not in ('name', 'type'):
                     g.add_widget(mklbl(f"{lbl}:  {v}", color=TXT, size=14, h=26))
-            stats = ""
-            for key, lbl in CHAR_STATS:
-                v = ch.get(key, '')
-                if v:
-                    stats += f"{lbl} {v}   "
+            stats = "   ".join(f"{lbl} {ch[key]}" for key, lbl in CHAR_STATS if ch.get(key))
             if stats:
-                g.add_widget(mklbl(stats.strip(), color=TXT, size=14, h=28))
-            derived = ""
-            for key, lbl in CHAR_DERIVED:
-                v = ch.get(key, '')
-                if v:
-                    derived += f"{lbl} {v}   "
+                g.add_widget(mklbl(stats, color=TXT, size=14, h=28))
+            derived = "   ".join(f"{lbl} {ch[key]}" for key, lbl in CHAR_DERIVED if ch.get(key))
             if derived:
-                g.add_widget(mklbl(derived.strip(), color=TXT, size=14, h=28))
+                g.add_widget(mklbl(derived, color=TXT, size=14, h=28))
             sk = ch.get('skills', {})
             if sk and isinstance(sk, dict):
                 g.add_widget(mksep(4))
                 g.add_widget(mklbl("FERDIGHETER", color=GOLD, size=13, bold=True, h=24))
-                sk_txt = ""
-                for sname, sval in sorted(sk.items()):
-                    if sval:
-                        sk_txt += f"{sname} {sval}   "
+                sk_txt = "   ".join(f"{sn} {sv}" for sn, sv in sorted(sk.items()) if sv)
                 if sk_txt:
-                    g.add_widget(mklbl(sk_txt.strip(), color=TXT, size=13, wrap=True))
+                    g.add_widget(mklbl(sk_txt, color=TXT, size=13, wrap=True))
             for key, lbl in CHAR_TEXT:
                 v = ch.get(key, '')
                 if v:
@@ -938,13 +942,15 @@ try:
             g.add_widget(mklbl("GRUNNINFO", color=GOLD, size=12, bold=True, h=24))
             for key, lbl in CHAR_INFO:
                 row = BoxLayout(size_hint_y=None, height=dp(36), spacing=dp(6))
-                row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM, size_hint_x=0.3, halign='right'))
+                row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                     size_hint_x=0.3, halign='right'))
                 if key == 'type':
                     w = Spinner(text=ch.get(key, 'PC'), values=['PC', 'NPC'],
                                 background_color=BTN, color=GOLD, font_size=sp(11), size_hint_x=0.7)
                 else:
                     w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
-                                  background_color=BTN, foreground_color=TXT, size_hint_x=0.7, padding=[dp(6), dp(4)])
+                                  background_color=BTN, foreground_color=TXT,
+                                  size_hint_x=0.7, padding=[dp(6), dp(4)])
                 self._ei[key] = w
                 row.add_widget(w)
                 g.add_widget(row)
@@ -955,7 +961,8 @@ try:
                 for j in range(2):
                     if i + j < len(CHAR_STATS):
                         key, lbl = CHAR_STATS[i + j]
-                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM, size_hint_x=0.15, halign='right'))
+                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                             size_hint_x=0.15, halign='right'))
                         w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
                                       background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)], input_filter='int')
@@ -969,7 +976,8 @@ try:
                 for j in range(2):
                     if i + j < len(CHAR_DERIVED):
                         key, lbl = CHAR_DERIVED[i + j]
-                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM, size_hint_x=0.15, halign='right'))
+                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                             size_hint_x=0.15, halign='right'))
                         w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
                                       background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)])
@@ -979,10 +987,11 @@ try:
             g.add_widget(mksep(4))
             g.add_widget(mklbl("NOTATER / UTSTYR", color=GOLD, size=12, bold=True, h=24))
             for key, lbl in CHAR_TEXT:
-                g.add_widget(Label(text=lbl, font_size=sp(10), color=DIM, size_hint_y=None, height=dp(20), halign='left'))
+                g.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                   size_hint_y=None, height=dp(20), halign='left'))
                 w = TextInput(text=str(ch.get(key, '')), font_size=sp(11), multiline=True,
-                              background_color=BTN, foreground_color=TXT, size_hint_y=None, height=dp(80),
-                              padding=[dp(6), dp(4)])
+                              background_color=BTN, foreground_color=TXT,
+                              size_hint_y=None, height=dp(80), padding=[dp(6), dp(4)])
                 self._ei[key] = w
                 g.add_widget(w)
             scroll.add_widget(g)
@@ -999,8 +1008,10 @@ try:
             self.tool_area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(6))
             top = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6))
-            top.add_widget(mkbtn("Lagre skills", lambda: self._save_skills(idx), accent=True, small=True, size_hint_x=0.5))
-            top.add_widget(mkbtn("Tilbake", lambda: self._edit_char(idx), small=True, size_hint_x=0.5))
+            top.add_widget(mkbtn("Lagre skills", lambda: self._save_skills(idx),
+                                 accent=True, small=True, size_hint_x=0.5))
+            top.add_widget(mkbtn("Tilbake", lambda: self._edit_char(idx),
+                                 small=True, size_hint_x=0.5))
             p.add_widget(top)
             p.add_widget(mklbl(f"Skills: {ch.get('name', '?')}", color=GOLD, size=13, bold=True, h=26))
             scroll = ScrollView()
@@ -1011,22 +1022,21 @@ try:
                 row = BoxLayout(size_hint_y=None, height=dp(34), spacing=dp(6))
                 is_spec = sname.endswith(':')
                 if is_spec:
-                    spec_key = sname
-                    saved = sk.get(spec_key, '')
-                    row.add_widget(Label(text=sname, font_size=sp(10), color=GDIM, size_hint_x=0.35, halign='right'))
-                    w = TextInput(text=str(saved), hint_text=f"Spesifiser + verdi",
-                                  font_size=sp(11), multiline=False, background_color=BTN, foreground_color=TXT,
-                                  size_hint_x=0.65, padding=[dp(6), dp(4)])
-                    self._sk_inputs[spec_key] = w
-                    row.add_widget(w)
-                else:
-                    row.add_widget(Label(text=f"{sname} ({sdefault})", font_size=sp(10), color=DIM, size_hint_x=0.65, halign='left'))
-                    val = sk.get(sname, '')
-                    w = TextInput(text=str(val), hint_text=sdefault,
-                                  font_size=sp(12), multiline=False, background_color=BTN, foreground_color=TXT,
-                                  size_hint_x=0.35, padding=[dp(6), dp(4)], input_filter='int')
+                    row.add_widget(Label(text=sname, font_size=sp(10), color=GDIM,
+                                         size_hint_x=0.35, halign='right'))
+                    w = TextInput(text=str(sk.get(sname, '')), hint_text="Spesifiser + verdi",
+                                  font_size=sp(11), multiline=False, background_color=BTN,
+                                  foreground_color=TXT, size_hint_x=0.65, padding=[dp(6), dp(4)])
                     self._sk_inputs[sname] = w
-                    row.add_widget(w)
+                else:
+                    row.add_widget(Label(text=f"{sname} ({sdefault})", font_size=sp(10),
+                                         color=DIM, size_hint_x=0.65, halign='left'))
+                    w = TextInput(text=str(sk.get(sname, '')), hint_text=sdefault,
+                                  font_size=sp(12), multiline=False, background_color=BTN,
+                                  foreground_color=TXT, size_hint_x=0.35,
+                                  padding=[dp(6), dp(4)], input_filter='int')
+                    self._sk_inputs[sname] = w
+                row.add_widget(w)
                 g.add_widget(row)
             scroll.add_widget(g)
             p.add_widget(scroll)
@@ -1035,11 +1045,7 @@ try:
         def _save_skills(self, idx):
             if idx < 0 or idx >= len(self.chars):
                 return
-            sk = {}
-            for sname, w in self._sk_inputs.items():
-                v = w.text.strip()
-                if v:
-                    sk[sname] = v
+            sk = {sn: w.text.strip() for sn, w in self._sk_inputs.items() if w.text.strip()}
             self.chars[idx]['skills'] = sk
             save_json(CHAR_FILE, self.chars)
             self._edit_char(idx)
@@ -1048,8 +1054,7 @@ try:
             if self.edit_idx is None or self.edit_idx >= len(self.chars):
                 return
             ch = self.chars[self.edit_idx]
-            for key in list(self._ei.keys()):
-                w = self._ei[key]
+            for key, w in self._ei.items():
                 ch[key] = w.text if isinstance(w, (TextInput, Spinner)) else ''
             save_json(CHAR_FILE, self.chars)
             self._show_list()
