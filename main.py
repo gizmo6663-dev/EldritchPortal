@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (MODERN – RUNDE HJØRNER) ===")
+log("=== APP START (ROUNDED CORNERS FIX) ===")
 
 try:
     from kivy.app import App
@@ -54,14 +54,14 @@ try:
     for d in [IMG_DIR, MUSIC_DIR]:
         os.makedirs(d, exist_ok=True)
 
-    # === MODERNE FARGER (lysere, bedre kontrast) ===
-    BG   = [0.07, 0.07, 0.10, 1]      # mørk bakgrunn
-    BG2  = [0.12, 0.12, 0.16, 1]      # panelbakgrunn
-    BTN  = [0.22, 0.24, 0.30, 1]      # knappefarge (tydelig)
-    BTNH = [0.35, 0.37, 0.45, 1]      # aktiv fane
-    GOLD = [0.95, 0.75, 0.25, 1]      # gylden aksent
+    # === FARGER ===
+    BG   = [0.07, 0.07, 0.10, 1]
+    BG2  = [0.12, 0.12, 0.16, 1]
+    BTN  = [0.22, 0.24, 0.30, 1]
+    BTNH = [0.35, 0.37, 0.45, 1]
+    GOLD = [0.95, 0.75, 0.25, 1]
     GDIM = [0.60, 0.48, 0.20, 1]
-    TXT  = [0.90, 0.87, 0.80, 1]      # lys tekst
+    TXT  = [0.90, 0.87, 0.80, 1]
     DIM  = [0.60, 0.58, 0.53, 1]
     RED  = [0.75, 0.28, 0.28, 1]
     GRN  = [0.28, 0.68, 0.38, 1]
@@ -69,7 +69,7 @@ try:
     IMG_EXT = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
-    # === LYDKILDER (uendret) ===
+    # === LYDKILDER ===
     AMBIENT_SOUNDS = [
         {"name":"--- Natur ---"},
         {"name":"Regn og torden","url":"https://archive.org/download/RainSound13/Gentle%20Rain%20and%20Thunder.mp3"},
@@ -163,25 +163,41 @@ try:
         except:
             pass
 
-    # === AVRUNDEDE HJØRNER – FORBEDRET ===
-    def update_rect(instance, value):
-        """Tegner en avrundet rektangelbakgrunn for knapper og widgeter."""
-        instance.canvas.before.clear()
-        with instance.canvas.before:
-            Color(rgba=instance.background_color)
-            RoundedRectangle(pos=instance.pos, size=instance.size, radius=[dp(18)])
+    # ==========================================================
+    # AVRUNDEDE HJØRNER – SIKKER METODE
+    # Lagrer referanser til Color/RoundedRectangle og oppdaterer
+    # pos/size direkte. INGEN canvas.before.clear() noe sted.
+    # ==========================================================
+
+    def add_rounded_bg(widget, bg_color, radius=14):
+        """Legg til avrundet bakgrunn på en widget. Returnerer (color_instr, rect_instr)."""
+        with widget.canvas.before:
+            ci = Color(rgba=bg_color)
+            ri = RoundedRectangle(pos=widget.pos, size=widget.size, radius=[dp(radius)])
+        def _upd(*a):
+            ri.pos = widget.pos
+            ri.size = widget.size
+        widget.bind(pos=_upd, size=_upd)
+        widget._bg_ci = ci
+        widget._bg_ri = ri
+        return ci, ri
+
+    def set_rounded_bg_color(widget, color):
+        """Oppdater bakgrunnsfargen uten å cleare canvas."""
+        if hasattr(widget, '_bg_ci'):
+            widget._bg_ci.rgba = color
 
     def mkbtn(text, cb=None, accent=False, danger=False, small=False, **kw):
         c = GOLD if accent else (RED if danger else TXT)
         kw['font_size'] = sp(11) if small else sp(13)
-        kw['background_color'] = BTN
+        # KRITISK: Sett background_color til transparent slik at
+        # Kivy's innebygde rektangel ikke tegnes oppå vår RoundedRectangle
+        kw['background_color'] = [0, 0, 0, 0]
         kw['color'] = c
         kw['bold'] = True
         kw['background_normal'] = ''
         b = Button(text=text, **kw)
-        b.bind(pos=update_rect, size=update_rect)
-        # Tving umiddelbar tegning
-        Clock.schedule_once(lambda dt: update_rect(b, None), 0)
+        add_rounded_bg(b, BTN, radius=14)
         if cb:
             b.bind(on_release=lambda x: cb())
         return b
@@ -430,7 +446,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== MODERN APP – ALLE KNAPPER HAR RUNDE HJØRNER ===")
+            log("=== BUILD – ROUNDED CORNERS (ingen clear) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
@@ -448,37 +464,32 @@ try:
             root = BoxLayout(orientation='vertical', spacing=0)
             root.add_widget(Widget(size_hint_y=None, height=dp(30)))
 
-            # FANEOMRÅDE med avrundet bakgrunn
+            # FANEOMRÅDE – avrundet bakgrunn via referanser (ingen clear)
             tabs = BoxLayout(size_hint_y=None, height=dp(52), spacing=dp(4), padding=[dp(8),0])
-            with tabs.canvas.before:
-                Color(rgba=BTN)
-                RoundedRectangle(pos=tabs.pos, size=tabs.size, radius=[dp(20)])
+            add_rounded_bg(tabs, BTN, radius=20)
             self._tabs = {}
             for key, txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakterer'),('cast','Cast')]:
                 b = ToggleButton(text=txt, group='tabs', state='down' if key=='img' else 'normal',
-                                 background_normal='', background_down='', font_size=sp(13), bold=True)
+                                 background_normal='', background_down='',
+                                 background_color=[0, 0, 0, 0],  # transparent!
+                                 font_size=sp(13), bold=True)
+                # Avrundet bakgrunn for faner
+                add_rounded_bg(b, BTNH if key == 'img' else BTN, radius=14)
+                b.color = GOLD if key == 'img' else DIM
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
-                # Tegn avrundet bakgrunn for faneknapper
-                b.bind(pos=self._update_tab_rect, size=self._update_tab_rect)
-                Clock.schedule_once(lambda dt, btn=b: self._update_tab_rect(btn, None), 0)
-                self._tab_color(b, b.state)
                 tabs.add_widget(b)
                 self._tabs[key] = b
             root.add_widget(tabs)
 
-            # HOVEDINNHOLD (panel)
+            # HOVEDINNHOLD
             self.content = BoxLayout()
-            with self.content.canvas.before:
-                Color(rgba=BG2)
-                RoundedRectangle(pos=self.content.pos, size=self.content.size, radius=[dp(20)])
+            add_rounded_bg(self.content, BG2, radius=20)
             root.add_widget(self.content)
 
-            # MINI-PLAYER med avrundet bakgrunn
+            # MINI-PLAYER
             mp = BoxLayout(size_hint_y=None, height=dp(48), spacing=dp(6), padding=[dp(10),dp(4)])
-            with mp.canvas.before:
-                Color(rgba=BTN)
-                RoundedRectangle(pos=mp.pos, size=mp.size, radius=[dp(20)])
+            add_rounded_bg(mp, BTN, radius=20)
             mp.add_widget(Widget(size_hint_x=None, width=dp(4)))
             self.mp_lbl = Label(text="Ingen musikk", font_size=sp(11), color=DIM, size_hint_x=0.45, halign='left')
             self.mp_lbl.bind(size=self.mp_lbl.setter('text_size'))
@@ -493,25 +504,19 @@ try:
             root.add_widget(self.status)
 
             self._tab('img')
-            log("UI built – alle knapper har runde hjørner")
+            log("UI built – rounded corners via stored refs")
             Clock.schedule_once(lambda dt: request_android_permissions(), 0.5)
             Clock.schedule_once(lambda dt: self._init(), 3)
             return root
 
-        def _update_tab_rect(self, btn, value):
-            btn.canvas.before.clear()
-            with btn.canvas.before:
-                Color(rgba=btn.background_color)
-                RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(14)])
-
         def _tab_color(self, btn, state):
+            """Oppdater fane-farge uten canvas.before.clear()"""
             if state == 'down':
-                btn.background_color = BTNH
+                set_rounded_bg_color(btn, BTNH)
                 btn.color = GOLD
             else:
-                btn.background_color = BTN
+                set_rounded_bg_color(btn, BTN)
                 btn.color = DIM
-            self._update_tab_rect(btn, None)
 
         def _init(self):
             self.server.start()
@@ -669,10 +674,6 @@ try:
                 for i, fn in enumerate(fl):
                     self.tracks.append(os.path.join(MUSIC_DIR, fn))
                     btn = mkbtn(fn, lambda idx=i: self.play_track(idx), small=True, size_hint_y=None, height=dp(42))
-                    btn.canvas.before.clear()
-                    with btn.canvas.before:
-                        Color(rgba=BTN)
-                        RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(12)])
                     self.trk_grid.add_widget(btn)
             except Exception as e:
                 log(f"load_tracks: {e}")
@@ -728,10 +729,6 @@ try:
                 else:
                     btn = mkbtn(snd['name'], lambda u=snd['url'], n=snd['name']: self._pa(u, n),
                                 small=True, size_hint_y=None, height=dp(40))
-                    btn.canvas.before.clear()
-                    with btn.canvas.before:
-                        Color(rgba=BTN)
-                        RoundedRectangle(pos=btn.pos, size=btn.size, radius=[dp(12)])
                     g.add_widget(btn)
             scroll.add_widget(g)
             p.add_widget(scroll)
@@ -1070,7 +1067,7 @@ try:
             self.cast.disconnect()
             save_json(CHAR_FILE, self.chars)
 
-    log("Starting modern app...")
+    log("Starting app...")
     EldritchApp().run()
 
 except Exception as e:
