@@ -628,7 +628,8 @@ try:
             p = BoxLayout(orientation='vertical', spacing=dp(6))
             # Svart bakgrunn bak preview-bildet
             preview_box = RBox(size_hint_y=0.4, bg_color=BLK, radius=dp(12))
-            self.preview = Image(allow_stretch=True, keep_ratio=True)
+            self.preview = Image(allow_stretch=True, keep_ratio=True,
+                                 color=[1, 1, 1, 0] if not self.sel_img else [1, 1, 1, 1])
             if self.sel_img:
                 self.preview.source = self.sel_img
             preview_box.add_widget(self.preview)
@@ -712,6 +713,7 @@ try:
                                        cb=lambda ok: setattr(self.img_lbl, 'text',
                                                              "Castet!" if ok else "Feilet"))
             fade_out.bind(on_complete=_swap)
+            self.preview.color = [1, 1, 1, 1]
             fade_out.start(self.preview)
 
         def _toggle_ac(self):
