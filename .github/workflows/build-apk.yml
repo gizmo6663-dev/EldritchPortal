@@ -1,4 +1,4 @@
-name: Build APK (uten jnius)
+name: Build APK
 
 on:
   push:
@@ -13,6 +13,9 @@ on:
         options:
           - 'true'
           - 'false'
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -57,14 +60,27 @@ jobs:
       - name: Bygg APK
         run: |
           if [[ "${{ github.event.inputs.clean_build }}" == "true" ]]; then
-            echo "ðŸ§¹ Sletter .buildozer-mappe for clean build"
+            echo "🧹 Sletter .buildozer-mappe for clean build"
             rm -rf ~/.buildozer
           fi
           yes | buildozer android debug
 
-      - name: Last opp APK
+      - name: Last opp APK (artifact)
         uses: actions/upload-artifact@v4
+        continue-on-error: true
         with:
           name: eldritch-portal-apk
           path: bin/*.apk
-          retention-days: 30
+          retention-days: 7
+
+      - name: Lag GitHub Release
+        run: |
+          VERSION=$(grep '^version' buildozer.spec | sed 's/version = //')
+          TAG="v${VERSION}-build${{ github.run_number }}"
+          APK=$(ls bin/*.apk | head -1)
+          gh release create "$TAG" "$APK" \
+            --title "Eldritch Portal $TAG" \
+            --notes "Automatisk bygg fra commit ${{ github.sha }}" \
+            --prerelease
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
