@@ -8,11 +8,12 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (KV Builder) ===")
+log("=== APP START (v0.2 – dark theme + splash) ===")
 
 try:
     from kivy.app import App
     from kivy.uix.boxlayout import BoxLayout
+    from kivy.uix.floatlayout import FloatLayout
     from kivy.uix.gridlayout import GridLayout
     from kivy.uix.scrollview import ScrollView
     from kivy.uix.button import Button
@@ -55,26 +56,27 @@ try:
     for d in [IMG_DIR, MUSIC_DIR]:
         os.makedirs(d, exist_ok=True)
 
-    # === FARGER ===
-    BG   = [0.07, 0.07, 0.10, 1]
-    BG2  = [0.12, 0.12, 0.16, 1]
-    BTN  = [0.22, 0.24, 0.30, 1]
-    BTNH = [0.35, 0.37, 0.45, 1]
-    GOLD = [0.95, 0.75, 0.25, 1]
-    GDIM = [0.60, 0.48, 0.20, 1]
-    TXT  = [0.90, 0.87, 0.80, 1]
-    DIM  = [0.60, 0.58, 0.53, 1]
-    RED  = [0.75, 0.28, 0.28, 1]
-    GRN  = [0.28, 0.68, 0.38, 1]
-    BLUE = [0.28, 0.48, 0.75, 1]
+    # === FARGER – MØRKT TEMA ===
+    BG   = [0.04, 0.04, 0.06, 1]      # nesten svart
+    BG2  = [0.08, 0.08, 0.11, 1]      # innholdspanel
+    BTN  = [0.14, 0.15, 0.20, 1]      # knappebakgrunn
+    BTNH = [0.24, 0.26, 0.34, 1]      # aktiv fane
+    SHAD = [0.02, 0.02, 0.03, 0.6]    # skygge (halvtransparent)
+    GOLD = [0.95, 0.75, 0.25, 1]      # gylden aksent
+    GDIM = [0.55, 0.43, 0.18, 1]      # dempet gull
+    TXT  = [0.85, 0.82, 0.75, 1]      # lys tekst
+    DIM  = [0.45, 0.43, 0.40, 1]      # dempet tekst
+    RED  = [0.70, 0.22, 0.22, 1]
+    GRN  = [0.22, 0.58, 0.32, 1]
+    BLUE = [0.22, 0.40, 0.65, 1]
+    BLK  = [0.0, 0.0, 0.0, 1]         # svart (preview-bg)
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
     # ============================================================
-    # KV REGLER
-    # Avrundede hjørner definert i KV-språket.
-    # KV binder pos/size/bg_color automatisk.
-    # Null canvas.before.clear(), null manuell binding.
+    # KV REGLER – skygge + avrundede hjørner
+    # Skygge: en mørk RoundedRectangle forskjøvet 2dp ned.
+    # Hoveddel: RoundedRectangle med bg_color oppå.
     # ============================================================
     Builder.load_string('''
 <RBtn>:
@@ -83,6 +85,12 @@ try:
     background_color: 0, 0, 0, 0
     bold: True
     canvas.before:
+        Color:
+            rgba: self.shadow_color
+        RoundedRectangle:
+            pos: self.x, self.y - dp(2)
+            size: self.width, self.height
+            radius: [self.radius]
         Color:
             rgba: self.bg_color
         RoundedRectangle:
@@ -96,6 +104,12 @@ try:
     background_color: 0, 0, 0, 0
     bold: True
     canvas.before:
+        Color:
+            rgba: self.shadow_color
+        RoundedRectangle:
+            pos: self.x, self.y - dp(2)
+            size: self.width, self.height
+            radius: [self.radius]
         Color:
             rgba: self.bg_color
         RoundedRectangle:
@@ -114,17 +128,16 @@ try:
 ''')
 
     class RBtn(Button):
-        """Knapp med avrundede hjørner. KV håndterer all tegning."""
         bg_color = ListProperty(BTN)
+        shadow_color = ListProperty(SHAD)
         radius = NumericProperty(dp(14))
 
     class RToggle(ToggleButton):
-        """Faneknapp med avrundede hjørner."""
         bg_color = ListProperty(BTN)
+        shadow_color = ListProperty(SHAD)
         radius = NumericProperty(dp(14))
 
     class RBox(BoxLayout):
-        """BoxLayout med avrundet bakgrunn."""
         bg_color = ListProperty(BG2)
         radius = NumericProperty(dp(20))
 
@@ -248,7 +261,6 @@ try:
         return Widget(size_hint_y=None, height=dp(h))
 
     def mkvol(callback, value=0.7):
-        """Volumkontroll-rad. Gjenbrukes i musikk- og ambient-faner."""
         vr = BoxLayout(size_hint_y=None, height=dp(32), padding=[dp(10), 0])
         vr.add_widget(Label(text="Vol", color=DIM, size_hint_x=0.08, font_size=sp(10)))
         sl = Slider(min=0, max=1, value=value, size_hint_x=0.92)
@@ -351,7 +363,6 @@ try:
             self.mc = None
 
     class APlayer:
-        """Musikk via Android MediaPlayer (jnius)."""
         def __init__(self):
             self.mp = None
             self.is_playing = False
@@ -401,7 +412,6 @@ try:
                     pass
 
     class SPlayer:
-        """Ambient streaming via Android MediaPlayer."""
         def __init__(self):
             self.mp = None
             self.is_playing = False
@@ -447,7 +457,6 @@ try:
                     pass
 
     class FPlayer:
-        """Fallback for desktop-testing (SoundLoader)."""
         def __init__(self):
             from kivy.core.audio import SoundLoader
             self.SL = SoundLoader
@@ -483,7 +492,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (KV Builder) ===")
+            log("=== BUILD (v0.2 dark + splash) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
@@ -498,8 +507,12 @@ try:
             self.chars = load_json(CHAR_FILE, [])
             self.edit_idx = None
 
-            root = BoxLayout(orientation='vertical', spacing=0)
-            root.add_widget(Widget(size_hint_y=None, height=dp(30)))
+            # FloatLayout som rot – lar oss legge splash oppå
+            wrapper = FloatLayout()
+
+            main = BoxLayout(orientation='vertical', spacing=0,
+                             size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
+            main.add_widget(Widget(size_hint_y=None, height=dp(30)))
 
             # FANER
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
@@ -516,11 +529,11 @@ try:
                 b.bind(on_release=lambda x, k=key: self._tab(k))
                 tabs.add_widget(b)
                 self._tabs[key] = b
-            root.add_widget(tabs)
+            main.add_widget(tabs)
 
             # HOVEDINNHOLD
             self.content = RBox(bg_color=BG2)
-            root.add_widget(self.content)
+            main.add_widget(self.content)
 
             # MINI-PLAYER
             mp = RBox(size_hint_y=None, height=dp(48), spacing=dp(6),
@@ -535,20 +548,58 @@ try:
             self.mp_btn = mkbtn("Play", self.toggle_play, accent=True,
                                 small=True, size_hint_x=None, width=dp(60))
             mp.add_widget(self.mp_btn)
-            root.add_widget(mp)
+            main.add_widget(mp)
 
             self.status = Label(text="", font_size=sp(10), color=DIM,
                                 size_hint_y=None, height=dp(20))
-            root.add_widget(self.status)
+            main.add_widget(self.status)
+
+            wrapper.add_widget(main)
+
+            # === SPLASH SCREEN ===
+            self.splash = RBox(bg_color=BG, radius=0,
+                               orientation='vertical',
+                               size_hint=(1, 1),
+                               pos_hint={'x': 0, 'y': 0})
+            # Sentrert innhold
+            self.splash.add_widget(Widget())  # fyll topp
+            t1 = Label(text="ELDRITCH", font_size=sp(42), color=GOLD,
+                       bold=True, size_hint_y=None, height=dp(60),
+                       halign='center')
+            t1.bind(size=t1.setter('text_size'))
+            self.splash.add_widget(t1)
+            t2 = Label(text="PORTAL", font_size=sp(42), color=GDIM,
+                       bold=True, size_hint_y=None, height=dp(60),
+                       halign='center')
+            t2.bind(size=t2.setter('text_size'))
+            self.splash.add_widget(t2)
+            sub = Label(text="Keeper Companion Tool", font_size=sp(13),
+                        color=DIM, size_hint_y=None, height=dp(30),
+                        halign='center')
+            sub.bind(size=sub.setter('text_size'))
+            self.splash.add_widget(sub)
+            self.splash.add_widget(Widget())  # fyll bunn
+            wrapper.add_widget(self.splash)
 
             self._tab('img')
             log("UI built OK")
             Clock.schedule_once(lambda dt: request_android_permissions(), 0.5)
             Clock.schedule_once(lambda dt: self._init(), 3)
-            return root
+            # Fade ut splash etter 2.5 sek
+            Clock.schedule_once(self._dismiss_splash, 2.5)
+            return wrapper
+
+        def _dismiss_splash(self, dt):
+            if self.splash:
+                anim = Animation(opacity=0, duration=0.8)
+                def _remove(*a):
+                    if self.splash.parent:
+                        self.splash.parent.remove_widget(self.splash)
+                    self.splash = None
+                anim.bind(on_complete=_remove)
+                anim.start(self.splash)
 
         def _tab_color(self, btn, state):
-            """KV reagerer automatisk på bg_color-endring."""
             if state == 'down':
                 btn.bg_color = BTNH
                 btn.color = GOLD
@@ -575,10 +626,13 @@ try:
         # ---------- BILDER ----------
         def _mk_img(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-            self.preview = Image(size_hint_y=0.4, allow_stretch=True, keep_ratio=True)
+            # Svart bakgrunn bak preview-bildet
+            preview_box = RBox(size_hint_y=0.4, bg_color=BLK, radius=dp(12))
+            self.preview = Image(allow_stretch=True, keep_ratio=True)
             if self.sel_img:
                 self.preview.source = self.sel_img
-            p.add_widget(self.preview)
+            preview_box.add_widget(self.preview)
+            p.add_widget(preview_box)
             p.add_widget(Label(text="ELDRITCH PORTAL", font_size=sp(18), color=GDIM,
                                bold=True, size_hint_y=None, height=dp(28)))
             self.img_lbl = Label(text="", font_size=sp(12), color=DIM,
