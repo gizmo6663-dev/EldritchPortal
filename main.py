@@ -203,6 +203,290 @@ try:
         ("Swim","20"), ("Throw","20"), ("Track","10"),
     ]
 
+    # === REGLER & REFERANSE ===
+    # Kategorier → underkategorier → innhold
+    # Kort mekanisk referanse for bruk ved bordet.
+    RULES = [
+      ("Referanse", [
+        ("Vanskelighetsgrad", [
+          "Regular: skill-verdi",
+          "Hard: halv skill-verdi",
+          "Extreme: femtedel av skill-verdi",
+          "",
+          "Bonus/Penalty terning:",
+          "Rull ekstra tier-terning (d10).",
+          "Bonus: bruk laveste tier.",
+          "Penalty: bruk hoeyeste tier.",
+          "Maks 2 bonus/penalty samtidig.",
+        ]),
+        ("Skadenivaa", [
+          "Minor wound: HP-tap < halve maks HP",
+          "Major wound: HP-tap >= halve maks HP",
+          "  -> CON-sjekk eller besvime",
+          "  -> First Aid/Medicine innen 1 runde",
+          "Dying: 0 HP -> CON-sjekk per runde",
+          "  -> Mislykkes = doed",
+          "Doed: HP = -maks HP",
+        ]),
+        ("Heling", [
+          "First Aid: 1 HP (1 forsøk per skade)",
+          "Medicine: 1d3 HP",
+          "Naturlig: 1 HP per uke (minor)",
+          "Major wound: 1d3 HP per uke m/pleie",
+          "Full hvile + medisinsk hjelp = raskere",
+        ]),
+        ("SAN-tap oversikt", [
+          "Se et lik: 0/1d3",
+          "Se en venn doe: 0/1d4",
+          "Se noe uforklarlig: 0/1d2",
+          "Se et mythos-vesen (varierer):",
+          "  Byakhee: 1/1d6",
+          "  Deep One: 0/1d6",
+          "  Shoggoth: 1d6/1d20",
+          "  Great Cthulhu: 1d10/1d100",
+          "  Mi-Go: 0/1d6",
+          "  Ghoul: 0/1d6",
+          "  Dark Young: 0/1d8",
+          "  Hound of Tindalos: 1d3/1d20",
+          "  Star Vampire: 1/1d8",
+        ]),
+        ("Vaapentabell", [
+          "Unarmed: 1d3+DB",
+          "Kniv (liten): 1d4+DB",
+          "Kniv (stor): 1d6+DB",
+          "Sverd/øks: 1d8+DB",
+          "Klubbe: 1d8+DB",
+          "Handgun (.32): 1d8   | 15 yard",
+          "Handgun (.45): 1d10+2 | 15 yard",
+          "Rifle (.30): 2d6+4  | 110 yard",
+          "Shotgun (12g): 4d6/2d6/1d6",
+          "  (10/20/50 yard)",
+          "Dynamitt: 5d6  | 5 yard radius",
+        ]),
+      ]),
+      ("Ferdigheter", [
+        ("Sjekker", [
+          "Rull d100 <= skill = suksess",
+          "01-05 alltid suksess (unntatt Cthulhu Mythos)",
+          "96-100 alltid feil",
+          "Fumble: 100 (eller 96+ ved skill > 50)",
+          "",
+          "Resultatnivaaer:",
+          "  Critical: 01",
+          "  Extreme: <= skill/5",
+          "  Hard: <= skill/2",
+          "  Regular: <= skill",
+        ]),
+        ("Pushed rolls", [
+          "Spiller kan pushe ETT mislykket kast.",
+          "Keeper maa akseptere pushen.",
+          "Konsekvensen av mislykket push",
+          "er VERRE enn foerste feil.",
+          "",
+          "Kan IKKE pushe:",
+          "  - SAN-sjekker",
+          "  - Luck-sjekker",
+          "  - Kamp-kast",
+          "  - Sjekker som allerede er pushet",
+        ]),
+        ("Opposed rolls", [
+          "Begge parter ruller sine skills.",
+          "Hoeyeste suksessnivaa vinner.",
+          "Likt nivaa: hoeyeste skill vinner.",
+          "Ingen suksess: ingenting skjer",
+          "  (eller begge feiler).",
+          "",
+          "Eksempler: Sneak vs Listen,",
+          "Fast Talk vs Psychology,",
+          "STR vs STR (oppose)",
+        ]),
+        ("Luck", [
+          "Brukes til aa paavirke utfall.",
+          "Trekk luck-poeng 1:1 for aa senke",
+          "  et skill-kast (etter kast).",
+          "Luck kan ogsaa kastes (d100 <= Luck).",
+          "Luck regenereres IKKE (7e).",
+          "Pulp: Luck regen = 2d10 per sesjon.",
+        ]),
+      ]),
+      ("Kamp", [
+        ("Kampflyt", [
+          "1. Fastslaa DEX-rekkefølge (hoey foerst)",
+          "2. Hver deltaker faar 1 handling:",
+          "   - Angrep (melee/skytevåpen)",
+          "   - Flee (Dodge vs angrep)",
+          "   - Manøver (Trip/Disarm/etc)",
+          "   - Kaste besverging",
+          "   - Annet (First Aid, etc.)",
+          "3. Forsvarer kan:",
+          "   - Dodge (1 per runde gratis, deretter kostnad)",
+          "   - Fight Back (melee mot melee)",
+          "   - Ingenting",
+          "4. Gjenta til kamp er over.",
+        ]),
+        ("Melee-kamp", [
+          "Angriper: Fighting (Brawl) eller vaapen",
+          "Forsvarer velger:",
+          "  Dodge: Opposed vs Dodge-skill",
+          "  Fight Back: Opposed vs Fighting",
+          "",
+          "Suksessnivaa avgjør:",
+          "  Angriper vinner -> full skade",
+          "  Forsvarer vinner (dodge) -> unngaar",
+          "  Forsvarer vinner (fight back) -> motangrep",
+          "  Begge feiler -> ingenting skjer",
+          "",
+          "DB (Damage Bonus):",
+          "  STR+SIZ 2-64: -2",
+          "  65-84: -1 | 85-124: 0",
+          "  125-164: +1d4 | 165-204: +1d6",
+        ]),
+        ("Skytevaapen", [
+          "Skyt: Firearms-skill, INGEN opposed roll.",
+          "Forsvarer kan Dodge ved point-blank.",
+          "Ellers: kun dekke/flytte seg.",
+          "",
+          "Modifikatorer:",
+          "  Point-blank (< 1/5 range): +1 bonus die",
+          "  Lang rekkevidde (> base): +1 penalty die",
+          "  Ekstrem avstand (> 2x base): +2 penalty",
+          "  Bevegelig maal: +1 penalty die",
+          "  Stort maal: +1 bonus die",
+          "",
+          "Impale: Extreme suksess -> maks våpenskade + vanlig kast",
+        ]),
+        ("Ubevisst & doed", [
+          "0 HP: bevisstloes, doer uten hjelp",
+          "Negativ HP <= -maks HP: doed",
+          "Major Wound: CON-sjekk eller besvime",
+          "First Aid innen 1 runde stabiliserer",
+        ]),
+      ]),
+      ("Sanity", [
+        ("SAN-sjekk", [
+          "Rull d100 <= nåværende SAN",
+          "Suksess: tap = foerste tall (f.eks. 0)",
+          "Feil: tap = andre tall (f.eks. 1d6)",
+          "Eksempel: '1/1d6' betyr",
+          "  suksess = 1 SAN tap",
+          "  feil = 1d6 SAN tap",
+          "",
+          "SAN kan aldri overstige 99 - Cthulhu Mythos",
+        ]),
+        ("Bout of Madness", [
+          "Trigges ved: 5+ SAN tapt i 1 hendelse",
+          "  ELLER 1/5 av SAN tapt paa 1 time",
+          "",
+          "Temporary insanity (1d10 timer):",
+          "Rull 1d10:",
+          "  1: Amnesi",
+          "  2: Psychosomatic blindhet/doevhet",
+          "  3: Vold (angrip nærmeste)",
+          "  4: Paranoia",
+          "  5: Fysisk effekt (kvalme, besvimelse)",
+          "  6: Fly i panikk",
+          "  7: Hallusinasjoner",
+          "  8: Ekko (gjenta handlinger)",
+          "  9: Fobi (ny eller eksisterende)",
+          "  10: Katatoni",
+        ]),
+        ("Fobier (utvalg)", [
+          "Acrophobia: hoeydefobi",
+          "Agoraphobia: aapne plasser",
+          "Claustrophobia: trange rom",
+          "Hemophobia: blod",
+          "Mysophobia: smitte/skitt",
+          "Necrophobia: doede/lik",
+          "Nyctophobia: moerke",
+          "Thalassophobia: havet/dypt vann",
+          "Xenophobia: fremmede/ukjente",
+        ]),
+        ("SAN-gjenoppretting", [
+          "Psychoanalysis: 1d3 SAN (1/maaned)",
+          "  Mislykket: mist 1d6 SAN!",
+          "Self-help: forbedre skill -> 1d3 SAN",
+          "Fullfoere scenario: Keeper-beloenning",
+          "Maks gjenopprettbar SAN: 99 - Mythos",
+          "",
+          "Indefinite insanity:",
+          "  Trigges ved 1/5 av SAN tapt totalt",
+          "  Varer maaneder, krever institusjon",
+        ]),
+      ]),
+      ("Forfoelgelse", [
+        ("Oppsett", [
+          "1. Bestem type: fot eller kjoeretoey",
+          "2. Bestem antall locations (5-10)",
+          "3. Participants far Movement (MOV)",
+          "   Fot: basert paa DEX/STR/SIZ",
+          "   Bil: basert paa kjoretoey-speed",
+          "4. Sett startposisjoner",
+          "5. Sett barriere-sjekker paa locations",
+        ]),
+        ("Handlinger i chase", [
+          "Hver runde, hoeyeste DEX foerst:",
+          "  - Beveg MOV locations fremover",
+          "  - Handling (angrep, hindring, etc)",
+          "  - Barriere: skill-sjekk for aa passere",
+          "    Feil: mist 1 bevegelse",
+          "    Fumble: faller, skadet, etc.",
+          "",
+          "Seier: fanger naar paa samme loc,",
+          "  eller flykter naar forspranget = antall locs",
+        ]),
+        ("Barrierer & farer", [
+          "Eksempler paa barrierer:",
+          "  Hopp over gjerde: Jump / Climb",
+          "  Trengt gate: Drive Auto / DEX",
+          "  Folkemengde: STR / Charm",
+          "  Gjørme: DEX / Luck",
+          "",
+          "Fare = skade ved feil:",
+          "  Tak-til-tak hopp: 2d6 fallskade",
+          "  Bilulykke: variert",
+          "  Mythos-vesen i veien: SAN-sjekk!",
+        ]),
+      ]),
+      ("Magi & Tomer", [
+        ("Besverging", [
+          "Kost: Magic Points (MP) og/eller SAN.",
+          "Noen koster ogsaa HP eller POW.",
+          "Casting time: varierer (1 runde - timer)",
+          "Mislykket: MP brukt, ingen effekt.",
+          "",
+          "MP regenereres: 1 per 2 timer hvile.",
+          "MP = 0: bevisstloes.",
+          "POW offer: permanent reduksjon.",
+        ]),
+        ("Mythos-tomer", [
+          "Lese Mythos-tome:",
+          "  Initial reading: uker/maaneder",
+          "  Full study: maaneder",
+          "  Beloenning: +Cthulhu Mythos skill",
+          "  Kostnad: SAN-tap (varierer per tome)",
+          "",
+          "Eksempler:",
+          "  Necronomicon: +18 CM, -2d10 SAN",
+          "  De Vermis Mysteriis: +10 CM, -1d8 SAN",
+          "  Book of Eibon: +11 CM, -2d4 SAN",
+          "  Cultes des Goules: +9 CM, -1d8 SAN",
+          "  Pnakotiske ms.: +7 CM, -1d6 SAN",
+        ]),
+        ("Pulp-tillegg", [
+          "Pulp Cthulhu: heroer er tøffere!",
+          "  Dobbel HP (CON + SIZ, ikke halvert)",
+          "  Luck regenereres: +2d10 per sesjon",
+          "  Pulp Talents: spesialegenskaper",
+          "",
+          "Arketype-bonuser:",
+          "  Adventurer: +1 handling i kamp",
+          "  Beefcake: +1d6 HP",
+          "  Egghead: +2 INT-baserte skills",
+          "  Femme/Homme Fatale: Charm/Persuade",
+        ]),
+      ]),
+    ]
+
     def request_android_permissions():
         if platform != 'android':
             return
@@ -518,13 +802,13 @@ try:
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
                         padding=[dp(8), 0], bg_color=BTN)
             self._tabs = {}
-            for key, txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakterer'),('cast','Cast')]:
+            for key, txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakter'),('rules','Regler'),('cast','Cast')]:
                 active = key == 'img'
                 b = RToggle(text=txt, group='tabs',
                             state='down' if active else 'normal',
                             bg_color=BTNH if active else BTN,
                             color=GOLD if active else DIM,
-                            font_size=sp(13))
+                            font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
                 tabs.add_widget(b)
@@ -618,7 +902,7 @@ try:
             builders = {
                 'img': self._mk_img, 'mus': self._mk_mus,
                 'amb': self._mk_amb, 'tool': self._mk_tool,
-                'cast': self._mk_cast,
+                'rules': self._mk_rules, 'cast': self._mk_cast,
             }
             if k in builders:
                 self.content.add_widget(builders[k]())
@@ -845,6 +1129,110 @@ try:
             self.streamer.stop()
             self.amb_lbl.text = "Stoppet"
             self.amb_lbl.color = DIM
+
+        # ---------- REGLER ----------
+        def _mk_rules(self):
+            p = BoxLayout(orientation='vertical', spacing=dp(4))
+            # Hovedkategori-knapper (scrollbar rad)
+            cat_scroll = ScrollView(size_hint_y=None, height=dp(44), do_scroll_y=False)
+            self._rules_cats = BoxLayout(size_hint_x=None, height=dp(42), spacing=dp(4),
+                                         padding=[dp(4), 0])
+            self._rules_cats.bind(minimum_width=self._rules_cats.setter('width'))
+            for i, (cat_name, subs) in enumerate(RULES):
+                btn = mkbtn(cat_name, lambda idx=i: self._rules_show_cat(idx),
+                            accent=(i == 0), small=True, size_hint_x=None,
+                            width=dp(max(len(cat_name) * 9, 80)))
+                self._rules_cats.add_widget(btn)
+            cat_scroll.add_widget(self._rules_cats)
+            p.add_widget(cat_scroll)
+
+            # Underkategori-knapper
+            sub_scroll = ScrollView(size_hint_y=None, height=dp(38), do_scroll_y=False)
+            self._rules_subs = BoxLayout(size_hint_x=None, height=dp(36), spacing=dp(4),
+                                         padding=[dp(4), 0])
+            self._rules_subs.bind(minimum_width=self._rules_subs.setter('width'))
+            sub_scroll.add_widget(self._rules_subs)
+            p.add_widget(sub_scroll)
+
+            p.add_widget(mksep(2))
+
+            # Innholdsområde
+            self._rules_content = BoxLayout()
+            p.add_widget(self._rules_content)
+
+            # Vis første kategori
+            self._rules_cur_cat = 0
+            self._rules_show_cat(0)
+            return p
+
+        def _rules_show_cat(self, cat_idx):
+            """Vis underkategorier for valgt hovedkategori."""
+            self._rules_cur_cat = cat_idx
+            cat_name, subs = RULES[cat_idx]
+
+            # Oppdater hovedkategori-knapper (highlight aktiv)
+            for i, btn in enumerate(self._rules_cats.children[::-1]):
+                if i == cat_idx:
+                    btn.bg_color = BTNH
+                    btn.color = GOLD
+                else:
+                    btn.bg_color = BTN
+                    btn.color = TXT
+
+            # Bygg underkategori-knapper
+            self._rules_subs.clear_widgets()
+            for j, (sub_name, content) in enumerate(subs):
+                btn = mkbtn(sub_name, lambda idx=j: self._rules_show_sub(idx),
+                            small=True, size_hint_x=None,
+                            width=dp(max(len(sub_name) * 8, 70)))
+                if j == 0:
+                    btn.bg_color = BTNH
+                    btn.color = GOLD
+                self._rules_subs.add_widget(btn)
+
+            # Vis første underkategori
+            self._rules_show_sub(0)
+
+        def _rules_show_sub(self, sub_idx):
+            """Vis innhold for valgt underkategori."""
+            cat_name, subs = RULES[self._rules_cur_cat]
+            if sub_idx >= len(subs):
+                return
+            sub_name, content = subs[sub_idx]
+
+            # Oppdater underkategori-knapper (highlight aktiv)
+            for j, btn in enumerate(self._rules_subs.children[::-1]):
+                if j == sub_idx:
+                    btn.bg_color = BTNH
+                    btn.color = GOLD
+                else:
+                    btn.bg_color = BTN
+                    btn.color = TXT
+
+            # Bygg innhold
+            self._rules_content.clear_widgets()
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(2), padding=dp(8), size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            # Tittel
+            g.add_widget(mklbl(f"{cat_name}  >  {sub_name}",
+                               color=GOLD, size=14, bold=True, h=30))
+            g.add_widget(mksep(4))
+
+            # Regellinjer
+            for line in content:
+                if line == "":
+                    g.add_widget(mksep(6))
+                elif line.startswith("  "):
+                    # Innrykket linje -> dempet farge
+                    g.add_widget(mklbl(line, color=DIM, size=12, h=22))
+                else:
+                    g.add_widget(mklbl(line, color=TXT, size=13, h=22))
+
+            g.add_widget(mksep(20))
+            scroll.add_widget(g)
+            self._rules_content.add_widget(scroll)
 
         # ---------- CAST ----------
         def _mk_cast(self):
