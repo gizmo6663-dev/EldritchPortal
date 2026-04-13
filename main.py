@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (v0.2 – dark theme + splash) ===")
+log("=== APP START (v0.2.3 – Abyssal Purple) ===")
 
 try:
     from kivy.app import App
@@ -56,19 +56,19 @@ try:
     for d in [IMG_DIR, MUSIC_DIR]:
         os.makedirs(d, exist_ok=True)
 
-    # === FARGER – MØRKT TEMA ===
-    BG   = [0.04, 0.04, 0.06, 1]      # nesten svart
-    BG2  = [0.08, 0.08, 0.11, 1]      # innholdspanel
-    BTN  = [0.14, 0.15, 0.20, 1]      # knappebakgrunn
-    BTNH = [0.24, 0.26, 0.34, 1]      # aktiv fane
-    SHAD = [0.02, 0.02, 0.03, 0.6]    # skygge (halvtransparent)
-    GOLD = [0.95, 0.75, 0.25, 1]      # gylden aksent
-    GDIM = [0.55, 0.43, 0.18, 1]      # dempet gull
-    TXT  = [0.85, 0.82, 0.75, 1]      # lys tekst
-    DIM  = [0.45, 0.43, 0.40, 1]      # dempet tekst
-    RED  = [0.70, 0.22, 0.22, 1]
-    GRN  = [0.22, 0.58, 0.32, 1]
-    BLUE = [0.22, 0.40, 0.65, 1]
+    # === FARGER – ABYSSAL PURPLE ===
+    BG   = [0.05, 0.03, 0.07, 1]      # dyp lilla-svart bakgrunn
+    BG2  = [0.10, 0.05, 0.12, 1]      # panel
+    BTN  = [0.22, 0.10, 0.16, 1]      # knapp (burgunder)
+    BTNH = [0.38, 0.15, 0.22, 1]      # aktiv fane
+    SHAD = [0.02, 0.01, 0.03, 0.6]    # skygge
+    GOLD = [0.95, 0.78, 0.22, 1]      # gylden aksent
+    GDIM = [0.58, 0.45, 0.20, 1]      # dempet gull
+    TXT  = [0.90, 0.85, 0.80, 1]      # lys tekst
+    DIM  = [0.52, 0.38, 0.45, 1]      # dempet tekst (lilla-tone)
+    RED  = [0.75, 0.20, 0.22, 1]      # fare/stopp
+    GRN  = [0.25, 0.58, 0.32, 1]      # OK/PC
+    BLUE = [0.30, 0.40, 0.65, 1]      # info
     BLK  = [0.0, 0.0, 0.0, 1]         # svart (preview-bg)
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
@@ -1139,7 +1139,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (v0.2 dark + splash) ===")
+            log("=== BUILD (v0.2.3 Abyssal Purple) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
