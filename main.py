@@ -206,7 +206,7 @@ try:
     # === REGLER & REFERANSE ===
     # Komplett CoC 7e + Pulp Cthulhu keeper-referanse.
     RULES = [
-      ("Grunnregler", "\u25a0", [
+      ("Grunnregler", "", [
         ("Ferdighetskast", [
           "Rull d100 (percentile) mot skill-verdi.",
           "Lik eller under = suksess.",
@@ -223,7 +223,7 @@ try:
           "  Krav \u2265 50: kun 100 er fumble",
           "  Krav < 50: 96\u2013100 er fumble",
           "  Eks: skill 60, Hard diff (krav 30)",
-          "    \u2192 fumble på 96\u2013100",
+          "    -> fumble på 96\u2013100",
         ]),
         ("Vanskelighetsgrad", [
           "Keeper setter vanskelighetsgrad:",
@@ -278,13 +278,13 @@ try:
           "  Disguise vs Spot Hidden",
         ]),
         ("Luck", [
-          "Luck-verdi: 3d6 \u00d7 5 (ved opprettelse).",
+          "Luck-verdi: 3d6 x 5 (ved opprettelse).",
           "Luck-sjekk: d100 \u2264 Luck.",
           "",
           "Spending Luck:",
           "  Etter et skill-kast: trekk Luck-poeng",
           "  1:1 for å senke resultatet.",
-          "  Eks: kast 55, skill 50 \u2192 spend 5 Luck.",
+          "  Eks: kast 55, skill 50 -> spend 5 Luck.",
           "",
           "Luck regenereres IKKE i standard CoC.",
           "Pulp: regenerer 2d10 Luck per sesjon.",
@@ -302,23 +302,23 @@ try:
           "Alderseffekter kan senke stats.",
         ]),
       ]),
-      ("Kamp", "\u2694", [
+      ("Kamp", "", [
         ("Kampflyt", [
           "1. Alle handler i DEX-rekkefølge",
           "   (høyeste først).",
           "",
           "2. Hver deltaker får 1 handling:",
-          "   \u2022 Angripe (melee eller ranged)",
-          "   \u2022 Flee (trekke seg ut)",
-          "   \u2022 Manøver (trip, disarm, etc.)",
-          "   \u2022 Kaste besvergelse",
-          "   \u2022 Bruke gjenstand / First Aid",
-          "   \u2022 Annet (snakke, lete, etc.)",
+          "   - Angripe (melee eller ranged)",
+          "   - Flee (trekke seg ut)",
+          "   - Manøver (trip, disarm, etc.)",
+          "   - Kaste besvergelse",
+          "   - Bruke gjenstand / First Aid",
+          "   - Annet (snakke, lete, etc.)",
           "",
           "3. Forsvarer velger reaksjon:",
-          "   \u2022 Dodge (unngå)",
-          "   \u2022 Fight Back (motangrep, kun melee)",
-          "   \u2022 Ingenting (tar full skade)",
+          "   - Dodge (unngå)",
+          "   - Fight Back (motangrep, kun melee)",
+          "   - Ingenting (tar full skade)",
           "",
           "4. Gjenta til kamp er over.",
         ]),
@@ -327,14 +327,14 @@ try:
           "Forsvarer velger:",
           "",
           "DODGE (opposed vs Dodge-skill):",
-          "  Angriper vinner \u2192 full skade",
-          "  Forsvarer vinner \u2192 unngår angrepet",
-          "  Begge feiler \u2192 ingenting skjer",
+          "  Angriper vinner -> full skade",
+          "  Forsvarer vinner -> unngår angrepet",
+          "  Begge feiler -> ingenting skjer",
           "",
           "FIGHT BACK (opposed vs Fighting):",
-          "  Angriper vinner \u2192 full skade",
-          "  Forsvarer vinner \u2192 forsvarer gjør skade",
-          "  Begge feiler \u2192 ingenting skjer",
+          "  Angriper vinner -> full skade",
+          "  Forsvarer vinner -> forsvarer gjør skade",
+          "  Begge feiler -> ingenting skjer",
           "",
           "Dodge: 1 gratis per runde,",
           "  ekstra dodge koster handling neste runde.",
@@ -342,7 +342,7 @@ try:
           "OUTNUMBERED:",
           "  Når forsvarer allerede har dodget",
           "  eller fought back denne runden:",
-          "  \u2192 alle etterfølgende angrep får",
+          "  -> alle etterfølgende angrep får",
           "     +1 bonus die.",
           "  Unntak: vesener med flere angrep/runde",
           "  kan dodge/fight back like mange ganger.",
@@ -356,8 +356,8 @@ try:
           "Rekkevidde-modifikatorer:",
           "  Point-blank (\u2264 1/5 range): +1 bonus",
           "  Mellomdistanse (base range): normal",
-          "  Lang (inntil 2\u00d7 base): +1 penalty",
-          "  Ekstrem (inntil 4\u00d7 base): +2 penalty",
+          "  Lang (inntil 2x base): +1 penalty",
+          "  Ekstrem (inntil 4x base): +2 penalty",
           "",
           "Andre modifikatorer:",
           "  Bevegelig mål: +1 penalty",
@@ -432,7 +432,7 @@ try:
           "  Bruker halve magasinet.",
         ]),
       ]),
-      ("Sanity", "\u2620", [
+      ("Sanity", "", [
         ("SAN-sjekk", [
           "Rull d100 \u2264 nåværende SAN.",
           "",
@@ -451,7 +451,7 @@ try:
           "",
           "Keeper krever INT-sjekk:",
           "  INT suksess = investigator innser",
-          "    sannheten \u2192 MIDLERTIDIG GAL",
+          "    sannheten -> MIDLERTIDIG GAL",
           "  INT feil = fortrengt minne,",
           "    investigator forblir ved sine fulle fem",
           "",
@@ -540,7 +540,7 @@ try:
           "  utover denne grensen.",
         ]),
       ]),
-      ("Forfølgelse", "\U0001f3c3", [
+      ("Forfølgelse", "", [
         ("Oppsett", [
           "1. Type: fot eller kjøretøy.",
           "2. Antall locations: 5\u201310 (Keeper velger).",
@@ -553,7 +553,7 @@ try:
           "   Feil: -1 MOV for chasen",
           "   (kjøretøy: Drive Auto i stedet)",
           "5. Sammenlign MOV: høyere MOV flykter",
-          "   umiddelbart. Ellers \u2192 full chase.",
+          "   umiddelbart. Ellers -> full chase.",
           "6. Sett startposisjoner på tracken.",
           "7. Plasser barrierer/farer på locations.",
           "",
@@ -568,8 +568,8 @@ try:
           "Runder i DEX-rekkefølge (høy først).",
           "",
           "Hver runde kan deltaker:",
-          "  \u2022 Bevege seg (MOV locations)",
-          "  \u2022 Utføre 1 handling:",
+          "  - Bevege seg (MOV locations)",
+          "  - Utføre 1 handling:",
           "    Speed: CON-sjekk for +1 location",
           "    Angrep: Fighting/Firearms",
           "    Barriere: skill-sjekk for å passere",
@@ -607,7 +607,7 @@ try:
           "  MOV 0: kan ikke bevege seg.",
         ]),
       ]),
-      ("Magi & Tomer", "\u2728", [
+      ("Magi & Tomer", "", [
         ("Besvergelse", [
           "Kostnader varierer per spell:",
           "  Magic Points (MP): vanligst",
@@ -666,7 +666,7 @@ try:
           "  Yog-Sothoth: 1d10/1d100",
         ]),
       ]),
-      ("Pulp Cthulhu", "\U0001f4aa", [
+      ("Pulp Cthulhu", "", [
         ("Pulp-regler", [
           "Helter er TØFFERE enn standard CoC.",
           "",
@@ -675,8 +675,8 @@ try:
           "  Effektivt DOBBEL HP.",
           "  Valgfritt lavnivå: (CON+SIZ)/10",
           "",
-          "Luck: 2d6+6 \u00d7 5 (høyere enn standard)",
-          "  Standard CoC: 3d6 \u00d7 5",
+          "Luck: 2d6+6 x 5 (høyere enn standard)",
+          "  Standard CoC: 3d6 x 5",
           "  Regenerer 2d10 Luck per sesjon.",
           "",
           "First Aid: +1d4 HP (standard: +1 HP)",
@@ -689,8 +689,8 @@ try:
           "",
           "Kampkast kan IKKE pushes (som standard).",
           "Spending Luck: kan også brukes til:",
-          "  \u2022 Unngå dying (5 Luck = stabiliser)",
-          "  \u2022 Redusere skade (etter kast)",
+          "  - Unngå dying (5 Luck = stabiliser)",
+          "  - Redusere skade (etter kast)",
         ]),
         ("Arketyper", [
           "Velg 1 arketype ved opprettelse.",
@@ -740,7 +740,7 @@ try:
           "  Fleet Footed: +1 MOV i chase",
         ]),
       ]),
-      ("Tabeller", "\U0001f4ca", [
+      ("Tabeller", "", [
         ("Våpentabell \u2013 melee", [
           "Våpen: skade / attacks",
           "",
@@ -791,7 +791,7 @@ try:
           "Alder påvirker stats ved opprettelse:",
           "",
           "  15\u201319: -5 SIZ/STR, -5 EDU,",
-          "    Luck: rull 2\u00d7, bruk best",
+          "    Luck: rull 2x, bruk best",
           "  20\u201339: EDU-forbedring: +1",
           "  40\u201349: EDU +2, -5 fritt STR/CON/DEX,",
           "    APP -5, MOV -1",
@@ -1499,10 +1499,10 @@ try:
             self._rules_tree.clear_widgets()
             for i, (cat_name, icon, subs) in enumerate(RULES):
                 expanded = i in self._rules_expanded
-                arrow = "\u25bc" if expanded else "\u25b6"
+                arrow = "[-]" if expanded else "[+]"
                 # Mappe-knapp
                 fbtn = RBtn(
-                    text=f"  {arrow}  {icon}  {cat_name}",
+                    text=f"  {arrow}  {cat_name}",
                     bg_color=BTNH if expanded else BTN,
                     color=GOLD if expanded else TXT,
                     font_size=sp(13), halign='left',
@@ -1514,7 +1514,7 @@ try:
                     for j, (sub_name, content) in enumerate(subs):
                         n = len([l for l in content if l])
                         sbtn = RBtn(
-                            text=f"      \u25b8  {sub_name}",
+                            text=f"       >  {sub_name}",
                             bg_color=BG2, color=TXT,
                             font_size=sp(12), halign='left',
                             size_hint_y=None, height=dp(38))
@@ -1546,19 +1546,19 @@ try:
 
             # Header med lukk + navigering
             hdr = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(4))
-            hdr.add_widget(mkbtn("\u2715 Lukk", self._rules_close_overlay,
+            hdr.add_widget(mkbtn("Lukk", self._rules_close_overlay,
                                  danger=True, small=True, size_hint_x=0.25))
             if sub_idx > 0:
-                hdr.add_widget(mkbtn("\u25c0",
+                hdr.add_widget(mkbtn("<<",
                     lambda: (self._rules_close_overlay(), self._rules_open(cat_idx, sub_idx - 1)),
                     small=True, size_hint_x=None, width=dp(36)))
             else:
                 hdr.add_widget(Widget(size_hint_x=None, width=dp(36)))
 
-            hdr.add_widget(mklbl(f"{icon} {sub_name}", color=GOLD, size=13, bold=True))
+            hdr.add_widget(mklbl(sub_name, color=GOLD, size=13, bold=True))
 
             if sub_idx < len(subs) - 1:
-                hdr.add_widget(mkbtn("\u25b6",
+                hdr.add_widget(mkbtn(">>",
                     lambda: (self._rules_close_overlay(), self._rules_open(cat_idx, sub_idx + 1)),
                     small=True, size_hint_x=None, width=dp(36)))
             else:
@@ -1566,7 +1566,7 @@ try:
             overlay.add_widget(hdr)
 
             # Breadcrumb
-            overlay.add_widget(mklbl(f"{cat_name}  \u203a  {sub_name}",
+            overlay.add_widget(mklbl(f"{cat_name}  >  {sub_name}",
                                      color=DIM, size=10, h=18))
 
             # Separator
