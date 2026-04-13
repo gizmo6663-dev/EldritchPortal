@@ -6,7 +6,7 @@ package.domain = org.rpg
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
-version = 0.2.0
+version = 0.2.2
 
 requirements = python3,kivy,pillow,android,pychromecast,zeroconf,ifaddr,protobuf
 
@@ -29,4 +29,3 @@ log_level = 2
 [buildozer]
 log_level = 2
 warn_on_root = 1
-Eneste endring fra forrige: version = 0.2.0.
