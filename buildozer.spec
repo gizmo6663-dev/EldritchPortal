@@ -6,7 +6,7 @@ package.domain = org.rpg
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
-version = 0.2.2
+version = 0.3.0
 
 requirements = python3,kivy,pillow,android,pychromecast,zeroconf,ifaddr,protobuf
 
