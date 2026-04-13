@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (v0.2.3 – Abyssal Purple) ===")
+log("=== APP START (v0.3.0 – Abyssal Purple) ===")
 
 try:
     from kivy.app import App
@@ -145,7 +145,7 @@ try:
     AMBIENT_SOUNDS = [
         {"name":"--- Natur ---"},
         {"name":"Regn og torden","url":"https://archive.org/download/RainSound13/Gentle%20Rain%20and%20Thunder.mp3"},
-        {"name":"Havboelger","url":"https://archive.org/download/naturesounds-soundtheraphy/Birds%20With%20Ocean%20Waves%20on%20the%20Beach.mp3"},
+        {"name":"Havbølger","url":"https://archive.org/download/naturesounds-soundtheraphy/Birds%20With%20Ocean%20Waves%20on%20the%20Beach.mp3"},
         {"name":"Nattregn","url":"https://archive.org/download/RainSound13/Night%20Rain%20Sound.mp3"},
         {"name":"Vind og storm","url":"https://archive.org/download/rain-sounds-gentle-rain-thunderstorms/epic-storm-thunder-rainwindwaves-no-loops-106800.mp3"},
         {"name":"Nattlyder","url":"https://archive.org/download/rain-sounds-gentle-rain-thunderstorms/ambience-crickets-chirping-in-very-light-rain-followed-by-gentle-rolling-thunder-10577.mp3"},
@@ -154,16 +154,16 @@ try:
         {"name":"Tordenstorm","url":"https://archive.org/download/RainSound13/Rain%20Sound%20with%20Thunderstorm.mp3"},
         {"name":"Urolig hav","url":"https://archive.org/download/RelaxingRainAndLoudThunderFreeFieldRecordingOfNatureSoundsForSleepOrMeditation/Relaxing%20Rain%20and%20Loud%20Thunder%20%28Free%20Field%20Recording%20of%20Nature%20Sounds%20for%20Sleep%20or%20Meditation%20Mp3%29.mp3"},
         {"name":"--- Horror ---"},
-        {"name":"Skummel atmosfaere","url":"https://archive.org/download/creepy-music-sounds/Creepy%20music%20%26%20sounds.mp3"},
+        {"name":"Skummel atmosfære","url":"https://archive.org/download/creepy-music-sounds/Creepy%20music%20%26%20sounds.mp3"},
         {"name":"Uhyggelig drone","url":"https://archive.org/download/scary-sound-effects-8/Evil%20Demon%20Drone%20Movie%20Halloween%20Sounds.mp3"},
-        {"name":"Mork spenning","url":"https://archive.org/download/scary-sound-effects-8/Dramatic%20Suspense%20Sound%20Effects.mp3"},
+        {"name":"Mørk spenning","url":"https://archive.org/download/scary-sound-effects-8/Dramatic%20Suspense%20Sound%20Effects.mp3"},
         {"name":"Horrorlyder","url":"https://archive.org/download/creepy-music-sounds/Horror%20Sound%20Effects.mp3"},
     ]
 
     # === KARAKTERFELT ===
     CHAR_INFO = [
         ("name","Navn"), ("type","Type"), ("occ","Yrke"), ("archetype","Arketype"),
-        ("age","Alder"), ("residence","Bosted"), ("birthplace","Foedested"),
+        ("age","Alder"), ("residence","Bosted"), ("birthplace","Fødested"),
     ]
     CHAR_STATS = [
         ("str","STR"), ("con","CON"), ("siz","SIZ"), ("dex","DEX"),
@@ -174,7 +174,7 @@ try:
         ("db","DB"), ("build","Build"), ("move","Move"), ("dodge","Dodge"),
     ]
     CHAR_TEXT = [
-        ("weapons","Vaapen"), ("talents","Pulp Talents"),
+        ("weapons","Våpen"), ("talents","Pulp Talents"),
         ("backstory","Bakgrunn"), ("notes","Notater"),
     ]
     SKILLS = [
@@ -205,29 +205,25 @@ try:
 
     # === REGLER & REFERANSE ===
     # Komplett CoC 7e + Pulp Cthulhu keeper-referanse.
-    # Kategorier -> underkategorier -> innhold (liste av strenger).
     RULES = [
-      # ──────────────────────────────────────────
-      # 1. GRUNNREGLER
-      # ──────────────────────────────────────────
-      ("Grunnregler", "GR", [
+      ("Grunnregler", "\u25a0", [
         ("Ferdighetskast", [
           "Rull d100 (percentile) mot skill-verdi.",
           "Lik eller under = suksess.",
           "",
-          "Suksessnivaaer:",
+          "Suksessnivåer:",
           "  Critical: resultat = 01",
-          "  Extreme: resultat <= skill / 5",
-          "  Hard: resultat <= skill / 2",
-          "  Regular: resultat <= skill",
+          "  Extreme: resultat \u2264 skill / 5",
+          "  Hard: resultat \u2264 skill / 2",
+          "  Regular: resultat \u2264 skill",
           "  Failure: resultat > skill",
           "",
           "Automatisk suksess: 01 alltid suksess.",
-          "Fumble (basert paa KRAV, ikke base skill):",
-          "  Krav >= 50: kun 100 er fumble",
-          "  Krav < 50: 96-100 er fumble",
+          "Fumble (basert på KRAV, ikke base skill):",
+          "  Krav \u2265 50: kun 100 er fumble",
+          "  Krav < 50: 96\u2013100 er fumble",
           "  Eks: skill 60, Hard diff (krav 30)",
-          "    -> fumble paa 96-100",
+          "    \u2192 fumble på 96\u2013100",
         ]),
         ("Vanskelighetsgrad", [
           "Keeper setter vanskelighetsgrad:",
@@ -235,27 +231,28 @@ try:
           "  Hard: halv skill-verdi",
           "  Extreme: femtedel av skill-verdi",
           "",
-          "Brukes naar oppgaven er vanskelig,",
-          "f.eks. laase opp kompleks laas = Hard,",
-          "operere i moerke = Extreme.",
+          "Mot levende motstandere:",
+          "  Motstanders skill < 50: Regular",
+          "  Motstanders skill \u2265 50: Hard",
+          "  Motstanders skill \u2265 90: Extreme",
         ]),
         ("Bonus & Penalty", [
           "Bonus die: rull 2 tier-terninger,",
           "  bruk den LAVESTE.",
           "Penalty die: rull 2 tier-terninger,",
-          "  bruk den HOEYESTE.",
+          "  bruk den HØYESTE.",
           "",
-          "Kan ha maks 2 bonus ELLER 2 penalty.",
+          "Maks 2 bonus ELLER 2 penalty.",
           "Bonus og penalty kansellerer 1:1.",
           "",
-          "Gis av Keeper basert paa omstendigheter:",
+          "Gis av Keeper basert på omstendigheter:",
           "  Fordel: bonus (godt lys, tid, verktøy)",
           "  Ulempe: penalty (stress, dårlig sikt)",
         ]),
         ("Pushed Rolls", [
           "Spiller kan pushe ETT mislykket kast.",
-          "Maa beskrive HVA de gjør annerledes.",
-          "Keeper maa godkjenne pushen.",
+          "Må beskrive HVA de gjør annerledes.",
+          "Keeper må godkjenne pushen.",
           "",
           "Mislykket push = ALVORLIG konsekvens",
           "(verre enn vanlig feil).",
@@ -268,8 +265,8 @@ try:
         ]),
         ("Opposed Rolls", [
           "Begge parter ruller sine skills.",
-          "Hoeyeste suksessnivaa vinner.",
-          "Likt nivaa: hoeyeste skill-verdi vinner.",
+          "Høyeste suksessnivå vinner.",
+          "Likt nivå: høyeste skill-verdi vinner.",
           "Ingen suksess: status quo.",
           "",
           "Vanlige opposed rolls:",
@@ -281,13 +278,13 @@ try:
           "  Disguise vs Spot Hidden",
         ]),
         ("Luck", [
-          "Luck-verdi: 3d6 x 5 (ved opprettelse).",
-          "Luck-sjekk: d100 <= Luck.",
+          "Luck-verdi: 3d6 \u00d7 5 (ved opprettelse).",
+          "Luck-sjekk: d100 \u2264 Luck.",
           "",
           "Spending Luck:",
           "  Etter et skill-kast: trekk Luck-poeng",
-          "  1:1 for aa senke resultatet.",
-          "  Eks: kast 55, skill 50 -> spend 5 Luck.",
+          "  1:1 for å senke resultatet.",
+          "  Eks: kast 55, skill 50 \u2192 spend 5 Luck.",
           "",
           "Luck regenereres IKKE i standard CoC.",
           "Pulp: regenerer 2d10 Luck per sesjon.",
@@ -299,32 +296,29 @@ try:
           "Etter scenario: marker brukte skills.",
           "Rull d100 for hver markert skill:",
           "  Resultat > skill = +1d10 til skill.",
-          "  Resultat <= skill = ingen okning.",
+          "  Resultat \u2264 skill = ingen økning.",
           "",
           "Skill-maks: 99 (unntatt CM: 99).",
           "Alderseffekter kan senke stats.",
         ]),
       ]),
-      # ──────────────────────────────────────────
-      # 2. KAMP
-      # ──────────────────────────────────────────
-      ("Kamp", "KA", [
+      ("Kamp", "\u2694", [
         ("Kampflyt", [
           "1. Alle handler i DEX-rekkefølge",
-          "   (hoeyeste foerst).",
+          "   (høyeste først).",
           "",
-          "2. Hver deltaker faar 1 handling:",
-          "   - Angripe (melee eller ranged)",
-          "   - Flee (trekke seg ut)",
-          "   - Manoever (trip, disarm, etc.)",
-          "   - Kaste besverging",
-          "   - Bruke gjenstand / First Aid",
-          "   - Annet (snakke, lete, etc.)",
+          "2. Hver deltaker får 1 handling:",
+          "   \u2022 Angripe (melee eller ranged)",
+          "   \u2022 Flee (trekke seg ut)",
+          "   \u2022 Manøver (trip, disarm, etc.)",
+          "   \u2022 Kaste besvergelse",
+          "   \u2022 Bruke gjenstand / First Aid",
+          "   \u2022 Annet (snakke, lete, etc.)",
           "",
           "3. Forsvarer velger reaksjon:",
-          "   - Dodge (unngaa)",
-          "   - Fight Back (motangrep, kun melee)",
-          "   - Ingenting (tar full skade)",
+          "   \u2022 Dodge (unngå)",
+          "   \u2022 Fight Back (motangrep, kun melee)",
+          "   \u2022 Ingenting (tar full skade)",
           "",
           "4. Gjenta til kamp er over.",
         ]),
@@ -333,69 +327,69 @@ try:
           "Forsvarer velger:",
           "",
           "DODGE (opposed vs Dodge-skill):",
-          "  Angriper vinner -> full skade",
-          "  Forsvarer vinner -> unngaar angrepet",
-          "  Begge feiler -> ingenting skjer",
+          "  Angriper vinner \u2192 full skade",
+          "  Forsvarer vinner \u2192 unngår angrepet",
+          "  Begge feiler \u2192 ingenting skjer",
           "",
           "FIGHT BACK (opposed vs Fighting):",
-          "  Angriper vinner -> full skade",
-          "  Forsvarer vinner -> forsvarer gjoer skade",
-          "  Begge feiler -> ingenting skjer",
+          "  Angriper vinner \u2192 full skade",
+          "  Forsvarer vinner \u2192 forsvarer gjør skade",
+          "  Begge feiler \u2192 ingenting skjer",
           "",
           "Dodge: 1 gratis per runde,",
           "  ekstra dodge koster handling neste runde.",
           "",
           "OUTNUMBERED:",
-          "  Naar forsvarer allerede har dodget",
+          "  Når forsvarer allerede har dodget",
           "  eller fought back denne runden:",
-          "  -> alle etterfølgende angrep faar",
+          "  \u2192 alle etterfølgende angrep får",
           "     +1 bonus die.",
           "  Unntak: vesener med flere angrep/runde",
           "  kan dodge/fight back like mange ganger.",
-          "  Gjelder IKKE skytevaapen.",
+          "  Gjelder IKKE skytevåpen.",
         ]),
-        ("Skytevaapen", [
+        ("Skytevåpen", [
           "Rull Firearms-skill. INGEN opposed roll.",
           "Forsvarer kan KUN dodge ved point-blank.",
           "Ellers: bare dekke/bevege seg ut.",
           "",
           "Rekkevidde-modifikatorer:",
-          "  Point-blank (inntil 1/5 range): +1 bonus",
+          "  Point-blank (\u2264 1/5 range): +1 bonus",
           "  Mellomdistanse (base range): normal",
-          "  Lang (inntil 2x base): +1 penalty",
-          "  Ekstrem (inntil 4x base): +2 penalty",
+          "  Lang (inntil 2\u00d7 base): +1 penalty",
+          "  Ekstrem (inntil 4\u00d7 base): +2 penalty",
           "",
           "Andre modifikatorer:",
-          "  Bevegelig maal: +1 penalty",
-          "  Stort maal: +1 bonus",
-          "  Smalt maal: +1 penalty",
+          "  Bevegelig mål: +1 penalty",
+          "  Stort mål: +1 bonus",
+          "  Smalt mål: +1 penalty",
           "  Sikte (bruker handling): +1 bonus",
           "",
           "Impale: Extreme suksess med",
-          "  gjennomborende vaapen",
-          "  = maks vaapenskade + ekstra kast.",
+          "  gjennomborende våpen",
+          "  = maks våpenskade + ekstra kast.",
         ]),
-        ("Manoevrer", [
-          "Fighting-manoever (i stedet for skade):",
-          "  Trip/knockdown: maal faller",
-          "  Disarm: maal mister vaapen",
-          "  Hold/grapple: maal er fastholdt",
+        ("Manøvrer", [
+          "Fighting-manøver (i stedet for skade):",
+          "  Trip/knockdown: mål faller",
+          "  Disarm: mål mister våpen",
+          "  Hold/grapple: mål er fastholdt",
           "  Kaste: dytte/kaste motstanderen",
           "",
           "Krever: vinn opposed Fighting-sjekk.",
           "Build-differanse kan gi bonus/penalty:",
-          "  Angriper Build >= maal + 2: +1 bonus",
-          "  Angriper Build <= maal - 2: +1 penalty",
+          "  Angriper Build \u2265 mål + 2: +1 bonus",
+          "  Angriper Build \u2264 mål - 2: +1 penalty",
         ]),
         ("Damage Bonus (DB)", [
-          "DB basert paa STR + SIZ:",
-          "  2-64:    -2",
-          "  65-84:   -1",
-          "  85-124:  0",
-          "  125-164: +1d4",
-          "  165-204: +1d6",
-          "  205-284: +2d6",
-          "  285-364: +3d6",
+          "DB basert på STR + SIZ:",
+          "  2\u201364:    -2",
+          "  65\u201384:   -1",
+          "  85\u2013124:  0",
+          "  125\u2013164: +1d4",
+          "  165\u2013204: +1d6",
+          "  205\u2013284: +2d6",
+          "  285\u2013364: +3d6",
           "",
           "Build-verdi:",
           "  DB -2: Build -2",
@@ -406,18 +400,18 @@ try:
           "  DB +2d6: Build 3",
         ]),
         ("Skade & heling", [
-          "SKADENIVAAER:",
+          "SKADENIVÅER:",
           "  Minor wound: tap < halve maks HP",
-          "  Major wound: tap >= halve maks HP",
+          "  Major wound: tap \u2265 halve maks HP",
           "",
           "MAJOR WOUND-konsekvenser:",
           "  CON-sjekk eller besvime",
           "  First Aid/Medicine innen 1 runde",
-          "  Maa stabiliseres ellers doer",
+          "  Må stabiliseres ellers dør",
           "",
           "DYING (0 HP):",
           "  CON-sjekk per runde",
-          "  Feil = doed",
+          "  Feil = død",
           "  Suksess = holder ut 1 runde til",
           "",
           "HELING:",
@@ -426,24 +420,21 @@ try:
           "  Naturlig: 1 HP/uke (minor)",
           "  Major wound: 1d3 HP/uke m/pleie",
         ]),
-        ("Automatiske vaapen", [
+        ("Automatiske våpen", [
           "Burst: 3 kuler, +1 bonus die til skade.",
-          "Full auto: velg antall maal,",
-          "  fordel kuler, rull for hvert maal.",
-          "  1 bonus die per 10 kuler paa maalet.",
+          "Full auto: velg antall mål,",
+          "  fordel kuler, rull for hvert mål.",
+          "  1 bonus die per 10 kuler på målet.",
           "",
           "Suppressive fire:",
-          "  Dekker et omraade, alle i omraadet",
-          "  maa Dodge eller ta 1 treff.",
+          "  Dekker et område, alle i området",
+          "  må Dodge eller ta 1 treff.",
           "  Bruker halve magasinet.",
         ]),
       ]),
-      # ──────────────────────────────────────────
-      # 3. SANITY
-      # ──────────────────────────────────────────
-      ("Sanity", "SA", [
+      ("Sanity", "\u2620", [
         ("SAN-sjekk", [
-          "Rull d100 <= naavaerende SAN.",
+          "Rull d100 \u2264 nåværende SAN.",
           "",
           "Format: 'X/Y'",
           "  Suksess: tap = X",
@@ -451,40 +442,36 @@ try:
           "  Eks: '1/1d6' = suksess taper 1,",
           "    feil taper 1d6 SAN.",
           "",
-          "Maks SAN = 99 - Cthulhu Mythos skill.",
+          "Maks SAN = 99 \u2013 Cthulhu Mythos skill.",
           "",
           "SAN fumble: automatisk maks SAN-tap.",
-          "",
-          "Hardened: etter mange lignende sjokk",
-          "  kan Keeper gi automatisk suksess",
-          "  paa visse SAN-sjekker.",
         ]),
         ("Temporary Insanity", [
           "TRIGGER: 5+ SAN tapt i ETT kast.",
           "",
           "Keeper krever INT-sjekk:",
-          "  INT-kast SUKSESS = investigator",
-          "    innser sannheten -> MIDLERTIDIG GAL",
-          "  INT-kast FEIL = fortrengt minne,",
+          "  INT suksess = investigator innser",
+          "    sannheten \u2192 MIDLERTIDIG GAL",
+          "  INT feil = fortrengt minne,",
           "    investigator forblir ved sine fulle fem",
           "",
           "Midlertidig insanity varer 1d10 timer.",
-          "Begynner med Bout of Madness (se neste).",
-          "Etterfoelges av Underlying Insanity.",
+          "Begynner med Bout of Madness.",
+          "Etterfølges av Underlying Insanity.",
         ]),
         ("Bout of Madness", [
-          "Oppstaar ved midlertidig insanity.",
+          "Oppstår ved midlertidig insanity.",
           "Keeper velger Real-Time eller Summary.",
           "",
           "REAL-TIME (varig 1d10 runder):",
           "  1: Amnesi (husker ingenting)",
-          "  2: Psychosomatisk (blind/doev/lam)",
-          "  3: Vold (angrip naermeste)",
+          "  2: Psykosomatisk (blind/døv/lam)",
+          "  3: Vold (angrip nærmeste)",
           "  4: Paranoia (alle er fiender)",
           "  5: Fysisk (kvalme/besvimelse)",
-          "  6: Flukt (loep i panikk)",
+          "  6: Flukt (løp i panikk)",
           "  7: Hallusinasjoner",
-          "  8: Ekko (gjenta handlinger meningloest)",
+          "  8: Ekko (gjenta handlinger meningsløst)",
           "  9: Fobi (ny eller eksisterende)",
           "  10: Katatoni (stivner helt)",
         ]),
@@ -496,125 +483,122 @@ try:
           "  4: Irrasjonelt hat/frykt",
           "  5: Fobi (spesifikk, ny eller forsterket)",
           "  6: Mani (kompulsiv adferd)",
-          "  7: Paranoia (stoler paa ingen)",
+          "  7: Paranoia (stoler på ingen)",
           "  8: Dissosiasjon (fjern, uvirkelig)",
-          "  9: Spiseforstyrrelse / soemnloes",
-          "  10: Mythos-besettelse (studerer forbud)",
+          "  9: Spiseforstyrrelse / søvnløshet",
+          "  10: Mythos-besettelse (studerer forbudt)",
         ]),
         ("Fobier (utvalg)", [
-          "Acrophobia - hoeydefobi",
-          "Agoraphobia - aapne plasser",
-          "Arachnophobia - edderkopper",
-          "Claustrophobia - trange rom",
-          "Demophobia - folkemengder",
-          "Hemophobia - blod",
-          "Hydrophobia - vann",
-          "Mysophobia - smitte/skitt",
-          "Necrophobia - doede/lik",
-          "Nyctophobia - moerke",
-          "Pyrophobia - ild",
-          "Thalassophobia - havet/dypt vann",
-          "Xenophobia - fremmede/ukjente",
-          "Zoophobia - dyr",
+          "Acrophobia \u2013 høydefobi",
+          "Agoraphobia \u2013 åpne plasser",
+          "Arachnophobia \u2013 edderkopper",
+          "Claustrophobia \u2013 trange rom",
+          "Demophobia \u2013 folkemengder",
+          "Hemophobia \u2013 blod",
+          "Hydrophobia \u2013 vann",
+          "Mysophobia \u2013 smitte/skitt",
+          "Necrophobia \u2013 døde/lik",
+          "Nyctophobia \u2013 mørke",
+          "Pyrophobia \u2013 ild",
+          "Thalassophobia \u2013 havet/dypt vann",
+          "Xenophobia \u2013 fremmede/ukjente",
+          "Zoophobia \u2013 dyr",
         ]),
         ("Manier (utvalg)", [
-          "Dipsomania - trang til alkohol",
-          "Kleptomania - trang til aa stjele",
-          "Megalomania - storhetstanker",
-          "Mythomania - tvangsloegner",
-          "Necromania - besettelse med doeden",
-          "Pyromania - brannstifting",
-          "Thanatomania - doedslengsel",
-          "Xenomania - besettelse med fremmede",
+          "Dipsomania \u2013 trang til alkohol",
+          "Kleptomania \u2013 trang til å stjele",
+          "Megalomania \u2013 storhetstanker",
+          "Mythomania \u2013 tvangsløgner",
+          "Necromania \u2013 besettelse med døden",
+          "Pyromania \u2013 brannstifting",
+          "Thanatomania \u2013 dødslengsel",
+          "Xenomania \u2013 besettelse med fremmede",
         ]),
         ("Indefinite Insanity", [
-          "Trigges naar investigator har tapt",
-          "  1/5 av naavaerende SAN totalt.",
+          "Trigges når investigator har tapt",
+          "  1/5 av nåværende SAN totalt.",
           "",
           "Effekt: langvarig galskap.",
           "  Spiller mister kontroll over karakter.",
           "  Keeper bestemmer adferd.",
-          "  Varer maaneder/aar.",
+          "  Varer måneder/år.",
           "",
           "Behandling:",
           "  Institusjonalisering",
           "  Psychoanalysis over tid",
-          "  +1d3 SAN per maaned (maks)",
+          "  +1d3 SAN per måned (maks)",
           "  Mislykket behandling: -1d6 SAN",
         ]),
         ("SAN-gjenoppretting", [
-          "Psychoanalysis: +1d3 SAN (1/maaned)",
+          "Psychoanalysis: +1d3 SAN (1/måned)",
           "  Mislykket: -1d6 SAN!",
           "Self-help: forbedre skill = +1d3 SAN",
-          "Fullfoere scenario: Keeper-beloenning",
+          "Fullføre scenario: Keeper-belønning",
           "",
-          "Maks SAN = 99 - Cthulhu Mythos skill.",
+          "Maks SAN = 99 \u2013 Cthulhu Mythos skill.",
           "Permanent SAN-tap kan ikke gjenopprettes",
           "  utover denne grensen.",
         ]),
       ]),
-      # ──────────────────────────────────────────
-      # 4. FORFØLGELSE (CHASE)
-      # ──────────────────────────────────────────
-      ("Forfoelgelse", "CH", [
+      ("Forfølgelse", "\U0001f3c3", [
         ("Oppsett", [
-          "1. Type: fot eller kjoeretoey.",
-          "2. Antall locations: 5-10 (Keeper velger).",
-          "3. Deltagere:",
-          "   Fot: MOV basert paa DEX, STR, SIZ.",
+          "1. Type: fot eller kjøretøy.",
+          "2. Antall locations: 5\u201310 (Keeper velger).",
+          "3. Deltakere:",
+          "   Fot: MOV basert på DEX, STR, SIZ.",
           "   Bil: speed-rating.",
           "4. Speed Roll (CON-sjekk):",
           "   Extreme suksess: +1 MOV for chasen",
           "   Suksess: ingen endring",
           "   Feil: -1 MOV for chasen",
-          "   (kjoeretoey: Drive Auto i stedet)",
-          "5. Sammenlign MOV: hoeyere MOV flykter",
-          "   umiddelbart. Ellers -> full chase.",
-          "6. Sett startposisjoner paa tracken.",
-          "7. Plasser barrierer/farer paa locations.",
+          "   (kjøretøy: Drive Auto i stedet)",
+          "5. Sammenlign MOV: høyere MOV flykter",
+          "   umiddelbart. Ellers \u2192 full chase.",
+          "6. Sett startposisjoner på tracken.",
+          "7. Plasser barrierer/farer på locations.",
           "",
           "MOV (Movement Rate):",
           "  Hvis DEX & STR begge > SIZ: MOV 9",
           "  Hvis enten DEX eller STR > SIZ: MOV 8",
-          "  Hvis begge <= SIZ: MOV 7",
-          "  Alder 40-49: MOV -1",
-          "  Alder 50-59: MOV -2 (etc.)",
+          "  Hvis begge \u2264 SIZ: MOV 7",
+          "  Alder 40\u201349: MOV -1",
+          "  Alder 50\u201359: MOV -2 (etc.)",
         ]),
         ("Bevegelse & handlinger", [
-          "Runder i DEX-rekkefoelge (hoey foerst).",
+          "Runder i DEX-rekkefølge (høy først).",
           "",
           "Hver runde kan deltaker:",
-          "  - Bevege seg (MOV locations)",
-          "  - Utfoere 1 handling:",
+          "  \u2022 Bevege seg (MOV locations)",
+          "  \u2022 Utføre 1 handling:",
           "    Speed: CON-sjekk for +1 location",
           "    Angrep: Fighting/Firearms",
-          "    Barriere: skill-sjekk for aa passere",
+          "    Barriere: skill-sjekk for å passere",
           "    Hinder: lag barriere for forfølger",
           "",
           "Hazard-handling koster handling OG",
           "  bevegelse den runden.",
         ]),
         ("Barrierer", [
-          "Keeper plasserer barrierer paa locations.",
-          "Skill-sjekk for aa passere:",
+          "Keeper plasserer barrierer på locations.",
+          "Skill-sjekk for å passere:",
           "",
           "  Hopp over gjerde: Jump / Climb",
           "  Trang passasje: DEX / Dodge",
           "  Folkemengde: STR / Charm / Intimidate",
-          "  Gjoerme/glatt: DEX / Luck",
-          "  Laast doer: Locksmith / STR",
+          "  Gjørme/glatt: DEX / Luck",
+          "  Låst dør: Locksmith / STR",
           "  Trafikkert gate: Drive Auto / DEX",
           "",
           "Feil: mist 1 location bevegelse.",
           "Fumble: fall, skade, fastklemt, etc.",
         ]),
         ("Seier & tap", [
-          "FLUKT lykkes naar:",
+          "FLUKT lykkes når:",
           "  Avstand mellom = antall locations + 1",
-          "  (forfølger kan ikke se maalet).",
+          "  (forfølger kan ikke se målet).",
           "",
-          "FANGET naar:",
-          "  Forfølger er paa SAMME location.",
+          "FANGET når:",
+          "  Forfølger er på SAMME location.",
           "  Kamp eller interaksjon kan begynne.",
           "",
           "UTMATTELSE:",
@@ -623,11 +607,8 @@ try:
           "  MOV 0: kan ikke bevege seg.",
         ]),
       ]),
-      # ──────────────────────────────────────────
-      # 5. MAGI & TOMER
-      # ──────────────────────────────────────────
-      ("Magi & Tomer", "MA", [
-        ("Besverging", [
+      ("Magi & Tomer", "\u2728", [
+        ("Besvergelse", [
           "Kostnader varierer per spell:",
           "  Magic Points (MP): vanligst",
           "  SAN: nesten alltid",
@@ -638,17 +619,17 @@ try:
           "Noen krever komponenter/ritualer.",
           "",
           "MP regenereres: 1 per 2 timer hvile.",
-          "MP = 0: bevisstloes i 1d8 timer.",
+          "MP = 0: bevisstløs i 1d8 timer.",
           "POW-offer: permanent, gjenopprettes IKKE.",
         ]),
         ("Mythos-tomer", [
           "Lesing av Mythos-tome:",
-          "  Initial reading: uker til maaneder",
-          "  Full study: maaneder til aar",
+          "  Initial reading: uker til måneder",
+          "  Full study: måneder til år",
           "",
-          "Beloenning: +Cthulhu Mythos skill.",
+          "Belønning: +Cthulhu Mythos skill.",
           "Kostnad: SAN-tap (varierer per tome).",
-          "Kan ogsaa laere spells fra tomen.",
+          "Kan også lære spells fra tomen.",
           "",
           "EKSEMPLER (CM-gevinst / SAN-tap):",
           "  Necronomicon (latin): +15 / -2d10",
@@ -685,20 +666,17 @@ try:
           "  Yog-Sothoth: 1d10/1d100",
         ]),
       ]),
-      # ──────────────────────────────────────────
-      # 6. PULP CTHULHU
-      # ──────────────────────────────────────────
-      ("Pulp Cthulhu", "PU", [
+      ("Pulp Cthulhu", "\U0001f4aa", [
         ("Pulp-regler", [
-          "Heroer er TØFFERE enn standard CoC.",
+          "Helter er TØFFERE enn standard CoC.",
           "",
           "HP: (CON + SIZ) / 5 (avrundet ned)",
           "  Standard CoC: (CON+SIZ) / 10",
           "  Effektivt DOBBEL HP.",
-          "  Valgfritt lavnivaa: (CON+SIZ)/10",
+          "  Valgfritt lavnivå: (CON+SIZ)/10",
           "",
-          "Luck: 2d6+6 x 5 (hoeyere enn standard)",
-          "  Standard CoC: 3d6 x 5",
+          "Luck: 2d6+6 \u00d7 5 (høyere enn standard)",
+          "  Standard CoC: 3d6 \u00d7 5",
           "  Regenerer 2d10 Luck per sesjon.",
           "",
           "First Aid: +1d4 HP (standard: +1 HP)",
@@ -706,13 +684,13 @@ try:
           "Medicine: +1d4 HP (standard: +1d3)",
           "",
           "Pulp Talents: 2 stk (standard).",
-          "  Lavnivaa pulp: 1 talent",
-          "  Hoynivaa pulp: 3 talents",
+          "  Lavnivå pulp: 1 talent",
+          "  Høynivå pulp: 3 talents",
           "",
           "Kampkast kan IKKE pushes (som standard).",
-          "Spending Luck: kan ogsaa brukes til:",
-          "  - Unngaa dying (5 Luck = stabiliser)",
-          "  - Redusere skade (etter kast)",
+          "Spending Luck: kan også brukes til:",
+          "  \u2022 Unngå dying (5 Luck = stabiliser)",
+          "  \u2022 Redusere skade (etter kast)",
         ]),
         ("Arketyper", [
           "Velg 1 arketype ved opprettelse.",
@@ -721,22 +699,22 @@ try:
           "  Adventurer: allsidig eventyrer",
           "  Beefcake: fysisk sterk, ekstra HP",
           "  Bon Vivant: sjarmerende, sosialt dyktig",
-          "  Cold Blooded: hensynsloes, presist",
+          "  Cold Blooded: hensynsløs, presist",
           "  Dreamer: kreativ, Mythos-sensitiv",
           "  Egghead: intellektuell, kunnskapsrik",
           "  Explorer: utforsker, overlevelse",
-          "  Femme/Homme Fatale: forfoerende",
+          "  Femme/Homme Fatale: forførende",
           "  Grease Monkey: mekaniker, oppfinnsom",
           "  Hard Boiled: tøff, utholdende",
           "  Harlequin: entertainer, distraherende",
           "  Hunter: jeger, naturkyndig",
-          "  Mystic: spirituell, spaadomsevne",
-          "  Outsider: ensom, selvlaert",
-          "  Reckless: vaaghals, risikotaker",
+          "  Mystic: spirituell, spådomsevne",
+          "  Outsider: ensom, selvlært",
+          "  Reckless: våghals, risikotaker",
           "  Sidekick: lojal, støttende",
           "  Swashbuckler: akrobatisk fighter",
           "  Thrill Seeker: adrenalinjansen",
-          "  Two-Fisted: naevekamp-spesialist",
+          "  Two-Fisted: nevekamp-spesialist",
         ]),
         ("Pulp Talents (utvalg)", [
           "FYSISK:",
@@ -758,16 +736,13 @@ try:
           "",
           "KAMP:",
           "  Rapid Fire: ekstra skudd uten penalty",
-          "  Outmaneuver: +1 bonus paa manoevrer",
+          "  Outmaneuver: +1 bonus på manøvrer",
           "  Fleet Footed: +1 MOV i chase",
         ]),
       ]),
-      # ──────────────────────────────────────────
-      # 7. REFERANSETABELLER
-      # ──────────────────────────────────────────
-      ("Tabeller", "RE", [
-        ("Vaapentabell - melee", [
-          "Vaapen: skade / attacks",
+      ("Tabeller", "\U0001f4ca", [
+        ("Våpentabell \u2013 melee", [
+          "Våpen: skade / attacks",
           "",
           "  Unarmed (knytneve): 1d3+DB / 1",
           "  Head butt: 1d4+DB / 1",
@@ -775,14 +750,14 @@ try:
           "  Grapple: special / 1",
           "  Kniv (liten): 1d4+DB / 1",
           "  Kniv (stor): 1d6+DB / 1",
-          "  Klubbe/fleskepost: 1d8+DB / 1",
+          "  Klubbe/kølle: 1d8+DB / 1",
           "  Sverd/sabel: 1d8+DB / 1",
           "  Øks (stor): 1d8+2+DB / 1",
           "  Spyd: 1d8+1+DB / 1",
           "  Motorsag: 2d8 / 1",
         ]),
-        ("Vaapentabell - skytevaapen", [
-          "Vaapen: skade / range / shots",
+        ("Våpentabell \u2013 skytevåpen", [
+          "Våpen: skade / range / shots",
           "",
           "  Derringer (.41): 1d8 / 10y / 1",
           "  Revolver (.32): 1d8 / 15y / 6",
@@ -801,54 +776,55 @@ try:
           "HENDELSE: suksess / feil",
           "",
           "  Se et lik: 0/1d3",
-          "  Se en venn doe: 0/1d4",
+          "  Se en venn dø: 0/1d4",
           "  Se noe uforklarlig: 0/1d2",
           "  Se et grusomt drap: 1/1d4+1",
           "  Se massedrap: 1d3/1d6+1",
           "  Finne en grusomhet: 0/1d3",
           "",
           "  Oppdage Mythos-bevis: 0/1d2",
-          "  Laese Mythos-tome: 1/1d4",
+          "  Lese Mythos-tome: 1/1d4",
           "  Se Mythos-ritual: 1/1d6",
-          "  Bli utsatt for besverging: 1/1d6",
+          "  Bli utsatt for besvergelse: 1/1d6",
         ]),
         ("Alderseffekter", [
-          "Alder pavirker stats ved opprettelse:",
+          "Alder påvirker stats ved opprettelse:",
           "",
-          "  15-19: -5 SIZ/STR, -5 EDU,",
-          "    Luck: rull 2x, bruk best",
-          "  20-39: EDU-forbedring: +1",
-          "  40-49: EDU +2, -5 fritt STR/CON/DEX,",
+          "  15\u201319: -5 SIZ/STR, -5 EDU,",
+          "    Luck: rull 2\u00d7, bruk best",
+          "  20\u201339: EDU-forbedring: +1",
+          "  40\u201349: EDU +2, -5 fritt STR/CON/DEX,",
           "    APP -5, MOV -1",
-          "  50-59: EDU +3, -10 fritt STR/CON/DEX,",
+          "  50\u201359: EDU +3, -10 fritt STR/CON/DEX,",
           "    APP -10, MOV -2",
-          "  60-69: EDU +4, -20 fritt STR/CON/DEX,",
+          "  60\u201369: EDU +4, -20 fritt STR/CON/DEX,",
           "    APP -15, MOV -3",
-          "  70-79: EDU +4, -40 fritt STR/CON/DEX,",
+          "  70\u201379: EDU +4, -40 fritt STR/CON/DEX,",
           "    APP -20, MOV -4",
-          "  80-89: EDU +4, -80 fritt STR/CON/DEX,",
+          "  80\u201389: EDU +4, -80 fritt STR/CON/DEX,",
           "    APP -25, MOV -5",
         ]),
         ("Credit Rating", [
           "Credit Rating = formue/sosial status:",
           "",
-          "  0: fattig, hjemlos",
-          "  1-9: fattig, kun nødvendig",
-          "  10-49: gjennomsnittlig",
-          "  50-89: velstaaende",
-          "  90-98: rik",
+          "  0: fattig, hjemløs",
+          "  1\u20139: fattig, kun nødvendig",
+          "  10\u201349: gjennomsnittlig",
+          "  50\u201389: velstående",
+          "  90\u201398: rik",
           "  99: enormt rik",
           "",
           "Spending level (per dag):",
           "  CR 0: $0.50",
-          "  CR 1-9: $2",
-          "  CR 10-49: $10",
-          "  CR 50-89: $50",
-          "  CR 90-98: $250",
+          "  CR 1\u20139: $2",
+          "  CR 10\u201349: $10",
+          "  CR 50\u201389: $50",
+          "  CR 90\u201398: $250",
           "  CR 99: $5000",
         ]),
       ]),
     ]
+
 
     def request_android_permissions():
         if platform != 'android':
@@ -1139,7 +1115,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (v0.2.3 Abyssal Purple) ===")
+            log("=== BUILD (v0.3.0 Abyssal Purple) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
@@ -1495,114 +1471,123 @@ try:
 
         # ---------- REGLER ----------
         def _mk_rules(self):
-            """Regelreferanse med 3-nivaa navigasjon:
-               Kategorier -> Underkategorier -> Innhold."""
+            """Sammenleggbar mappe-visning med overlay for innhold."""
             p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(4))
-            self._rules_area = BoxLayout()
-            p.add_widget(self._rules_area)
-            self._rules_show_categories()
+            self._rules_expanded = set()
+            self._rules_overlay = None
+
+            # Header
+            hdr = BoxLayout(size_hint_y=None, height=dp(34))
+            hdr.add_widget(mklbl("REGLER & REFERANSE", color=GOLD, size=15, bold=True))
+            p.add_widget(hdr)
+            p.add_widget(mksep(2))
+
+            # Mappe-liste
+            scroll = ScrollView()
+            self._rules_tree = GridLayout(cols=1, spacing=dp(2), padding=dp(4), size_hint_y=None)
+            self._rules_tree.bind(minimum_height=self._rules_tree.setter('height'))
+            scroll.add_widget(self._rules_tree)
+            p.add_widget(scroll)
+
+            # Overlay-container (usynlig til innhold åpnes)
+            self._rules_main = p
+            self._rules_build_tree()
             return p
 
-        def _rules_show_categories(self):
-            """Nivaa 1: vis alle hovedkategorier som grid."""
-            self._rules_area.clear_widgets()
-            outer = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
-            outer.add_widget(mklbl("REGLER & REFERANSE", color=GOLD, size=16, bold=True, h=32))
-            outer.add_widget(mksep(4))
+        def _rules_build_tree(self):
+            """Bygg mappetreet med åpne/lukkede mapper."""
+            self._rules_tree.clear_widgets()
+            for i, (cat_name, icon, subs) in enumerate(RULES):
+                expanded = i in self._rules_expanded
+                arrow = "\u25bc" if expanded else "\u25b6"
+                # Mappe-knapp
+                fbtn = RBtn(
+                    text=f"  {arrow}  {icon}  {cat_name}",
+                    bg_color=BTNH if expanded else BTN,
+                    color=GOLD if expanded else TXT,
+                    font_size=sp(13), halign='left',
+                    size_hint_y=None, height=dp(44))
+                fbtn.bind(on_release=lambda x, idx=i: self._rules_toggle(idx))
+                self._rules_tree.add_widget(fbtn)
 
-            scroll = ScrollView()
-            g = GridLayout(cols=2, spacing=dp(8), padding=dp(6), size_hint_y=None,
-                           row_default_height=dp(56))
-            g.bind(minimum_height=g.setter('height'))
+                if expanded:
+                    for j, (sub_name, content) in enumerate(subs):
+                        n = len([l for l in content if l])
+                        sbtn = RBtn(
+                            text=f"      \u25b8  {sub_name}",
+                            bg_color=BG2, color=TXT,
+                            font_size=sp(12), halign='left',
+                            size_hint_y=None, height=dp(38))
+                        sbtn.bind(on_release=lambda x, ci=i, si=j: self._rules_open(ci, si))
+                        self._rules_tree.add_widget(sbtn)
 
-            cat_colors = [BLUE, RED, GOLD, GDIM, BLUE, GOLD, DIM]
-            for i, (cat_name, short, subs) in enumerate(RULES):
-                btn = RBtn(text=f"[{short}]\n{cat_name}", bg_color=BTN,
-                           color=cat_colors[i % len(cat_colors)],
-                           font_size=sp(12), halign='center',
-                           size_hint_y=None, height=dp(56))
-                btn.bind(on_release=lambda x, idx=i: self._rules_show_subs(idx))
-                g.add_widget(btn)
+        def _rules_toggle(self, cat_idx):
+            """Åpne/lukke en mappe."""
+            if cat_idx in self._rules_expanded:
+                self._rules_expanded.discard(cat_idx)
+            else:
+                self._rules_expanded.add(cat_idx)
+            self._rules_build_tree()
 
-            scroll.add_widget(g)
-            outer.add_widget(scroll)
-            self._rules_area.add_widget(outer)
-
-        def _rules_show_subs(self, cat_idx):
-            """Nivaa 2: vis underkategorier for valgt kategori."""
-            cat_name, short, subs = RULES[cat_idx]
-            self._rules_area.clear_widgets()
-            p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(4))
-
-            # Header med tilbake-knapp
-            hdr = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6))
-            hdr.add_widget(mkbtn("< Tilbake", self._rules_show_categories,
-                                 small=True, size_hint_x=0.35))
-            hdr.add_widget(mklbl(cat_name, color=GOLD, size=15, bold=True))
-            p.add_widget(hdr)
-            p.add_widget(mksep(4))
-
-            # Underkategori-liste
-            scroll = ScrollView()
-            g = GridLayout(cols=1, spacing=dp(4), padding=dp(4), size_hint_y=None)
-            g.bind(minimum_height=g.setter('height'))
-
-            for j, (sub_name, content) in enumerate(subs):
-                n_lines = len([l for l in content if l])
-                btn = mkbtn(f"  {sub_name}  ({n_lines} pkt)",
-                            lambda ci=cat_idx, si=j: self._rules_show_content(ci, si),
-                            small=True, size_hint_y=None, height=dp(44))
-                btn.halign = 'left'
-                g.add_widget(btn)
-
-            scroll.add_widget(g)
-            p.add_widget(scroll)
-            self._rules_area.add_widget(p)
-
-        def _rules_show_content(self, cat_idx, sub_idx):
-            """Nivaa 3: vis regelinnhold."""
-            cat_name, short, subs = RULES[cat_idx]
+        def _rules_open(self, cat_idx, sub_idx):
+            """Vis regelinnhold som overlay."""
+            cat_name, icon, subs = RULES[cat_idx]
             sub_name, content = subs[sub_idx]
 
-            self._rules_area.clear_widgets()
-            p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(4))
+            # Fjern evt. eksisterende overlay
+            self._rules_close_overlay()
 
-            # Header med tilbake + navigering
+            # Bygg overlay
+            overlay = RBox(bg_color=BG, radius=dp(16),
+                           orientation='vertical', spacing=dp(4),
+                           padding=dp(8),
+                           size_hint=(0.95, 0.92),
+                           pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            # Header med lukk + navigering
             hdr = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(4))
-            hdr.add_widget(mkbtn("< Tilbake",
-                                 lambda: self._rules_show_subs(cat_idx),
-                                 small=True, size_hint_x=0.3))
-            # Forrige/neste underkategori
+            hdr.add_widget(mkbtn("\u2715 Lukk", self._rules_close_overlay,
+                                 danger=True, small=True, size_hint_x=0.25))
             if sub_idx > 0:
-                hdr.add_widget(mkbtn("<<",
-                                     lambda: self._rules_show_content(cat_idx, sub_idx - 1),
-                                     small=True, size_hint_x=None, width=dp(40)))
+                hdr.add_widget(mkbtn("\u25c0",
+                    lambda: (self._rules_close_overlay(), self._rules_open(cat_idx, sub_idx - 1)),
+                    small=True, size_hint_x=None, width=dp(36)))
             else:
-                hdr.add_widget(Widget(size_hint_x=None, width=dp(40)))
+                hdr.add_widget(Widget(size_hint_x=None, width=dp(36)))
 
-            hdr.add_widget(mklbl(sub_name, color=GOLD, size=13, bold=True))
+            hdr.add_widget(mklbl(f"{icon} {sub_name}", color=GOLD, size=13, bold=True))
 
             if sub_idx < len(subs) - 1:
-                hdr.add_widget(mkbtn(">>",
-                                     lambda: self._rules_show_content(cat_idx, sub_idx + 1),
-                                     small=True, size_hint_x=None, width=dp(40)))
+                hdr.add_widget(mkbtn("\u25b6",
+                    lambda: (self._rules_close_overlay(), self._rules_open(cat_idx, sub_idx + 1)),
+                    small=True, size_hint_x=None, width=dp(36)))
             else:
-                hdr.add_widget(Widget(size_hint_x=None, width=dp(40)))
-            p.add_widget(hdr)
+                hdr.add_widget(Widget(size_hint_x=None, width=dp(36)))
+            overlay.add_widget(hdr)
 
             # Breadcrumb
-            p.add_widget(mklbl(f"{cat_name}  >  {sub_name}",
-                               color=DIM, size=10, h=18))
-            p.add_widget(mksep(2))
+            overlay.add_widget(mklbl(f"{cat_name}  \u203a  {sub_name}",
+                                     color=DIM, size=10, h=18))
+
+            # Separator
+            sep = Widget(size_hint_y=None, height=dp(1))
+            from kivy.graphics import Color as GColor, Rectangle as GRect
+            with sep.canvas:
+                GColor(rgba=BTNH)
+                r = GRect(pos=sep.pos, size=sep.size)
+            sep.bind(pos=lambda w, v: setattr(r, 'pos', w.pos),
+                     size=lambda w, v: setattr(r, 'size', w.size))
+            overlay.add_widget(sep)
+            overlay.add_widget(mksep(4))
 
             # Innhold
             scroll = ScrollView()
-            g = GridLayout(cols=1, spacing=dp(1), padding=dp(8), size_hint_y=None)
+            g = GridLayout(cols=1, spacing=dp(1), padding=dp(6), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
 
             for line in content:
                 if line == "":
-                    g.add_widget(mksep(8))
+                    g.add_widget(mksep(10))
                 elif line.startswith("  "):
                     g.add_widget(mklbl(line, color=DIM, size=12, h=20))
                 else:
@@ -1610,8 +1595,40 @@ try:
 
             g.add_widget(mksep(30))
             scroll.add_widget(g)
-            p.add_widget(scroll)
-            self._rules_area.add_widget(p)
+            overlay.add_widget(scroll)
+
+            # Legg overlay over hele content-området
+            # Bruk FloatLayout-wrapperen (root)
+            root = self._rules_main
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            fl = root.parent if isinstance(root.parent, FloatLayout) else root
+
+            # Dimmet bakgrunn
+            dim = Widget(size_hint=(1, 1))
+            from kivy.graphics import Color as GC2, Rectangle as GR2
+            with dim.canvas:
+                GC2(rgba=[0, 0, 0, 0.6])
+                dr = GR2(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            dim.bind(on_touch_down=lambda w, t: self._rules_close_overlay() or True)
+
+            self._rules_dim = dim
+            self._rules_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _rules_close_overlay(self):
+            """Lukk regelinnhold-overlay."""
+            if self._rules_overlay and self._rules_overlay.parent:
+                fl = self._rules_overlay.parent
+                fl.remove_widget(self._rules_overlay)
+                if hasattr(self, '_rules_dim') and self._rules_dim and self._rules_dim.parent:
+                    fl.remove_widget(self._rules_dim)
+            self._rules_overlay = None
+            self._rules_dim = None
+
 
         # ---------- CAST ----------
         def _mk_cast(self):
@@ -1674,7 +1691,7 @@ try:
             g = GridLayout(cols=1, spacing=dp(6), padding=dp(6), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
             if not self.chars:
-                g.add_widget(mklbl("Ingen karakterer ennaa.\nTrykk '+ Ny' for aa lage en.",
+                g.add_widget(mklbl("Ingen karakterer ennå.\nTrykk '+ Ny' for å lage en.",
                                    color=DIM, size=12, h=50))
             else:
                 for i, ch in enumerate(self.chars):
