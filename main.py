@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (v0.3.1 – Abyssal Purple) ===")
+log("=== APP START (v0.3.2 – Abyssal Purple) ===")
 
 try:
     from kivy.app import App
@@ -882,8 +882,9 @@ try:
         l = Label(**kw)
         if wrap:
             l.halign = 'left'
-            l.text_size = (Window.width - dp(24), None)
             l.size_hint_y = None
+            # Bind text_size til label-bredden slik at det tilpasser seg rotasjon
+            l.bind(width=lambda w, v: setattr(w, 'text_size', (v - dp(8), None)))
             l.bind(texture_size=l.setter('size'))
         return l
 
@@ -1122,7 +1123,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (v0.3.1 Abyssal Purple) ===")
+            log("=== BUILD (v0.3.2 Abyssal Purple) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
