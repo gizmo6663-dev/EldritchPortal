@@ -6,7 +6,7 @@ package.domain = org.rpg
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
-version = 0.3.2
+version = 0.3.1
 
 requirements = python3,kivy,pillow,android,pychromecast,zeroconf,ifaddr,protobuf
 
@@ -16,7 +16,7 @@ android.archs = arm64-v8a
 
 android.permissions = INTERNET,ACCESS_NETWORK_STATE,ACCESS_WIFI_STATE,CHANGE_WIFI_MULTICAST_STATE,READ_EXTERNAL_STORAGE,WRITE_EXTERNAL_STORAGE,READ_MEDIA_IMAGES,READ_MEDIA_AUDIO,READ_MEDIA_VIDEO
 
-orientation = sensor
+orientation = portrait
 fullscreen = 1
 
 android.accept_sdk_license = True
