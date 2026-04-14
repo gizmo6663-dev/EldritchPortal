@@ -132,6 +132,14 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+
+<FramedBox>:
+    canvas.before:
+        Color:
+            rgba: self.frame_color
+        Line:
+            rectangle: (self.x, self.y, self.width, self.height)
+            width: 1.5
 ''')
 
     class RBtn(Button):
@@ -147,6 +155,9 @@ try:
     class RBox(BoxLayout):
         bg_color = ListProperty(BG2)
         radius = NumericProperty(dp(20))
+
+    class FramedBox(BoxLayout):
+        frame_color = ListProperty(GOLD)
 
     # === LYDKILDER ===
     AMBIENT_SOUNDS = [
@@ -1787,9 +1798,14 @@ try:
             if sk and isinstance(sk, dict):
                 g.add_widget(mksep(4))
                 g.add_widget(mklbl("FERDIGHETER", color=GOLD, size=13, bold=True, h=24))
-                sk_txt = "   ".join(f"{sn} {sv}" for sn, sv in sorted(sk.items()) if sv)
-                if sk_txt:
-                    g.add_widget(mklbl(sk_txt, color=TXT, size=13, wrap=True))
+                for sn in sorted(sk.keys()):
+                    sv = sk[sn]
+                    if sv:
+                        sk_txt = f"{sn}: {sv}"
+                        framed = FramedBox(orientation='horizontal', size_hint_y=None, 
+                                         height=dp(34), padding=dp(4), spacing=dp(4))
+                        framed.add_widget(mklbl(sk_txt, color=TXT, size=12, wrap=True))
+                        g.add_widget(framed)
             for key, lbl in CHAR_TEXT:
                 v = ch.get(key, '')
                 if v:
@@ -1839,33 +1855,37 @@ try:
             g.add_widget(mksep(4))
             g.add_widget(mklbl("KARAKTERISTIKKER", color=GOLD, size=12, bold=True, h=24))
             for i in range(0, len(CHAR_STATS), 2):
-                row = BoxLayout(size_hint_y=None, height=dp(36), spacing=dp(6))
+                framed_row = FramedBox(size_hint_y=None, height=dp(40), spacing=dp(6), padding=dp(4))
+                inner_row = BoxLayout(size_hint_y=None, height=dp(32))
                 for j in range(2):
                     if i + j < len(CHAR_STATS):
                         key, lbl = CHAR_STATS[i + j]
-                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
-                                             size_hint_x=0.15, halign='right'))
+                        inner_row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                                 size_hint_x=0.15, halign='right'))
                         w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
                                       background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)], input_filter='int')
                         self._ei[key] = w
-                        row.add_widget(w)
-                g.add_widget(row)
+                        inner_row.add_widget(w)
+                framed_row.add_widget(inner_row)
+                g.add_widget(framed_row)
             g.add_widget(mksep(4))
             g.add_widget(mklbl("HP / MP / SAN / LUCK", color=GOLD, size=12, bold=True, h=24))
             for i in range(0, len(CHAR_DERIVED), 2):
-                row = BoxLayout(size_hint_y=None, height=dp(36), spacing=dp(6))
+                framed_row = FramedBox(size_hint_y=None, height=dp(40), spacing=dp(6), padding=dp(4))
+                inner_row = BoxLayout(size_hint_y=None, height=dp(32))
                 for j in range(2):
                     if i + j < len(CHAR_DERIVED):
                         key, lbl = CHAR_DERIVED[i + j]
-                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
-                                             size_hint_x=0.15, halign='right'))
+                        inner_row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                                 size_hint_x=0.15, halign='right'))
                         w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
                                       background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)])
                         self._ei[key] = w
-                        row.add_widget(w)
-                g.add_widget(row)
+                        inner_row.add_widget(w)
+                framed_row.add_widget(inner_row)
+                g.add_widget(framed_row)
             g.add_widget(mksep(4))
             g.add_widget(mklbl("NOTATER / UTSTYR", color=GOLD, size=12, bold=True, h=24))
             for key, lbl in CHAR_TEXT:
