@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (v0.3.0 – Abyssal Purple) ===")
+log("=== APP START (v0.3.1 – Abyssal Purple) ===")
 
 try:
     from kivy.app import App
@@ -53,8 +53,15 @@ try:
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
-    for d in [IMG_DIR, MUSIC_DIR]:
-        os.makedirs(d, exist_ok=True)
+
+    def ensure_dirs():
+        """Opprett mapper ETTER tillatelser er gitt."""
+        for d in [IMG_DIR, MUSIC_DIR]:
+            try:
+                os.makedirs(d, exist_ok=True)
+            except Exception as e:
+                log(f"makedirs {d}: {e}")
+        log(f"Dirs OK: {os.path.exists(IMG_DIR)}, {os.path.exists(MUSIC_DIR)}")
 
     # === FARGER – ABYSSAL PURPLE ===
     BG   = [0.05, 0.03, 0.07, 1]      # dyp lilla-svart bakgrunn
@@ -1115,7 +1122,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (v0.3.0 Abyssal Purple) ===")
+            log("=== BUILD (v0.3.1 Abyssal Purple) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
@@ -1231,6 +1238,7 @@ try:
                 btn.color = DIM
 
         def _init(self):
+            ensure_dirs()
             self.server.start()
             self._load_imgs()
             self._load_tracks()
@@ -1287,11 +1295,29 @@ try:
             self.path_lbl.text = f"/{rel}" if rel else "/"
             try:
                 if not os.path.exists(f):
+                    self.img_lbl.text = "Mappe ikke funnet"
+                    self.img_grid.add_widget(
+                        mklbl("Mappen finnes ikke ennå.\n"
+                              "Start appen på nytt etter å ha\n"
+                              "godtatt tillatelser.",
+                              color=DIM, size=11, wrap=True))
                     return
                 items = sorted(os.listdir(f))
                 dirs = [d for d in items if os.path.isdir(os.path.join(f, d)) and not d.startswith('.')]
                 imgs = [x for x in items if x.lower().endswith(IMG_EXT)]
                 self.img_lbl.text = f"{len(dirs)} mapper, {len(imgs)} bilder"
+                if not dirs and not imgs:
+                    self.img_grid.add_widget(
+                        mklbl("Ingen bilder funnet.\n\n"
+                              "Legg bilder i:\n"
+                              "Dokumenter/EldritchPortal/images/\n\n"
+                              "Tips: lag undermapper for\n"
+                              "å organisere etter scenario,\n"
+                              "f.eks. images/Slow Boat/\n\n"
+                              "Støttede formater:\n"
+                              ".png  .jpg  .jpeg  .webp",
+                              color=DIM, size=11, wrap=True))
+                    return
                 for d in dirs:
                     self.img_grid.add_widget(
                         mkbtn(f"[{d}]", lambda dn=d: self._enter(dn),
@@ -1371,10 +1397,25 @@ try:
             self.tracks = []
             try:
                 if not os.path.exists(MUSIC_DIR):
+                    self.trk_lbl.text = "Mappe ikke funnet"
+                    self.trk_grid.add_widget(
+                        mklbl("Musikkmappen finnes ikke ennå.\n"
+                              "Start appen på nytt etter å ha\n"
+                              "godtatt tillatelser.",
+                              color=DIM, size=11, wrap=True))
                     return
                 fl = sorted([f for f in os.listdir(MUSIC_DIR)
                              if f.lower().endswith(('.mp3','.ogg','.wav','.flac'))])
                 self.trk_lbl.text = f"{len(fl)} spor"
+                if not fl:
+                    self.trk_grid.add_widget(
+                        mklbl("Ingen musikkfiler funnet.\n\n"
+                              "Legg lydfiler i:\n"
+                              "Dokumenter/EldritchPortal/music/\n\n"
+                              "Støttede formater:\n"
+                              ".mp3  .ogg  .wav  .flac",
+                              color=DIM, size=11, wrap=True))
+                    return
                 for i, fn in enumerate(fl):
                     self.tracks.append(os.path.join(MUSIC_DIR, fn))
                     self.trk_grid.add_widget(
