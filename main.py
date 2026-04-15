@@ -1788,12 +1788,30 @@ try:
                 v = ch.get(key, '')
                 if v and key not in ('name', 'type'):
                     g.add_widget(mklbl(f"{lbl}:  {v}", color=TXT, size=14, h=26))
-            stats = "   ".join(f"{lbl} {ch[key]}" for key, lbl in CHAR_STATS if ch.get(key))
-            if stats:
-                g.add_widget(mklbl(stats, color=TXT, size=14, h=28))
-            derived = "   ".join(f"{lbl} {ch[key]}" for key, lbl in CHAR_DERIVED if ch.get(key))
-            if derived:
-                g.add_widget(mklbl(derived, color=TXT, size=14, h=28))
+            # Karakteristikker med individuelle rammer
+            stats_list = [(lbl, ch[key]) for key, lbl in CHAR_STATS if ch.get(key)]
+            if stats_list:
+                g.add_widget(mksep(4))
+                g.add_widget(mklbl("KARAKTERISTIKKER", color=GOLD, size=13, bold=True, h=24))
+                stats_row = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(4))
+                for lbl, val in stats_list:
+                    framed = FramedBox(orientation='vertical', size_hint_x=1, padding=dp(4), spacing=dp(2))
+                    framed.add_widget(Label(text=lbl, font_size=sp(10), color=GOLD, bold=True))
+                    framed.add_widget(Label(text=str(val), font_size=sp(14), color=TXT, bold=True))
+                    stats_row.add_widget(framed)
+                g.add_widget(stats_row)
+            # Derived stats med individuelle rammer
+            derived_list = [(lbl, ch[key]) for key, lbl in CHAR_DERIVED if ch.get(key)]
+            if derived_list:
+                g.add_widget(mksep(4))
+                g.add_widget(mklbl("HP / MP / SAN / LUCK", color=GOLD, size=13, bold=True, h=24))
+                derived_row = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(4))
+                for lbl, val in derived_list:
+                    framed = FramedBox(orientation='vertical', size_hint_x=1, padding=dp(4), spacing=dp(2))
+                    framed.add_widget(Label(text=lbl, font_size=sp(10), color=GOLD, bold=True))
+                    framed.add_widget(Label(text=str(val), font_size=sp(14), color=TXT, bold=True))
+                    derived_row.add_widget(framed)
+                g.add_widget(derived_row)
             sk = ch.get('skills', {})
             if sk and isinstance(sk, dict):
                 g.add_widget(mksep(4))
@@ -1855,37 +1873,33 @@ try:
             g.add_widget(mksep(4))
             g.add_widget(mklbl("KARAKTERISTIKKER", color=GOLD, size=12, bold=True, h=24))
             for i in range(0, len(CHAR_STATS), 2):
-                framed_row = FramedBox(size_hint_y=None, height=dp(40), spacing=dp(6), padding=dp(4))
-                inner_row = BoxLayout(size_hint_y=None, height=dp(32))
+                row = BoxLayout(size_hint_y=None, height=dp(36), spacing=dp(6))
                 for j in range(2):
                     if i + j < len(CHAR_STATS):
                         key, lbl = CHAR_STATS[i + j]
-                        inner_row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
-                                                 size_hint_x=0.15, halign='right'))
+                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                             size_hint_x=0.15, halign='right'))
                         w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
                                       background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)], input_filter='int')
                         self._ei[key] = w
-                        inner_row.add_widget(w)
-                framed_row.add_widget(inner_row)
-                g.add_widget(framed_row)
+                        row.add_widget(w)
+                g.add_widget(row)
             g.add_widget(mksep(4))
             g.add_widget(mklbl("HP / MP / SAN / LUCK", color=GOLD, size=12, bold=True, h=24))
             for i in range(0, len(CHAR_DERIVED), 2):
-                framed_row = FramedBox(size_hint_y=None, height=dp(40), spacing=dp(6), padding=dp(4))
-                inner_row = BoxLayout(size_hint_y=None, height=dp(32))
+                row = BoxLayout(size_hint_y=None, height=dp(36), spacing=dp(6))
                 for j in range(2):
                     if i + j < len(CHAR_DERIVED):
                         key, lbl = CHAR_DERIVED[i + j]
-                        inner_row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
-                                                 size_hint_x=0.15, halign='right'))
+                        row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
+                                             size_hint_x=0.15, halign='right'))
                         w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
                                       background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)])
                         self._ei[key] = w
-                        inner_row.add_widget(w)
-                framed_row.add_widget(inner_row)
-                g.add_widget(framed_row)
+                        row.add_widget(w)
+                g.add_widget(row)
             g.add_widget(mksep(4))
             g.add_widget(mklbl("NOTATER / UTSTYR", color=GOLD, size=12, bold=True, h=24))
             for key, lbl in CHAR_TEXT:
