@@ -66,6 +66,7 @@ try:
     # === FARGER – ABYSSAL PURPLE ===
     BG   = [0.05, 0.03, 0.07, 1]      # dyp lilla-svart bakgrunn
     BG2  = [0.10, 0.05, 0.12, 1]      # panel
+    INPUT= [0.07, 0.03, 0.09, 1]      # tekstfelt-bakgrunn
     BTN  = [0.22, 0.10, 0.16, 1]      # knapp (burgunder)
     BTNH = [0.38, 0.15, 0.22, 1]      # aktiv fane
     SHAD = [0.02, 0.01, 0.03, 0.6]    # skygge
@@ -1727,16 +1728,71 @@ try:
 
         # ---------- KARAKTERER ----------
         def _mk_tool(self):
+            """Karakter-fane med sub-tabs: Karakterer og Initiativ."""
+            self._init_tracker_init()
+            if not hasattr(self, '_tool_sub'):
+                self._tool_sub = 'chars'
+
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-            tb = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6), padding=[dp(6), 0])
-            tb.add_widget(mkbtn("+ Ny", self._new_char, accent=True, size_hint_x=0.35))
-            tb.add_widget(mkbtn("Oppdater", self._show_list, small=True, size_hint_x=0.35))
-            tb.add_widget(mklbl("Karakterer", color=GOLD, size=14, bold=True))
-            p.add_widget(tb)
+
+            # Sub-tab-rad
+            sub_bar = RBox(size_hint_y=None, height=dp(42),
+                           spacing=dp(4), padding=[dp(6), dp(4)],
+                           bg_color=BTN, radius=dp(10))
+            b_chars = RToggle(
+                text='Karakterer', group='tool_sub',
+                state='down' if self._tool_sub == 'chars' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'chars' else BTN,
+                color=GOLD if self._tool_sub == 'chars' else DIM,
+                font_size=sp(11), bold=True)
+            b_chars.bind(on_release=lambda b: self._tool_switch('chars'))
+            sub_bar.add_widget(b_chars)
+
+            b_init = RToggle(
+                text='Initiativ', group='tool_sub',
+                state='down' if self._tool_sub == 'init' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'init' else BTN,
+                color=GOLD if self._tool_sub == 'init' else DIM,
+                font_size=sp(11), bold=True)
+            b_init.bind(on_release=lambda b: self._tool_switch('init'))
+            sub_bar.add_widget(b_init)
+            p.add_widget(sub_bar)
+
+            # Handlings-rad (for karakter-lista)
+            self._tool_action_bar = BoxLayout(
+                size_hint_y=None, height=dp(42),
+                spacing=dp(6), padding=[dp(6), 0])
+            p.add_widget(self._tool_action_bar)
+
             self.tool_area = BoxLayout()
             p.add_widget(self.tool_area)
-            self._show_list()
+
+            self._tool_render_sub()
             return p
+
+        def _tool_switch(self, which):
+            """Bytt mellom karakterer og initiativ."""
+            self._tool_sub = which
+            self._tool_render_sub()
+
+        def _tool_render_sub(self):
+            """Rendre riktig sub-visning."""
+            self._tool_action_bar.clear_widgets()
+            if self._tool_sub == 'chars':
+                self._tool_action_bar.add_widget(
+                    mkbtn("+ Ny", self._new_char, accent=True,
+                          size_hint_x=0.35))
+                self._tool_action_bar.add_widget(
+                    mkbtn("Oppdater", self._show_list,
+                          small=True, size_hint_x=0.35))
+                self._tool_action_bar.add_widget(
+                    mklbl("Karakterer", color=GOLD, size=14, bold=True))
+                self._show_list()
+            else:
+                self._tool_action_bar.add_widget(
+                    mklbl("Initiativ-tracker", color=GOLD,
+                          size=14, bold=True))
+                self._mk_init_tracker()
 
         def _show_list(self):
             self.tool_area.clear_widgets()
@@ -1980,6 +2036,558 @@ try:
                 self.chars.pop(idx)
                 save_json(CHAR_FILE, self.chars)
                 self._show_list()
+
+        # ---------- INITIATIV-TRACKER (CoC / Pulp Cthulhu) ----------
+        def _init_tracker_init(self):
+            """Initialiser state for initiativ-tracker."""
+            if not hasattr(self, '_init_phase'):
+                self._init_phase = 'setup'
+                self._init_list = []
+
+        def _mk_init_tracker(self):
+            """Bygg initiativ-tracker-UI."""
+            self._init_tracker_init()
+            self.tool_area.clear_widgets()
+            p = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
+
+            if self._init_phase == 'setup':
+                self._init_build_setup(p)
+            else:
+                self._init_build_active(p)
+
+            self.tool_area.add_widget(p)
+
+        def _init_build_setup(self, p):
+            """Setup-fase: velg deltakere og juster DEX-verdier."""
+            top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            top.add_widget(mkbtn("+ Investigator", self._init_show_char_picker,
+                                 accent=True, small=True, size_hint_x=0.37))
+            top.add_widget(mkbtn("+ Skapning", self._init_show_enemy_picker,
+                                 small=True, size_hint_x=0.33))
+            top.add_widget(mkbtn("Tom", self._init_clear_list,
+                                 danger=True, small=True, size_hint_x=0.3))
+            p.add_widget(top)
+
+            p.add_widget(mklbl(
+                "DEX avgjør rekkefølgen. +50 hvis skyter med håndvåpen.",
+                color=DIM, size=10, h=18))
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(4), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            if not self._init_list:
+                g.add_widget(mklbl(
+                    "Ingen deltakere. Bruk knappene over.",
+                    color=DIM, size=12, h=60))
+            else:
+                # Header
+                hdr = BoxLayout(size_hint_y=None, height=dp(22),
+                                spacing=dp(4))
+                hdr.add_widget(mklbl("Navn", color=GDIM, size=9, h=20))
+                hdr.add_widget(Label(text="DEX", font_size=sp(9),
+                                     color=GDIM, size_hint_x=None,
+                                     width=dp(50)))
+                hdr.add_widget(Label(text="+50", font_size=sp(9),
+                                     color=GDIM, size_hint_x=None,
+                                     width=dp(34)))
+                hdr.add_widget(Label(text="", size_hint_x=None,
+                                     width=dp(36)))
+                g.add_widget(hdr)
+
+                self._init_inputs = []
+                for i, entry in enumerate(self._init_list):
+                    row_box = RBox(orientation='horizontal', bg_color=BG2,
+                                   size_hint_y=None, height=dp(44),
+                                   padding=dp(6), spacing=dp(4), radius=dp(8))
+
+                    # Type-chip (PC/NPC/S = skapning)
+                    tp = entry.get('type', 'PC')
+                    chip_color = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
+                    chip = Label(text=tp, font_size=sp(10), color=chip_color,
+                                 bold=True, size_hint_x=None, width=dp(36))
+                    row_box.add_widget(chip)
+
+                    # Navn + base DEX-hint
+                    nm = entry.get('name', '?')
+                    base_dex = entry.get('base_dex', 0)
+                    hint = f"  (base {base_dex})" if base_dex else ""
+                    nm_lb = Label(text=f"{nm}{hint}",
+                                  font_size=sp(12), color=TXT,
+                                  halign='left', valign='middle')
+                    nm_lb.bind(size=lambda w, v: setattr(w, 'text_size', v))
+                    row_box.add_widget(nm_lb)
+
+                    # DEX-verdi (redigerbar)
+                    dex_val = str(entry.get('dex', entry.get('base_dex', 0)))
+                    dex_inp = TextInput(
+                        text=dex_val, font_size=sp(13), multiline=False,
+                        background_color=INPUT, foreground_color=TXT,
+                        cursor_color=GOLD,
+                        size_hint_x=None, width=dp(50),
+                        padding=[dp(4), dp(6)],
+                        input_filter='int')
+                    dex_inp._init_idx = i
+                    dex_inp.bind(text=self._init_on_dex_change)
+                    self._init_inputs.append(dex_inp)
+                    row_box.add_widget(dex_inp)
+
+                    # +50 firearms-toggle
+                    fa_tog = RToggle(
+                        text='X' if entry.get('firearms') else '',
+                        state='down' if entry.get('firearms') else 'normal',
+                        color=GOLD if entry.get('firearms') else DIM,
+                        bg_color=BTNH if entry.get('firearms') else INPUT,
+                        font_size=sp(11), bold=True,
+                        size_hint_x=None, width=dp(34))
+                    fa_tog._init_idx = i
+                    fa_tog.bind(state=self._init_on_firearms_change)
+                    row_box.add_widget(fa_tog)
+
+                    # Fjern-knapp
+                    del_btn = RBtn(text='X', bg_color=BTN, color=RED,
+                                   font_size=sp(11), bold=True,
+                                   size_hint_x=None, width=dp(36))
+                    del_btn.bind(on_release=lambda b, idx=i:
+                                 self._init_remove_entry(idx))
+                    row_box.add_widget(del_btn)
+
+                    g.add_widget(row_box)
+
+            scroll.add_widget(g)
+            p.add_widget(scroll)
+
+            bottom = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
+            bottom.add_widget(mkbtn("Fullfør", self._init_finish,
+                                    accent=True))
+            p.add_widget(bottom)
+
+        def _init_on_dex_change(self, inst, value):
+            """Lagre DEX-verdi."""
+            idx = inst._init_idx
+            if 0 <= idx < len(self._init_list):
+                try:
+                    self._init_list[idx]['dex'] = int(value) if value else 0
+                except ValueError:
+                    self._init_list[idx]['dex'] = 0
+
+        def _init_on_firearms_change(self, inst, value):
+            """Oppdater +50 firearms-toggle."""
+            idx = inst._init_idx
+            if 0 <= idx < len(self._init_list):
+                on = (value == 'down')
+                self._init_list[idx]['firearms'] = on
+                inst.text = 'X' if on else ''
+                inst.color = GOLD if on else DIM
+                inst.bg_color = BTNH if on else INPUT
+
+        def _init_show_char_picker(self):
+            """Vis Investigator-velger."""
+            already_in = {e.get('name', '') for e in self._init_list}
+            pcs = [ch for ch in self.chars
+                   if ch.get('type', 'PC') == 'PC'
+                   and ch.get('name', '') not in already_in]
+            npcs = [ch for ch in self.chars
+                    if ch.get('type', 'PC') == 'NPC'
+                    and ch.get('name', '') not in already_in]
+
+            self.tool_area.clear_widgets()
+            p = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
+
+            top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            top.add_widget(mkbtn("Tilbake", self._mk_init_tracker,
+                                 small=True, size_hint_x=0.3))
+            top.add_widget(mklbl("Velg karakter", color=GOLD, size=13,
+                                 bold=True))
+            p.add_widget(top)
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(6), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            if pcs:
+                g.add_widget(mklbl("INVESTIGATORER (PC)",
+                                   color=GRN, size=11, bold=True, h=22))
+                for ch in pcs:
+                    g.add_widget(self._init_make_char_btn(ch))
+
+            if npcs:
+                g.add_widget(mklbl("NPC-ER",
+                                   color=GOLD, size=11, bold=True, h=22))
+                for ch in npcs:
+                    g.add_widget(self._init_make_char_btn(ch))
+
+            if not pcs and not npcs:
+                g.add_widget(mklbl(
+                    "Ingen tilgjengelige karakterer.\n"
+                    "Legg til karakterer under 'Karakterer'-fanen først.",
+                    color=DIM, size=11, h=60))
+
+            scroll.add_widget(g)
+            p.add_widget(scroll)
+            self.tool_area.add_widget(p)
+
+        def _init_make_char_btn(self, ch):
+            """Lag knapp for en karakter i picker-liste."""
+            nm = ch.get('name', '?')
+            occ = ch.get('occ', '')
+            dex = ch.get('dex', '')
+            parts = []
+            if occ:
+                parts.append(occ)
+            if dex:
+                parts.append(f"DEX {dex}")
+            sub = "  -  ".join(parts)
+            txt = f"{nm}   {sub}" if sub else nm
+            b = mkbtn(txt, lambda c=ch: self._init_add_character(c),
+                      small=True)
+            b.halign = 'left'
+            b.size_hint_y = None
+            b.height = dp(42)
+            return b
+
+        def _init_add_character(self, ch):
+            """Legg til karakter i initiativ-lista."""
+            try:
+                dex = int(ch.get('dex', 0) or 0)
+            except (ValueError, TypeError):
+                dex = 0
+            self._init_list.append({
+                'name': ch.get('name', '?'),
+                'type': ch.get('type', 'PC'),
+                'base_dex': dex,
+                'dex': dex,
+                'firearms': False,
+                'hp': ch.get('hp', ''),
+            })
+            self._mk_init_tracker()
+
+        # Vanlige fiender og skapninger i Call of Cthulhu / Pulp Cthulhu.
+        # (navn, DEX, HP)
+        COMMON_ENEMIES = [
+            # --- Mennesker ---
+            ("Kultist", 55, 11),
+            ("Kult-leder", 65, 12),
+            ("Leiesoldat", 65, 13),
+            ("Bandit", 50, 10),
+            ("Politimann", 55, 12),
+            ("Detektiv", 60, 12),
+            ("Soldat", 60, 13),
+            ("Offiser", 65, 14),
+            ("Gal vitenskapsmann", 50, 10),
+            ("Prestinne", 55, 11),
+            ("Tyv", 70, 10),
+            ("Brutal slager", 55, 14),
+            ("Mystiker", 60, 10),
+            ("Nekromantiker", 55, 11),
+            ("Spion", 70, 11),
+            # --- Normale dyr ---
+            ("Hund (vakt)", 60, 8),
+            ("Ulv", 75, 11),
+            ("Bjørn", 50, 19),
+            ("Puma", 85, 12),
+            ("Slange (giftig)", 85, 4),
+            ("Rotte (stor)", 60, 2),
+            ("Rotte-svamp", 90, 35),
+            ("Krokodille", 50, 14),
+            ("Hai", 80, 18),
+            # --- Udøde ---
+            ("Zombie", 45, 12),
+            ("Ghoul", 65, 13),
+            ("Mumie", 50, 18),
+            ("Vampyr", 80, 15),
+            ("Skjelett", 55, 10),
+            ("Gjenferd (spectre)", 70, 0),
+            # --- Mindre mytos-skapninger ---
+            ("Byakhee", 50, 11),
+            ("Chthonian (ung)", 20, 42),
+            ("Chthonian (voksen)", 15, 85),
+            ("Deep One", 45, 15),
+            ("Deep One Hybrid", 60, 12),
+            ("Dark Young (Shub-Niggurath)", 45, 60),
+            ("Dimensional Shambler", 45, 25),
+            ("Dhole", 30, 120),
+            ("Fire Vampire", 45, 12),
+            ("Flying Polyp", 70, 55),
+            ("Formless Spawn", 60, 30),
+            ("Ghast", 75, 18),
+            ("Ghoul (Mytos)", 65, 13),
+            ("Gnorri", 40, 15),
+            ("Hound of Tindalos", 90, 34),
+            ("Hunting Horror", 75, 46),
+            ("Lloigor", 60, 25),
+            ("Mi-Go", 55, 13),
+            ("Moon-Beast", 50, 42),
+            ("Nightgaunt", 65, 12),
+            ("Rat-Thing", 80, 4),
+            ("Sand-Dweller", 55, 14),
+            ("Servant of Glaaki", 35, 18),
+            ("Serpent Person", 65, 12),
+            ("Shantak", 45, 40),
+            ("Shoggoth", 25, 100),
+            ("Shoggoth (mindre)", 25, 65),
+            ("Spawn of Cthulhu", 40, 60),
+            ("Star Vampire", 75, 36),
+            ("Star Spawn of Cthulhu", 30, 135),
+            ("Tcho-Tcho", 70, 11),
+            ("Wendigo", 60, 65),
+            ("Winged One (av Yuggoth)", 55, 14),
+            ("Y'm-bhi (aktivert ghoul)", 55, 14),
+            # --- Uavhengige vesener ---
+            ("Elder Thing", 45, 28),
+            ("Great Race of Yith", 25, 25),
+            ("Yithian (i menneske-vert)", 50, 13),
+            # --- Pulp-spesifikke gangstere/pulp-fiender ---
+            ("Gangster (lakei)", 55, 12),
+            ("Gangster (boss)", 60, 14),
+            ("Nazi-offiser", 65, 13),
+            ("Nazi-soldat", 60, 12),
+            ("SS-okkultist", 65, 13),
+            ("Pulp-skurk (mastermind)", 75, 15),
+            ("Femme fatale", 75, 11),
+            ("Privat etterforsker (Pulp)", 70, 13),
+        ]
+
+        def _init_show_enemy_picker(self):
+            """Vis liste over CoC-fiender og skapninger + egendefinert."""
+            self.tool_area.clear_widgets()
+            p = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
+
+            top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            top.add_widget(mkbtn("Tilbake", self._mk_init_tracker,
+                                 small=True, size_hint_x=0.3))
+            top.add_widget(mklbl("Velg skapning", color=GOLD, size=13,
+                                 bold=True))
+            p.add_widget(top)
+
+            # Egendefinert
+            cust_box = RBox(orientation='vertical', bg_color=BG2,
+                            size_hint_y=None, height=dp(110),
+                            padding=dp(10), spacing=dp(6), radius=dp(10))
+            cust_box.add_widget(mklbl("Egendefinert skapning",
+                                      color=GOLD, size=11, bold=True, h=18))
+
+            name_row = BoxLayout(size_hint_y=None, height=dp(34), spacing=dp(6))
+            name_row.add_widget(Label(text="Navn:", font_size=sp(11),
+                                      color=DIM, size_hint_x=0.2,
+                                      halign='right', valign='middle'))
+            self._init_custom_name = TextInput(
+                text='', font_size=sp(12), multiline=False,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD, padding=[dp(8), dp(6)],
+                size_hint_x=0.8)
+            name_row.add_widget(self._init_custom_name)
+            cust_box.add_widget(name_row)
+
+            stat_row = BoxLayout(size_hint_y=None, height=dp(34), spacing=dp(6))
+            stat_row.add_widget(Label(text="DEX:", font_size=sp(11),
+                                      color=DIM, size_hint_x=0.2,
+                                      halign='right', valign='middle'))
+            self._init_custom_dex = TextInput(
+                text='50', font_size=sp(12), multiline=False,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD, padding=[dp(8), dp(6)],
+                size_hint_x=0.2, input_filter='int')
+            stat_row.add_widget(self._init_custom_dex)
+
+            stat_row.add_widget(Widget(size_hint_x=0.1))
+            add_btn = mkbtn("Legg til", self._init_add_custom,
+                            accent=True, small=True, size_hint_x=0.5)
+            stat_row.add_widget(add_btn)
+            cust_box.add_widget(stat_row)
+
+            p.add_widget(cust_box)
+
+            p.add_widget(mklbl("CoC & Pulp Cthulhu-skapninger",
+                               color=GOLD, size=11, bold=True, h=22))
+
+            scroll = ScrollView()
+            g = GridLayout(cols=2, spacing=dp(4), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            for name, dex, hp in self.COMMON_ENEMIES:
+                txt = f"{name} ({dex})"
+                b = mkbtn(txt,
+                          lambda n=name, d=dex, h=hp:
+                              self._init_add_enemy(n, d, h),
+                          small=True)
+                b.size_hint_y = None
+                b.height = dp(42)
+                b.halign = 'left'
+                b.font_size = sp(10)
+                g.add_widget(b)
+
+            scroll.add_widget(g)
+            p.add_widget(scroll)
+            self.tool_area.add_widget(p)
+
+        def _init_add_enemy(self, name, dex, hp):
+            """Legg til fiende fra lista. Inkrement hvis duplicate."""
+            final_name = name
+            existing = [e.get('name', '') for e in self._init_list]
+            if final_name in existing:
+                n = 2
+                while f"{name} {n}" in existing:
+                    n += 1
+                final_name = f"{name} {n}"
+
+            self._init_list.append({
+                'name': final_name,
+                'type': 'S',
+                'base_dex': dex,
+                'dex': dex,
+                'firearms': False,
+                'hp': str(hp) if hp else '',
+            })
+            self._mk_init_tracker()
+
+        def _init_add_custom(self):
+            """Legg til egendefinert skapning."""
+            name = self._init_custom_name.text.strip()
+            if not name:
+                return
+            try:
+                dex = int(self._init_custom_dex.text or '0')
+            except ValueError:
+                dex = 0
+            self._init_add_enemy(name, dex, '')
+
+        def _init_remove_entry(self, idx):
+            """Fjern deltaker fra lista."""
+            if 0 <= idx < len(self._init_list):
+                self._init_list.pop(idx)
+                self._mk_init_tracker()
+
+        def _init_clear_list(self):
+            """Tom hele lista."""
+            self._init_list = []
+            self._init_phase = 'setup'
+            self._mk_init_tracker()
+
+        def _init_finish(self):
+            """Gå fra setup til aktiv: sorter etter effektiv DEX."""
+            # Effektiv DEX = DEX + 50 hvis firearms
+            for entry in self._init_list:
+                base = entry.get('dex', 0)
+                entry['effective'] = base + (50 if entry.get('firearms') else 0)
+            # Sorter høyest først (CoC-regel: høy DEX går først)
+            # Tiebreak: høyere base DEX, så alfabetisk navn
+            self._init_list.sort(
+                key=lambda e: (e.get('effective', 0),
+                               e.get('base_dex', 0),
+                               e.get('name', '')),
+                reverse=True)
+            self._init_phase = 'active'
+            self._mk_init_tracker()
+
+        def _init_build_active(self, p):
+            """Aktiv fase: vis sortert rekkefølge."""
+            top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            top.add_widget(mkbtn("Ny runde", self._init_new_encounter,
+                                 danger=True, small=True, size_hint_x=0.4))
+            top.add_widget(mkbtn("Rediger", self._init_back_to_setup,
+                                 small=True, size_hint_x=0.3))
+            top.add_widget(mklbl("Initiativ", color=GOLD, size=13, bold=True))
+            p.add_widget(top)
+
+            p.add_widget(mklbl(
+                "Trykk på aktiv (øverst) for å avslutte turen.",
+                color=DIM, size=10, h=18))
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(6), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            for i, entry in enumerate(self._init_list):
+                is_active = (i == 0)
+
+                bg = BTNH if is_active else BG2
+                box = RBox(orientation='horizontal',
+                           bg_color=bg,
+                           size_hint_y=None,
+                           height=dp(56) if is_active else dp(46),
+                           padding=dp(10), spacing=dp(8), radius=dp(10))
+
+                # Effektiv DEX stor
+                eff = entry.get('effective', entry.get('dex', 0))
+                eff_lb = Label(
+                    text=str(eff),
+                    font_size=sp(18) if is_active else sp(15),
+                    color=GOLD if is_active else TXT,
+                    bold=True,
+                    size_hint_x=None, width=dp(46),
+                    halign='center', valign='middle')
+                eff_lb.bind(size=lambda w, v: setattr(w, 'text_size', v))
+                box.add_widget(eff_lb)
+
+                # Type-chip
+                tp = entry.get('type', 'PC')
+                chip_color = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
+                chip = Label(text=tp, font_size=sp(10), color=chip_color,
+                             bold=True,
+                             size_hint_x=None, width=dp(30))
+                box.add_widget(chip)
+
+                # Navn + firearms-markering
+                nm = entry.get('name', '?')
+                if entry.get('firearms'):
+                    nm_display = f"{nm}  [+50]"
+                else:
+                    nm_display = nm
+                nm_lb = Label(
+                    text=nm_display,
+                    font_size=sp(15) if is_active else sp(12),
+                    color=TXT,
+                    bold=is_active,
+                    halign='left', valign='middle')
+                nm_lb.bind(size=lambda w, v: setattr(w, 'text_size', v))
+                box.add_widget(nm_lb)
+
+                # HP
+                hp = entry.get('hp', '')
+                if hp:
+                    hp_lb = Label(text=f"HP {hp}", font_size=sp(10),
+                                  color=DIM,
+                                  size_hint_x=None, width=dp(70),
+                                  halign='right', valign='middle')
+                    hp_lb.bind(size=lambda w, v: setattr(w, 'text_size', v))
+                    box.add_widget(hp_lb)
+
+                if is_active:
+                    box.bind(on_touch_down=lambda w, t, idx=i:
+                             self._init_on_card_touch(w, t, idx))
+
+                g.add_widget(box)
+
+            scroll.add_widget(g)
+            p.add_widget(scroll)
+
+        def _init_on_card_touch(self, widget, touch, idx):
+            """Trykk på øverste kort = dens tur er ferdig."""
+            if not widget.collide_point(*touch.pos):
+                return False
+            if idx == 0:
+                top_entry = self._init_list.pop(0)
+                self._init_list.append(top_entry)
+                self._mk_init_tracker()
+                return True
+            return False
+
+        def _init_new_encounter(self):
+            """Tøm listen og gå tilbake til setup."""
+            self._init_list = []
+            self._init_phase = 'setup'
+            self._mk_init_tracker()
+
+        def _init_back_to_setup(self):
+            """Gå tilbake til setup - behold listen."""
+            self._init_phase = 'setup'
+            self._mk_init_tracker()
+
 
         def on_stop(self):
             self.player.stop()
