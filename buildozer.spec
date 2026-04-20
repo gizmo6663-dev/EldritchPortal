@@ -3,6 +3,8 @@ title = Eldritch Portal
 package.name = eldritchportal
 package.domain = org.rpg
 
+icon.filename = %(source.dir)s/icon.png
+
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 
