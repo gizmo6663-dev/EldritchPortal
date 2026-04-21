@@ -8,7 +8,7 @@ os.makedirs(os.path.dirname(LOG), exist_ok=True)
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-log("=== APP START (v0.3.2 – Abyssal Purple) ===")
+log("=== APP START (v0.3.3 – Kamp + Lyd + Scenario) ===")
 
 try:
     from kivy.app import App
@@ -53,6 +53,7 @@ try:
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
+    SCENARIO_FILE = os.path.join(BASE_DIR, "scenario.json")
 
     # Våpendata er BUNDLET med appen (pakket inn i APK).
     # Dette unngår Android 13+ scoped storage permission-problemer.
@@ -1190,7 +1191,7 @@ try:
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
                         padding=[dp(8), 0], bg_color=BTN)
             self._tabs = {}
-            for key, txt in [('img','Bilder'),('mus','Musikk'),('amb','Ambient'),('tool','Karakter'),('rules','Regler'),('cast','Cast')]:
+            for key, txt in [('img','Bilder'),('snd','Lyd'),('cmb','Kamp'),('tool','Verktøy'),('rules','Regler'),('cast','Cast')]:
                 active = key == 'img'
                 b = RToggle(text=txt, group='tabs',
                             state='down' if active else 'normal',
@@ -1330,8 +1331,8 @@ try:
         def _tab(self, k):
             self.content.clear_widgets()
             builders = {
-                'img': self._mk_img, 'mus': self._mk_mus,
-                'amb': self._mk_amb, 'tool': self._mk_tool,
+                'img': self._mk_img, 'snd': self._mk_sound,
+                'cmb': self._mk_combat, 'tool': self._mk_tool,
                 'rules': self._mk_rules, 'cast': self._mk_cast,
             }
             if k in builders:
@@ -1451,6 +1452,180 @@ try:
         def _toggle_ac(self):
             self.auto_cast = not self.auto_cast
             self.ac_btn.text = f"AC:{'PA' if self.auto_cast else 'AV'}"
+
+        # ---------- KAMP (Initiativ + Kart i sub-tabs) ----------
+        def _mk_combat(self):
+            """Kamp-fane med sub-tabs: Initiativ og Kart."""
+            self._init_tracker_init()
+            if not hasattr(self, '_cmb_sub'):
+                self._cmb_sub = 'init'
+
+            p = BoxLayout(orientation='vertical', spacing=dp(6))
+
+            # Sub-tab-rad
+            sub_bar = RBox(size_hint_y=None, height=dp(42),
+                           spacing=dp(4), padding=[dp(6), dp(4)],
+                           bg_color=BTN, radius=dp(10))
+
+            b_init = RToggle(
+                text='Initiativ', group='cmb_sub',
+                state='down' if self._cmb_sub == 'init' else 'normal',
+                bg_color=BTNH if self._cmb_sub == 'init' else BTN,
+                color=GOLD if self._cmb_sub == 'init' else DIM,
+                font_size=sp(12), bold=True)
+            b_init.bind(on_release=lambda b: self._cmb_switch('init'))
+            sub_bar.add_widget(b_init)
+
+            b_map = RToggle(
+                text='Kart', group='cmb_sub',
+                state='down' if self._cmb_sub == 'map' else 'normal',
+                bg_color=BTNH if self._cmb_sub == 'map' else BTN,
+                color=GOLD if self._cmb_sub == 'map' else DIM,
+                font_size=sp(12), bold=True)
+            b_map.bind(on_release=lambda b: self._cmb_switch('map'))
+            sub_bar.add_widget(b_map)
+
+            p.add_widget(sub_bar)
+
+            # Innholds-område — fungerer som "tool_area" for init-tracker
+            # og som vert for kart-visningen.
+            self._cmb_area = BoxLayout()
+            p.add_widget(self._cmb_area)
+
+            self._cmb_render()
+            return p
+
+        def _cmb_switch(self, which):
+            self._cmb_sub = which
+            self._cmb_render()
+
+        def _cmb_render(self):
+            """Vis initiativ-tracker eller kart-visning."""
+            self._cmb_area.clear_widgets()
+            # Pek init-tracker sitt target til cmb_area
+            self._init_target_area = self._cmb_area
+            if self._cmb_sub == 'init':
+                self._mk_init_tracker()
+            else:
+                self._mk_cmb_map()
+
+        def _mk_cmb_map(self):
+            """Kart-sub-tab: åpne battlemap eller vis info om tom liste."""
+            p = BoxLayout(orientation='vertical',
+                          spacing=dp(10), padding=dp(12))
+
+            if not self._init_list:
+                p.add_widget(Widget())
+                p.add_widget(mklbl(
+                    "Legg til deltakere i Initiativ-fanen\n"
+                    "for å bruke kartet.",
+                    color=DIM, size=13, wrap=True))
+                p.add_widget(Widget())
+                self._cmb_area.add_widget(p)
+                return
+
+            # Info om lista
+            n_pc = sum(1 for e in self._init_list
+                       if e.get('type') == 'PC')
+            n_npc = sum(1 for e in self._init_list
+                        if e.get('type') == 'NPC')
+            n_s = sum(1 for e in self._init_list
+                      if e.get('type') == 'S')
+
+            info_box = RBox(orientation='vertical', bg_color=BG2,
+                            size_hint_y=None, height=dp(110),
+                            padding=dp(12), spacing=dp(4),
+                            radius=dp(10))
+            info_box.add_widget(mklbl(
+                "KLAR FOR KART", color=GOLD, size=13, bold=True, h=22))
+            summary = []
+            if n_pc:
+                summary.append(f"{n_pc} investigator(er)")
+            if n_npc:
+                summary.append(f"{n_npc} NPC")
+            if n_s:
+                summary.append(f"{n_s} skapning(er)")
+            info_box.add_widget(mklbl(
+                "  •  ".join(summary) if summary else "Ingen deltakere",
+                color=TXT, size=12, wrap=True))
+
+            act_name = (self._init_list[0].get('name', '')
+                        if self._init_phase == 'active'
+                        and self._init_list else '')
+            if act_name:
+                info_box.add_widget(mklbl(
+                    f"Nåværende tur: {act_name}",
+                    color=DIM, size=11, wrap=True))
+            else:
+                info_box.add_widget(mklbl(
+                    "Gå til Initiativ-fanen og trykk 'Fullfør' "
+                    "for å starte runde-rekkefølge.",
+                    color=DIM, size=10, wrap=True))
+            p.add_widget(info_box)
+
+            # Åpne-knapp
+            p.add_widget(mkbtn("Åpne kart (fullskjerm)",
+                               self._bm_open, accent=True,
+                               size_hint_y=None, height=dp(56)))
+
+            p.add_widget(mklbl(
+                "Kartet åpnes som overlay i full skjermbredde. "
+                "Bruk 'Lukk' for å komme tilbake hit.",
+                color=DIM, size=10, wrap=True, h=40))
+
+            p.add_widget(Widget())
+            self._cmb_area.add_widget(p)
+
+        # ---------- LYD (kombinert Musikk + Ambient) ----------
+        def _mk_sound(self):
+            """Lyd-fane med toggle mellom Musikk og Ambient."""
+            if not hasattr(self, '_sound_sub'):
+                self._sound_sub = 'mus'
+
+            p = BoxLayout(orientation='vertical', spacing=dp(6))
+
+            # Sub-tab-rad
+            sub_bar = RBox(size_hint_y=None, height=dp(42),
+                           spacing=dp(4), padding=[dp(6), dp(4)],
+                           bg_color=BTN, radius=dp(10))
+
+            b_mus = RToggle(
+                text='Musikk', group='sound_sub',
+                state='down' if self._sound_sub == 'mus' else 'normal',
+                bg_color=BTNH if self._sound_sub == 'mus' else BTN,
+                color=GOLD if self._sound_sub == 'mus' else DIM,
+                font_size=sp(12), bold=True)
+            b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
+            sub_bar.add_widget(b_mus)
+
+            b_amb = RToggle(
+                text='Ambient', group='sound_sub',
+                state='down' if self._sound_sub == 'amb' else 'normal',
+                bg_color=BTNH if self._sound_sub == 'amb' else BTN,
+                color=GOLD if self._sound_sub == 'amb' else DIM,
+                font_size=sp(12), bold=True)
+            b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
+            sub_bar.add_widget(b_amb)
+
+            p.add_widget(sub_bar)
+
+            # Innholds-område
+            self._sound_area = BoxLayout()
+            p.add_widget(self._sound_area)
+
+            self._sound_render()
+            return p
+
+        def _sound_switch(self, which):
+            self._sound_sub = which
+            self._sound_render()
+
+        def _sound_render(self):
+            self._sound_area.clear_widgets()
+            if self._sound_sub == 'mus':
+                self._sound_area.add_widget(self._mk_mus())
+            else:
+                self._sound_area.add_widget(self._mk_amb())
 
         # ---------- MUSIKK ----------
         def _mk_mus(self):
@@ -1796,11 +1971,12 @@ try:
             self.cast.disconnect()
             self.cast_lbl.text = "Frakoblet"
 
-        # ---------- KARAKTERER ----------
+        # ---------- KARAKTERER / VERKTØY ----------
         def _mk_tool(self):
-            """Karakter-fane med sub-tabs: Karakterer og Initiativ."""
-            self._init_tracker_init()
-            if not hasattr(self, '_tool_sub'):
+            """Verktøy-fane med sub-tabs: Karakterer, Våpen, Scenario."""
+            self._scen_init()
+            # Migrer bort fra gammel 'init'-sub-tab hvis det ligger igjen
+            if not hasattr(self, '_tool_sub') or self._tool_sub == 'init':
                 self._tool_sub = 'chars'
 
             p = BoxLayout(orientation='vertical', spacing=dp(6))
@@ -1818,15 +1994,6 @@ try:
             b_chars.bind(on_release=lambda b: self._tool_switch('chars'))
             sub_bar.add_widget(b_chars)
 
-            b_init = RToggle(
-                text='Initiativ', group='tool_sub',
-                state='down' if self._tool_sub == 'init' else 'normal',
-                bg_color=BTNH if self._tool_sub == 'init' else BTN,
-                color=GOLD if self._tool_sub == 'init' else DIM,
-                font_size=sp(11), bold=True)
-            b_init.bind(on_release=lambda b: self._tool_switch('init'))
-            sub_bar.add_widget(b_init)
-
             b_weap = RToggle(
                 text='Våpen', group='tool_sub',
                 state='down' if self._tool_sub == 'weap' else 'normal',
@@ -1836,9 +2003,18 @@ try:
             b_weap.bind(on_release=lambda b: self._tool_switch('weap'))
             sub_bar.add_widget(b_weap)
 
+            b_scen = RToggle(
+                text='Scenario', group='tool_sub',
+                state='down' if self._tool_sub == 'scen' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'scen' else BTN,
+                color=GOLD if self._tool_sub == 'scen' else DIM,
+                font_size=sp(11), bold=True)
+            b_scen.bind(on_release=lambda b: self._tool_switch('scen'))
+            sub_bar.add_widget(b_scen)
+
             p.add_widget(sub_bar)
 
-            # Handlings-rad (for karakter-lista)
+            # Handlings-rad
             self._tool_action_bar = BoxLayout(
                 size_hint_y=None, height=dp(42),
                 spacing=dp(6), padding=[dp(6), 0])
@@ -1847,11 +2023,16 @@ try:
             self.tool_area = BoxLayout()
             p.add_widget(self.tool_area)
 
+            # Når vi er i Verktøy-fanen skal init-tracker (hvis den kalles)
+            # bruke denne tool_area — men siden init-sub-tab er fjernet,
+            # skal det ikke skje. Sett target til None for sikkerhets skyld.
+            self._init_target_area = None
+
             self._tool_render_sub()
             return p
 
         def _tool_switch(self, which):
-            """Bytt mellom karakterer og initiativ."""
+            """Bytt mellom karakterer, våpen og scenario."""
             self._tool_sub = which
             self._tool_render_sub()
 
@@ -1868,11 +2049,8 @@ try:
                 self._tool_action_bar.add_widget(
                     mklbl("Karakterer", color=GOLD, size=14, bold=True))
                 self._show_list()
-            elif self._tool_sub == 'init':
-                self._tool_action_bar.add_widget(
-                    mklbl("Initiativ-tracker", color=GOLD,
-                          size=14, bold=True))
-                self._mk_init_tracker()
+            elif self._tool_sub == 'scen':
+                self._mk_scenario()
             else:
                 self._mk_weapons()
 
@@ -2125,11 +2303,22 @@ try:
             if not hasattr(self, '_init_phase'):
                 self._init_phase = 'setup'
                 self._init_list = []
+            # target_area overstyres av Kamp-fanen til self._cmb_area
+            if not hasattr(self, '_init_target_area'):
+                self._init_target_area = None
+
+        def _init_area(self):
+            """Returner current container for initiativ-UI."""
+            tgt = getattr(self, '_init_target_area', None)
+            if tgt is not None:
+                return tgt
+            return self.tool_area
 
         def _mk_init_tracker(self):
             """Bygg initiativ-tracker-UI."""
             self._init_tracker_init()
-            self.tool_area.clear_widgets()
+            area = self._init_area()
+            area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
 
             if self._init_phase == 'setup':
@@ -2137,7 +2326,7 @@ try:
             else:
                 self._init_build_active(p)
 
-            self.tool_area.add_widget(p)
+            area.add_widget(p)
 
         def _init_build_setup(self, p):
             """Setup-fase: velg deltakere og juster DEX-verdier."""
@@ -2276,7 +2465,8 @@ try:
                     if ch.get('type', 'PC') == 'NPC'
                     and ch.get('name', '') not in already_in]
 
-            self.tool_area.clear_widgets()
+            area = self._init_area()
+            area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
 
             top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
@@ -2306,12 +2496,12 @@ try:
             if not pcs and not npcs:
                 g.add_widget(mklbl(
                     "Ingen tilgjengelige karakterer.\n"
-                    "Legg til karakterer under 'Karakterer'-fanen først.",
+                    "Legg til karakterer under 'Verktøy > Karakterer' først.",
                     color=DIM, size=11, h=60))
 
             scroll.add_widget(g)
             p.add_widget(scroll)
-            self.tool_area.add_widget(p)
+            area.add_widget(p)
 
         def _init_make_char_btn(self, ch):
             """Lag knapp for en karakter i picker-liste."""
@@ -2436,7 +2626,8 @@ try:
 
         def _init_show_enemy_picker(self):
             """Vis liste over CoC-fiender og skapninger + egendefinert."""
-            self.tool_area.clear_widgets()
+            area = self._init_area()
+            area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(6), padding=dp(6))
 
             top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
@@ -2506,7 +2697,7 @@ try:
 
             scroll.add_widget(g)
             p.add_widget(scroll)
-            self.tool_area.add_widget(p)
+            area.add_widget(p)
 
         def _init_add_enemy(self, name, dex, hp):
             """Legg til fiende fra lista. Inkrement hvis duplicate."""
@@ -3113,6 +3304,408 @@ try:
                         break
             self._bm_render()
 
+
+        # ---------- SCENARIO-TRACKER ----------
+        def _scen_init(self):
+            """Initialiser scenario-state."""
+            if not hasattr(self, '_scen_data'):
+                self._scen_data = None
+                self._scen_view = 'clues'  # clues | timeline | beats | notes
+
+        def _scen_load(self):
+            """Les scenario.json fra disk."""
+            if not os.path.exists(SCENARIO_FILE):
+                self._scen_data = None
+                return None
+            try:
+                with open(SCENARIO_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                self._scen_data = data
+                log(f"Scenario lastet: {data.get('title', '?')}")
+                return data
+            except Exception as e:
+                log(f"Scenario-feil: {e}")
+                self._scen_data = {'_error': str(e)}
+                return None
+
+        def _scen_save(self):
+            """Lagre scenario.json til disk."""
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            try:
+                os.makedirs(os.path.dirname(SCENARIO_FILE), exist_ok=True)
+                with open(SCENARIO_FILE, 'w', encoding='utf-8') as f:
+                    json.dump(self._scen_data, f,
+                              ensure_ascii=False, indent=2)
+            except Exception as e:
+                log(f"Scenario-lagring feilet: {e}")
+
+        def _mk_scenario(self):
+            """Bygg scenario-sub-tab UI."""
+            self._scen_init()
+            # Les inn fra disk hvis vi ikke har data ennå
+            if self._scen_data is None:
+                self._scen_load()
+
+            self._tool_action_bar.add_widget(
+                mkbtn("Last inn", self._scen_reload,
+                      accent=True, size_hint_x=0.3))
+            self._tool_action_bar.add_widget(
+                mkbtn("Nullstill", self._scen_confirm_reset,
+                      danger=True, small=True, size_hint_x=0.3))
+            title_text = "Scenario"
+            if self._scen_data and '_error' not in self._scen_data:
+                title_text = self._scen_data.get('title', 'Scenario')
+            self._tool_action_bar.add_widget(
+                mklbl(title_text, color=GOLD, size=13, bold=True))
+
+            self.tool_area.clear_widgets()
+
+            # Ingen data
+            if self._scen_data is None:
+                self._scen_show_empty()
+                return
+
+            # Feil ved lasting
+            if '_error' in self._scen_data:
+                self._scen_show_error()
+                return
+
+            # Normal visning
+            p = BoxLayout(orientation='vertical',
+                          spacing=dp(4), padding=dp(4))
+
+            # View-selector
+            sel = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(4))
+            for key, txt in [('clues', 'Ledetråder'),
+                             ('timeline', 'Tidslinje'),
+                             ('beats', 'Plot'),
+                             ('notes', 'Notater')]:
+                active = (key == self._scen_view)
+                b = RBtn(
+                    text=txt,
+                    bg_color=BTNH if active else BTN,
+                    color=GOLD if active else TXT,
+                    font_size=sp(11), bold=active,
+                    size_hint_y=None, height=dp(36))
+                b.bind(on_release=lambda x, k=key:
+                       self._scen_switch_view(k))
+                sel.add_widget(b)
+            p.add_widget(sel)
+
+            # System-info
+            sys_txt = self._scen_data.get('system', '')
+            if sys_txt:
+                p.add_widget(mklbl(f"System: {sys_txt}",
+                                   color=DIM, size=10, h=16))
+
+            # Innhold
+            content = BoxLayout()
+            if self._scen_view == 'clues':
+                self._scen_build_list(
+                    content,
+                    self._scen_data.get('clues', []),
+                    'where', 'found',
+                    "Ingen ledetråder i denne scenarioet.")
+            elif self._scen_view == 'timeline':
+                self._scen_build_list(
+                    content,
+                    self._scen_data.get('timeline', []),
+                    'when', 'triggered',
+                    "Ingen tidslinje-hendelser.")
+            elif self._scen_view == 'beats':
+                self._scen_build_list(
+                    content,
+                    self._scen_data.get('beats', []),
+                    None, 'done',
+                    "Ingen plot-punkter.")
+            else:
+                self._scen_build_notes(content)
+            p.add_widget(content)
+
+            self.tool_area.add_widget(p)
+
+        def _scen_show_empty(self):
+            """Vis melding når scenario.json ikke finnes."""
+            box = BoxLayout(orientation='vertical',
+                            spacing=dp(10), padding=dp(20))
+            box.add_widget(mklbl(
+                "Ingen scenario lastet.",
+                color=GOLD, size=14, bold=True, h=28))
+            box.add_widget(mklbl(
+                "Legg en scenario.json i:\n"
+                "Dokumenter/EldritchPortal/\n\n"
+                "Du kan generere filen ved å be en AI "
+                "(Claude, Gemini, GPT) om å konvertere et "
+                "scenario etter et fast schema. Be om prompt "
+                "i Eldritch Portal-dokumentasjonen.",
+                color=DIM, size=11, wrap=True))
+            box.add_widget(mklbl(
+                f"Forventet sti:\n{SCENARIO_FILE}",
+                color=DIM, size=10, wrap=True))
+            box.add_widget(mkbtn(
+                "Last inn på nytt",
+                self._scen_reload, accent=True,
+                size_hint_y=None, height=dp(44)))
+            box.add_widget(Widget())
+            self.tool_area.add_widget(box)
+
+        def _scen_show_error(self):
+            """Vis feilmelding hvis scenario.json var ugyldig."""
+            err = self._scen_data.get('_error', 'Ukjent feil')
+            box = BoxLayout(orientation='vertical',
+                            spacing=dp(10), padding=dp(20))
+            box.add_widget(mklbl(
+                "Feil ved lesing av scenario.json",
+                color=RED, size=14, bold=True, h=28))
+            box.add_widget(mklbl(
+                str(err), color=TXT, size=11, wrap=True))
+            box.add_widget(mklbl(
+                "Sjekk at filen er gyldig JSON. "
+                "Du kan validere den på jsonlint.com.",
+                color=DIM, size=10, wrap=True))
+            box.add_widget(mkbtn(
+                "Last inn på nytt",
+                self._scen_reload, accent=True,
+                size_hint_y=None, height=dp(44)))
+            box.add_widget(Widget())
+            self.tool_area.add_widget(box)
+
+        def _scen_reload(self):
+            """Last scenario.json på nytt fra disk."""
+            self._scen_data = None
+            self._scen_load()
+            self._tool_render_sub()
+
+        def _scen_switch_view(self, view):
+            self._scen_view = view
+            self._tool_render_sub()
+
+        def _scen_build_list(self, container, items,
+                             subtitle_key, flag_key, empty_msg):
+            """Bygg liste med checkbox-rader."""
+            if not items:
+                container.add_widget(mklbl(
+                    empty_msg, color=DIM, size=11, wrap=True))
+                return
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(4), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            for item in items:
+                g.add_widget(self._scen_make_row(
+                    item, subtitle_key, flag_key))
+
+            scroll.add_widget(g)
+            container.add_widget(scroll)
+
+        def _scen_make_row(self, item, subtitle_key, flag_key):
+            """Bygg en rad for en clue/timeline/beat."""
+            done = bool(item.get(flag_key, False))
+            row = RBox(orientation='horizontal',
+                       bg_color=BG2 if not done else BTN,
+                       size_hint_y=None, height=dp(64),
+                       padding=[dp(8), dp(6)], spacing=dp(6),
+                       radius=dp(10))
+
+            # Toggle-knapp (venstre)
+            tog = RBtn(
+                text='[X]' if done else '[ ]',
+                bg_color=BTNH if done else INPUT,
+                color=GOLD if done else DIM,
+                font_size=sp(14), bold=True,
+                size_hint_x=None, width=dp(52))
+            tog.bind(on_release=lambda b, it=item, fk=flag_key:
+                     self._scen_toggle(it, fk))
+            row.add_widget(tog)
+
+            # Tekst-område (midten)
+            mid = BoxLayout(orientation='vertical', spacing=dp(2))
+            title_lb = Label(
+                text=item.get('title', '?'),
+                font_size=sp(12),
+                color=DIM if done else GOLD,
+                bold=True,
+                halign='left', valign='middle')
+            title_lb.bind(size=lambda w, v: setattr(
+                w, 'text_size', (v[0], None)))
+            mid.add_widget(title_lb)
+
+            if subtitle_key:
+                sub_val = item.get(subtitle_key, '')
+                if sub_val:
+                    sub_lb = Label(
+                        text=sub_val,
+                        font_size=sp(10),
+                        color=DIM,
+                        halign='left', valign='middle',
+                        size_hint_y=None, height=dp(18))
+                    sub_lb.bind(size=lambda w, v: setattr(
+                        w, 'text_size', (v[0], None)))
+                    mid.add_widget(sub_lb)
+
+            row.add_widget(mid)
+
+            # Info-knapp (høyre)
+            desc = item.get('description', '')
+            if desc:
+                info_btn = RBtn(
+                    text='i', bg_color=BTN, color=TXT,
+                    font_size=sp(14), bold=True,
+                    size_hint_x=None, width=dp(44))
+                info_btn.bind(on_release=lambda b,
+                              t=item.get('title', '?'),
+                              d=desc:
+                              self._scen_show_detail(t, d))
+                row.add_widget(info_btn)
+
+            return row
+
+        def _scen_toggle(self, item, flag_key):
+            """Bytt flagg og lagre."""
+            item[flag_key] = not bool(item.get(flag_key, False))
+            self._scen_save()
+            self._tool_render_sub()
+
+        def _scen_show_detail(self, title, desc):
+            """Vis full beskrivelse som overlay."""
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(6),
+                padding=dp(12),
+                size_hint=(0.9, 0.7),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            hdr = BoxLayout(size_hint_y=None, height=dp(42),
+                            spacing=dp(6))
+            hdr.add_widget(mkbtn("Lukk", self._scen_close_overlay,
+                                 danger=True, small=True,
+                                 size_hint_x=0.3))
+            hdr.add_widget(mklbl(title, color=GOLD, size=13, bold=True))
+            overlay.add_widget(hdr)
+
+            scroll = ScrollView()
+            body = mklbl(desc, color=TXT, size=12, wrap=True)
+            scroll.add_widget(body)
+            overlay.add_widget(scroll)
+
+            # Legg på FloatLayout-roten
+            root = self.tool_area
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCs, Rectangle as GRs
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCs(rgba=[0, 0, 0, 0.6])
+                dr = GRs(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            dim.bind(on_touch_down=lambda w, t:
+                     self._scen_close_overlay() or True)
+
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _scen_close_overlay(self):
+            ov = getattr(self, '_scen_overlay', None)
+            dm = getattr(self, '_scen_dim', None)
+            if ov and ov.parent:
+                ov.parent.remove_widget(ov)
+            if dm and dm.parent:
+                dm.parent.remove_widget(dm)
+            self._scen_overlay = None
+            self._scen_dim = None
+
+        def _scen_build_notes(self, container):
+            """Bygg notat-visning."""
+            box = BoxLayout(orientation='vertical', spacing=dp(4))
+            notes = self._scen_data.get('notes', '')
+            self._scen_notes_input = TextInput(
+                text=notes, multiline=True,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD, font_size=sp(12),
+                padding=[dp(8), dp(8)])
+            box.add_widget(self._scen_notes_input)
+            box.add_widget(mkbtn(
+                "Lagre notater", self._scen_save_notes,
+                accent=True, size_hint_y=None, height=dp(44)))
+            container.add_widget(box)
+
+        def _scen_save_notes(self):
+            """Lagre notat-tekst."""
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            self._scen_data['notes'] = self._scen_notes_input.text
+            self._scen_save()
+
+        def _scen_confirm_reset(self):
+            """Spør om bekreftelse før nullstilling av alle flagg."""
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.8, 0.4),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                "Nullstill fremdrift?",
+                color=GOLD, size=14, bold=True, h=28))
+            overlay.add_widget(mklbl(
+                "Alle avkryssinger i ledetråder, tidslinje og "
+                "plot-punkter blir nullstilt. Notater beholdes.",
+                color=TXT, size=11, wrap=True))
+            btns = BoxLayout(size_hint_y=None, height=dp(44),
+                             spacing=dp(6))
+            btns.add_widget(mkbtn(
+                "Avbryt", self._scen_close_overlay,
+                small=True, size_hint_x=0.5))
+            btns.add_widget(mkbtn(
+                "Nullstill", self._scen_reset_flags,
+                danger=True, size_hint_x=0.5))
+            overlay.add_widget(btns)
+
+            root = self.tool_area
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCr, Rectangle as GRr
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCr(rgba=[0, 0, 0, 0.6])
+                dr = GRr(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _scen_reset_flags(self):
+            """Nullstill alle checkboxer."""
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            for c in self._scen_data.get('clues', []):
+                c['found'] = False
+            for t in self._scen_data.get('timeline', []):
+                t['triggered'] = False
+            for b in self._scen_data.get('beats', []):
+                b['done'] = False
+            self._scen_save()
+            self._scen_close_overlay()
+            self._tool_render_sub()
 
         # ---------- VÅPEN ----------
         def _mk_weapons(self):
