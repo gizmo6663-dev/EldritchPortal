@@ -2676,7 +2676,7 @@ try:
 
 
         # ---------- BATTLEMAP ----------
-        BM_SIZE = 15  # 15x15 rutenett
+        BM_SIZE = 30  # 30x30 rutenett
 
         def _bm_open(self):
             """Åpne battlemap som overlay. Sync tokens fra init-lista."""
