@@ -1269,6 +1269,23 @@ try:
             self.server.start()
             self._load_imgs()
             self._load_tracks()
+            # Last våpendata på nytt etter permissions er gitt
+            try:
+                if os.path.exists(WEAPONS_FILE):
+                    sz = os.path.getsize(WEAPONS_FILE)
+                    log(f"_init: weapons.json finnes, {sz} bytes")
+                    with open(WEAPONS_FILE, 'r', encoding='utf-8') as f:
+                        self.weapons_data = json.load(f)
+                    n = len(self.weapons_data.get('weapons', []))
+                    log(f"_init: lastet {n} våpen")
+                else:
+                    log(f"_init: weapons.json IKKE funnet på {WEAPONS_FILE}")
+            except Exception as e:
+                log(f"_init: weapons-lasting feilet: {type(e).__name__}: {e}")
+            try:
+                self.weap_favorites = set(load_json(WEAPONS_FAV_FILE, []))
+            except Exception as e:
+                log(f"_init: favorites-lasting feilet: {e}")
             self.status.text = f"IP: {MediaServer.ip()}  |  Cast: {'Ja' if CAST_AVAILABLE else 'Nei'}"
 
         def _tab(self, k):
@@ -2629,15 +2646,30 @@ try:
                                     spacing=dp(8), padding=dp(20))
                 msg_box.add_widget(mklbl(
                     "Ingen våpendata funnet.",
-                    color=DIM, size=13, h=28))
+                    color=GOLD, size=14, bold=True, h=28))
+
+                # Vis siste feilmelding hvis vi har en
+                err = getattr(self, '_weap_last_error', None)
+                if err:
+                    msg_box.add_widget(mklbl(
+                        "Feil:", color=RED, size=12, bold=True, h=22))
+                    msg_box.add_widget(mklbl(
+                        err, color=TXT, size=11, wrap=True))
+                else:
+                    msg_box.add_widget(mklbl(
+                        "Legg weapons.json i:\n"
+                        "/sdcard/Documents/EldritchPortal/",
+                        color=DIM, size=11, wrap=True))
+
                 msg_box.add_widget(mklbl(
-                    "Legg weapons.json i:\n"
-                    "/sdcard/Documents/EldritchPortal/",
-                    color=DIM, size=11, wrap=True))
+                    f"Sti som sjekkes:\n{WEAPONS_FILE}",
+                    color=DIM, size=10, wrap=True))
+
                 msg_box.add_widget(mkbtn(
                     "Last inn på nytt",
                     self._weap_reload, accent=True,
                     size_hint_y=None, height=dp(42)))
+                msg_box.add_widget(Widget())
                 self.tool_area.add_widget(msg_box)
                 return
 
@@ -2718,10 +2750,90 @@ try:
             self._weap_render_list()
 
         def _weap_reload(self):
-            """Les inn weapons.json på nytt."""
-            self.weapons_data = load_json(WEAPONS_FILE, {
-                "weapons": [], "categories": {},
-                "subcategories": {}, "field_labels": {}})
+            """Les inn weapons.json på nytt med full diagnostikk."""
+            self._weap_last_error = None
+            path = WEAPONS_FILE
+            log(f"_weap_reload: sjekker {path}")
+
+            # Sjekk 1: finnes fila?
+            if not os.path.exists(path):
+                err = f"Fil ikke funnet:\n{path}"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+
+            # Sjekk 2: størrelse
+            try:
+                sz = os.path.getsize(path)
+                log(f"_weap_reload: fil finnes, {sz} bytes")
+                if sz == 0:
+                    err = "Fila er tom (0 bytes)"
+                    log(f"_weap_reload: {err}")
+                    self._weap_last_error = err
+                    self._tool_render_sub()
+                    return
+            except Exception as e:
+                err = f"Kunne ikke lese fil-størrelse: {e}"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+
+            # Sjekk 3: kan åpne og lese?
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    raw = f.read()
+                log(f"_weap_reload: leste {len(raw)} tegn")
+            except PermissionError as e:
+                err = f"Ingen tilgang (permissions):\n{e}"
+                log(f"_weap_reload: PermissionError: {e}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+            except Exception as e:
+                err = f"Kunne ikke åpne fil:\n{type(e).__name__}: {e}"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+
+            # Sjekk 4: gyldig JSON?
+            try:
+                data = json.loads(raw)
+            except json.JSONDecodeError as e:
+                err = f"JSON-feil linje {e.lineno}:\n{e.msg}"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+            except Exception as e:
+                err = f"Parse-feil: {type(e).__name__}: {e}"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+
+            # Sjekk 5: har weapons-nøkkel?
+            if not isinstance(data, dict):
+                err = f"Fila er ikke et JSON-objekt (type: {type(data).__name__})"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+
+            if 'weapons' not in data:
+                err = "Fila mangler 'weapons'-nøkkel"
+                log(f"_weap_reload: {err}")
+                self._weap_last_error = err
+                self._tool_render_sub()
+                return
+
+            # OK!
+            n = len(data.get('weapons', []))
+            log(f"_weap_reload: OK, {n} våpen lastet")
+            self.weapons_data = data
+            self._weap_last_error = None
             self._tool_render_sub()
 
         def _weap_era_label(self, key):
