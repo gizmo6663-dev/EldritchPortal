@@ -53,6 +53,8 @@ try:
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
+    WEAPONS_FILE     = os.path.join(BASE_DIR, "weapons.json")
+    WEAPONS_FAV_FILE = os.path.join(BASE_DIR, "weapons_favorites.json")
 
     def ensure_dirs():
         """Opprett mapper ETTER tillatelser er gitt."""
@@ -1150,6 +1152,18 @@ try:
             self.chars = load_json(CHAR_FILE, [])
             self.edit_idx = None
 
+            self.weapons_data = load_json(WEAPONS_FILE, {
+                "weapons": [], "categories": {},
+                "subcategories": {}, "field_labels": {}
+            })
+            self.weap_favorites = set(load_json(WEAPONS_FAV_FILE, []))
+            self._weap_cat = 'all'
+            self._weap_era = 'all'
+            self._weap_search = ''
+            self._weap_fav_only = False
+            self._weap_overlay = None
+            self._weap_dim = None
+
             # FloatLayout som rot – lar oss legge splash oppå
             wrapper = FloatLayout()
 
@@ -1756,6 +1770,16 @@ try:
                 font_size=sp(11), bold=True)
             b_init.bind(on_release=lambda b: self._tool_switch('init'))
             sub_bar.add_widget(b_init)
+
+            b_weap = RToggle(
+                text='Våpen', group='tool_sub',
+                state='down' if self._tool_sub == 'weap' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'weap' else BTN,
+                color=GOLD if self._tool_sub == 'weap' else DIM,
+                font_size=sp(11), bold=True)
+            b_weap.bind(on_release=lambda b: self._tool_switch('weap'))
+            sub_bar.add_widget(b_weap)
+
             p.add_widget(sub_bar)
 
             # Handlings-rad (for karakter-lista)
@@ -1788,11 +1812,13 @@ try:
                 self._tool_action_bar.add_widget(
                     mklbl("Karakterer", color=GOLD, size=14, bold=True))
                 self._show_list()
-            else:
+            elif self._tool_sub == 'init':
                 self._tool_action_bar.add_widget(
                     mklbl("Initiativ-tracker", color=GOLD,
                           size=14, bold=True))
                 self._mk_init_tracker()
+            else:
+                self._mk_weapons()
 
         def _show_list(self):
             self.tool_area.clear_widgets()
@@ -2587,6 +2613,480 @@ try:
             """Gå tilbake til setup - behold listen."""
             self._init_phase = 'setup'
             self._mk_init_tracker()
+
+
+        # ---------- VÅPEN ----------
+        def _mk_weapons(self):
+            """Hovedvisning for våpentabellen."""
+            data = self.weapons_data
+            cats = data.get("categories", {})
+
+            if not data.get("weapons"):
+                self._tool_action_bar.add_widget(
+                    mklbl("Våpen", color=GOLD, size=14, bold=True))
+                self.tool_area.clear_widgets()
+                msg_box = BoxLayout(orientation='vertical',
+                                    spacing=dp(8), padding=dp(20))
+                msg_box.add_widget(mklbl(
+                    "Ingen våpendata funnet.",
+                    color=DIM, size=13, h=28))
+                msg_box.add_widget(mklbl(
+                    "Legg weapons.json i:\n"
+                    "/sdcard/Documents/EldritchPortal/",
+                    color=DIM, size=11, wrap=True))
+                msg_box.add_widget(mkbtn(
+                    "Last inn på nytt",
+                    self._weap_reload, accent=True,
+                    size_hint_y=None, height=dp(42)))
+                self.tool_area.add_widget(msg_box)
+                return
+
+            # Action-bar: søk + epoke + favoritt-toggle
+            search_inp = TextInput(
+                text=self._weap_search,
+                hint_text='Søk…',
+                font_size=sp(12), multiline=False,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD,
+                size_hint_x=0.45,
+                padding=[dp(8), dp(8)])
+            search_inp.bind(text=self._weap_on_search)
+            self._tool_action_bar.add_widget(search_inp)
+
+            era_sp = Spinner(
+                text=self._weap_era_label(self._weap_era),
+                values=['Alle epoker', '1920-tallet',
+                        'Moderne', 'Gaslight'],
+                size_hint_x=0.35,
+                background_color=BTN, color=TXT,
+                font_size=sp(11))
+            era_sp.bind(text=self._weap_era_change)
+            self._tool_action_bar.add_widget(era_sp)
+
+            fav_tog = RToggle(
+                text='*',
+                state='down' if self._weap_fav_only else 'normal',
+                bg_color=BTNH if self._weap_fav_only else BTN,
+                color=GOLD if self._weap_fav_only else DIM,
+                font_size=sp(14), bold=True,
+                size_hint_x=0.2)
+            fav_tog.bind(on_release=self._weap_toggle_fav_filter)
+            self._tool_action_bar.add_widget(fav_tog)
+
+            # Hovedområde
+            self.tool_area.clear_widgets()
+            p = BoxLayout(orientation='vertical',
+                          spacing=dp(4), padding=[dp(4), dp(4)])
+
+            # Kategori-faner (horisontalt scroll)
+            cat_scroll = ScrollView(size_hint_y=None, height=dp(40),
+                                    do_scroll_y=False)
+            cat_row = BoxLayout(size_hint_x=None, spacing=dp(4),
+                                padding=[dp(2), 0])
+            cat_row.bind(minimum_width=cat_row.setter('width'))
+
+            cat_items = [('all', 'Alle')]
+            cat_items += [(k, v) for k, v in cats.items()]
+            for key, lbl in cat_items:
+                active = (key == self._weap_cat)
+                b = RBtn(
+                    text=lbl,
+                    bg_color=BTNH if active else BTN,
+                    color=GOLD if active else TXT,
+                    font_size=sp(11), bold=active,
+                    size_hint_x=None, width=dp(90),
+                    size_hint_y=None, height=dp(36))
+                b.bind(on_release=lambda x, k=key:
+                       self._weap_cat_switch(k))
+                cat_row.add_widget(b)
+
+            cat_scroll.add_widget(cat_row)
+            p.add_widget(cat_scroll)
+
+            # Våpenliste
+            scroll = ScrollView()
+            self._weap_list_grid = GridLayout(
+                cols=1, spacing=dp(4),
+                padding=[dp(2), dp(4)],
+                size_hint_y=None)
+            self._weap_list_grid.bind(
+                minimum_height=self._weap_list_grid.setter('height'))
+            scroll.add_widget(self._weap_list_grid)
+            p.add_widget(scroll)
+
+            self.tool_area.add_widget(p)
+            self._weap_render_list()
+
+        def _weap_reload(self):
+            """Les inn weapons.json på nytt."""
+            self.weapons_data = load_json(WEAPONS_FILE, {
+                "weapons": [], "categories": {},
+                "subcategories": {}, "field_labels": {}})
+            self._tool_render_sub()
+
+        def _weap_era_label(self, key):
+            return {'all': 'Alle epoker',
+                    '1920s': '1920-tallet',
+                    'modern': 'Moderne',
+                    'gaslight': 'Gaslight'}.get(key, 'Alle epoker')
+
+        def _weap_era_change(self, inst, val):
+            rev = {'Alle epoker': 'all',
+                   '1920-tallet': '1920s',
+                   'Moderne': 'modern',
+                   'Gaslight': 'gaslight'}
+            self._weap_era = rev.get(val, 'all')
+            self._weap_render_list()
+
+        def _weap_on_search(self, inst, val):
+            self._weap_search = val.strip().lower()
+            self._weap_render_list()
+
+        def _weap_cat_switch(self, cat):
+            self._weap_cat = cat
+            # Rebuild fordi kategori-knapper må re-styles
+            self._tool_render_sub()
+
+        def _weap_toggle_fav_filter(self, inst):
+            self._weap_fav_only = (inst.state == 'down')
+            inst.bg_color = BTNH if self._weap_fav_only else BTN
+            inst.color = GOLD if self._weap_fav_only else DIM
+            self._weap_render_list()
+
+        def _weap_filter(self):
+            """Returner filtrert våpenliste."""
+            weapons = self.weapons_data.get("weapons", [])
+            out = []
+            for w in weapons:
+                # Kategori
+                if self._weap_cat != 'all':
+                    if w.get('category') != self._weap_cat:
+                        continue
+                # Epoke
+                if self._weap_era != 'all':
+                    eras = w.get('era', [])
+                    if 'all' not in eras and self._weap_era not in eras:
+                        continue
+                # Favoritt
+                if self._weap_fav_only:
+                    if w.get('id') not in self.weap_favorites:
+                        continue
+                # Søk
+                if self._weap_search:
+                    s = self._weap_search
+                    hay = (w.get('name', '') + ' ' +
+                           w.get('description', '') + ' ' +
+                           ' '.join(w.get('tags', []))).lower()
+                    if s not in hay:
+                        continue
+                out.append(w)
+            return out
+
+        def _weap_render_list(self):
+            """Bygg våpen-rad-listen basert på filter."""
+            if not hasattr(self, '_weap_list_grid'):
+                return
+            self._weap_list_grid.clear_widgets()
+            subs = self.weapons_data.get("subcategories", {})
+            filtered = self._weap_filter()
+
+            if not filtered:
+                self._weap_list_grid.add_widget(mklbl(
+                    "Ingen treff med gjeldende filter.",
+                    color=DIM, size=12, h=40))
+                return
+
+            for w in filtered:
+                self._weap_list_grid.add_widget(
+                    self._weap_make_row(w, subs))
+
+        def _weap_make_row(self, w, subs):
+            """Bygg en kompakt våpen-rad (78dp høy, klikkbar)."""
+            wid = w.get('id', '')
+            is_fav = wid in self.weap_favorites
+
+            row = RBox(orientation='horizontal',
+                       bg_color=BG2,
+                       size_hint_y=None, height=dp(78),
+                       padding=[dp(8), dp(6)], spacing=dp(6),
+                       radius=dp(10))
+
+            # Venstre: info
+            left = BoxLayout(orientation='vertical', spacing=dp(2))
+
+            # Linje 1: navn + kategori-chip
+            l1 = BoxLayout(size_hint_y=None, height=dp(22),
+                           spacing=dp(6))
+            name_lb = Label(
+                text=w.get('name', '?'),
+                font_size=sp(13), color=GOLD, bold=True,
+                halign='left', valign='middle')
+            name_lb.bind(size=lambda w_, v: setattr(
+                w_, 'text_size', v))
+            l1.add_widget(name_lb)
+
+            sub_key = w.get('subcategory', '')
+            sub_lbl = subs.get(sub_key, sub_key)
+            if sub_lbl:
+                chip = Label(
+                    text=sub_lbl,
+                    font_size=sp(9), color=DIM, bold=True,
+                    size_hint_x=None, width=dp(80),
+                    halign='right', valign='middle')
+                chip.bind(size=lambda w_, v: setattr(
+                    w_, 'text_size', v))
+                l1.add_widget(chip)
+            left.add_widget(l1)
+
+            # Linje 2: ferdighet
+            skill_lb = Label(
+                text=w.get('skill', ''),
+                font_size=sp(10), color=DIM,
+                size_hint_y=None, height=dp(18),
+                halign='left', valign='middle')
+            skill_lb.bind(size=lambda w_, v: setattr(
+                w_, 'text_size', v))
+            left.add_widget(skill_lb)
+
+            # Linje 3: skade | rekkevidde | magasin | feiling
+            parts = []
+            dmg = w.get('damage', '')
+            if dmg:
+                parts.append(f"Sk: {dmg}")
+            rng = w.get('range', '')
+            if rng and rng != 'berøring':
+                parts.append(f"R: {rng}")
+            ammo = w.get('ammo')
+            if ammo:
+                parts.append(f"Mag: {ammo}")
+            malf = w.get('malfunction')
+            if malf:
+                parts.append(f"F: {malf}")
+
+            stats_lb = Label(
+                text='   '.join(parts),
+                font_size=sp(10), color=TXT,
+                size_hint_y=None, height=dp(20),
+                halign='left', valign='middle')
+            stats_lb.bind(size=lambda w_, v: setattr(
+                w_, 'text_size', v))
+            left.add_widget(stats_lb)
+
+            row.add_widget(left)
+
+            # Høyre: favoritt-knapp
+            fav_btn = RBtn(
+                text='*' if is_fav else 'o',
+                bg_color=BTN,
+                color=GOLD if is_fav else DIM,
+                font_size=sp(18), bold=True,
+                size_hint_x=None, width=dp(44),
+                size_hint_y=None, height=dp(44),
+                pos_hint={'center_y': 0.5})
+            fav_btn.bind(on_release=lambda b, _id=wid:
+                         self._weap_toggle_fav(_id))
+            row.add_widget(fav_btn)
+
+            # Hele raden (unntatt fav-knapp) klikkbar = åpne detalj
+            def _on_touch(widget, touch, weap=w):
+                if not widget.collide_point(*touch.pos):
+                    return False
+                # Ikke hvis fav-knappen er truffet
+                if fav_btn.collide_point(*touch.pos):
+                    return False
+                self._weap_show_detail(weap)
+                return True
+
+            row.bind(on_touch_down=_on_touch)
+            return row
+
+        def _weap_toggle_fav(self, wid):
+            """Bytt favoritt-status og lagre."""
+            if wid in self.weap_favorites:
+                self.weap_favorites.discard(wid)
+            else:
+                self.weap_favorites.add(wid)
+            save_json(WEAPONS_FAV_FILE, list(self.weap_favorites))
+            self._weap_render_list()
+
+        def _weap_show_detail(self, w):
+            """Vis detalj-overlay for ett våpen."""
+            self._weap_close_overlay()
+            labels = self.weapons_data.get("field_labels", {})
+            subs = self.weapons_data.get("subcategories", {})
+            cats = self.weapons_data.get("categories", {})
+
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(4),
+                padding=dp(10),
+                size_hint=(0.94, 0.88),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            # Header
+            hdr = BoxLayout(size_hint_y=None, height=dp(42),
+                            spacing=dp(6))
+            hdr.add_widget(mkbtn("Lukk", self._weap_close_overlay,
+                                 danger=True, small=True,
+                                 size_hint_x=0.3))
+            hdr.add_widget(mklbl(w.get('name', '?'),
+                                 color=GOLD, size=14, bold=True))
+
+            wid = w.get('id', '')
+            is_fav = wid in self.weap_favorites
+            fav_btn = mkbtn('*' if is_fav else 'o',
+                            lambda: (self._weap_toggle_fav(wid),
+                                     self._weap_show_detail(w)),
+                            accent=is_fav, small=True,
+                            size_hint_x=None)
+            fav_btn.width = dp(50)
+            hdr.add_widget(fav_btn)
+            overlay.add_widget(hdr)
+
+            # Breadcrumb
+            cat_lbl = cats.get(w.get('category', ''), '')
+            sub_lbl = subs.get(w.get('subcategory', ''), '')
+            crumb = f"{cat_lbl}  >  {sub_lbl}" if sub_lbl else cat_lbl
+            overlay.add_widget(mklbl(crumb, color=DIM, size=10, h=18))
+
+            # Innhold i scroll
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(3),
+                           padding=[dp(4), dp(4)], size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            # Nøkkel-stats i rutenett
+            g.add_widget(mksep(4))
+            stats_box = GridLayout(cols=2, spacing=dp(4),
+                                   size_hint_y=None, height=dp(180))
+
+            def _stat(lbl_text, val):
+                if val is None or val == '':
+                    return
+                framed = FramedBox(orientation='vertical',
+                                   padding=dp(4), spacing=dp(2))
+                framed.add_widget(Label(
+                    text=lbl_text, font_size=sp(10),
+                    color=GOLD, bold=True,
+                    size_hint_y=None, height=dp(16)))
+                framed.add_widget(Label(
+                    text=str(val), font_size=sp(12),
+                    color=TXT, bold=True))
+                stats_box.add_widget(framed)
+
+            _stat(labels.get('skill', 'Ferdighet'),
+                  w.get('skill', '—'))
+            _stat(labels.get('damage', 'Skade'),
+                  w.get('damage', '—'))
+
+            db = w.get('uses_db')
+            if db is True:
+                db_text = 'Ja'
+            elif db == 'half':
+                db_text = 'Halv'
+            else:
+                db_text = 'Nei'
+            _stat(labels.get('uses_db', 'Bruker DB'), db_text)
+
+            _stat(labels.get('can_impale', 'Kan spidde'),
+                  'Ja' if w.get('can_impale') else 'Nei')
+            _stat(labels.get('range', 'Rekkevidde'),
+                  w.get('range', '—'))
+            _stat(labels.get('attacks', 'Angrep / runde'),
+                  w.get('attacks', '—'))
+            _stat(labels.get('ammo', 'Magasin'),
+                  w.get('ammo', '—'))
+            _stat(labels.get('malfunction', 'Feiling'),
+                  w.get('malfunction', '—'))
+
+            g.add_widget(stats_box)
+
+            # Epoke og pris
+            g.add_widget(mksep(6))
+            meta = []
+            eras = w.get('era', [])
+            if eras:
+                era_map = {'all': 'Alle', 'gaslight': 'Gaslight',
+                           '1920s': '1920-tallet',
+                           'modern': 'Moderne'}
+                era_txt = ', '.join(era_map.get(e, e) for e in eras)
+                meta.append(f"Epoke: {era_txt}")
+            cost = w.get('cost_1920s')
+            if cost:
+                meta.append(f"Pris (1920): {cost}")
+            avail = w.get('availability')
+            if avail:
+                meta.append(f"Tilgjengelighet: {avail}")
+            if meta:
+                g.add_widget(mklbl(
+                    '   •   '.join(meta),
+                    color=DIM, size=11, wrap=True))
+
+            # Beskrivelse
+            desc = w.get('description', '')
+            if desc:
+                g.add_widget(mksep(6))
+                g.add_widget(mklbl(
+                    labels.get('description', 'Beskrivelse'),
+                    color=GOLD, size=12, bold=True, h=22))
+                g.add_widget(mklbl(desc, color=TXT, size=12, wrap=True))
+
+            # Pulp-notater
+            pulp = w.get('pulp_notes', '')
+            if pulp:
+                g.add_widget(mksep(6))
+                g.add_widget(mklbl(
+                    labels.get('pulp_notes', 'Pulp-notater'),
+                    color=GOLD, size=12, bold=True, h=22))
+                g.add_widget(mklbl(pulp, color=TXT, size=12, wrap=True))
+
+            # Tagger
+            tags = w.get('tags', [])
+            if tags:
+                g.add_widget(mksep(6))
+                g.add_widget(mklbl(
+                    'Tagger:  ' + ', '.join(tags),
+                    color=DIM, size=10, wrap=True))
+
+            g.add_widget(mksep(30))
+            scroll.add_widget(g)
+            overlay.add_widget(scroll)
+
+            # Legg overlay på FloatLayout-root (samme mønster som rules)
+            root = self.content
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                # Fallback: legg direkte i tool_area
+                self.tool_area.add_widget(overlay)
+                self._weap_overlay = overlay
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCd, Rectangle as GRd
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCd(rgba=[0, 0, 0, 0.6])
+                dr = GRd(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w_, v: setattr(dr, 'pos', w_.pos),
+                     size=lambda w_, v: setattr(dr, 'size', w_.size))
+            dim.bind(on_touch_down=lambda w_, t:
+                     self._weap_close_overlay() or True)
+
+            self._weap_dim = dim
+            self._weap_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _weap_close_overlay(self):
+            """Lukk våpen-detalj-overlay."""
+            if self._weap_overlay and self._weap_overlay.parent:
+                parent = self._weap_overlay.parent
+                parent.remove_widget(self._weap_overlay)
+                if self._weap_dim and self._weap_dim.parent:
+                    parent.remove_widget(self._weap_dim)
+            self._weap_overlay = None
+            self._weap_dim = None
 
 
         def on_stop(self):
