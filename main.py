@@ -3092,6 +3092,7 @@ try:
 
         def _bm_next_turn(self):
             """Flytt øverste init-entry til bunn + nullstill brukt MOV.
+            Autovelg neste deltakers token hvis den er på kartet.
             CoC: hver ny runde får alle full bevegelse igjen."""
             if self._init_list:
                 top = self._init_list.pop(0)
@@ -3101,6 +3102,15 @@ try:
                 tok['used_mov'] = 0
             for tok in self._bm_unplaced:
                 tok['used_mov'] = 0
+            # Autovelg tokenen som tilhører neste aktive deltaker
+            self._bm_selected = None
+            self._bm_placing = None
+            next_name = self._bm_active_name()
+            if next_name:
+                for cell, tok in self._bm_tokens.items():
+                    if tok.get('name') == next_name:
+                        self._bm_selected = cell
+                        break
             self._bm_render()
 
 
