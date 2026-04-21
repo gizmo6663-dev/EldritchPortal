@@ -2241,8 +2241,10 @@ try:
             p.add_widget(scroll)
 
             bottom = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
+            bottom.add_widget(mkbtn("Kart", self._bm_open,
+                                    small=True, size_hint_x=0.4))
             bottom.add_widget(mkbtn("Fullfør", self._init_finish,
-                                    accent=True))
+                                    accent=True, size_hint_x=0.6))
             p.add_widget(bottom)
 
         def _init_on_dex_change(self, inst, value):
@@ -2569,10 +2571,12 @@ try:
             """Aktiv fase: vis sortert rekkefølge."""
             top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
             top.add_widget(mkbtn("Ny runde", self._init_new_encounter,
-                                 danger=True, small=True, size_hint_x=0.4))
+                                 danger=True, small=True, size_hint_x=0.3))
             top.add_widget(mkbtn("Rediger", self._init_back_to_setup,
-                                 small=True, size_hint_x=0.3))
-            top.add_widget(mklbl("Initiativ", color=GOLD, size=13, bold=True))
+                                 small=True, size_hint_x=0.25))
+            top.add_widget(mkbtn("Kart", self._bm_open,
+                                 accent=True, small=True, size_hint_x=0.25))
+            top.add_widget(mklbl("Tur", color=GOLD, size=12, bold=True))
             p.add_widget(top)
 
             p.add_widget(mklbl(
@@ -2669,6 +2673,410 @@ try:
             """Gå tilbake til setup - behold listen."""
             self._init_phase = 'setup'
             self._mk_init_tracker()
+
+
+        # ---------- BATTLEMAP ----------
+        BM_SIZE = 15  # 15x15 rutenett
+
+        def _bm_open(self):
+            """Åpne battlemap som overlay. Sync tokens fra init-lista."""
+            if not self._init_list:
+                # Ingen deltakere ennå
+                return
+            self._bm_tokens = {}       # (x, y) -> token dict
+            self._bm_unplaced = []     # tokens som ikke er plassert
+            self._bm_selected = None   # (x, y) eller None
+            self._bm_placing = None    # token som holdes for plassering
+            self._bm_overlay = None
+            self._bm_dim = None
+            self._bm_sync_from_init()
+            self._bm_build_overlay()
+
+        def _bm_find_mov(self, name, tp):
+            """Finn MOV for en karakter, default 8."""
+            if tp in ('PC', 'NPC'):
+                for ch in self.chars:
+                    if ch.get('name') == name:
+                        try:
+                            return int(ch.get('move', 8) or 8)
+                        except (ValueError, TypeError):
+                            return 8
+            return 8
+
+        def _bm_sync_from_init(self):
+            """Generer token-liste fra initiativlista."""
+            pc_n = 1
+            npc_n = 1
+            en_n = 1
+            for entry in self._init_list:
+                tp = entry.get('type', 'PC')
+                if tp == 'PC':
+                    label = f"P{pc_n}"
+                    pc_n += 1
+                elif tp == 'NPC':
+                    label = f"N{npc_n}"
+                    npc_n += 1
+                else:
+                    label = f"E{en_n}"
+                    en_n += 1
+                self._bm_unplaced.append({
+                    'label': label,
+                    'name': entry.get('name', '?'),
+                    'type': tp,
+                    'mov': self._bm_find_mov(
+                        entry.get('name', ''), tp),
+                    'hp': entry.get('hp', ''),
+                })
+
+        def _bm_build_overlay(self):
+            """Bygg overlay-widget."""
+            self._bm_close_overlay()
+
+            overlay = RBox(
+                bg_color=BG, radius=dp(12),
+                orientation='vertical', spacing=dp(4),
+                padding=dp(6),
+                size_hint=(0.98, 0.95),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            # Header
+            hdr = BoxLayout(size_hint_y=None, height=dp(40),
+                            spacing=dp(4))
+            hdr.add_widget(mkbtn("Lukk", self._bm_close_overlay,
+                                 danger=True, small=True,
+                                 size_hint_x=0.22))
+            self._bm_active_lbl = mklbl(
+                "", color=GOLD, size=12, bold=True)
+            hdr.add_widget(self._bm_active_lbl)
+            hdr.add_widget(mkbtn("Neste", self._bm_next_turn,
+                                 accent=True, small=True,
+                                 size_hint_x=0.25))
+            overlay.add_widget(hdr)
+
+            # Unplaced row
+            self._bm_unp_label = mklbl(
+                "", color=DIM, size=10, h=20)
+            overlay.add_widget(self._bm_unp_label)
+
+            self._bm_unp_scroll = ScrollView(
+                size_hint_y=None, height=dp(44),
+                do_scroll_y=False)
+            self._bm_unp_row = BoxLayout(
+                size_hint_x=None, spacing=dp(4),
+                padding=[dp(2), 0])
+            self._bm_unp_row.bind(
+                minimum_width=self._bm_unp_row.setter('width'))
+            self._bm_unp_scroll.add_widget(self._bm_unp_row)
+            overlay.add_widget(self._bm_unp_scroll)
+
+            # Selve rutenettet — pakket i ScrollView slik at
+            # det fyller plassen men ikke krever eksakt kvadrat
+            grid_wrap = BoxLayout(padding=dp(2))
+            self._bm_grid = GridLayout(
+                cols=self.BM_SIZE, rows=self.BM_SIZE,
+                spacing=dp(1))
+            self._bm_cells = {}
+            for y in range(self.BM_SIZE):
+                for x in range(self.BM_SIZE):
+                    btn = Button(
+                        text='',
+                        background_normal='',
+                        background_down='',
+                        background_color=BG2,
+                        font_size=sp(9),
+                        bold=True,
+                        color=[1, 1, 1, 1])
+                    btn.bind(on_release=lambda b, _x=x, _y=y:
+                             self._bm_tap(_x, _y))
+                    self._bm_cells[(x, y)] = btn
+                    self._bm_grid.add_widget(btn)
+            grid_wrap.add_widget(self._bm_grid)
+            overlay.add_widget(grid_wrap)
+
+            # Status og bunn-knapper
+            self._bm_status = mklbl(
+                "Trykk på en token i 'Å plassere' for å begynne.",
+                color=DIM, size=10, h=22, wrap=True)
+            overlay.add_widget(self._bm_status)
+
+            btm = BoxLayout(size_hint_y=None, height=dp(38),
+                            spacing=dp(4))
+            btm.add_widget(mkbtn(
+                "Til plassering", self._bm_unplace_selected,
+                small=True, size_hint_x=0.5))
+            btm.add_widget(mkbtn(
+                "Tøm kart", self._bm_clear,
+                danger=True, small=True, size_hint_x=0.5))
+            overlay.add_widget(btm)
+
+            # Legg overlay på FloatLayout-root
+            root = self.content
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                self.tool_area.add_widget(overlay)
+                self._bm_overlay = overlay
+                self._bm_render()
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCbm, Rectangle as GRbm
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCbm(rgba=[0, 0, 0, 0.75])
+                dr = GRbm(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            # Merk: ingen "close on dim-tap" — vi vil ikke risikere
+            # at brukeren lukker kartet ved uhell midt i kamp.
+
+            self._bm_dim = dim
+            self._bm_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+            self._bm_render()
+
+        def _bm_close_overlay(self):
+            """Lukk battlemap-overlayet."""
+            ov = getattr(self, '_bm_overlay', None)
+            if ov and ov.parent:
+                parent = ov.parent
+                parent.remove_widget(ov)
+                dim = getattr(self, '_bm_dim', None)
+                if dim and dim.parent:
+                    parent.remove_widget(dim)
+            self._bm_overlay = None
+            self._bm_dim = None
+
+        def _bm_token_color(self, tp, is_selected=False,
+                            is_active_turn=False):
+            """Farge for en token basert på type og tilstand."""
+            if tp == 'PC':
+                base = [0.25, 0.58, 0.32, 1]  # GRN
+            elif tp == 'NPC':
+                base = [0.78, 0.60, 0.18, 1]  # dempet gull
+            else:
+                base = [0.60, 0.18, 0.20, 1]  # mørk rød
+            if is_selected:
+                base = [min(1, c * 1.5) for c in base[:3]] + [1]
+            elif is_active_turn:
+                base = [min(1, c * 1.2) for c in base[:3]] + [1]
+            return base
+
+        def _bm_active_name(self):
+            """Hvem har tur akkurat nå (første i init-lista)?"""
+            if self._init_list:
+                return self._init_list[0].get('name', '')
+            return ''
+
+        def _bm_render(self):
+            """Tegn opp hele kartet basert på state."""
+            # Oppdater aktiv-label
+            act = self._bm_active_name()
+            if act:
+                self._bm_active_lbl.text = f"Tur: {act}"
+            else:
+                self._bm_active_lbl.text = ""
+
+            # Rebuild unplaced-row
+            self._bm_unp_row.clear_widgets()
+            placing_label = None
+            if self._bm_placing:
+                placing_label = self._bm_placing.get('label', '')
+            for tok in self._bm_unplaced:
+                lbl = tok.get('label', '?')
+                is_holding = (lbl == placing_label)
+                b = RBtn(
+                    text=lbl,
+                    bg_color=BTNH if is_holding else (
+                        self._bm_token_color(tok.get('type', 'PC'))),
+                    color=GOLD if is_holding else [1, 1, 1, 1],
+                    font_size=sp(12), bold=True,
+                    size_hint_x=None, width=dp(54),
+                    size_hint_y=None, height=dp(40))
+                b.bind(on_release=lambda x, t=tok:
+                       self._bm_hold_for_place(t))
+                self._bm_unp_row.add_widget(b)
+
+            n_unp = len(self._bm_unplaced)
+            if n_unp == 0 and not self._bm_placing:
+                self._bm_unp_label.text = "Alle plassert."
+            elif placing_label:
+                self._bm_unp_label.text = (
+                    f"Holder: {placing_label} — "
+                    f"trykk på ledig rute for å plassere.")
+            else:
+                self._bm_unp_label.text = (
+                    f"Å plassere ({n_unp}): trykk for å velge.")
+
+            # Beregn gyldig move-ruter om token er valgt
+            valid_moves = set()
+            sel = self._bm_selected
+            if sel is not None:
+                tok = self._bm_tokens.get(sel)
+                if tok:
+                    mov = tok.get('mov', 8)
+                    sx, sy = sel
+                    for y in range(self.BM_SIZE):
+                        for x in range(self.BM_SIZE):
+                            if (x, y) == (sx, sy):
+                                continue
+                            dist = max(abs(x - sx), abs(y - sy))
+                            if dist <= mov:
+                                valid_moves.add((x, y))
+
+            # Tegn hver rute
+            act_name = act
+            for (x, y), btn in self._bm_cells.items():
+                tok = self._bm_tokens.get((x, y))
+                is_sel = (x, y) == sel
+                can_move = (x, y) in valid_moves and tok is None
+                can_place = (self._bm_placing is not None
+                             and tok is None)
+                if tok:
+                    btn.text = tok['label']
+                    is_active = (tok.get('name') == act_name
+                                 and act_name)
+                    btn.background_color = self._bm_token_color(
+                        tok.get('type', 'PC'),
+                        is_selected=is_sel,
+                        is_active_turn=is_active)
+                    btn.color = [1, 1, 1, 1]
+                    btn.font_size = sp(10)
+                else:
+                    btn.text = ''
+                    if can_move:
+                        btn.background_color = [0.15, 0.32, 0.18, 1]
+                    elif can_place:
+                        btn.background_color = [0.25, 0.18, 0.22, 1]
+                    else:
+                        btn.background_color = BG2
+
+            # Status-tekst
+            if self._bm_placing:
+                lb = self._bm_placing.get('label', '?')
+                nm = self._bm_placing.get('name', '?')
+                self._bm_status.text = (
+                    f"Plasserer {lb} ({nm}) — trykk en ledig rute.")
+            elif sel is not None:
+                tok = self._bm_tokens.get(sel)
+                if tok:
+                    lb = tok.get('label', '?')
+                    nm = tok.get('name', '?')
+                    mv = tok.get('mov', 8)
+                    hp = tok.get('hp', '')
+                    hp_s = f" HP {hp}" if hp else ""
+                    self._bm_status.text = (
+                        f"Valgt: {lb} ({nm}) — MOV {mv}{hp_s}. "
+                        f"Trykk en grønn rute for å flytte.")
+                else:
+                    self._bm_status.text = ""
+            else:
+                self._bm_status.text = (
+                    "Trykk på en token for å velge og flytte.")
+
+        def _bm_hold_for_place(self, tok):
+            """Velg token for plassering (fra unplaced-raden)."""
+            # Toggle: trykk igjen = slipp
+            if self._bm_placing and \
+               self._bm_placing.get('label') == tok.get('label'):
+                self._bm_placing = None
+            else:
+                self._bm_placing = tok
+                self._bm_selected = None
+            self._bm_render()
+
+        def _bm_tap(self, x, y):
+            """Håndter trykk på en rute."""
+            cell = (x, y)
+            tok_here = self._bm_tokens.get(cell)
+
+            # Modus 1: plasserer token fra unplaced
+            if self._bm_placing:
+                if tok_here:
+                    # Rute opptatt — ikke flytt, bare gi beskjed
+                    self._bm_status.text = (
+                        "Ruten er opptatt. Velg en ledig rute.")
+                    return
+                # Plasser tokenen her
+                self._bm_tokens[cell] = self._bm_placing
+                self._bm_unplaced = [
+                    t for t in self._bm_unplaced
+                    if t.get('label') !=
+                    self._bm_placing.get('label')]
+                self._bm_placing = None
+                self._bm_render()
+                return
+
+            # Modus 2: ingen aktiv valgt — velg token her
+            if self._bm_selected is None:
+                if tok_here:
+                    self._bm_selected = cell
+                    self._bm_render()
+                return
+
+            # Modus 3: token valgt fra før
+            sel = self._bm_selected
+            if cell == sel:
+                # Trykk på valgt = dropp valg
+                self._bm_selected = None
+                self._bm_render()
+                return
+
+            if tok_here:
+                # Bytt valg til annen token
+                self._bm_selected = cell
+                self._bm_render()
+                return
+
+            # Flytt valgt token hit hvis innenfor MOV
+            sel_tok = self._bm_tokens.get(sel)
+            if not sel_tok:
+                self._bm_selected = None
+                self._bm_render()
+                return
+            mov = sel_tok.get('mov', 8)
+            sx, sy = sel
+            dist = max(abs(x - sx), abs(y - sy))
+            if dist > mov:
+                self._bm_status.text = (
+                    f"For langt ({dist} > MOV {mov}).")
+                return
+            # Utfør flytt
+            del self._bm_tokens[sel]
+            self._bm_tokens[cell] = sel_tok
+            self._bm_selected = cell
+            self._bm_render()
+
+        def _bm_unplace_selected(self):
+            """Flytt valgt token tilbake til 'Å plassere'."""
+            sel = self._bm_selected
+            if sel is None:
+                return
+            tok = self._bm_tokens.get(sel)
+            if not tok:
+                return
+            self._bm_unplaced.append(tok)
+            del self._bm_tokens[sel]
+            self._bm_selected = None
+            self._bm_render()
+
+        def _bm_clear(self):
+            """Tøm kartet — alle tokens tilbake til unplaced."""
+            for tok in self._bm_tokens.values():
+                self._bm_unplaced.append(tok)
+            self._bm_tokens = {}
+            self._bm_selected = None
+            self._bm_placing = None
+            self._bm_render()
+
+        def _bm_next_turn(self):
+            """Flytt øverste init-entry til bunn (samme som init-tracker)."""
+            if self._init_list:
+                top = self._init_list.pop(0)
+                self._init_list.append(top)
+            self._bm_render()
 
 
         # ---------- VÅPEN ----------
