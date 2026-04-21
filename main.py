@@ -53,8 +53,19 @@ try:
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
-    WEAPONS_FILE     = os.path.join(BASE_DIR, "weapons.json")
-    WEAPONS_FAV_FILE = os.path.join(BASE_DIR, "weapons_favorites.json")
+
+    # Våpendata er BUNDLET med appen (pakket inn i APK).
+    # Dette unngår Android 13+ scoped storage permission-problemer.
+    try:
+        _BUNDLE_DIR = os.path.dirname(os.path.abspath(__file__))
+    except NameError:
+        _BUNDLE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
+    BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
+    # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
+    # bruk den (lar brukeren overstyre med egen fil hvis mulig).
+    EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
+    # Favoritter lagres i user_data_dir (app-private, alltid skrivbar).
+    # WEAPONS_FAV_FILE settes i build() når user_data_dir er tilgjengelig.
 
     def ensure_dirs():
         """Opprett mapper ETTER tillatelser er gitt."""
@@ -1152,17 +1163,21 @@ try:
             self.chars = load_json(CHAR_FILE, [])
             self.edit_idx = None
 
-            self.weapons_data = load_json(WEAPONS_FILE, {
+            # Våpen: favoritt-fil går i app-private storage (alltid skrivbar)
+            self.WEAPONS_FAV_FILE = os.path.join(
+                self.user_data_dir, "weapons_favorites.json")
+            self.weapons_data = {
                 "weapons": [], "categories": {},
                 "subcategories": {}, "field_labels": {}
-            })
-            self.weap_favorites = set(load_json(WEAPONS_FAV_FILE, []))
+            }
+            self.weap_favorites = set(load_json(self.WEAPONS_FAV_FILE, []))
             self._weap_cat = 'all'
             self._weap_era = 'all'
             self._weap_search = ''
             self._weap_fav_only = False
             self._weap_overlay = None
             self._weap_dim = None
+            self._weap_last_error = None
 
             # FloatLayout som rot – lar oss legge splash oppå
             wrapper = FloatLayout()
@@ -1269,24 +1284,48 @@ try:
             self.server.start()
             self._load_imgs()
             self._load_tracks()
-            # Last våpendata på nytt etter permissions er gitt
-            try:
-                if os.path.exists(WEAPONS_FILE):
-                    sz = os.path.getsize(WEAPONS_FILE)
-                    log(f"_init: weapons.json finnes, {sz} bytes")
-                    with open(WEAPONS_FILE, 'r', encoding='utf-8') as f:
-                        self.weapons_data = json.load(f)
-                    n = len(self.weapons_data.get('weapons', []))
-                    log(f"_init: lastet {n} våpen")
-                else:
-                    log(f"_init: weapons.json IKKE funnet på {WEAPONS_FILE}")
-            except Exception as e:
-                log(f"_init: weapons-lasting feilet: {type(e).__name__}: {e}")
-            try:
-                self.weap_favorites = set(load_json(WEAPONS_FAV_FILE, []))
-            except Exception as e:
-                log(f"_init: favorites-lasting feilet: {e}")
+            self._weap_do_load()
             self.status.text = f"IP: {MediaServer.ip()}  |  Cast: {'Ja' if CAST_AVAILABLE else 'Nei'}"
+
+        def _weap_do_load(self):
+            """Last våpendata. Prøv ekstern først (brukerens egen),
+            fall tilbake til bundlet versjon."""
+            # Forsøk 1: ekstern fil i /sdcard/Documents/EldritchPortal/
+            if os.path.exists(EXTERNAL_WEAPONS):
+                try:
+                    with open(EXTERNAL_WEAPONS, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    if isinstance(data, dict) and 'weapons' in data:
+                        n = len(data.get('weapons', []))
+                        log(f"_weap_do_load: ekstern OK, {n} våpen")
+                        self.weapons_data = data
+                        self._weap_last_error = None
+                        return
+                except PermissionError:
+                    log("_weap_do_load: ekstern finnes men ingen tilgang, bruker bundlet")
+                except Exception as e:
+                    log(f"_weap_do_load: ekstern feil ({e}), bruker bundlet")
+            # Forsøk 2: bundlet fil (pakket inn i APK)
+            if os.path.exists(BUNDLED_WEAPONS):
+                try:
+                    with open(BUNDLED_WEAPONS, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    n = len(data.get('weapons', []))
+                    log(f"_weap_do_load: bundlet OK, {n} våpen")
+                    self.weapons_data = data
+                    self._weap_last_error = None
+                    return
+                except Exception as e:
+                    err = f"Bundlet fil: {type(e).__name__}: {e}"
+                    log(f"_weap_do_load: {err}")
+                    self._weap_last_error = err
+                    return
+            # Ingen kilder fungerte
+            err = (f"Fant ingen weapons.json.\n"
+                   f"Bundlet sti: {BUNDLED_WEAPONS}\n"
+                   f"Ekstern sti: {EXTERNAL_WEAPONS}")
+            log(f"_weap_do_load: {err}")
+            self._weap_last_error = err
 
         def _tab(self, k):
             self.content.clear_widgets()
@@ -2750,90 +2789,8 @@ try:
             self._weap_render_list()
 
         def _weap_reload(self):
-            """Les inn weapons.json på nytt med full diagnostikk."""
-            self._weap_last_error = None
-            path = WEAPONS_FILE
-            log(f"_weap_reload: sjekker {path}")
-
-            # Sjekk 1: finnes fila?
-            if not os.path.exists(path):
-                err = f"Fil ikke funnet:\n{path}"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-
-            # Sjekk 2: størrelse
-            try:
-                sz = os.path.getsize(path)
-                log(f"_weap_reload: fil finnes, {sz} bytes")
-                if sz == 0:
-                    err = "Fila er tom (0 bytes)"
-                    log(f"_weap_reload: {err}")
-                    self._weap_last_error = err
-                    self._tool_render_sub()
-                    return
-            except Exception as e:
-                err = f"Kunne ikke lese fil-størrelse: {e}"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-
-            # Sjekk 3: kan åpne og lese?
-            try:
-                with open(path, 'r', encoding='utf-8') as f:
-                    raw = f.read()
-                log(f"_weap_reload: leste {len(raw)} tegn")
-            except PermissionError as e:
-                err = f"Ingen tilgang (permissions):\n{e}"
-                log(f"_weap_reload: PermissionError: {e}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-            except Exception as e:
-                err = f"Kunne ikke åpne fil:\n{type(e).__name__}: {e}"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-
-            # Sjekk 4: gyldig JSON?
-            try:
-                data = json.loads(raw)
-            except json.JSONDecodeError as e:
-                err = f"JSON-feil linje {e.lineno}:\n{e.msg}"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-            except Exception as e:
-                err = f"Parse-feil: {type(e).__name__}: {e}"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-
-            # Sjekk 5: har weapons-nøkkel?
-            if not isinstance(data, dict):
-                err = f"Fila er ikke et JSON-objekt (type: {type(data).__name__})"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-
-            if 'weapons' not in data:
-                err = "Fila mangler 'weapons'-nøkkel"
-                log(f"_weap_reload: {err}")
-                self._weap_last_error = err
-                self._tool_render_sub()
-                return
-
-            # OK!
-            n = len(data.get('weapons', []))
-            log(f"_weap_reload: OK, {n} våpen lastet")
-            self.weapons_data = data
-            self._weap_last_error = None
+            """Les inn weapons.json på nytt."""
+            self._weap_do_load()
             self._tool_render_sub()
 
         def _weap_era_label(self, key):
@@ -3018,7 +2975,7 @@ try:
                 self.weap_favorites.discard(wid)
             else:
                 self.weap_favorites.add(wid)
-            save_json(WEAPONS_FAV_FILE, list(self.weap_favorites))
+            save_json(self.WEAPONS_FAV_FILE, list(self.weap_favorites))
             self._weap_render_list()
 
         def _weap_show_detail(self, w):
