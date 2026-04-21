@@ -2676,7 +2676,7 @@ try:
 
 
         # ---------- BATTLEMAP ----------
-        BM_SIZE = 30  # 30x30 rutenett
+        BM_SIZE = 15  # 15x15 rutenett
 
         def _bm_open(self):
             """Åpne battlemap som overlay. Sync tokens fra init-lista."""
@@ -2725,6 +2725,7 @@ try:
                     'type': tp,
                     'mov': self._bm_find_mov(
                         entry.get('name', ''), tp),
+                    'used_mov': 0,
                     'hp': entry.get('hp', ''),
                 })
 
@@ -2917,14 +2918,17 @@ try:
                 tok = self._bm_tokens.get(sel)
                 if tok:
                     mov = tok.get('mov', 8)
+                    used = tok.get('used_mov', 0)
+                    remaining = max(0, mov - used)
                     sx, sy = sel
-                    for y in range(self.BM_SIZE):
-                        for x in range(self.BM_SIZE):
-                            if (x, y) == (sx, sy):
-                                continue
-                            dist = max(abs(x - sx), abs(y - sy))
-                            if dist <= mov:
-                                valid_moves.add((x, y))
+                    if remaining > 0:
+                        for y in range(self.BM_SIZE):
+                            for x in range(self.BM_SIZE):
+                                if (x, y) == (sx, sy):
+                                    continue
+                                dist = max(abs(x - sx), abs(y - sy))
+                                if dist <= remaining:
+                                    valid_moves.add((x, y))
 
             # Tegn hver rute
             act_name = act
@@ -2965,11 +2969,19 @@ try:
                     lb = tok.get('label', '?')
                     nm = tok.get('name', '?')
                     mv = tok.get('mov', 8)
+                    used = tok.get('used_mov', 0)
+                    remaining = max(0, mv - used)
                     hp = tok.get('hp', '')
                     hp_s = f" HP {hp}" if hp else ""
-                    self._bm_status.text = (
-                        f"Valgt: {lb} ({nm}) — MOV {mv}{hp_s}. "
-                        f"Trykk en grønn rute for å flytte.")
+                    if remaining <= 0:
+                        self._bm_status.text = (
+                            f"Valgt: {lb} ({nm}) — MOV brukt opp "
+                            f"({used}/{mv}). Trykk «Neste» for ny runde."
+                            f"{hp_s}")
+                    else:
+                        self._bm_status.text = (
+                            f"Valgt: {lb} ({nm}) — MOV {remaining} igjen "
+                            f"({used}/{mv} brukt).{hp_s}")
                 else:
                     self._bm_status.text = ""
             else:
@@ -3030,20 +3042,27 @@ try:
                 self._bm_render()
                 return
 
-            # Flytt valgt token hit hvis innenfor MOV
+            # Flytt valgt token hit hvis innenfor gjenværende MOV
             sel_tok = self._bm_tokens.get(sel)
             if not sel_tok:
                 self._bm_selected = None
                 self._bm_render()
                 return
             mov = sel_tok.get('mov', 8)
+            used = sel_tok.get('used_mov', 0)
+            remaining = max(0, mov - used)
             sx, sy = sel
             dist = max(abs(x - sx), abs(y - sy))
-            if dist > mov:
+            if remaining <= 0:
                 self._bm_status.text = (
-                    f"For langt ({dist} > MOV {mov}).")
+                    f"MOV brukt opp ({used}/{mov}).")
                 return
-            # Utfør flytt
+            if dist > remaining:
+                self._bm_status.text = (
+                    f"For langt ({dist} > {remaining} igjen).")
+                return
+            # Utfør flytt — og tell bruk
+            sel_tok['used_mov'] = used + dist
             del self._bm_tokens[sel]
             self._bm_tokens[cell] = sel_tok
             self._bm_selected = cell
@@ -3072,10 +3091,16 @@ try:
             self._bm_render()
 
         def _bm_next_turn(self):
-            """Flytt øverste init-entry til bunn (samme som init-tracker)."""
+            """Flytt øverste init-entry til bunn + nullstill brukt MOV.
+            CoC: hver ny runde får alle full bevegelse igjen."""
             if self._init_list:
                 top = self._init_list.pop(0)
                 self._init_list.append(top)
+            # Nullstill brukt MOV for alle tokens (plasserte + å plassere)
+            for tok in self._bm_tokens.values():
+                tok['used_mov'] = 0
+            for tok in self._bm_unplaced:
+                tok['used_mov'] = 0
             self._bm_render()
 
 
