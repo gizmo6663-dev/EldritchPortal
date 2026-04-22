@@ -880,6 +880,54 @@ try:
         except:
             pass
 
+    def has_all_files_access():
+        """Sjekk om appen har MANAGE_EXTERNAL_STORAGE (Android 11+).
+        Returnerer True hvis ja, False hvis nei, None hvis ikke
+        Android eller ikke relevant."""
+        if platform != 'android':
+            return None
+        try:
+            from jnius import autoclass
+            Environment = autoclass('android.os.Environment')
+            Build = autoclass('android.os.Build$VERSION')
+            # Kun relevant på Android 11 (API 30) og nyere
+            if Build.SDK_INT < 30:
+                return None
+            return bool(Environment.isExternalStorageManager())
+        except Exception as e:
+            log(f"has_all_files_access sjekk feilet: {e}")
+            return None
+
+    def request_all_files_access():
+        """Åpne Android-innstillinger hvor brukeren kan gi appen
+        'All files access'. Krever Android 11+ og at appen
+        deklarerer MANAGE_EXTERNAL_STORAGE i manifestet."""
+        if platform != 'android':
+            return False
+        try:
+            from jnius import autoclass
+            PythonActivity = autoclass(
+                'org.kivy.android.PythonActivity')
+            Intent = autoclass('android.content.Intent')
+            Settings = autoclass('android.provider.Settings')
+            Uri = autoclass('android.net.Uri')
+            activity = PythonActivity.mActivity
+            package = activity.getPackageName()
+            try:
+                intent = Intent(
+                    Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
+                intent.setData(Uri.parse(f"package:{package}"))
+                activity.startActivity(intent)
+            except Exception:
+                # Fallback: generell "All files access"-skjerm
+                intent = Intent(
+                    Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+                activity.startActivity(intent)
+            return True
+        except Exception as e:
+            log(f"request_all_files_access feilet: {e}")
+            return False
+
     def load_json(p, d=None):
         try:
             with open(p, 'r') as f:
@@ -3353,10 +3401,17 @@ try:
         def _scen_try_import(self):
             """Prøv å kopiere scenario.json fra Documents-mappen til
             app-private storage. Returner (ok, melding)."""
+            # Sjekk All Files Access-status
+            has_access = has_all_files_access()
             if not os.path.exists(EXTERNAL_SCENARIO):
+                hint = ""
+                if has_access is False:
+                    hint = ("\n\nHint: appen har ikke 'Tilgang til alle "
+                            "filer' ennå. Trykk 'Gi tilgang' for å åpne "
+                            "innstillingene og slå det på.")
                 return False, (
                     f"Ingen fil funnet i Documents.\n\n"
-                    f"Forventet sti:\n{EXTERNAL_SCENARIO}")
+                    f"Forventet sti:\n{EXTERNAL_SCENARIO}{hint}")
             try:
                 with open(EXTERNAL_SCENARIO, 'r',
                           encoding='utf-8') as f:
@@ -3373,11 +3428,14 @@ try:
                 log(f"Scenario importert: {data.get('title', '?')}")
                 return True, f"Importert: {data.get('title', '(uten tittel)')}"
             except PermissionError:
+                hint = ""
+                if has_access is False:
+                    hint = ("\n\nLøsning: trykk 'Gi tilgang' nedenfor "
+                            "og slå på 'Tillat administrering av "
+                            "alle filer' for Eldritch Portal.")
                 return False, (
-                    "Ingen tilgang til Documents-mappen.\n\n"
-                    "Android blokkerer lesing av .json-filer her "
-                    "på nyere versjoner. Se hjelpeteksten for "
-                    "alternativ kopiering.")
+                    "Ingen tilgang til Documents-mappen."
+                    + hint)
             except json.JSONDecodeError as e:
                 return False, f"Ugyldig JSON i filen:\n{e}"
             except Exception as e:
@@ -3483,40 +3541,43 @@ try:
                 "Ingen scenario lastet.",
                 color=GOLD, size=14, bold=True, h=28))
 
-            box.add_widget(mksep(4))
-            box.add_widget(mklbl(
-                "METODE 1 — Import fra Documents",
-                color=GOLD, size=12, bold=True, h=22))
-            box.add_widget(mklbl(
-                f"Legg scenario.json i:\n{EXTERNAL_SCENARIO}\n\n"
-                "Trykk deretter 'Importer' øverst. Virker "
-                "kanskje ikke på alle Android-versjoner grunnet "
-                "scoped storage.",
-                color=TXT, size=11, wrap=True))
+            # Vis tilgangs-status
+            access = has_all_files_access()
+            if access is True:
+                box.add_widget(mklbl(
+                    "✓ Tilgang til alle filer: PÅ",
+                    color=GRN, size=11, bold=True, h=22))
+            elif access is False:
+                box.add_widget(mklbl(
+                    "✗ Tilgang til alle filer: AV",
+                    color=RED, size=11, bold=True, h=22))
+                box.add_widget(mklbl(
+                    "For å lese scenario.json fra Documents-"
+                    "mappen må du gi appen 'Tilgang til alle "
+                    "filer'. Dette er en engangsjobb.",
+                    color=TXT, size=11, wrap=True))
+                box.add_widget(mkbtn(
+                    "Gi tilgang (åpner innstillinger)",
+                    self._scen_request_access, accent=True,
+                    size_hint_y=None, height=dp(48)))
 
-            box.add_widget(mksep(6))
+            box.add_widget(mksep(8))
             box.add_widget(mklbl(
-                "METODE 2 — Kopier direkte til app-mappen",
+                "SLIK GJØR DU:",
                 color=GOLD, size=12, bold=True, h=22))
             box.add_widget(mklbl(
-                "Bruk Samsung My Files eller en annen filbehandler "
-                "og kopier scenario.json hit:",
+                "1. Legg scenario.json i:",
                 color=TXT, size=11, wrap=True))
             box.add_widget(mklbl(
-                self.SCENARIO_FILE,
+                EXTERNAL_SCENARIO,
                 color=GOLD, size=10, wrap=True))
             box.add_widget(mklbl(
-                "Trykk deretter 'Last inn' øverst.",
+                "2. Hvis tilgang er AV: trykk 'Gi tilgang' "
+                "over og slå på bryteren i innstillinger.",
                 color=TXT, size=11, wrap=True))
-
-            box.add_widget(mksep(6))
             box.add_widget(mklbl(
-                "METODE 3 — ADB (fra PC)",
-                color=GOLD, size=12, bold=True, h=22))
-            adb_cmd = (f"adb push scenario.json "
-                       f"{self.SCENARIO_FILE}")
-            box.add_widget(mklbl(
-                adb_cmd, color=GDIM, size=10, wrap=True))
+                "3. Trykk 'Importer' øverst eller knappen under.",
+                color=TXT, size=11, wrap=True))
 
             box.add_widget(mksep(10))
             box.add_widget(mkbtn(
@@ -3528,8 +3589,28 @@ try:
                 self._scen_reload,
                 size_hint_y=None, height=dp(40)))
 
+            # Alternativ sti (for teknisk kyndige)
+            box.add_widget(mksep(10))
+            box.add_widget(mklbl(
+                "Alternativ (hvis ingen tilgang): kopier direkte til",
+                color=DIM, size=10, wrap=True))
+            box.add_widget(mklbl(
+                self.SCENARIO_FILE,
+                color=GDIM, size=9, wrap=True))
+
             scroll.add_widget(box)
             self.tool_area.add_widget(scroll)
+
+        def _scen_request_access(self):
+            """Åpne Android-innstillinger for All Files Access."""
+            ok = request_all_files_access()
+            if not ok:
+                self._scen_show_message(
+                    "Kunne ikke åpne innstillinger",
+                    "Prøv å gå manuelt til:\n"
+                    "Innstillinger > Apper > Eldritch Portal > "
+                    "Tillatelser > Alle filer",
+                    is_error=True)
 
         def _scen_do_import(self):
             """Forsøk å importere scenario fra Documents-mappen."""
