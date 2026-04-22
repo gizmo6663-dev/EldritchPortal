@@ -53,7 +53,11 @@ try:
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
-    SCENARIO_FILE = os.path.join(BASE_DIR, "scenario.json")
+    # Scenario-fil: primær lagring i user_data_dir (app-private,
+    # alltid skrivbar). Ekstern import-sti forsøkes lest ved
+    # "Importer" — unngår Android 13+ scoped storage-problem.
+    EXTERNAL_SCENARIO = os.path.join(BASE_DIR, "scenario.json")
+    # SCENARIO_FILE settes i build() når user_data_dir er tilgjengelig.
 
     # Våpendata er BUNDLET med appen (pakket inn i APK).
     # Dette unngår Android 13+ scoped storage permission-problemer.
@@ -1167,6 +1171,10 @@ try:
             # Våpen: favoritt-fil går i app-private storage (alltid skrivbar)
             self.WEAPONS_FAV_FILE = os.path.join(
                 self.user_data_dir, "weapons_favorites.json")
+            # Scenario: også app-private (unngår scoped storage-feil
+            # ved lesing av .json i /sdcard/Documents/ på Android 13+)
+            self.SCENARIO_FILE = os.path.join(
+                self.user_data_dir, "scenario.json")
             self.weapons_data = {
                 "weapons": [], "categories": {},
                 "subcategories": {}, "field_labels": {}
@@ -3313,12 +3321,13 @@ try:
                 self._scen_view = 'clues'  # clues | timeline | beats | notes
 
         def _scen_load(self):
-            """Les scenario.json fra disk."""
-            if not os.path.exists(SCENARIO_FILE):
+            """Les scenario.json fra app-private storage."""
+            path = self.SCENARIO_FILE
+            if not os.path.exists(path):
                 self._scen_data = None
                 return None
             try:
-                with open(SCENARIO_FILE, 'r', encoding='utf-8') as f:
+                with open(path, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                 self._scen_data = data
                 log(f"Scenario lastet: {data.get('title', '?')}")
@@ -3329,16 +3338,50 @@ try:
                 return None
 
         def _scen_save(self):
-            """Lagre scenario.json til disk."""
+            """Lagre scenario.json til app-private storage."""
             if not self._scen_data or '_error' in self._scen_data:
                 return
             try:
-                os.makedirs(os.path.dirname(SCENARIO_FILE), exist_ok=True)
-                with open(SCENARIO_FILE, 'w', encoding='utf-8') as f:
+                os.makedirs(os.path.dirname(self.SCENARIO_FILE),
+                            exist_ok=True)
+                with open(self.SCENARIO_FILE, 'w', encoding='utf-8') as f:
                     json.dump(self._scen_data, f,
                               ensure_ascii=False, indent=2)
             except Exception as e:
                 log(f"Scenario-lagring feilet: {e}")
+
+        def _scen_try_import(self):
+            """Prøv å kopiere scenario.json fra Documents-mappen til
+            app-private storage. Returner (ok, melding)."""
+            if not os.path.exists(EXTERNAL_SCENARIO):
+                return False, (
+                    f"Ingen fil funnet i Documents.\n\n"
+                    f"Forventet sti:\n{EXTERNAL_SCENARIO}")
+            try:
+                with open(EXTERNAL_SCENARIO, 'r',
+                          encoding='utf-8') as f:
+                    data = json.load(f)
+                # Valider at det faktisk er et scenario
+                if not isinstance(data, dict):
+                    return False, "Filen er ikke et JSON-objekt."
+                # Skriv til app-private
+                os.makedirs(os.path.dirname(self.SCENARIO_FILE),
+                            exist_ok=True)
+                with open(self.SCENARIO_FILE, 'w',
+                          encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                log(f"Scenario importert: {data.get('title', '?')}")
+                return True, f"Importert: {data.get('title', '(uten tittel)')}"
+            except PermissionError:
+                return False, (
+                    "Ingen tilgang til Documents-mappen.\n\n"
+                    "Android blokkerer lesing av .json-filer her "
+                    "på nyere versjoner. Se hjelpeteksten for "
+                    "alternativ kopiering.")
+            except json.JSONDecodeError as e:
+                return False, f"Ugyldig JSON i filen:\n{e}"
+            except Exception as e:
+                return False, f"Feil: {type(e).__name__}: {e}"
 
         def _mk_scenario(self):
             """Bygg scenario-sub-tab UI."""
@@ -3348,16 +3391,19 @@ try:
                 self._scen_load()
 
             self._tool_action_bar.add_widget(
+                mkbtn("Importer", self._scen_do_import,
+                      accent=True, small=True, size_hint_x=0.28))
+            self._tool_action_bar.add_widget(
                 mkbtn("Last inn", self._scen_reload,
-                      accent=True, size_hint_x=0.3))
+                      small=True, size_hint_x=0.25))
             self._tool_action_bar.add_widget(
                 mkbtn("Nullstill", self._scen_confirm_reset,
-                      danger=True, small=True, size_hint_x=0.3))
+                      danger=True, small=True, size_hint_x=0.25))
             title_text = "Scenario"
             if self._scen_data and '_error' not in self._scen_data:
                 title_text = self._scen_data.get('title', 'Scenario')
             self._tool_action_bar.add_widget(
-                mklbl(title_text, color=GOLD, size=13, bold=True))
+                mklbl(title_text, color=GOLD, size=11, bold=True))
 
             self.tool_area.clear_widgets()
 
@@ -3427,49 +3473,169 @@ try:
 
         def _scen_show_empty(self):
             """Vis melding når scenario.json ikke finnes."""
+            scroll = ScrollView()
             box = BoxLayout(orientation='vertical',
-                            spacing=dp(10), padding=dp(20))
+                            spacing=dp(8), padding=dp(16),
+                            size_hint_y=None)
+            box.bind(minimum_height=box.setter('height'))
+
             box.add_widget(mklbl(
                 "Ingen scenario lastet.",
                 color=GOLD, size=14, bold=True, h=28))
+
+            box.add_widget(mksep(4))
             box.add_widget(mklbl(
-                "Legg en scenario.json i:\n"
-                "Dokumenter/EldritchPortal/\n\n"
-                "Du kan generere filen ved å be en AI "
-                "(Claude, Gemini, GPT) om å konvertere et "
-                "scenario etter et fast schema. Be om prompt "
-                "i Eldritch Portal-dokumentasjonen.",
-                color=DIM, size=11, wrap=True))
+                "METODE 1 — Import fra Documents",
+                color=GOLD, size=12, bold=True, h=22))
             box.add_widget(mklbl(
-                f"Forventet sti:\n{SCENARIO_FILE}",
-                color=DIM, size=10, wrap=True))
+                f"Legg scenario.json i:\n{EXTERNAL_SCENARIO}\n\n"
+                "Trykk deretter 'Importer' øverst. Virker "
+                "kanskje ikke på alle Android-versjoner grunnet "
+                "scoped storage.",
+                color=TXT, size=11, wrap=True))
+
+            box.add_widget(mksep(6))
+            box.add_widget(mklbl(
+                "METODE 2 — Kopier direkte til app-mappen",
+                color=GOLD, size=12, bold=True, h=22))
+            box.add_widget(mklbl(
+                "Bruk Samsung My Files eller en annen filbehandler "
+                "og kopier scenario.json hit:",
+                color=TXT, size=11, wrap=True))
+            box.add_widget(mklbl(
+                self.SCENARIO_FILE,
+                color=GOLD, size=10, wrap=True))
+            box.add_widget(mklbl(
+                "Trykk deretter 'Last inn' øverst.",
+                color=TXT, size=11, wrap=True))
+
+            box.add_widget(mksep(6))
+            box.add_widget(mklbl(
+                "METODE 3 — ADB (fra PC)",
+                color=GOLD, size=12, bold=True, h=22))
+            adb_cmd = (f"adb push scenario.json "
+                       f"{self.SCENARIO_FILE}")
+            box.add_widget(mklbl(
+                adb_cmd, color=GDIM, size=10, wrap=True))
+
+            box.add_widget(mksep(10))
+            box.add_widget(mkbtn(
+                "Importer fra Documents",
+                self._scen_do_import, accent=True,
+                size_hint_y=None, height=dp(48)))
             box.add_widget(mkbtn(
                 "Last inn på nytt",
-                self._scen_reload, accent=True,
-                size_hint_y=None, height=dp(44)))
-            box.add_widget(Widget())
-            self.tool_area.add_widget(box)
+                self._scen_reload,
+                size_hint_y=None, height=dp(40)))
+
+            scroll.add_widget(box)
+            self.tool_area.add_widget(scroll)
+
+        def _scen_do_import(self):
+            """Forsøk å importere scenario fra Documents-mappen."""
+            ok, msg = self._scen_try_import()
+            if ok:
+                # Last inn den nyimporterte fila
+                self._scen_data = None
+                self._scen_load()
+                self._tool_render_sub()
+                # Vis suksessmelding som overlay
+                self._scen_show_message(
+                    "Import vellykket", msg, is_error=False)
+            else:
+                self._scen_show_message(
+                    "Import feilet", msg, is_error=True)
+
+        def _scen_show_message(self, title, msg, is_error=False):
+            """Vis en melding som overlay."""
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.88, 0.5),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                title,
+                color=RED if is_error else GOLD,
+                size=14, bold=True, h=28))
+
+            scroll = ScrollView()
+            overlay.add_widget(scroll)
+            body = mklbl(msg, color=TXT, size=11, wrap=True)
+            scroll.add_widget(body)
+
+            overlay.add_widget(mkbtn(
+                "OK", self._scen_close_overlay,
+                accent=True, size_hint_y=None, height=dp(44)))
+
+            root = self.tool_area
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCm, Rectangle as GRm
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCm(rgba=[0, 0, 0, 0.6])
+                dr = GRm(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            dim.bind(on_touch_down=lambda w, t:
+                     self._scen_close_overlay() or True)
+
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
 
         def _scen_show_error(self):
             """Vis feilmelding hvis scenario.json var ugyldig."""
             err = self._scen_data.get('_error', 'Ukjent feil')
+            scroll = ScrollView()
             box = BoxLayout(orientation='vertical',
-                            spacing=dp(10), padding=dp(20))
+                            spacing=dp(8), padding=dp(16),
+                            size_hint_y=None)
+            box.bind(minimum_height=box.setter('height'))
+
             box.add_widget(mklbl(
                 "Feil ved lesing av scenario.json",
                 color=RED, size=14, bold=True, h=28))
             box.add_widget(mklbl(
                 str(err), color=TXT, size=11, wrap=True))
+
+            box.add_widget(mksep(8))
             box.add_widget(mklbl(
-                "Sjekk at filen er gyldig JSON. "
-                "Du kan validere den på jsonlint.com.",
-                color=DIM, size=10, wrap=True))
+                "Mulige årsaker:",
+                color=GOLD, size=12, bold=True, h=22))
+            box.add_widget(mklbl(
+                "• Filen er ikke gyldig JSON "
+                "(sjekk på jsonlint.com)\n"
+                "• Manglende skriverettigheter\n"
+                "• Filen er tom eller korrupt",
+                color=TXT, size=11, wrap=True))
+
+            box.add_widget(mksep(6))
+            box.add_widget(mklbl(
+                "Filsti som brukes:",
+                color=GOLD, size=11, bold=True, h=20))
+            box.add_widget(mklbl(
+                self.SCENARIO_FILE,
+                color=GDIM, size=10, wrap=True))
+
+            box.add_widget(mksep(10))
             box.add_widget(mkbtn(
                 "Last inn på nytt",
                 self._scen_reload, accent=True,
                 size_hint_y=None, height=dp(44)))
-            box.add_widget(Widget())
-            self.tool_area.add_widget(box)
+            box.add_widget(mkbtn(
+                "Importer fra Documents",
+                self._scen_do_import,
+                size_hint_y=None, height=dp(40)))
+
+            scroll.add_widget(box)
+            self.tool_area.add_widget(scroll)
 
         def _scen_reload(self):
             """Last scenario.json på nytt fra disk."""
