@@ -1071,6 +1071,110 @@ try:
             self.cc = None
             self.mc = None
 
+    class FilePicker:
+        """Android Storage Access Framework-filvelger.
+
+        Åpner systemets filvelger og leser valgt fil via URI —
+        krever ingen storage-tillatelser, fungerer på alle
+        Android-versjoner, og brukeren kan velge fra hvor som
+        helst (Documents, Downloads, Google Drive, osv).
+        """
+        REQUEST_CODE = 7331
+
+        def __init__(self):
+            self.callback = None
+            self._activity = None
+            self._bound = False
+
+        def _ensure_bound(self):
+            """Koble på Android activity-result-listener."""
+            if self._bound or platform != 'android':
+                return
+            try:
+                from jnius import autoclass
+                PythonActivity = autoclass(
+                    'org.kivy.android.PythonActivity')
+                self._activity = PythonActivity.mActivity
+                # Registrer callback for activity result
+                from android import activity as android_activity
+                android_activity.bind(
+                    on_activity_result=self._on_result)
+                self._bound = True
+                log("FilePicker bundet til Android activity")
+            except Exception as e:
+                log(f"FilePicker bind-feil: {e}")
+
+        def pick(self, callback, mime_type='application/json'):
+            """Åpne filvelger. callback(ok, text_or_err) kalles
+            når brukeren har valgt (eller avbrutt)."""
+            if platform != 'android':
+                callback(False, "Filvelger kun tilgjengelig på Android")
+                return
+            self._ensure_bound()
+            if not self._activity:
+                callback(False, "Fikk ikke tilgang til Android activity")
+                return
+            self.callback = callback
+            try:
+                from jnius import autoclass
+                Intent = autoclass('android.content.Intent')
+                intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+                intent.addCategory(Intent.CATEGORY_OPENABLE)
+                intent.setType(mime_type)
+                self._activity.startActivityForResult(
+                    intent, self.REQUEST_CODE)
+            except Exception as e:
+                log(f"FilePicker pick-feil: {e}")
+                callback(False, f"Kunne ikke åpne filvelger: {e}")
+
+        def _on_result(self, request_code, result_code, intent):
+            """Mottatt resultat fra filvelgeren."""
+            if request_code != self.REQUEST_CODE:
+                return
+            cb = self.callback
+            self.callback = None
+            if cb is None:
+                return
+            # RESULT_OK = -1, RESULT_CANCELED = 0
+            if result_code != -1 or intent is None:
+                Clock.schedule_once(
+                    lambda dt: cb(False, "Avbrutt"), 0)
+                return
+            try:
+                from jnius import autoclass
+                uri = intent.getData()
+                if uri is None:
+                    Clock.schedule_once(
+                        lambda dt: cb(False, "Ingen fil valgt"), 0)
+                    return
+                # Åpne input stream via content resolver
+                resolver = self._activity.getContentResolver()
+                stream = resolver.openInputStream(uri)
+                # Les innhold (byte-vis gjennom InputStreamReader)
+                BufferedReader = autoclass(
+                    'java.io.BufferedReader')
+                InputStreamReader = autoclass(
+                    'java.io.InputStreamReader')
+                reader = BufferedReader(
+                    InputStreamReader(stream, 'UTF-8'))
+                sb = []
+                line = reader.readLine()
+                while line is not None:
+                    sb.append(line)
+                    line = reader.readLine()
+                    if line is not None:
+                        sb.append('\n')
+                reader.close()
+                stream.close()
+                text = ''.join(sb)
+                Clock.schedule_once(
+                    lambda dt: cb(True, text), 0)
+            except Exception as e:
+                log(f"FilePicker read-feil: {e}")
+                err = f"Lesing feilet: {type(e).__name__}: {e}"
+                Clock.schedule_once(
+                    lambda dt: cb(False, err), 0)
+
     class APlayer:
         def __init__(self):
             self.mp = None
@@ -1213,6 +1317,7 @@ try:
             self.streamer = SPlayer()
             self.cast = CastMgr()
             self.server = MediaServer()
+            self.file_picker = FilePicker()
             self.chars = load_json(CHAR_FILE, [])
             self.edit_idx = None
 
@@ -3449,8 +3554,8 @@ try:
                 self._scen_load()
 
             self._tool_action_bar.add_widget(
-                mkbtn("Importer", self._scen_do_import,
-                      accent=True, small=True, size_hint_x=0.28))
+                mkbtn("Velg fil", self._scen_do_pick_file,
+                      accent=True, small=True, size_hint_x=0.3))
             self._tool_action_bar.add_widget(
                 mkbtn("Last inn", self._scen_reload,
                       small=True, size_hint_x=0.25))
@@ -3541,62 +3646,78 @@ try:
                 "Ingen scenario lastet.",
                 color=GOLD, size=14, bold=True, h=28))
 
-            # Vis tilgangs-status
+            # PRIMÆR METODE: SAF-filvelger (ingen tillatelser kreves)
+            box.add_widget(mksep(8))
+            box.add_widget(mklbl(
+                "ENKLEST — Velg fil",
+                color=GOLD, size=12, bold=True, h=22))
+            box.add_widget(mklbl(
+                "Trykk 'Velg fil' for å åpne Android sin "
+                "filvelger. Bla til scenario.json hvor enn "
+                "du har den — Documents, Downloads, Google "
+                "Drive, minnekort. Krever ingen ekstra "
+                "tillatelser.",
+                color=TXT, size=11, wrap=True))
+            box.add_widget(mkbtn(
+                "Velg fil",
+                self._scen_do_pick_file, accent=True,
+                size_hint_y=None, height=dp(52)))
+
+            # ALTERNATIV: All files access
             access = has_all_files_access()
+            box.add_widget(mksep(10))
+            box.add_widget(mklbl(
+                "ALTERNATIV — Importer fra Documents",
+                color=GOLD, size=12, bold=True, h=22))
+
             if access is True:
                 box.add_widget(mklbl(
-                    "✓ Tilgang til alle filer: PÅ",
-                    color=GRN, size=11, bold=True, h=22))
+                    "Tilgang til alle filer: PÅ",
+                    color=GRN, size=11, bold=True, h=20))
+                box.add_widget(mklbl(
+                    f"Legg scenario.json i:\n{EXTERNAL_SCENARIO}\n\n"
+                    "Trykk deretter 'Importer' nedenfor.",
+                    color=TXT, size=11, wrap=True))
+                box.add_widget(mkbtn(
+                    "Importer fra Documents",
+                    self._scen_do_import,
+                    size_hint_y=None, height=dp(44)))
             elif access is False:
                 box.add_widget(mklbl(
-                    "✗ Tilgang til alle filer: AV",
-                    color=RED, size=11, bold=True, h=22))
+                    "Tilgang til alle filer: AV",
+                    color=RED, size=11, bold=True, h=20))
                 box.add_widget(mklbl(
-                    "For å lese scenario.json fra Documents-"
-                    "mappen må du gi appen 'Tilgang til alle "
-                    "filer'. Dette er en engangsjobb.",
+                    "For å bruke Importer-knappen må du slå "
+                    "på 'Tilgang til alle filer' for appen. "
+                    "Engangsjobb — men 'Velg fil' over er "
+                    "enklere og trenger ikke dette.",
                     color=TXT, size=11, wrap=True))
                 box.add_widget(mkbtn(
                     "Gi tilgang (åpner innstillinger)",
-                    self._scen_request_access, accent=True,
-                    size_hint_y=None, height=dp(48)))
+                    self._scen_request_access,
+                    size_hint_y=None, height=dp(44)))
+            else:
+                box.add_widget(mklbl(
+                    "Kun tilgjengelig på Android 11+.",
+                    color=DIM, size=10, wrap=True))
+
+            # MANUELL KOPI: siste fallback
+            box.add_widget(mksep(10))
+            box.add_widget(mklbl(
+                "MANUELT — Kopier hit",
+                color=GDIM, size=11, bold=True, h=20))
+            box.add_widget(mklbl(
+                self.SCENARIO_FILE,
+                color=GDIM, size=10, wrap=True))
+            box.add_widget(mklbl(
+                "Trykk 'Last inn' etterpå.",
+                color=DIM, size=10, wrap=True))
 
             box.add_widget(mksep(8))
-            box.add_widget(mklbl(
-                "SLIK GJØR DU:",
-                color=GOLD, size=12, bold=True, h=22))
-            box.add_widget(mklbl(
-                "1. Legg scenario.json i:",
-                color=TXT, size=11, wrap=True))
-            box.add_widget(mklbl(
-                EXTERNAL_SCENARIO,
-                color=GOLD, size=10, wrap=True))
-            box.add_widget(mklbl(
-                "2. Hvis tilgang er AV: trykk 'Gi tilgang' "
-                "over og slå på bryteren i innstillinger.",
-                color=TXT, size=11, wrap=True))
-            box.add_widget(mklbl(
-                "3. Trykk 'Importer' øverst eller knappen under.",
-                color=TXT, size=11, wrap=True))
-
-            box.add_widget(mksep(10))
-            box.add_widget(mkbtn(
-                "Importer fra Documents",
-                self._scen_do_import, accent=True,
-                size_hint_y=None, height=dp(48)))
             box.add_widget(mkbtn(
                 "Last inn på nytt",
                 self._scen_reload,
                 size_hint_y=None, height=dp(40)))
-
-            # Alternativ sti (for teknisk kyndige)
-            box.add_widget(mksep(10))
-            box.add_widget(mklbl(
-                "Alternativ (hvis ingen tilgang): kopier direkte til",
-                color=DIM, size=10, wrap=True))
-            box.add_widget(mklbl(
-                self.SCENARIO_FILE,
-                color=GDIM, size=9, wrap=True))
 
             scroll.add_widget(box)
             self.tool_area.add_widget(scroll)
@@ -3611,6 +3732,77 @@ try:
                     "Innstillinger > Apper > Eldritch Portal > "
                     "Tillatelser > Alle filer",
                     is_error=True)
+
+        def _scen_do_pick_file(self):
+            """Åpne Android filvelger og la brukeren velge scenario.json."""
+            if platform != 'android':
+                self._scen_show_message(
+                    "Ikke støttet",
+                    "Filvelger er kun tilgjengelig på Android.",
+                    is_error=True)
+                return
+            self._scen_show_message(
+                "Åpner filvelger...",
+                "Velg en scenario.json-fil. Du kan bla til "
+                "Documents, Downloads, Drive, eller hvor som "
+                "helst du har fila.",
+                is_error=False)
+            # Lukk meldingen etter kort tid så filvelgeren vises ren
+            Clock.schedule_once(
+                lambda dt: self._scen_close_overlay(), 0.8)
+            Clock.schedule_once(
+                lambda dt: self.file_picker.pick(
+                    self._scen_on_file_picked,
+                    mime_type='*/*'),
+                1.0)
+
+        def _scen_on_file_picked(self, ok, text_or_err):
+            """Callback når filvelgeren er ferdig."""
+            if not ok:
+                if text_or_err != "Avbrutt":
+                    self._scen_show_message(
+                        "Kunne ikke lese fil",
+                        text_or_err, is_error=True)
+                return
+            # Prøv å parse JSON-innhold
+            try:
+                data = json.loads(text_or_err)
+            except json.JSONDecodeError as e:
+                self._scen_show_message(
+                    "Ugyldig JSON",
+                    f"Fila er ikke gyldig JSON:\n{e}",
+                    is_error=True)
+                return
+            if not isinstance(data, dict):
+                self._scen_show_message(
+                    "Feil format",
+                    "Fila inneholder ikke et JSON-objekt "
+                    "(trenger { ... }).",
+                    is_error=True)
+                return
+            # Skriv til app-private sti
+            try:
+                os.makedirs(os.path.dirname(self.SCENARIO_FILE),
+                            exist_ok=True)
+                with open(self.SCENARIO_FILE, 'w',
+                          encoding='utf-8') as f:
+                    json.dump(data, f, ensure_ascii=False, indent=2)
+                log(f"Scenario valgt og lagret: "
+                    f"{data.get('title', '?')}")
+            except Exception as e:
+                self._scen_show_message(
+                    "Kunne ikke lagre",
+                    f"Feil ved lagring:\n{e}",
+                    is_error=True)
+                return
+            # Last og rendre
+            self._scen_data = None
+            self._scen_load()
+            self._tool_render_sub()
+            self._scen_show_message(
+                "Scenario lastet",
+                f"Valgt: {data.get('title', '(uten tittel)')}",
+                is_error=False)
 
         def _scen_do_import(self):
             """Forsøk å importere scenario fra Documents-mappen."""
