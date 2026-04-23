@@ -935,6 +935,139 @@ try:
         except:
             return d if d is not None else []
 
+    def first_non_empty(dct, keys):
+        if not isinstance(dct, dict):
+            return ''
+        for k in keys:
+            v = dct.get(k)
+            if v is None:
+                continue
+            s = str(v).strip()
+            if s:
+                return s
+        return ''
+
+    def normalize_skills(raw):
+        if isinstance(raw, dict):
+            return {str(k).strip(): str(v).strip()
+                    for k, v in raw.items()
+                    if str(k).strip() and str(v).strip()}
+        if isinstance(raw, list):
+            out = {}
+            for entry in raw:
+                if isinstance(entry, dict):
+                    name = first_non_empty(
+                        entry, ['name', 'skill', 'title', 'label'])
+                    value = first_non_empty(
+                        entry, ['value', 'score', 'percent', 'pct', 'rank'])
+                    if name and value:
+                        out[name] = value
+            return out
+        return {}
+
+    def normalize_char_type(raw_type):
+        t = (str(raw_type or '').strip().upper())
+        if t in ('NPC', 'NON-PLAYER', 'NONPLAYER'):
+            return 'NPC'
+        return 'PC'
+
+    def normalize_character_entry(raw):
+        if not isinstance(raw, dict):
+            return None
+        candidate = raw
+        for k in ('character', 'profile', 'investigator', 'sheet'):
+            nested = raw.get(k)
+            if isinstance(nested, dict) and (
+                ('name' in nested) or ('full_name' in nested)
+            ):
+                candidate = nested
+                break
+
+        name = first_non_empty(candidate, [
+            'name', 'full_name', 'character_name', 'investigator_name'
+        ])
+        if not name:
+            return None
+
+        ch = {
+            'name': name,
+            'type': normalize_char_type(first_non_empty(candidate, [
+                'type', 'role', 'kind'
+            ]) or first_non_empty(raw, ['type', 'role', 'kind'])),
+            'occ': first_non_empty(candidate, [
+                'occ', 'occupation', 'job', 'profession'
+            ]),
+            'archetype': first_non_empty(candidate, ['archetype', 'class']),
+            'age': first_non_empty(candidate, ['age']),
+            'residence': first_non_empty(candidate, ['residence', 'home']),
+            'birthplace': first_non_empty(candidate, [
+                'birthplace', 'birth_place', 'born'
+            ]),
+            'str': first_non_empty(candidate, ['str', 'STR']),
+            'con': first_non_empty(candidate, ['con', 'CON']),
+            'siz': first_non_empty(candidate, ['siz', 'SIZ']),
+            'dex': first_non_empty(candidate, ['dex', 'DEX']),
+            'int': first_non_empty(candidate, ['int', 'INT']),
+            'app': first_non_empty(candidate, ['app', 'APP']),
+            'pow': first_non_empty(candidate, ['pow', 'POW']),
+            'edu': first_non_empty(candidate, ['edu', 'EDU']),
+            'hp': first_non_empty(candidate, ['hp', 'HP']),
+            'mp': first_non_empty(candidate, ['mp', 'MP']),
+            'san': first_non_empty(candidate, ['san', 'SAN']),
+            'luck': first_non_empty(candidate, ['luck', 'LUCK']),
+            'db': first_non_empty(candidate, ['db', 'DB']),
+            'build': first_non_empty(candidate, ['build', 'BUILD']),
+            'move': first_non_empty(candidate, ['move', 'MOVE']),
+            'dodge': first_non_empty(candidate, ['dodge', 'DODGE']),
+            'weapons': first_non_empty(candidate, [
+                'weapons', 'weapon', 'equipment', 'gear'
+            ]),
+            'talents': first_non_empty(candidate, [
+                'talents', 'pulp_talents'
+            ]),
+            'backstory': first_non_empty(candidate, [
+                'backstory', 'background', 'history', 'description'
+            ]),
+            'notes': first_non_empty(candidate, ['notes']),
+            'skills': normalize_skills(
+                candidate.get('skills', candidate.get('skill', {})))
+        }
+        return ch
+
+    def normalize_characters_data(raw):
+        candidates = []
+        if isinstance(raw, list):
+            candidates = raw
+        elif isinstance(raw, dict):
+            for k in (
+                'characters', 'profiles', 'investigators',
+                'party', 'members', 'pcs', 'npcs', 'entries', 'data'
+            ):
+                v = raw.get(k)
+                if isinstance(v, list):
+                    candidates.extend(v)
+            if not candidates:
+                candidates = [raw]
+        else:
+            return []
+
+        out = []
+        seen = set()
+        for item in candidates:
+            ch = normalize_character_entry(item)
+            if not ch:
+                continue
+            key = (ch.get('name', '').strip().lower(), ch.get('type', 'PC'))
+            if key in seen:
+                continue
+            seen.add(key)
+            out.append(ch)
+        return out
+
+    def load_characters(path):
+        raw = load_json(path, [])
+        return normalize_characters_data(raw)
+
     def save_json(p, d):
         try:
             with open(p, 'w') as f:
@@ -1318,7 +1451,7 @@ try:
             self.cast = CastMgr()
             self.server = MediaServer()
             self.file_picker = FilePicker()
-            self.chars = load_json(CHAR_FILE, [])
+            self.chars = load_characters(CHAR_FILE)
             self.edit_idx = None
 
             # Våpen: favoritt-fil går i app-private storage (alltid skrivbar)
@@ -2205,7 +2338,7 @@ try:
                     mkbtn("+ Ny", self._new_char, accent=True,
                           size_hint_x=0.35))
                 self._tool_action_bar.add_widget(
-                    mkbtn("Oppdater", self._show_list,
+                    mkbtn("Oppdater", self._reload_characters,
                           small=True, size_hint_x=0.35))
                 self._tool_action_bar.add_widget(
                     mklbl("Karakterer", color=GOLD, size=14, bold=True))
@@ -2242,6 +2375,10 @@ try:
                     g.add_widget(row)
             scroll.add_widget(g)
             self.tool_area.add_widget(scroll)
+
+        def _reload_characters(self):
+            self.chars = load_characters(CHAR_FILE)
+            self._show_list()
 
         def _view_char(self, idx):
             if idx < 0 or idx >= len(self.chars):
