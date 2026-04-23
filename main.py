@@ -935,7 +935,7 @@ try:
         except:
             return d if d is not None else []
 
-    def _first_non_empty(dct, keys):
+    def first_non_empty(dct, keys):
         if not isinstance(dct, dict):
             return ''
         for k in keys:
@@ -947,7 +947,7 @@ try:
                 return s
         return ''
 
-    def _normalize_skills(raw):
+    def normalize_skills(raw):
         if isinstance(raw, dict):
             return {str(k).strip(): str(v).strip()
                     for k, v in raw.items()
@@ -956,22 +956,22 @@ try:
             out = {}
             for entry in raw:
                 if isinstance(entry, dict):
-                    name = _first_non_empty(
+                    name = first_non_empty(
                         entry, ['name', 'skill', 'title', 'label'])
-                    value = _first_non_empty(
+                    value = first_non_empty(
                         entry, ['value', 'score', 'percent', 'pct', 'rank'])
                     if name and value:
                         out[name] = value
             return out
         return {}
 
-    def _normalize_char_type(raw_type):
+    def normalize_char_type(raw_type):
         t = (str(raw_type or '').strip().upper())
         if t in ('NPC', 'NON-PLAYER', 'NONPLAYER'):
             return 'NPC'
         return 'PC'
 
-    def _normalize_character_entry(raw):
+    def normalize_character_entry(raw):
         if not isinstance(raw, dict):
             return None
         candidate = raw
@@ -983,7 +983,7 @@ try:
                 candidate = nested
                 break
 
-        name = _first_non_empty(candidate, [
+        name = first_non_empty(candidate, [
             'name', 'full_name', 'character_name', 'investigator_name'
         ])
         if not name:
@@ -991,45 +991,45 @@ try:
 
         ch = {
             'name': name,
-            'type': _normalize_char_type(_first_non_empty(candidate, [
+            'type': normalize_char_type(first_non_empty(candidate, [
                 'type', 'role', 'kind'
-            ]) or _first_non_empty(raw, ['type', 'role', 'kind'])),
-            'occ': _first_non_empty(candidate, [
+            ]) or first_non_empty(raw, ['type', 'role', 'kind'])),
+            'occ': first_non_empty(candidate, [
                 'occ', 'occupation', 'job', 'profession'
             ]),
-            'archetype': _first_non_empty(candidate, ['archetype', 'class']),
-            'age': _first_non_empty(candidate, ['age']),
-            'residence': _first_non_empty(candidate, ['residence', 'home']),
-            'birthplace': _first_non_empty(candidate, [
+            'archetype': first_non_empty(candidate, ['archetype', 'class']),
+            'age': first_non_empty(candidate, ['age']),
+            'residence': first_non_empty(candidate, ['residence', 'home']),
+            'birthplace': first_non_empty(candidate, [
                 'birthplace', 'birth_place', 'born'
             ]),
-            'str': _first_non_empty(candidate, ['str', 'STR']),
-            'con': _first_non_empty(candidate, ['con', 'CON']),
-            'siz': _first_non_empty(candidate, ['siz', 'SIZ']),
-            'dex': _first_non_empty(candidate, ['dex', 'DEX']),
-            'int': _first_non_empty(candidate, ['int', 'INT']),
-            'app': _first_non_empty(candidate, ['app', 'APP']),
-            'pow': _first_non_empty(candidate, ['pow', 'POW']),
-            'edu': _first_non_empty(candidate, ['edu', 'EDU']),
-            'hp': _first_non_empty(candidate, ['hp', 'HP']),
-            'mp': _first_non_empty(candidate, ['mp', 'MP']),
-            'san': _first_non_empty(candidate, ['san', 'SAN']),
-            'luck': _first_non_empty(candidate, ['luck', 'LUCK']),
-            'db': _first_non_empty(candidate, ['db', 'DB']),
-            'build': _first_non_empty(candidate, ['build', 'BUILD']),
-            'move': _first_non_empty(candidate, ['move', 'MOVE']),
-            'dodge': _first_non_empty(candidate, ['dodge', 'DODGE']),
-            'weapons': _first_non_empty(candidate, [
+            'str': first_non_empty(candidate, ['str', 'STR']),
+            'con': first_non_empty(candidate, ['con', 'CON']),
+            'siz': first_non_empty(candidate, ['siz', 'SIZ']),
+            'dex': first_non_empty(candidate, ['dex', 'DEX']),
+            'int': first_non_empty(candidate, ['int', 'INT']),
+            'app': first_non_empty(candidate, ['app', 'APP']),
+            'pow': first_non_empty(candidate, ['pow', 'POW']),
+            'edu': first_non_empty(candidate, ['edu', 'EDU']),
+            'hp': first_non_empty(candidate, ['hp', 'HP']),
+            'mp': first_non_empty(candidate, ['mp', 'MP']),
+            'san': first_non_empty(candidate, ['san', 'SAN']),
+            'luck': first_non_empty(candidate, ['luck', 'LUCK']),
+            'db': first_non_empty(candidate, ['db', 'DB']),
+            'build': first_non_empty(candidate, ['build', 'BUILD']),
+            'move': first_non_empty(candidate, ['move', 'MOVE']),
+            'dodge': first_non_empty(candidate, ['dodge', 'DODGE']),
+            'weapons': first_non_empty(candidate, [
                 'weapons', 'weapon', 'equipment', 'gear'
             ]),
-            'talents': _first_non_empty(candidate, [
+            'talents': first_non_empty(candidate, [
                 'talents', 'pulp_talents'
             ]),
-            'backstory': _first_non_empty(candidate, [
+            'backstory': first_non_empty(candidate, [
                 'backstory', 'background', 'history', 'description'
             ]),
-            'notes': _first_non_empty(candidate, ['notes']),
-            'skills': _normalize_skills(
+            'notes': first_non_empty(candidate, ['notes']),
+            'skills': normalize_skills(
                 candidate.get('skills', candidate.get('skill', {})))
         }
         return ch
@@ -1054,7 +1054,7 @@ try:
         out = []
         seen = set()
         for item in candidates:
-            ch = _normalize_character_entry(item)
+            ch = normalize_character_entry(item)
             if not ch:
                 continue
             key = (ch.get('name', '').strip().lower(), ch.get('type', 'PC'))
@@ -1064,8 +1064,8 @@ try:
             out.append(ch)
         return out
 
-    def load_characters(p):
-        raw = load_json(p, [])
+    def load_characters(path):
+        raw = load_json(path, [])
         return normalize_characters_data(raw)
 
     def save_json(p, d):
