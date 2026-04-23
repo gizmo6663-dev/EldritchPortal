@@ -52,7 +52,12 @@ try:
     BASE_DIR  = "/sdcard/Documents/EldritchPortal"
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
-    CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
+    # Karakter-fil: primær lagring i user_data_dir (app-private,
+    # alltid skrivbar). Ekstern sti brukes kun for migrering ved
+    # første oppstart — unngår Android 13+ scoped storage-problem.
+    EXTERNAL_CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
+    # CHAR_FILE settes i build() når user_data_dir er tilgjengelig.
+    CHAR_FILE = EXTERNAL_CHAR_FILE  # midlertidig; overstyres i build()
     # Scenario-fil: primær lagring i user_data_dir (app-private,
     # alltid skrivbar). Ekstern import-sti forsøkes lest ved
     # "Importer" — unngår Android 13+ scoped storage-problem.
@@ -870,6 +875,7 @@ try:
             from android.permissions import request_permissions, Permission
             request_permissions([
                 Permission.READ_EXTERNAL_STORAGE,
+                Permission.WRITE_EXTERNAL_STORAGE,
                 Permission.READ_MEDIA_IMAGES,
                 Permission.READ_MEDIA_AUDIO,
                 Permission.INTERNET,
@@ -1070,10 +1076,11 @@ try:
 
     def save_json(p, d):
         try:
-            with open(p, 'w') as f:
+            os.makedirs(os.path.dirname(p), exist_ok=True)
+            with open(p, 'w', encoding='utf-8') as f:
                 json.dump(d, f, indent=2, ensure_ascii=False)
-        except:
-            pass
+        except Exception as e:
+            log(f"save_json feilet ({p}): {type(e).__name__}: {e}")
 
     # === HJELPEFUNKSJONER ===
 
@@ -1451,6 +1458,20 @@ try:
             self.cast = CastMgr()
             self.server = MediaServer()
             self.file_picker = FilePicker()
+
+            # Karakterer: lagres i app-private storage (alltid skrivbar),
+            # unngår Android 13+ scoped storage permission-problemer.
+            global CHAR_FILE
+            CHAR_FILE = os.path.join(self.user_data_dir, "characters.json")
+            # Migrer fra ekstern sti ved første kjøring (én gang)
+            if not os.path.exists(CHAR_FILE) and os.path.exists(EXTERNAL_CHAR_FILE):
+                try:
+                    import shutil
+                    shutil.copy2(EXTERNAL_CHAR_FILE, CHAR_FILE)
+                    log(f"Karakterer migrert: {EXTERNAL_CHAR_FILE} → {CHAR_FILE}")
+                except Exception as e:
+                    log(f"Migrering av karakterfil feilet: {e}")
+
             self.chars = load_characters(CHAR_FILE)
             self.edit_idx = None
 
