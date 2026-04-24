@@ -2286,9 +2286,11 @@ try:
                     nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
                     oc = ch.get('occ', '')
                     c = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
-                    txt = f"[{tp}]  {nm}"
+                    nm_short = (nm[:18] + '…') if len(nm) > 18 else nm
+                    txt = f"[{tp}]  {nm_short}"
                     if oc:
-                        txt += f"  -  {oc}"
+                        oc_short = (oc[:15] + '…') if len(oc) > 15 else oc
+                        txt += f"  -  {oc_short}"
                     row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
                     b = mkbtn(txt, lambda idx=i: self._view_char(idx),
                               small=True, size_hint_x=0.72)
@@ -2990,13 +2992,15 @@ try:
             nm = ch.get('name', '?')
             occ = ch.get('occ', '')
             dex = ch.get('dex', '')
+            nm_short = (nm[:18] + '…') if len(nm) > 18 else nm
             parts = []
             if occ:
-                parts.append(occ)
+                occ_short = (occ[:15] + '…') if len(occ) > 15 else occ
+                parts.append(occ_short)
             if dex:
                 parts.append(f"DEX {dex}")
             sub = "  -  ".join(parts)
-            txt = f"{nm}   {sub}" if sub else nm
+            txt = f"{nm_short}   {sub}" if sub else nm_short
             b = mkbtn(txt, lambda c=ch: self._init_add_character(c),
                       small=True)
             b.halign = 'left'
