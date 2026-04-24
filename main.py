@@ -1860,6 +1860,8 @@ try:
                        if e.get('type') == 'PC')
             n_npc = sum(1 for e in self._init_list
                         if e.get('type') == 'NPC')
+            n_fiende = sum(1 for e in self._init_list
+                           if e.get('type') == 'Fiende')
             n_s = sum(1 for e in self._init_list
                       if e.get('type') == 'S')
 
@@ -1874,6 +1876,8 @@ try:
                 summary.append(f"{n_pc} investigator(er)")
             if n_npc:
                 summary.append(f"{n_npc} NPC")
+            if n_fiende:
+                summary.append(f"{n_fiende} fiende(r)")
             if n_s:
                 summary.append(f"{n_s} skapning(er)")
             info_box.add_widget(mklbl(
@@ -2400,7 +2404,7 @@ try:
                 for i, ch in enumerate(self.chars):
                     nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
                     oc = ch.get('occ', '')
-                    c = GRN if tp == 'PC' else GOLD
+                    c = GRN if tp == 'PC' else (RED if tp == 'Fiende' else GOLD)
                     txt = f"[{tp}]  {nm}"
                     if oc:
                         txt += f"  -  {oc}"
@@ -2575,7 +2579,7 @@ try:
                 txt = f"[{tp}]  {nm}"
                 if oc:
                     txt += f"  —  {oc}"
-                c = GRN if tp == 'PC' else GOLD
+                c = GRN if tp == 'PC' else (RED if tp == 'Fiende' else GOLD)
                 g.add_widget(mklbl(txt, color=c, size=12, h=28))
             if n > 20:
                 g.add_widget(mklbl(f"... og {n - 20} til", color=DIM, size=11, h=22))
@@ -2705,7 +2709,7 @@ try:
                 row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
                                      size_hint_x=0.3, halign='right'))
                 if key == 'type':
-                    w = Spinner(text=ch.get(key, 'PC'), values=['PC', 'NPC'],
+                    w = Spinner(text=ch.get(key, 'PC'), values=['PC', 'NPC', 'Fiende'],
                                 background_color=BTN, color=GOLD, font_size=sp(11), size_hint_x=0.7)
                 else:
                     w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
@@ -2905,7 +2909,7 @@ try:
                     tp = entry.get('type', 'PC')
                     chip_color = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
                     chip = Label(text=tp, font_size=sp(10), color=chip_color,
-                                 bold=True, size_hint_x=None, width=dp(36))
+                                 bold=True, size_hint_x=None, width=dp(46))
                     row_box.add_widget(chip)
 
                     # Navn + base DEX-hint
@@ -2992,6 +2996,9 @@ try:
             npcs = [ch for ch in self.chars
                     if ch.get('type', 'PC') == 'NPC'
                     and ch.get('name', '') not in already_in]
+            fiender = [ch for ch in self.chars
+                       if ch.get('type', 'PC') == 'Fiende'
+                       and ch.get('name', '') not in already_in]
 
             area = self._init_area()
             area.clear_widgets()
@@ -3021,7 +3028,13 @@ try:
                 for ch in npcs:
                     g.add_widget(self._init_make_char_btn(ch))
 
-            if not pcs and not npcs:
+            if fiender:
+                g.add_widget(mklbl("FIENDER",
+                                   color=RED, size=11, bold=True, h=22))
+                for ch in fiender:
+                    g.add_widget(self._init_make_char_btn(ch))
+
+            if not pcs and not npcs and not fiender:
                 g.add_widget(mklbl(
                     "Ingen tilgjengelige karakterer.\n"
                     "Legg til karakterer under 'Verktøy > Karakterer' først.",
@@ -3334,7 +3347,7 @@ try:
                 chip_color = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
                 chip = Label(text=tp, font_size=sp(10), color=chip_color,
                              bold=True,
-                             size_hint_x=None, width=dp(30))
+                             size_hint_x=None, width=dp(46))
                 box.add_widget(chip)
 
                 # Navn + firearms-markering
@@ -3413,7 +3426,7 @@ try:
 
         def _bm_find_mov(self, name, tp):
             """Finn MOV for en karakter, default 8."""
-            if tp in ('PC', 'NPC'):
+            if tp in ('PC', 'NPC', 'Fiende'):
                 for ch in self.chars:
                     if ch.get('name') == name:
                         try:
