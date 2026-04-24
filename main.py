@@ -24,6 +24,7 @@ try:
     from kivy.uix.spinner import Spinner
     from kivy.uix.textinput import TextInput
     from kivy.uix.widget import Widget
+    from kivy.uix.filechooser import FileChooserListView
     from kivy.core.window import Window
     from kivy.utils import platform
     from kivy.metrics import dp, sp
@@ -71,6 +72,7 @@ try:
     except NameError:
         _BUNDLE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
+    BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
@@ -1473,7 +1475,21 @@ try:
                     log(f"Migrering av karakterfil feilet: {e}")
 
             self.chars = load_characters(CHAR_FILE)
+            # Første oppstart uten lagrede karakterer: seed fra bundlet characters.json
+            if not self.chars and os.path.exists(BUNDLED_CHARS):
+                try:
+                    with open(BUNDLED_CHARS, 'r', encoding='utf-8') as f:
+                        data = json.load(f)
+                    seeded = normalize_characters_data(data)
+                    if seeded:
+                        self.chars = seeded
+                        save_json(CHAR_FILE, self.chars)
+                        log(f"Seedet {len(self.chars)} karakterer fra bundlet fil")
+                except Exception as e:
+                    log(f"Kunne ikke laste bundlet karakterer: {e}")
             self.edit_idx = None
+            self._chars_overlay = None
+            self._chars_dim = None
 
             # Våpen: favoritt-fil går i app-private storage (alltid skrivbar)
             self.WEAPONS_FAV_FILE = os.path.join(
@@ -2357,12 +2373,15 @@ try:
             if self._tool_sub == 'chars':
                 self._tool_action_bar.add_widget(
                     mkbtn("+ Ny", self._new_char, accent=True,
-                          size_hint_x=0.35))
+                          small=True, size_hint_x=0.22))
                 self._tool_action_bar.add_widget(
-                    mkbtn("Oppdater", self._reload_characters,
-                          small=True, size_hint_x=0.35))
+                    mkbtn("Importer", self._chars_import,
+                          small=True, size_hint_x=0.25))
                 self._tool_action_bar.add_widget(
-                    mklbl("Karakterer", color=GOLD, size=14, bold=True))
+                    mkbtn("Eksporter", self._chars_export,
+                          small=True, size_hint_x=0.25))
+                self._tool_action_bar.add_widget(
+                    mklbl("Karakterer", color=GOLD, size=13, bold=True))
                 self._show_list()
             elif self._tool_sub == 'scen':
                 self._mk_scenario()
@@ -2401,7 +2420,197 @@ try:
             self.chars = load_characters(CHAR_FILE)
             self._show_list()
 
-        def _view_char(self, idx):
+        # ---------- KARAKTER IMPORT / EKSPORT ----------
+
+        def _open_char_overlay(self, overlay):
+            """Legg overlay + dim på FloatLayout-roten (samme mønster som våpen-detalj)."""
+            root = self.content
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                self.tool_area.add_widget(overlay)
+                self._chars_overlay = overlay
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GColor, Rectangle as GRect
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GColor(rgba=[0, 0, 0, 0.6])
+                dr = GRect(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+
+            self._chars_dim = dim
+            self._chars_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _chars_close_overlay(self):
+            """Lukk aktivt karakter-overlay."""
+            if self._chars_overlay and self._chars_overlay.parent:
+                parent = self._chars_overlay.parent
+                parent.remove_widget(self._chars_overlay)
+                if self._chars_dim and self._chars_dim.parent:
+                    parent.remove_widget(self._chars_dim)
+            self._chars_overlay = None
+            self._chars_dim = None
+
+        def _chars_show_message(self, msg, success=False):
+            """Vis kort statusmelding som overlay."""
+            self._chars_close_overlay()
+            color = GRN if success else RED
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.82, None),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.height = dp(180)
+            overlay.add_widget(mklbl(msg, color=color, size=13, wrap=True))
+            overlay.add_widget(Widget())
+            overlay.add_widget(mkbtn("OK", self._chars_close_overlay,
+                                     accent=True, size_hint_y=None, height=dp(44)))
+            self._open_char_overlay(overlay)
+
+        def _chars_export(self):
+            """Eksporter karakterlisten til Documents-mappen som characters_export.json."""
+            if not self.chars:
+                self._chars_show_message("Ingen karakterer å eksportere.")
+                return
+            try:
+                export_path = os.path.join(BASE_DIR, "characters_export.json")
+                os.makedirs(BASE_DIR, exist_ok=True)
+                with open(export_path, 'w', encoding='utf-8') as f:
+                    json.dump(self.chars, f, indent=2, ensure_ascii=False)
+                n = len(self.chars)
+                self._chars_show_message(
+                    f"Eksporterte {n} karakter{'er' if n != 1 else ''} til:\n{export_path}",
+                    success=True)
+            except Exception as e:
+                self._chars_show_message(f"Eksport feilet:\n{e}")
+
+        def _chars_import(self):
+            """Åpne filvelger-overlay for å importere en karakterfil."""
+            self._chars_close_overlay()
+            try:
+                os.makedirs(BASE_DIR, exist_ok=True)
+            except Exception:
+                pass
+            start_path = BASE_DIR if os.path.exists(BASE_DIR) else os.path.expanduser("~")
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(4),
+                padding=dp(10),
+                size_hint=(0.96, 0.92),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            hdr = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            hdr.add_widget(mkbtn("Avbryt", self._chars_close_overlay,
+                                 danger=True, small=True, size_hint_x=0.3))
+            hdr.add_widget(mklbl("Velg .json-fil", color=GOLD, size=14, bold=True))
+            overlay.add_widget(hdr)
+
+            fc = FileChooserListView(
+                path=start_path,
+                filters=['*.json'],
+                size_hint_y=1)
+            overlay.add_widget(fc)
+
+            sel_btn = mkbtn("Velg", lambda: self._chars_import_selected(fc.selection),
+                            accent=True, size_hint_y=None)
+            sel_btn.height = dp(44)
+            overlay.add_widget(sel_btn)
+            self._open_char_overlay(overlay)
+
+        def _chars_import_selected(self, selection):
+            """Valider valgt .json-fil og vis forhåndsvisning."""
+            if not selection:
+                self._chars_show_message("Ingen fil valgt.")
+                return
+            path = selection[0]
+            try:
+                with open(path, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            except Exception as e:
+                self._chars_show_message(f"Feil ved lesing av fil:\n{e}")
+                return
+            valid = normalize_characters_data(data)
+            if not valid:
+                self._chars_show_message(
+                    "Ingen gyldige karakterer funnet i filen.\n\n"
+                    "Forventet et JSON-objekt eller en liste med karakterer "
+                    "(hvert objekt må ha et 'name'-felt).")
+                return
+            self._chars_close_overlay()
+            self._chars_show_import_preview(valid)
+
+        def _chars_show_import_preview(self, chars_to_import):
+            """Vis forhåndsvisning av karakterer som skal importeres med Slå sammen/Erstatt."""
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(6),
+                padding=dp(12),
+                size_hint=(0.94, 0.90),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            hdr = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            hdr.add_widget(mkbtn("Avbryt", self._chars_close_overlay,
+                                 danger=True, small=True, size_hint_x=0.3))
+            hdr.add_widget(mklbl("Forhåndsvisning", color=GOLD, size=14, bold=True))
+            overlay.add_widget(hdr)
+
+            n = len(chars_to_import)
+            overlay.add_widget(mklbl(
+                f"{n} karakter{'er' if n != 1 else ''} funnet:",
+                color=TXT, size=13, h=28))
+
+            scroll = ScrollView(size_hint_y=1)
+            g = GridLayout(cols=1, spacing=dp(4), padding=dp(4), size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+            for ch in chars_to_import[:20]:
+                nm = ch.get('name', '?')
+                tp = ch.get('type', 'PC')
+                oc = ch.get('occ', '')
+                txt = f"[{tp}]  {nm}"
+                if oc:
+                    txt += f"  —  {oc}"
+                c = GRN if tp == 'PC' else GOLD
+                g.add_widget(mklbl(txt, color=c, size=12, h=28))
+            if n > 20:
+                g.add_widget(mklbl(f"... og {n - 20} til", color=DIM, size=11, h=22))
+            scroll.add_widget(g)
+            overlay.add_widget(scroll)
+
+            overlay.add_widget(mksep(4))
+            btns = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
+            btns.add_widget(mkbtn(
+                "Legg til eksisterende",
+                lambda: self._chars_do_import(chars_to_import, replace=False),
+                accent=True, small=True))
+            btns.add_widget(mkbtn(
+                "Erstatt alle",
+                lambda: self._chars_do_import(chars_to_import, replace=True),
+                danger=True, small=True))
+            overlay.add_widget(btns)
+            self._open_char_overlay(overlay)
+
+        def _chars_do_import(self, chars_to_import, replace=False):
+            """Utfør import, lagre og oppdater karakterlisten."""
+            if replace:
+                self.chars = list(chars_to_import)
+            else:
+                self.chars.extend(chars_to_import)
+            save_json(CHAR_FILE, self.chars)
+            n = len(chars_to_import)
+            verb = "Erstattet alle med" if replace else "La til"
+            self._chars_close_overlay()
+            self._chars_show_message(
+                f"{verb} {n} karakter{'er' if n != 1 else ''}.",
+                success=True)
+            self._show_list()
+
+
             if idx < 0 or idx >= len(self.chars):
                 return
             ch = self.chars[idx]
