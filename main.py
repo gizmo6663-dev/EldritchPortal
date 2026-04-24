@@ -2407,9 +2407,11 @@ try:
                     nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
                     oc = ch.get('occ', '')
                     c = GRN if tp == 'PC' else (RED if tp == 'Fiende' else GOLD)
-                    txt = f"[{tp}]  {nm}"
-                    if oc:
-                        txt += f"  -  {oc}"
+                    short_nm = (nm[:16] + '…') if len(nm) > 17 else nm
+                    short_oc = (oc[:10] + '…') if len(oc) > 11 else oc
+                    txt = f"[{tp}] {short_nm}"
+                    if short_oc:
+                        txt += f" - {short_oc}"
                     row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(4))
                     b = mkbtn(txt, lambda idx=i: self._view_char(idx),
                               small=True, size_hint_x=0.52)
@@ -2418,11 +2420,11 @@ try:
                     row.add_widget(b)
                     row.add_widget(mkbtn("Rediger", lambda idx=i: self._edit_char(idx),
                                         accent=True, small=True, size_hint_x=0.22))
-                    up_btn = mkbtn("▲", lambda idx=i: self._move_char(idx, -1),
+                    up_btn = mkbtn("opp", lambda idx=i: self._move_char(idx, -1),
                                    small=True, size_hint_x=0.12)
                     up_btn.disabled = (i == 0)
                     row.add_widget(up_btn)
-                    down_btn = mkbtn("▼", lambda idx=i: self._move_char(idx, 1),
+                    down_btn = mkbtn("ned", lambda idx=i: self._move_char(idx, 1),
                                      small=True, size_hint_x=0.12)
                     down_btn.disabled = (i == len(self.chars) - 1)
                     row.add_widget(down_btn)
@@ -2649,11 +2651,11 @@ try:
             g = GridLayout(cols=1, spacing=dp(4), padding=dp(6), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
             nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
-            g.add_widget(mklbl(f"[{tp}]  {nm}", color=GOLD, size=18, bold=True, h=34))
+            g.add_widget(mklbl(f"[{tp}]  {nm}", color=GOLD, size=18, bold=True, wrap=True))
             for key, lbl in CHAR_INFO:
                 v = ch.get(key, '')
                 if v and key not in ('name', 'type'):
-                    g.add_widget(mklbl(f"{lbl}:  {v}", color=TXT, size=14, h=26))
+                    g.add_widget(mklbl(f"{lbl}:  {v}", color=TXT, size=14, wrap=True))
             # Karakteristikker med individuelle rammer
             stats_list = [(lbl, ch[key]) for key, lbl in CHAR_STATS if ch.get(key)]
             if stats_list:
