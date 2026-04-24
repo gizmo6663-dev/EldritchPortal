@@ -1,8 +1,8 @@
 # Eldritch Portal
 
-**Keeper's Companion — en Kivy-basert Android-app for Call of Cthulhu og Pulp Cthulhu**
+**Keeper's Companion — en gratis, Kivy-basert Android-app for Call of Cthulhu og Pulp Cthulhu**
 
-Eldritch Portal er en tabletop-RPG-companion bygd spesielt for Lovecraftiske rollespill. Appen samler alt en Keeper trenger under spilløkta: bildebibliotek, stemningslyder, våpenoppslag, scenario-tracker og initiativ-tracker — alt i et mørkt, uhyggelig grensesnitt som passer til sjangeren. Telefonen kan caste bilder og kart til en TV via Chromecast slik at spillerne ser det du vil de skal se.
+Eldritch Portal er et lite hobbyprosjekt laget for spillere og Keepere som liker Lovecraftiske rollespill. Målet er å være et praktisk støtteverktøy ved bordet — noe som kan hjelpe med oversikt, bilder, lyd, våpenoppslag, karakterer og scenarioer, uten å late som om det er et stort eller ferdigpolert produkt.
 
 Tema: **Abyssal Purple** — dyp lilla-svart, burgunder og dempet gull.
 Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
@@ -11,11 +11,12 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 ## Innhold
 
+- [Hva appen prøver å være](#hva-appen-prøver-å-være)
 - [Funksjoner](#funksjoner)
-- [Skjermbilder](#skjermbilder)
+- [Scenario-import og lagring](#scenario-import-og-lagring)
 - [Kom i gang](#kom-i-gang)
-- [Scenario-format](#scenario-format)
 - [Mappestruktur på enheten](#mappestruktur-på-enheten)
+- [Scenario-format](#scenario-format)
 - [Bygging](#bygging)
 - [Teknisk arkitektur](#teknisk-arkitektur)
 - [Konfigurasjon](#konfigurasjon)
@@ -24,80 +25,111 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 ---
 
+## Hva appen prøver å være
+
+Eldritch Portal er laget som et gratis hjelpemiddel for folk som spiller Call of Cthulhu og Pulp Cthulhu. Det er ikke et kommersielt produkt, og det er ikke laget av et profesjonelt team. Det er et personlig prosjekt fra en person uten formell kodebakgrunn, som ønsket å lage noe nyttig for egen spilling — og dele det fritt med andre som kanskje har bruk for det samme.
+
+Jeg prøver derfor å beskrive funksjonene så ærlig som mulig: hva appen faktisk gjør, og hva den er ment å støtte under spilløkta.
+
+---
+
 ## Funksjoner
 
-Appen er delt i seks hovedfaner. Flere av dem har sub-faner for å holde komplekse funksjoner organisert:
+Appen er delt i seks hovedfaner. Flere av dem har sub-faner for å holde ting ryddig:
 
 ### 🖼️ Bilder
-- Galleri med mappenavigering for å organisere bilder per scenario eller kampanje
-- Stor preview-ramme i gull — fade-inn-animasjon mellom bildebytter
-- Tapp et bilde for å vise det; valgfritt auto-cast til TV samtidig
-- Gjenkjenner `.png`, `.jpg`, `.jpeg`, `.webp`
+- Bildegalleri med mappenavigering, slik at bilder kan sorteres per scenario eller kampanje
+- Stor preview-ramme med animasjon mellom bildebytter
+- Tapp et bilde for å vise det; valgfri auto-cast til TV når Chromecast er koblet til
+- Støtter `.png`, `.jpg`, `.jpeg` og `.webp`
 
 ### 🔊 Lyd
 Kombinert fane med sub-fanene **Musikk** og **Ambient**:
 
-**Musikk** — lokal avspilling
-- Leser `.mp3`, `.ogg`, `.wav`, `.flac` fra `music/`-mappen
-- Persistent mini-player nederst (Play/Pause/Neste/Forrige) som ikke forsvinner når du bytter fane
-- Bruker Android MediaPlayer via `pyjnius` for stabil bakgrunnsavspilling
+**Musikk** — lokale filer
+- Leser `.mp3`, `.ogg`, `.wav` og `.flac` fra `music/`-mappen
+- Mini-player nederst som blir værende når du bytter fane
+- Bruker Android MediaPlayer via `pyjnius` på Android
 
-**Ambient** — stemningslyder strømmet fra Internet Archive
-- Kategoriseringen inkluderer blant annet natur, storm, skog om natten, og spesielt horror/uhygge — perfekt for Cthulhu-stemning
-- Separat volumkontroll fra musikken, så du kan mikse en regnfull natt med en uhyggelig drone i bakgrunnen
-- Ingen opplasting nødvendig — lenkene peker rett på kuraterte public-domain-spor
+**Ambient** — stemningslyder fra Internet Archive
+- Utvalg av natur, storm, nattlyder og horror/uhygge
+- Egen volumkontroll som kan brukes separat fra musikken
+- Ingen opplasting eller egen medieserver nødvendig for selve lydutvalget
 
 ### ⚔️ Kamp
-Sub-faner for combat-støtte:
+Sub-faner for kampstøtte:
 
 **Initiativ** — CoC/Pulp Cthulhu-tracker
-- Legg til etterforskere og fiender fra karakter-lista, eller ad hoc
-- DEX-basert initiativ-sortering (CoC-standard)
-- Rundemåling med aktiv-deltaker-indikator
-- HP-oppdatering direkte fra trackeren
+- Legg til etterforskere og fiender fra karakterlisten, eller legg inn en deltaker manuelt
+- DEX-basert initiativ-sortering
+- Rundevisning med aktiv deltaker markert
+- HP kan vises i trackeren
 
-**Kart** — battlemap for kamp-situasjoner
-- Aktiveres automatisk når du har lagt til kamp-deltakere
-- 16:9 canvas optimalisert for TV-casting
-- Token-komposisjon via Pillow (PIL)
+**Kart** — battlemap for kamp
+- Aktiveres når du har lagt til deltakere i initiativlisten
+- 16:9-tilpasset kartvisning laget for TV-casting
+- Token-plassering og enkel flytting på rutenett
 
 ### 🧰 Verktøy
-Sub-faner for spillforberedelse og oppslag:
+Sub-faner for forberedelse og oppslag:
 
 **Karakterer** — etterforsker-kartotek
 - CoC/Pulp Cthulhu-karakterark med ferdigheter, bakgrunn og notater
-- PC og NPC skilles visuelt med ulik fargekoding
+- PC og NPC skilles visuelt med ulike farger
 - Lagres i `characters.json` på enheten
 
-**Våpen** — CoC-våpendatabase
-- Bundlet `weapons.json` følger med APK-en (ingen ekstern fil nødvendig)
-- Søk og filtrer etter kategori, favorittmerking
-- Dekker klassiske CoC-epoker: 1920-tallets pulp, moderne osv.
-- Overstyrbar: legg egen `weapons.json` i Documents-mappen hvis du vil utvide
+**Våpen** — CoC-våpenoversikt
+- Bundlet `weapons.json` følger med appen
+- Søk, filtrering og favorittmerking
+- Dekker flere epoker, blant annet 1920-tallet og moderne tid
+- Kan overstyres med egen `weapons.json` i Documents-mappen hvis du ønsker det
 
-**Scenario** — tracker for pre-skrevne scenarioer
-- Les inn `scenario.json` med strukturert data fra scenarioet du kjører
-- Fire visninger (sub-sub-faner): **Ledetråder** · **Tidslinje** · **Plot** · **Notater**
-- Kryss av ledetråder etter hvert som spillerne finner dem, se tidslinjen utfolde seg
-- Notater kan redigeres live under spilløkta
-- Scenario-filen lagres i app-privat minne (unngår Android 13+ scoped storage-problem), med "Velg fil"- og "Importer"-knapper for å laste inn fra Documents
+**Scenario** — scenariohåndtering og fremdrift
+- Leser inn en `scenario.json` med strukturert data
+- Fire visninger: **Ledetråder** · **Tidslinje** · **Plot** · **Notater**
+- Kryss av ting etter hvert som de skjer i spillet
+- Notater kan redigeres underveis
+- Scenarioet kan importeres og lagres i appens private lagring, som er nyttig på Android 13+ der vanlig filtilgang kan være begrenset
 
 ### 📖 Regler
-- Sammenleggbar mappestruktur med CoC/Pulp Cthulhu-referanser
-- Overlay-visning for regel-innhold — ingen nettilgang nødvendig
-- Raskt oppslag midt i spilløkta
+- Sammenleggbar referanseliste med CoC/Pulp Cthulhu-innhold
+- Overlay-visning for regeltekst
+- Gjort for raskt oppslag under spilløkta, uten å være avhengig av internett
 
 ### 📺 Cast
 - Oppdager Chromecast-enheter på lokalnett via mDNS
-- Caster bilder og battlemaps direkte til TV
-- Lokal HTTP-server (port 8089) serverer media til Chromecast
-- Auto-cast: bilder caster automatisk når de vises hvis en enhet er tilkoblet
+- Caster bilder og battlemaps til TV når en enhet er tilgjengelig
+- Lokal HTTP-server på port 8089 serverer media til casting
+- Auto-cast kan sende bilder automatisk når de vises
 
 ---
 
-## Skjermbilder
+## Scenario-import og lagring
 
-*Skjermbilder legges til her.*
+Scenario-funksjonen er laget for å gjøre det litt enklere å holde orden på et pre-skrevne scenario mens dere spiller.
+
+Det finnes to måter å få inn et scenario på:
+
+### 1. Velg fil
+Dette er den enkleste metoden.
+- Trykk **Velg fil**
+- Bruk Androids filvelger til å finne `scenario.json`
+- Du kan velge fra for eksempel Documents, Downloads, Google Drive eller minnekort
+- Ingen ekstra lagringstillatelser er nødvendig for denne metoden
+
+### 2. Importer fra Documents
+Hvis appen har tilgang til alle filer, kan du også bruke **Importer fra Documents**.
+- Legg `scenario.json` i `Dokumenter/EldritchPortal/`
+- Trykk **Importer fra Documents**
+- Scenarioet kopieres inn i appens private lagring
+
+Når et scenario er importert eller valgt, lagres det i appens private lagring (`user_data_dir`). Det gjør at scenarioet vanligvis er lettere å bruke videre på Android, også når direkte lesing fra Documents ikke er mulig.
+
+Scenarioet støtter disse feltene:
+- `clues` for ledetråder
+- `timeline` for hendelser i rekkefølge
+- `beats` for plotpunkter
+- `notes` for keepernotater
 
 ---
 
@@ -109,7 +141,7 @@ Sub-faner for spillforberedelse og oppslag:
 2. Tillat installering fra ukjente kilder i Android-innstillinger
 3. Installer APK-en og start appen
 4. Gi tillatelser til lagring og nettverk når du blir spurt
-5. Restart appen så mappene faktisk opprettes
+5. Start appen på nytt hvis du vil være sikker på at mappene opprettes
 
 ### Første oppstart
 
@@ -120,7 +152,7 @@ Dokumenter/EldritchPortal/
 ├── images/     ← bildebibliotek (undermapper støttes)
 ├── music/      ← lokale musikkspor
 ├── characters.json  ← opprettes når du lager første karakter
-└── scenario.json    ← valgfri, importeres via Scenario-fanen
+└── scenario.json    ← valgfri, kan importeres via Scenario-fanen
 ```
 
 Våpendataene (`weapons.json`) er pakket med appen, så du trenger ikke legge til noen fil for å bruke Våpen-fanen.
@@ -219,7 +251,7 @@ buildozer -v android debug
 
 ### Designregler
 
-- **All tilpasset bakgrunnstegning skjer i `canvas.before`** — aldri i `canvas` eller `canvas.after`. Tidligere versjoner hadde en `RenderContext`-stack-overflow-krasj som ble fikset ved å sentralisere all canvas-tegning her.
+- **All tilpasset bakgrunnstegning skjer i `canvas.before`** — aldri i `canvas` eller `canvas.after`. Tidligere versjoner hadde en `RenderContext`-stack-overflow-krasj som ble fikset ved å sen[...]
 - **`markup=True`** er påkrevd på alle labels som bruker `[color]`-tags.
 - **Mini-player er persistent** — den lever utenfor fane-content-området.
 - **Sub-fane-state huskes** via `hasattr`-sjekker — du kommer tilbake til samme sub-fane du forlot.
@@ -272,11 +304,11 @@ Sjekk `/sdcard/Documents/EldritchPortal/crash.log`. De vanligste årsakene er ma
 
 ### Musikk spilles ikke
 - Bekreft at filene ligger i `music/` og har støttet format (`.mp3`, `.ogg`, `.wav`, `.flac`)
-- På noen enheter må appen restartes etter at lagringstillatelse er gitt
+- På noen enheter må appen startes på nytt etter at lagringstillatelse er gitt
 
 ### Scenario vil ikke lastes
 - Sjekk at `scenario.json` ligger i `Dokumenter/EldritchPortal/` og har riktig JSON-syntaks
-- Android 13+ kan blokkere lesing fra Documents; bruk **"Velg fil"**-knappen for å åpne filvelger
+- På Android 13+ kan det være enklest å bruke **Velg fil**-knappen i stedet for direkte lesing fra Documents
 - Scenarioet lagres deretter i app-privat minne og leses derfra ved neste oppstart
 
 ### Våpen-fanen er tom
@@ -318,4 +350,3 @@ Eldritch Portal er et hobbyprosjekt utviklet for en aktiv Pulp Cthulhu-kampanje.
 **Repository:** [gizmo6663-dev/EldritchPortal](https://github.com/gizmo6663-dev/EldritchPortal)
 
 **Relatert prosjekt:** [Campaign Forge](https://github.com/gizmo6663-dev/CampaignForge) — en D&D 5e-variant av samme arkitektur, med Emerald Grove-tema.
-
