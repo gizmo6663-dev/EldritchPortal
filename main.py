@@ -977,6 +977,8 @@ try:
         t = (str(raw_type or '').strip().upper())
         if t in ('NPC', 'NON-PLAYER', 'NONPLAYER'):
             return 'NPC'
+        if t in ('FIENDE', 'ENEMY', 'CREATURE', 'S', 'SKAPNING', 'MONSTER'):
+            return 'Fiende'
         return 'PC'
 
     def normalize_character_entry(raw):
@@ -2408,17 +2410,33 @@ try:
                     txt = f"[{tp}]  {nm}"
                     if oc:
                         txt += f"  -  {oc}"
-                    row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
+                    row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(4))
                     b = mkbtn(txt, lambda idx=i: self._view_char(idx),
-                              small=True, size_hint_x=0.72)
+                              small=True, size_hint_x=0.52)
                     b.color = c
                     b.halign = 'left'
                     row.add_widget(b)
                     row.add_widget(mkbtn("Rediger", lambda idx=i: self._edit_char(idx),
-                                        accent=True, small=True, size_hint_x=0.28))
+                                        accent=True, small=True, size_hint_x=0.22))
+                    up_btn = mkbtn("▲", lambda idx=i: self._move_char(idx, -1),
+                                   small=True, size_hint_x=0.12)
+                    up_btn.disabled = (i == 0)
+                    row.add_widget(up_btn)
+                    down_btn = mkbtn("▼", lambda idx=i: self._move_char(idx, 1),
+                                     small=True, size_hint_x=0.12)
+                    down_btn.disabled = (i == len(self.chars) - 1)
+                    row.add_widget(down_btn)
                     g.add_widget(row)
             scroll.add_widget(g)
             self.tool_area.add_widget(scroll)
+
+        def _move_char(self, idx, direction):
+            """Flytt karakter opp (direction=-1) eller ned (direction=1) i lista."""
+            new_idx = idx + direction
+            if 0 <= new_idx < len(self.chars):
+                self.chars[idx], self.chars[new_idx] = self.chars[new_idx], self.chars[idx]
+                save_json(CHAR_FILE, self.chars)
+                self._show_list()
 
         def _reload_characters(self):
             self.chars = load_characters(CHAR_FILE)
@@ -2614,7 +2632,7 @@ try:
                 success=True)
             self._show_list()
 
-
+        def _view_char(self, idx):
             if idx < 0 or idx >= len(self.chars):
                 return
             ch = self.chars[idx]
