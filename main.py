@@ -9,6 +9,14 @@ MAX_NAME_LENGTH = 18
 MAX_OCCUPATION_LENGTH = 15
 os.makedirs(os.path.dirname(LOG), exist_ok=True)
 
+def _first_last_name(name):
+    """Return only the first and last word of a name (e.g. 'John Michael Doe' → 'John Doe').
+    Single-word names are returned unchanged."""
+    parts = name.split()
+    if len(parts) <= 2:
+        return name
+    return f"{parts[0]} {parts[-1]}"
+
 # Rotate crash logs on startup so each launch gets a fresh log while
 # keeping a small history for debugging.
 try:
@@ -2286,13 +2294,8 @@ try:
             else:
                 for i, ch in enumerate(self.chars):
                     nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
-                    oc = ch.get('occ', '')
                     c = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
-                    nm_short = (nm[:MAX_NAME_LENGTH] + '…') if len(nm) > MAX_NAME_LENGTH else nm
-                    txt = f"[{tp}]  {nm_short}"
-                    if oc:
-                        oc_short = (oc[:MAX_OCCUPATION_LENGTH] + '…') if len(oc) > MAX_OCCUPATION_LENGTH else oc
-                        txt += f"  -  {oc_short}"
+                    txt = f"[{tp}]  {_first_last_name(nm)}"
                     row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
                     b = mkbtn(txt, lambda idx=i: self._view_char(idx),
                               small=True, size_hint_x=0.72)
@@ -2992,17 +2995,8 @@ try:
         def _init_make_char_btn(self, ch):
             """Lag knapp for en karakter i picker-liste."""
             nm = ch.get('name', '?')
-            occ = ch.get('occ', '')
-            dex = ch.get('dex', '')
-            nm_short = (nm[:MAX_NAME_LENGTH] + '…') if len(nm) > MAX_NAME_LENGTH else nm
-            parts = []
-            if occ:
-                occ_short = (occ[:MAX_OCCUPATION_LENGTH] + '…') if len(occ) > MAX_OCCUPATION_LENGTH else occ
-                parts.append(occ_short)
-            if dex:
-                parts.append(f"DEX {dex}")
-            sub = "  -  ".join(parts)
-            txt = f"{nm_short}   {sub}" if sub else nm_short
+            tp = ch.get('type', 'PC')
+            txt = f"[{tp}]  {_first_last_name(nm)}"
             b = mkbtn(txt, lambda c=ch: self._init_add_character(c),
                       small=True)
             b.halign = 'left'
