@@ -2,7 +2,7 @@
 
 **Keeper's Companion — en gratis, Kivy-basert Android-app for Call of Cthulhu og Pulp Cthulhu**
 
-Eldritch Portal er et lite hobbyprosjekt laget for spillere og Keepere som liker Lovecraftiske rollespill. Målet er å være et praktisk støtteverktøy ved bordet — noe som kan hjelpe med oversikt, bilder, lyd, våpenoppslag, karakterer og scenarioer, uten å late som om det er et stort eller ferdigpolert produkt.
+Eldritch Portal er et lite hobbyprosjekt laget for spillere og Keepere som liker Lovecraftiske rollespill. Målet er å være et praktisk støtteverktøy ved bordet — noe som kan hjelpe med oversikt, lyd, bilder, kamp og scenariohåndtering.
 
 Tema: **Abyssal Purple** — dyp lilla-svart, burgunder og dempet gull.
 Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
@@ -17,6 +17,7 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 - [Kom i gang](#kom-i-gang)
 - [Mappestruktur på enheten](#mappestruktur-på-enheten)
 - [Scenario-format](#scenario-format)
+- [Scenario-mal for PDF → scenario.json](#scenario-mal-for-pdf--scenariojson)
 - [Bygging](#bygging)
 - [Teknisk arkitektur](#teknisk-arkitektur)
 - [Konfigurasjon](#konfigurasjon)
@@ -27,7 +28,7 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 ## Hva appen prøver å være
 
-Eldritch Portal er laget som et gratis hjelpemiddel for folk som spiller Call of Cthulhu og Pulp Cthulhu. Det er ikke et kommersielt produkt, og det er ikke laget av et profesjonelt team. Det er et personlig prosjekt fra en person uten formell kodebakgrunn, som ønsket å lage noe nyttig for egen spilling — og dele det fritt med andre som kanskje har bruk for det samme.
+Eldritch Portal er laget som et gratis hjelpemiddel for folk som spiller Call of Cthulhu og Pulp Cthulhu. Det er ikke et kommersielt produkt, og det er ikke laget av et profesjonelt team. Det er et lite verktøy jeg har bygget fordi jeg selv trengte noe som gjorde bordspillet litt enklere.
 
 Jeg prøver derfor å beskrive funksjonene så ærlig som mulig: hva appen faktisk gjør, og hva den er ment å støtte under spilløkta.
 
@@ -123,7 +124,7 @@ Hvis appen har tilgang til alle filer, kan du også bruke **Importer fra Documen
 - Trykk **Importer fra Documents**
 - Scenarioet kopieres inn i appens private lagring
 
-Når et scenario er importert eller valgt, lagres det i appens private lagring (`user_data_dir`). Det gjør at scenarioet vanligvis er lettere å bruke videre på Android, også når direkte lesing fra Documents ikke er mulig.
+Når et scenario er importert eller valgt, lagres det i appens private lagring (`user_data_dir`). Det gjør at scenarioet vanligvis er lettere å bruke videre på Android, også når direkte lesing fra Documents ikke er tilgjengelig.
 
 Scenarioet støtter disse feltene:
 - `clues` for ledetråder
@@ -198,6 +199,42 @@ Legg `scenario.json` i `Dokumenter/EldritchPortal/`, åpne Scenario-fanen og try
 
 ---
 
+## Scenario-mal for PDF → scenario.json
+
+Kopier dette inn i Claude eller DeepSeek sammen med PDF-en av scenarioet. Be AI-en fylle ut en komplett `scenario.json` som kan lagres i riktig mappe og importeres i appen.
+
+```text
+You are helping create a scenario import file for the GitHub repository `gizmo6663-dev/EldritchPortal`.
+
+Task:
+Read the attached PDF scenario and convert it into a scenario file that can be saved into the correct folder in the repository and imported by the app.
+
+What to do:
+1. Extract all scenario content from the PDF.
+2. Convert it into the exact scenario file format used by EldritchPortal.
+3. Preserve the scenario’s structure, headings, objectives, encounter details, rules text, and any other game data as faithfully as possible.
+4. Output the finished file content only, with no explanation unless something is truly missing from the PDF.
+
+Important:
+- Do not summarize or rewrite the scenario in prose.
+- Do not leave placeholders unless the PDF does not contain the information.
+- If the repository has an existing scenario schema, naming convention, or folder structure, follow it exactly.
+- If the PDF contains tables, bullets, or special formatting, convert them into the project’s required structured format.
+- If the file requires metadata, include it.
+- If there are images, maps, or other assets in the PDF, only reference them if the project format supports them.
+- Make the output directly usable as a file the user can place in the correct scenarios folder and import.
+
+If the format is unclear:
+- Infer the correct structure from the project’s existing scenario files and documentation.
+- Prefer consistency with the repository over guessing.
+
+Output rules:
+- Return only the final scenario file content.
+- If multiple files are needed, output each one separately with a clear filename label.
+```
+
+---
+
 ## Mappestruktur på enheten
 
 Alle brukerdata ligger i `/sdcard/Documents/EldritchPortal/`:
@@ -210,7 +247,7 @@ Alle brukerdata ligger i `/sdcard/Documents/EldritchPortal/`:
 | `scenario.json` | Scenario-data (importeres inn i app-privat minne) |
 | `weapons.json` | *Valgfri* — overstyrer bundlet våpendata |
 | `crash.log` | Feillogg for debugging |
-
+|
 I tillegg lagrer appen aktiv scenario-state i app-privat minne (`user_data_dir`) for å unngå scoped storage-restriksjoner i Android 13+.
 
 ---
@@ -251,7 +288,7 @@ buildozer -v android debug
 
 ### Designregler
 
-- **All tilpasset bakgrunnstegning skjer i `canvas.before`** — aldri i `canvas` eller `canvas.after`. Tidligere versjoner hadde en `RenderContext`-stack-overflow-krasj som ble fikset ved å sen[...]
+- **All tilpasset bakgrunnstegning skjer i `canvas.before`** — aldri i `canvas` eller `canvas.after`. Tidligere versjoner hadde en `RenderContext`-stack-overflow-krasj som ble fikset ved å senke antallet samtidige lag.
 - **`markup=True`** er påkrevd på alle labels som bruker `[color]`-tags.
 - **Mini-player er persistent** — den lever utenfor fane-content-området.
 - **Sub-fane-state huskes** via `hasattr`-sjekker — du kommer tilbake til samme sub-fane du forlot.
