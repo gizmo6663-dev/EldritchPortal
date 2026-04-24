@@ -1798,23 +1798,23 @@ try:
                            spacing=dp(4), padding=[dp(6), dp(4)],
                            bg_color=BTN, radius=dp(10))
 
-            b_init = RToggle(
+            self._b_cmb_init = RToggle(
                 text='Initiativ', group='cmb_sub',
                 state='down' if self._cmb_sub == 'init' else 'normal',
                 bg_color=BTNH if self._cmb_sub == 'init' else BTN,
                 color=GOLD if self._cmb_sub == 'init' else DIM,
                 font_size=sp(12), bold=True)
-            b_init.bind(on_release=lambda b: self._cmb_switch('init'))
-            sub_bar.add_widget(b_init)
+            self._b_cmb_init.bind(on_release=lambda b: self._cmb_switch('init'))
+            sub_bar.add_widget(self._b_cmb_init)
 
-            b_map = RToggle(
+            self._b_cmb_map = RToggle(
                 text='Kart', group='cmb_sub',
                 state='down' if self._cmb_sub == 'map' else 'normal',
                 bg_color=BTNH if self._cmb_sub == 'map' else BTN,
                 color=GOLD if self._cmb_sub == 'map' else DIM,
                 font_size=sp(12), bold=True)
-            b_map.bind(on_release=lambda b: self._cmb_switch('map'))
-            sub_bar.add_widget(b_map)
+            self._b_cmb_map.bind(on_release=lambda b: self._cmb_switch('map'))
+            sub_bar.add_widget(self._b_cmb_map)
 
             p.add_widget(sub_bar)
 
@@ -1828,6 +1828,11 @@ try:
 
         def _cmb_switch(self, which):
             self._cmb_sub = which
+            for key, btn in [('init', self._b_cmb_init), ('map', self._b_cmb_map)]:
+                active = (key == which)
+                btn.state = 'down' if active else 'normal'
+                btn.bg_color = BTNH if active else BTN
+                btn.color = GOLD if active else DIM
             self._cmb_render()
 
         def _cmb_render(self):
@@ -1920,23 +1925,23 @@ try:
                            spacing=dp(4), padding=[dp(6), dp(4)],
                            bg_color=BTN, radius=dp(10))
 
-            b_mus = RToggle(
+            self._b_snd_mus = RToggle(
                 text='Musikk', group='sound_sub',
                 state='down' if self._sound_sub == 'mus' else 'normal',
                 bg_color=BTNH if self._sound_sub == 'mus' else BTN,
                 color=GOLD if self._sound_sub == 'mus' else DIM,
                 font_size=sp(12), bold=True)
-            b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
-            sub_bar.add_widget(b_mus)
+            self._b_snd_mus.bind(on_release=lambda b: self._sound_switch('mus'))
+            sub_bar.add_widget(self._b_snd_mus)
 
-            b_amb = RToggle(
+            self._b_snd_amb = RToggle(
                 text='Ambient', group='sound_sub',
                 state='down' if self._sound_sub == 'amb' else 'normal',
                 bg_color=BTNH if self._sound_sub == 'amb' else BTN,
                 color=GOLD if self._sound_sub == 'amb' else DIM,
                 font_size=sp(12), bold=True)
-            b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
-            sub_bar.add_widget(b_amb)
+            self._b_snd_amb.bind(on_release=lambda b: self._sound_switch('amb'))
+            sub_bar.add_widget(self._b_snd_amb)
 
             p.add_widget(sub_bar)
 
@@ -1949,6 +1954,11 @@ try:
 
         def _sound_switch(self, which):
             self._sound_sub = which
+            for key, btn in [('mus', self._b_snd_mus), ('amb', self._b_snd_amb)]:
+                active = (key == which)
+                btn.state = 'down' if active else 'normal'
+                btn.bg_color = BTNH if active else BTN
+                btn.color = GOLD if active else DIM
             self._sound_render()
 
         def _sound_render(self):
@@ -2316,32 +2326,32 @@ try:
             sub_bar = RBox(size_hint_y=None, height=dp(42),
                            spacing=dp(4), padding=[dp(6), dp(4)],
                            bg_color=BTN, radius=dp(10))
-            b_chars = RToggle(
+            self._b_tool_chars = RToggle(
                 text='Karakterer', group='tool_sub',
                 state='down' if self._tool_sub == 'chars' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'chars' else BTN,
                 color=GOLD if self._tool_sub == 'chars' else DIM,
                 font_size=sp(11), bold=True)
-            b_chars.bind(on_release=lambda b: self._tool_switch('chars'))
-            sub_bar.add_widget(b_chars)
+            self._b_tool_chars.bind(on_release=lambda b: self._tool_switch('chars'))
+            sub_bar.add_widget(self._b_tool_chars)
 
-            b_weap = RToggle(
+            self._b_tool_weap = RToggle(
                 text='Våpen', group='tool_sub',
                 state='down' if self._tool_sub == 'weap' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'weap' else BTN,
                 color=GOLD if self._tool_sub == 'weap' else DIM,
                 font_size=sp(11), bold=True)
-            b_weap.bind(on_release=lambda b: self._tool_switch('weap'))
-            sub_bar.add_widget(b_weap)
+            self._b_tool_weap.bind(on_release=lambda b: self._tool_switch('weap'))
+            sub_bar.add_widget(self._b_tool_weap)
 
-            b_scen = RToggle(
+            self._b_tool_scen = RToggle(
                 text='Scenario', group='tool_sub',
                 state='down' if self._tool_sub == 'scen' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'scen' else BTN,
                 color=GOLD if self._tool_sub == 'scen' else DIM,
                 font_size=sp(11), bold=True)
-            b_scen.bind(on_release=lambda b: self._tool_switch('scen'))
-            sub_bar.add_widget(b_scen)
+            self._b_tool_scen.bind(on_release=lambda b: self._tool_switch('scen'))
+            sub_bar.add_widget(self._b_tool_scen)
 
             p.add_widget(sub_bar)
 
@@ -2365,6 +2375,11 @@ try:
         def _tool_switch(self, which):
             """Bytt mellom karakterer, våpen og scenario."""
             self._tool_sub = which
+            for key, btn in [('chars', self._b_tool_chars), ('weap', self._b_tool_weap), ('scen', self._b_tool_scen)]:
+                active = (key == which)
+                btn.state = 'down' if active else 'normal'
+                btn.bg_color = BTNH if active else BTN
+                btn.color = GOLD if active else DIM
             self._tool_render_sub()
 
         def _tool_render_sub(self):
