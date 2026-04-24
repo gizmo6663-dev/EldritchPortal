@@ -6,16 +6,23 @@ from kivy.clock import Clock
 LOG = "/sdcard/Documents/EldritchPortal/crash.log"
 os.makedirs(os.path.dirname(LOG), exist_ok=True)
 
+# Rotate the previous crash log so each launch gets a fresh log,
+# while keeping the last run around for inspection.
+try:
+    if os.path.exists(LOG):
+        rotated = LOG + ".old"
+        try:
+            if os.path.exists(rotated):
+                os.remove(rotated)
+        except Exception:
+            pass
+        os.replace(LOG, rotated)
+except Exception:
+    pass
+
 def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
-
-# Reset crash log on each fresh app start so new builds don't require manual cleanup.
-try:
-    if os.path.exists(LOG):
-        os.remove(LOG)
-except Exception:
-    pass
 
 log("=== APP START (v0.3.3 – Kamp + Lyd + Scenario) ===")
 
