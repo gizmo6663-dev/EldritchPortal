@@ -5,6 +5,8 @@ from kivy.clock import Clock
 
 LOG = "/sdcard/Documents/EldritchPortal/crash.log"
 LOG_HISTORY_LIMIT = 3
+MAX_NAME_LENGTH = 18
+MAX_OCCUPATION_LENGTH = 15
 os.makedirs(os.path.dirname(LOG), exist_ok=True)
 
 # Rotate crash logs on startup so each launch gets a fresh log while
@@ -2286,10 +2288,10 @@ try:
                     nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
                     oc = ch.get('occ', '')
                     c = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
-                    nm_short = (nm[:18] + '…') if len(nm) > 18 else nm
+                    nm_short = (nm[:MAX_NAME_LENGTH] + '…') if len(nm) > MAX_NAME_LENGTH else nm
                     txt = f"[{tp}]  {nm_short}"
                     if oc:
-                        oc_short = (oc[:15] + '…') if len(oc) > 15 else oc
+                        oc_short = (oc[:MAX_OCCUPATION_LENGTH] + '…') if len(oc) > MAX_OCCUPATION_LENGTH else oc
                         txt += f"  -  {oc_short}"
                     row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
                     b = mkbtn(txt, lambda idx=i: self._view_char(idx),
@@ -2992,10 +2994,10 @@ try:
             nm = ch.get('name', '?')
             occ = ch.get('occ', '')
             dex = ch.get('dex', '')
-            nm_short = (nm[:18] + '…') if len(nm) > 18 else nm
+            nm_short = (nm[:MAX_NAME_LENGTH] + '…') if len(nm) > MAX_NAME_LENGTH else nm
             parts = []
             if occ:
-                occ_short = (occ[:15] + '…') if len(occ) > 15 else occ
+                occ_short = (occ[:MAX_OCCUPATION_LENGTH] + '…') if len(occ) > MAX_OCCUPATION_LENGTH else occ
                 parts.append(occ_short)
             if dex:
                 parts.append(f"DEX {dex}")
