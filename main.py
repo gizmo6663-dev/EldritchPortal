@@ -959,7 +959,8 @@ try:
 
         Handles missing files, empty files, and malformed JSON without
         crashing – all failures are logged and the caller-supplied
-        default *d* is returned instead.
+        default *d* is returned instead.  When *d* is ``None`` (the
+        default) an empty list is returned as the fallback value.
         """
         default = d if d is not None else []
         if not os.path.exists(p):
@@ -972,7 +973,7 @@ try:
                 return default
             return json.loads(text)
         except json.JSONDecodeError as e:
-            log(f"load_json: ugyldig JSON i {p}: {e}")
+            log(f"load_json: {type(e).__name__} i {p}: {e}")
             return default
         except Exception as e:
             log(f"load_json: feil ved lesing av {p}: {type(e).__name__}: {e}")
@@ -3534,8 +3535,9 @@ try:
                 log(f"Scenario lastet: {data.get('title', '?')}")
                 return data
             except json.JSONDecodeError as e:
-                log(f"Scenario-feil: ugyldig JSON: {e}")
-                self._scen_data = {'_error': f"Ugyldig JSON i scenariofil: {e}"}
+                err_msg = f"Ugyldig JSON i scenariofil: {e}"
+                log(f"Scenario-feil: {type(e).__name__}: {e}")
+                self._scen_data = {'_error': err_msg}
                 return None
             except Exception as e:
                 log(f"Scenario-feil: {e}")
