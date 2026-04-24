@@ -4,19 +4,22 @@ from functools import partial
 from kivy.clock import Clock
 
 LOG = "/sdcard/Documents/EldritchPortal/crash.log"
+LOG_HISTORY_LIMIT = 3
 os.makedirs(os.path.dirname(LOG), exist_ok=True)
 
-# Rotate the previous crash log so each launch gets a fresh log,
-# while keeping the last run around for inspection.
+# Rotate crash logs on startup so each launch gets a fresh log while
+# keeping a small history for debugging.
 try:
-    if os.path.exists(LOG):
-        rotated = LOG + ".old"
-        try:
-            if os.path.exists(rotated):
-                os.remove(rotated)
-        except Exception:
-            pass
-        os.replace(LOG, rotated)
+    for i in range(LOG_HISTORY_LIMIT, 0, -1):
+        src = LOG if i == 1 else f"{LOG}.{i - 1}"
+        dst = f"{LOG}.{i}"
+        if os.path.exists(src):
+            try:
+                if os.path.exists(dst):
+                    os.remove(dst)
+            except Exception:
+                pass
+            os.replace(src, dst)
 except Exception:
     pass
 
