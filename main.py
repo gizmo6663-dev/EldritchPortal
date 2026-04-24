@@ -1394,6 +1394,7 @@ try:
             self._weap_overlay = None
             self._weap_dim = None
             self._weap_last_error = None
+            self._weap_char_target = -1
 
             # FloatLayout som rot – lar oss legge splash oppå
             wrapper = FloatLayout()
@@ -2385,6 +2386,7 @@ try:
             if idx < 0 or idx >= len(self.chars):
                 return
             self.edit_idx = idx
+            self._weap_char_target = idx
             ch = self.chars[idx]
             self.tool_area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(6))
@@ -4580,6 +4582,43 @@ try:
             cat_scroll.add_widget(cat_row)
             p.add_widget(cat_scroll)
 
+            # Karakter-velger: vis hvilken karakter våpen legges til
+            if self.chars:
+                char_names = [ch.get('name', f'#{i}')
+                              for i, ch in enumerate(self.chars)]
+                picker_vals = ['-- Ingen --'] + char_names
+                if 0 <= self._weap_char_target < len(self.chars):
+                    target_text = self.chars[self._weap_char_target].get(
+                        'name', f'#{self._weap_char_target}')
+                else:
+                    target_text = '-- Ingen --'
+
+                char_row = BoxLayout(
+                    size_hint_y=None, height=dp(36),
+                    spacing=dp(6), padding=[dp(2), 0])
+                char_row.add_widget(Label(
+                    text='+ Til:', font_size=sp(10), color=DIM,
+                    size_hint_x=None, width=dp(36),
+                    halign='right', valign='middle'))
+                char_sp = Spinner(
+                    text=target_text,
+                    values=picker_vals,
+                    size_hint_x=1,
+                    background_color=BTN, color=TXT,
+                    font_size=sp(11))
+
+                def _on_char_pick(sp_inst, val):
+                    if val == '-- Ingen --':
+                        self._weap_char_target = -1
+                    else:
+                        for _i, _ch in enumerate(self.chars):
+                            if _ch.get('name', f'#{_i}') == val:
+                                self._weap_char_target = _i
+                                break
+                char_sp.bind(text=_on_char_pick)
+                char_row.add_widget(char_sp)
+                p.add_widget(char_row)
+
             # Våpenliste
             scroll = ScrollView()
             self._weap_list_grid = GridLayout(
@@ -4749,7 +4788,19 @@ try:
 
             row.add_widget(left)
 
-            # Høyre: favoritt-knapp
+            # Høyre: legg-til-knapp + favoritt-knapp
+            add_btn = RBtn(
+                text='+',
+                bg_color=BTNH if 0 <= self._weap_char_target < len(self.chars) else BTN,
+                color=GOLD if 0 <= self._weap_char_target < len(self.chars) else DIM,
+                font_size=sp(16), bold=True,
+                size_hint_x=None, width=dp(38),
+                size_hint_y=None, height=dp(44),
+                pos_hint={'center_y': 0.5})
+            add_btn.bind(on_release=lambda b, weap=w:
+                         self._weap_add_to_char(weap))
+            row.add_widget(add_btn)
+
             fav_btn = RBtn(
                 text='*' if is_fav else 'o',
                 bg_color=BTN,
@@ -4762,12 +4813,14 @@ try:
                          self._weap_toggle_fav(_id))
             row.add_widget(fav_btn)
 
-            # Hele raden (unntatt fav-knapp) klikkbar = åpne detalj
+            # Hele raden (unntatt fav-knapp og add-knapp) klikkbar = åpne detalj
             def _on_touch(widget, touch, weap=w):
                 if not widget.collide_point(*touch.pos):
                     return False
-                # Ikke hvis fav-knappen er truffet
+                # Ikke hvis fav-knappen eller add-knappen er truffet
                 if fav_btn.collide_point(*touch.pos):
+                    return False
+                if add_btn.collide_point(*touch.pos):
                     return False
                 self._weap_show_detail(weap)
                 return True
@@ -4783,6 +4836,24 @@ try:
                 self.weap_favorites.add(wid)
             save_json(self.WEAPONS_FAV_FILE, list(self.weap_favorites))
             self._weap_render_list()
+
+        def _weap_add_to_char(self, w):
+            """Legg til våpen i valgt karakters våpenfelt og lagre."""
+            idx = self._weap_char_target
+            if idx < 0 or idx >= len(self.chars):
+                return
+            name = w.get('name', '?')
+            damage = w.get('damage', '')
+            skill = w.get('skill', '')
+            entry = name
+            if skill:
+                entry += f' ({skill})'
+            if damage:
+                entry += f' skade {damage}'
+            ch = self.chars[idx]
+            existing = ch.get('weapons', '').strip()
+            ch['weapons'] = f'{existing}; {entry}' if existing else entry
+            save_json(CHAR_FILE, self.chars)
 
         def _weap_show_detail(self, w):
             """Vis detalj-overlay for ett våpen."""
@@ -4816,6 +4887,19 @@ try:
                             size_hint_x=None)
             fav_btn.width = dp(50)
             hdr.add_widget(fav_btn)
+
+            if 0 <= self._weap_char_target < len(self.chars):
+                char_name = self.chars[self._weap_char_target].get(
+                    'name', f'#{self._weap_char_target}')
+                add_btn = mkbtn(
+                    f'+ {char_name}',
+                    lambda weap=w: (self._weap_add_to_char(weap),
+                                    self._weap_close_overlay()),
+                    accent=True, small=True,
+                    size_hint_x=None)
+                add_btn.width = dp(120)
+                hdr.add_widget(add_btn)
+
             overlay.add_widget(hdr)
 
             # Breadcrumb
