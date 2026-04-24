@@ -142,6 +142,14 @@ Karakterer-fanen har en egen **Importer**-knapp i handlingsraden øverst (ved si
     "hp": 10,
     "san": 65,
     "skills": { "Medicine": "70", "First Aid": "60" }
+  },
+  {
+    "name": "Kultist",
+    "type": "Fiende",
+    "dex": 55,
+    "hp": 11,
+    "notes": "Kultmedlem.",
+    "skills": { "Fighting": "45" }
   }
 ]
 ```
@@ -169,6 +177,8 @@ Karakterer-fanen har en egen **Importer**-knapp i handlingsraden øverst (ved si
 ```
 
 Kun `name` og `type` er nødvendig per karakter. Alt annet er valgfritt.
+
+Gyldige `type`-verdier: `"PC"`, `"NPC"`, `"Fiende"`. Importøren normaliserer automatisk varianter som `"enemy"`, `"fiend"`, `"foe"`, `"villain"`, `"monster"` og `"creature"` til `"Fiende"`, og ukjente verdier til `"PC"`.
 
 ### Slå sammen vs. erstatt
 
