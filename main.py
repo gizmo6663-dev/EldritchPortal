@@ -1387,12 +1387,18 @@ try:
                 "subcategories": {}, "field_labels": {}
             }
             self.weap_favorites = set(load_json(self.WEAPONS_FAV_FILE, []))
+            # Egendefinerte våpen lagres i app-private storage
+            self.CUSTOM_WEAPONS_FILE = os.path.join(
+                self.user_data_dir, "custom_weapons.json")
+            self.custom_weapons = load_json(self.CUSTOM_WEAPONS_FILE, [])
             self._weap_cat = 'all'
             self._weap_era = 'all'
             self._weap_search = ''
             self._weap_fav_only = False
             self._weap_overlay = None
             self._weap_dim = None
+            self._weap_create_overlay = None
+            self._weap_create_dim = None
             self._weap_last_error = None
             self._weap_char_target = -1
 
@@ -4520,14 +4526,23 @@ try:
                 self.tool_area.add_widget(msg_box)
                 return
 
-            # Action-bar: søk + epoke + favoritt-toggle
+            # Action-bar: nytt våpen + søk + epoke + favoritt-toggle
+            new_btn = RBtn(
+                text='+ Nytt',
+                bg_color=BTNH, color=GOLD,
+                font_size=sp(11), bold=True,
+                size_hint_x=0.22)
+            new_btn.bind(on_release=lambda b:
+                         self._weap_show_create_form())
+            self._tool_action_bar.add_widget(new_btn)
+
             search_inp = TextInput(
                 text=self._weap_search,
                 hint_text='Søk…',
                 font_size=sp(12), multiline=False,
                 background_color=INPUT, foreground_color=TXT,
                 cursor_color=GOLD,
-                size_hint_x=0.45,
+                size_hint_x=0.38,
                 padding=[dp(8), dp(8)])
             search_inp.bind(text=self._weap_on_search)
             self._tool_action_bar.add_widget(search_inp)
@@ -4536,7 +4551,7 @@ try:
                 text=self._weap_era_label(self._weap_era),
                 values=['Alle epoker', '1920-tallet',
                         'Moderne', 'Gaslight'],
-                size_hint_x=0.35,
+                size_hint_x=0.25,
                 background_color=BTN, color=TXT,
                 font_size=sp(11))
             era_sp.bind(text=self._weap_era_change)
@@ -4548,7 +4563,7 @@ try:
                 bg_color=BTNH if self._weap_fav_only else BTN,
                 color=GOLD if self._weap_fav_only else DIM,
                 font_size=sp(14), bold=True,
-                size_hint_x=0.2)
+                size_hint_x=0.15)
             fav_tog.bind(on_release=self._weap_toggle_fav_filter)
             self._tool_action_bar.add_widget(fav_tog)
 
@@ -4566,6 +4581,8 @@ try:
 
             cat_items = [('all', 'Alle')]
             cat_items += [(k, v) for k, v in cats.items()]
+            if self.custom_weapons:
+                cat_items.append(('custom', 'Egendefinerte'))
             for key, lbl in cat_items:
                 active = (key == self._weap_cat)
                 b = RBtn(
@@ -4669,15 +4686,17 @@ try:
 
         def _weap_filter(self):
             """Returner filtrert våpenliste."""
-            weapons = self.weapons_data.get("weapons", [])
+            # Slå sammen bundlede og egendefinerte våpen
+            weapons = list(self.weapons_data.get("weapons", []))
+            weapons += self.custom_weapons
             out = []
             for w in weapons:
                 # Kategori
                 if self._weap_cat != 'all':
                     if w.get('category') != self._weap_cat:
                         continue
-                # Epoke
-                if self._weap_era != 'all':
+                # Epoke (egendefinerte våpen hopper over epoke-filter)
+                if self._weap_era != 'all' and not w.get('_custom'):
                     eras = w.get('era', [])
                     if 'all' not in eras and self._weap_era not in eras:
                         continue
@@ -4888,6 +4907,24 @@ try:
             fav_btn.width = dp(50)
             hdr.add_widget(fav_btn)
 
+            if w.get('_custom'):
+                edit_btn = mkbtn(
+                    'Rediger',
+                    lambda _w=w: (self._weap_close_overlay(),
+                                  self._weap_show_create_form(_w)),
+                    accent=True, small=True,
+                    size_hint_x=None)
+                edit_btn.width = dp(80)
+                hdr.add_widget(edit_btn)
+                del_btn = mkbtn(
+                    'Slett',
+                    lambda _id=wid: (self._weap_close_overlay(),
+                                     self._weap_delete_custom(_id)),
+                    danger=True, small=True,
+                    size_hint_x=None)
+                del_btn.width = dp(70)
+                hdr.add_widget(del_btn)
+
             if 0 <= self._weap_char_target < len(self.chars):
                 char_name = self.chars[self._weap_char_target].get(
                     'name', f'#{self._weap_char_target}')
@@ -4903,8 +4940,11 @@ try:
             overlay.add_widget(hdr)
 
             # Breadcrumb
-            cat_lbl = cats.get(w.get('category', ''), '')
-            sub_lbl = subs.get(w.get('subcategory', ''), '')
+            if w.get('_custom'):
+                cat_lbl = 'Egendefinerte'
+            else:
+                cat_lbl = cats.get(w.get('category', ''), '')
+            sub_lbl = subs.get(w.get('subcategory', ''), w.get('subcategory', ''))
             crumb = f"{cat_lbl}  >  {sub_lbl}" if sub_lbl else cat_lbl
             overlay.add_widget(mklbl(crumb, color=DIM, size=10, h=18))
 
@@ -5047,8 +5087,292 @@ try:
             self._weap_overlay = None
             self._weap_dim = None
 
+        def _weap_close_create_overlay(self):
+            """Lukk opprettings-overlay for egendefinerte våpen."""
+            if self._weap_create_overlay and self._weap_create_overlay.parent:
+                parent = self._weap_create_overlay.parent
+                parent.remove_widget(self._weap_create_overlay)
+                if self._weap_create_dim and self._weap_create_dim.parent:
+                    parent.remove_widget(self._weap_create_dim)
+            self._weap_create_overlay = None
+            self._weap_create_dim = None
 
-        def on_stop(self):
+        def _weap_show_create_form(self, existing=None):
+            """Vis overlay-skjema for å opprette eller redigere et egendefinert våpen."""
+            self._weap_close_create_overlay()
+            cats = self.weapons_data.get("categories", {})
+            is_edit = existing is not None
+            w = existing or {}
+
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(4),
+                padding=dp(10),
+                size_hint=(0.96, 0.92),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            # Header
+            title_text = 'Rediger våpen' if is_edit else 'Nytt egendefinert våpen'
+            hdr = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            hdr.add_widget(mkbtn("Avbryt", self._weap_close_create_overlay,
+                                 danger=True, small=True, size_hint_x=0.3))
+            hdr.add_widget(mklbl(title_text, color=GOLD, size=13, bold=True))
+            overlay.add_widget(hdr)
+
+            # Skjema i scroll
+            scroll = ScrollView()
+            form = GridLayout(cols=1, spacing=dp(6),
+                              padding=[dp(4), dp(4)], size_hint_y=None)
+            form.bind(minimum_height=form.setter('height'))
+
+            inputs = {}
+
+            def add_field(key, label, hint='', multiline=False,
+                          default=''):
+                row = BoxLayout(orientation='vertical',
+                                size_hint_y=None,
+                                height=dp(80) if multiline else dp(56),
+                                spacing=dp(2))
+                row.add_widget(Label(
+                    text=label, font_size=sp(10), color=GOLD, bold=True,
+                    size_hint_y=None, height=dp(18),
+                    halign='left', valign='middle',
+                    text_size=(None, None)))
+                ti = TextInput(
+                    text=str(w.get(key, default)) if w.get(key) is not None
+                         else default,
+                    hint_text=hint,
+                    font_size=sp(12), multiline=multiline,
+                    background_color=INPUT, foreground_color=TXT,
+                    cursor_color=GOLD,
+                    padding=[dp(6), dp(6)])
+                if multiline:
+                    ti.size_hint_y = None
+                    ti.height = dp(60)
+                row.add_widget(ti)
+                form.add_widget(row)
+                inputs[key] = ti
+
+            def add_spinner_field(key, label, options, default='',
+                                  value_map=None):
+                """value_map: dict mapping stored values → display strings."""
+                row = BoxLayout(orientation='vertical',
+                                size_hint_y=None, height=dp(56),
+                                spacing=dp(2))
+                row.add_widget(Label(
+                    text=label, font_size=sp(10), color=GOLD, bold=True,
+                    size_hint_y=None, height=dp(18),
+                    halign='left', valign='middle',
+                    text_size=(None, None)))
+                raw = w.get(key)
+                if raw is not None and value_map:
+                    cur = value_map.get(raw, str(raw))
+                elif raw is not None:
+                    cur = str(raw)
+                else:
+                    cur = default
+                sp_widget = Spinner(
+                    text=cur if cur in options else options[0],
+                    values=options,
+                    background_color=BTN, color=TXT,
+                    font_size=sp(11))
+                row.add_widget(sp_widget)
+                form.add_widget(row)
+                inputs[key] = sp_widget
+
+            # Påkrevd felt
+            add_field('name', 'Navn *', hint='f.eks. Flammesverd', default='')
+
+            # Kategori-spinner
+            cat_options = list(cats.values()) + ['Egendefinerte']
+            cat_keys = list(cats.keys()) + ['custom']
+            cur_cat_key = w.get('category', 'custom')
+            cur_cat_lbl = cats.get(cur_cat_key, 'Egendefinerte')
+            cat_row = BoxLayout(orientation='vertical',
+                                size_hint_y=None, height=dp(56),
+                                spacing=dp(2))
+            cat_row.add_widget(Label(
+                text='Kategori', font_size=sp(10), color=GOLD, bold=True,
+                size_hint_y=None, height=dp(18),
+                halign='left', valign='middle',
+                text_size=(None, None)))
+            cat_spinner = Spinner(
+                text=cur_cat_lbl if cur_cat_lbl in cat_options
+                     else 'Egendefinerte',
+                values=cat_options,
+                background_color=BTN, color=TXT,
+                font_size=sp(11))
+            cat_row.add_widget(cat_spinner)
+            form.add_widget(cat_row)
+            inputs['_cat_spinner'] = cat_spinner
+            inputs['_cat_keys'] = cat_keys
+            inputs['_cat_options'] = cat_options
+
+            add_field('subcategory', 'Underkategori',
+                      hint='f.eks. edged, handgun …', default='')
+            add_field('skill', 'Ferdighet',
+                      hint='f.eks. Slåsskamp (Nærkamp)', default='')
+            add_field('damage', 'Skade',
+                      hint='f.eks. 1D6+2', default='')
+
+            add_spinner_field('uses_db', 'Bruker DB',
+                              ['Ja', 'Halv', 'Nei'],
+                              default='Nei',
+                              value_map={True: 'Ja', 'half': 'Halv',
+                                         False: 'Nei'})
+
+            add_spinner_field('can_impale', 'Kan spidde',
+                              ['Ja', 'Nei'],
+                              default='Nei',
+                              value_map={True: 'Ja', False: 'Nei'})
+
+            add_field('range', 'Rekkevidde',
+                      hint='f.eks. berøring, 15 meter', default='berøring')
+            add_field('attacks', 'Angrep / runde',
+                      hint='f.eks. 1', default='1')
+            add_field('ammo', 'Magasin',
+                      hint='Antall (tom = ikke aktuelt)', default='')
+            add_field('malfunction', 'Feiling',
+                      hint='f.eks. 96 (tom = ikke aktuelt)', default='')
+            add_field('cost_1920s', 'Pris (1920)',
+                      hint='f.eks. $5', default='')
+            add_field('availability', 'Tilgjengelighet',
+                      hint='f.eks. vanlig, sjelden', default='')
+            add_field('description', 'Beskrivelse',
+                      hint='Kort beskrivelse av våpenet',
+                      multiline=True, default='')
+            add_field('pulp_notes', 'Pulp-notater',
+                      hint='Spesielle regler / flavor',
+                      multiline=True, default='')
+
+            form.add_widget(mksep(8))
+
+            save_btn = RBtn(
+                text='Lagre våpen',
+                bg_color=BTNH, color=GOLD,
+                font_size=sp(13), bold=True,
+                size_hint_y=None, height=dp(48))
+
+            def _do_save(btn):
+                self._weap_save_custom(inputs, existing)
+
+            save_btn.bind(on_release=_do_save)
+            form.add_widget(save_btn)
+            form.add_widget(mksep(20))
+
+            scroll.add_widget(form)
+            overlay.add_widget(scroll)
+
+            # Legg overlay på FloatLayout-root (samme mønster som detalj-overlay)
+            root = self.content
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                self.tool_area.add_widget(overlay)
+                self._weap_create_overlay = overlay
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCd2, Rectangle as GRd2
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCd2(rgba=[0, 0, 0, 0.65])
+                dr2 = GRd2(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w_, v: setattr(dr2, 'pos', w_.pos),
+                     size=lambda w_, v: setattr(dr2, 'size', w_.size))
+            # Tap auf Hintergrund schließt nicht (user fills form)
+
+            self._weap_create_dim = dim
+            self._weap_create_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _weap_save_custom(self, inputs, existing=None):
+            """Valider og lagre et egendefinert våpen."""
+            name = inputs['name'].text.strip()
+            if not name:
+                inputs['name'].background_color = [0.5, 0.1, 0.1, 1]
+                return
+
+            # Kategori: finn nøkkel fra valgt etikett
+            cat_keys = inputs['_cat_keys']
+            cat_options = inputs['_cat_options']
+            cat_lbl = inputs['_cat_spinner'].text
+            try:
+                cat_key = cat_keys[cat_options.index(cat_lbl)]
+            except (ValueError, IndexError):
+                cat_key = 'custom'
+
+            # uses_db
+            db_map = {'Ja': True, 'Halv': 'half', 'Nei': False}
+            uses_db = db_map.get(inputs['uses_db'].text, False)
+
+            # can_impale
+            can_impale = (inputs['can_impale'].text == 'Ja')
+
+            def _opt(key):
+                v = inputs[key].text.strip()
+                return v if v else None
+
+            def _opt_int(key):
+                v = inputs[key].text.strip()
+                try:
+                    return int(v) if v else None
+                except ValueError:
+                    return v if v else None
+
+            if existing:
+                wid = existing['id']
+            else:
+                wid = f"custom_{random.randint(100000, 999999)}"
+
+            weapon = {
+                'id': wid,
+                'name': name,
+                'category': cat_key,
+                'subcategory': inputs['subcategory'].text.strip(),
+                'skill': inputs['skill'].text.strip(),
+                'damage': inputs['damage'].text.strip(),
+                'uses_db': uses_db,
+                'can_impale': can_impale,
+                'range': inputs['range'].text.strip() or 'berøring',
+                'attacks': inputs['attacks'].text.strip() or '1',
+                'ammo': _opt_int('ammo'),
+                'malfunction': _opt_int('malfunction'),
+                'era': ['all'],
+                'cost_1920s': _opt('cost_1920s'),
+                'availability': _opt('availability'),
+                'description': inputs['description'].text.strip(),
+                'pulp_notes': inputs['pulp_notes'].text.strip() or None,
+                'tags': [],
+                '_custom': True,
+            }
+
+            if existing:
+                # Oppdater eksisterende
+                for i, cw in enumerate(self.custom_weapons):
+                    if cw.get('id') == wid:
+                        self.custom_weapons[i] = weapon
+                        break
+            else:
+                self.custom_weapons.append(weapon)
+
+            save_json(self.CUSTOM_WEAPONS_FILE, self.custom_weapons)
+            self._weap_close_create_overlay()
+            self._tool_render_sub()
+
+        def _weap_delete_custom(self, wid):
+            """Slett et egendefinert våpen og lagre."""
+            self.custom_weapons = [
+                cw for cw in self.custom_weapons
+                if cw.get('id') != wid
+            ]
+            self.weap_favorites.discard(wid)
+            save_json(self.CUSTOM_WEAPONS_FILE, self.custom_weapons)
+            save_json(self.WEAPONS_FAV_FILE, list(self.weap_favorites))
+            self._tool_render_sub()
+
+
             self.player.stop()
             self.streamer.stop()
             self.server.stop()
