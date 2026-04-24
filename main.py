@@ -5324,7 +5324,11 @@ try:
             if existing:
                 wid = existing['id']
             else:
-                wid = f"custom_{random.randint(100000, 999999)}"
+                existing_ids = {cw.get('id') for cw in self.custom_weapons}
+                while True:
+                    wid = f"custom_{random.randint(100000, 999999)}"
+                    if wid not in existing_ids:
+                        break
 
             weapon = {
                 'id': wid,
@@ -5372,7 +5376,7 @@ try:
             save_json(self.WEAPONS_FAV_FILE, list(self.weap_favorites))
             self._tool_render_sub()
 
-
+        def on_stop(self):
             self.player.stop()
             self.streamer.stop()
             self.server.stop()
