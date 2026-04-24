@@ -2190,32 +2190,32 @@ try:
             sub_bar = RBox(size_hint_y=None, height=dp(42),
                            spacing=dp(4), padding=[dp(6), dp(4)],
                            bg_color=BTN, radius=dp(10))
-            b_chars = RToggle(
+            self._sub_btn_chars = RToggle(
                 text='Karakterer', group='tool_sub',
                 state='down' if self._tool_sub == 'chars' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'chars' else BTN,
                 color=GOLD if self._tool_sub == 'chars' else DIM,
                 font_size=sp(11), bold=True)
-            b_chars.bind(on_release=lambda b: self._tool_switch('chars'))
-            sub_bar.add_widget(b_chars)
+            self._sub_btn_chars.bind(on_release=lambda b: self._tool_switch('chars'))
+            sub_bar.add_widget(self._sub_btn_chars)
 
-            b_weap = RToggle(
+            self._sub_btn_weap = RToggle(
                 text='Våpen', group='tool_sub',
                 state='down' if self._tool_sub == 'weap' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'weap' else BTN,
                 color=GOLD if self._tool_sub == 'weap' else DIM,
                 font_size=sp(11), bold=True)
-            b_weap.bind(on_release=lambda b: self._tool_switch('weap'))
-            sub_bar.add_widget(b_weap)
+            self._sub_btn_weap.bind(on_release=lambda b: self._tool_switch('weap'))
+            sub_bar.add_widget(self._sub_btn_weap)
 
-            b_scen = RToggle(
+            self._sub_btn_scen = RToggle(
                 text='Scenario', group='tool_sub',
                 state='down' if self._tool_sub == 'scen' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'scen' else BTN,
                 color=GOLD if self._tool_sub == 'scen' else DIM,
                 font_size=sp(11), bold=True)
-            b_scen.bind(on_release=lambda b: self._tool_switch('scen'))
-            sub_bar.add_widget(b_scen)
+            self._sub_btn_scen.bind(on_release=lambda b: self._tool_switch('scen'))
+            sub_bar.add_widget(self._sub_btn_scen)
 
             p.add_widget(sub_bar)
 
@@ -2239,6 +2239,13 @@ try:
         def _tool_switch(self, which):
             """Bytt mellom karakterer, våpen og scenario."""
             self._tool_sub = which
+            for key, btn in (('chars', self._sub_btn_chars),
+                             ('weap',  self._sub_btn_weap),
+                             ('scen',  self._sub_btn_scen)):
+                active = (key == which)
+                btn.state    = 'down'   if active else 'normal'
+                btn.bg_color = BTNH     if active else BTN
+                btn.color    = GOLD     if active else DIM
             self._tool_render_sub()
 
         def _tool_render_sub(self):
