@@ -1734,6 +1734,8 @@ try:
                        if e.get('type') == 'PC')
             n_npc = sum(1 for e in self._init_list
                         if e.get('type') == 'NPC')
+            n_fiende = sum(1 for e in self._init_list
+                           if e.get('type') == 'Fiende')
             n_s = sum(1 for e in self._init_list
                       if e.get('type') == 'S')
 
@@ -1748,6 +1750,8 @@ try:
                 summary.append(f"{n_pc} investigator(er)")
             if n_npc:
                 summary.append(f"{n_npc} NPC")
+            if n_fiende:
+                summary.append(f"{n_fiende} fiende(r)")
             if n_s:
                 summary.append(f"{n_s} skapning(er)")
             info_box.add_widget(mklbl(
@@ -2281,7 +2285,7 @@ try:
                 for i, ch in enumerate(self.chars):
                     nm, tp = ch.get('name', '?'), ch.get('type', 'PC')
                     oc = ch.get('occ', '')
-                    c = GRN if tp == 'PC' else GOLD
+                    c = GRN if tp == 'PC' else (GOLD if tp == 'NPC' else RED)
                     txt = f"[{tp}]  {nm}"
                     if oc:
                         txt += f"  -  {oc}"
@@ -2392,7 +2396,7 @@ try:
                 row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
                                      size_hint_x=0.3, halign='right'))
                 if key == 'type':
-                    w = Spinner(text=ch.get(key, 'PC'), values=['PC', 'NPC'],
+                    w = Spinner(text=ch.get(key, 'PC'), values=['PC', 'NPC', 'Fiende'],
                                 background_color=BTN, color=GOLD, font_size=sp(11), size_hint_x=0.7)
                 else:
                     w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
@@ -2598,6 +2602,17 @@ try:
             for field in all_str_fields:
                 val = entry.get(field, '')
                 result[field] = str(val) if val != '' else ''
+            # Normalize type to one of 'PC', 'NPC', 'Fiende'
+            raw_type = result.get('type', '').strip()
+            if raw_type.lower() == 'pc':
+                result['type'] = 'PC'
+            elif raw_type.lower() == 'npc':
+                result['type'] = 'NPC'
+            elif raw_type.lower() in ('fiende', 'enemy', 'fiend', 'foe',
+                                      'villain', 'monster', 'creature'):
+                result['type'] = 'Fiende'
+            else:
+                result['type'] = raw_type if raw_type in ('PC', 'NPC', 'Fiende') else 'PC'
             # skills must be a dict
             sk = entry.get('skills', {})
             if not isinstance(sk, dict):
@@ -2922,6 +2937,9 @@ try:
             npcs = [ch for ch in self.chars
                     if ch.get('type', 'PC') == 'NPC'
                     and ch.get('name', '') not in already_in]
+            fiender = [ch for ch in self.chars
+                       if ch.get('type', 'PC') == 'Fiende'
+                       and ch.get('name', '') not in already_in]
 
             area = self._init_area()
             area.clear_widgets()
@@ -2951,7 +2969,13 @@ try:
                 for ch in npcs:
                     g.add_widget(self._init_make_char_btn(ch))
 
-            if not pcs and not npcs:
+            if fiender:
+                g.add_widget(mklbl("FIENDER",
+                                   color=RED, size=11, bold=True, h=22))
+                for ch in fiender:
+                    g.add_widget(self._init_make_char_btn(ch))
+
+            if not pcs and not npcs and not fiender:
                 g.add_widget(mklbl(
                     "Ingen tilgjengelige karakterer.\n"
                     "Legg til karakterer under 'Verktøy > Karakterer' først.",
@@ -3343,7 +3367,7 @@ try:
 
         def _bm_find_mov(self, name, tp):
             """Finn MOV for en karakter, default 8."""
-            if tp in ('PC', 'NPC'):
+            if tp in ('PC', 'NPC', 'Fiende'):
                 for ch in self.chars:
                     if ch.get('name') == name:
                         try:
