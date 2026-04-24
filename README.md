@@ -13,6 +13,7 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 - [Hva appen prøver å være](#hva-appen-prøver-å-være)
 - [Funksjoner](#funksjoner)
+- [Importer karakterer](#importer-karakterer)
 - [Scenario-import og lagring](#scenario-import-og-lagring)
 - [Kom i gang](#kom-i-gang)
 - [Mappestruktur på enheten](#mappestruktur-på-enheten)
@@ -102,6 +103,125 @@ Sub-faner for forberedelse og oppslag:
 - Caster bilder og battlemaps til TV når en enhet er tilgjengelig
 - Lokal HTTP-server på port 8089 serverer media til casting
 - Auto-cast kan sende bilder automatisk når de vises
+
+---
+
+## Importer karakterer
+
+Karakterer-fanen har en egen **Importer**-knapp i handlingsraden øverst (ved siden av **+ Ny** og **Oppdater**). Med den kan du laste inn én eller flere karakterer fra en `.json`-fil — uten å gå via scenario-fanen.
+
+### Slik importerer du
+
+1. Åpne **Verktøy → Karakterer**
+2. Trykk **Importer** i handlingsraden
+3. Velg en `.json`-fil fra Androids filvelger (Documents, Downloads, Drive, osv.)
+4. En forhåndsvisning viser antall og navn på karakterene som ble funnet
+5. Velg **Slå sammen** eller **Erstatt**
+
+### Støttede JSON-formater
+
+**Alternativ 1 — bare liste:**
+
+```json
+[
+  {
+    "name": "Captain Harrow",
+    "type": "NPC",
+    "occ": "Ship Captain",
+    "dex": 45,
+    "hp": 12,
+    "san": 60,
+    "notes": "Vet mer enn han innrømmer.",
+    "skills": { "Listen": "40", "Intimidate": "35" }
+  },
+  {
+    "name": "Dr. Marlowe",
+    "type": "PC",
+    "occ": "Physician",
+    "dex": 55,
+    "hp": 10,
+    "san": 65,
+    "skills": { "Medicine": "70", "First Aid": "60" }
+  }
+]
+```
+
+**Alternativ 2 — wrapper-objekt** (scenario-pakke-format):
+
+```json
+{
+  "format": "eldritchportal-scenario-pack",
+  "version": 1,
+  "scenario": { "title": "Slow Boat to China", "system": "Pulp Cthulhu" },
+  "characters": [
+    {
+      "name": "Captain Harrow",
+      "type": "NPC",
+      "occ": "Ship Captain",
+      "dex": 45,
+      "hp": 12,
+      "san": 60,
+      "notes": "Vet mer enn han innrømmer.",
+      "skills": { "Listen": "40", "Intimidate": "35" }
+    }
+  ]
+}
+```
+
+Kun `name` og `type` er nødvendig per karakter. Alt annet er valgfritt.
+
+### Slå sammen vs. erstatt
+
+| Valg | Resultat |
+|---|---|
+| **Slå sammen** | De importerte karakterene legges til i eksisterende roster |
+| **Erstatt** | Eksisterende roster slettes og erstattes med de importerte |
+
+Bruk **Slå sammen** når du legger til karakterer i en pågående kampanje.
+Bruk **Erstatt** når du starter et nytt scenario og vil ha en ren roster.
+
+### Karakterfelt som bevares
+
+Importøren bevarer disse feltene:
+
+- Grunninfo: `name`, `type`, `occ`, `archetype`, `age`, `residence`, `birthplace`
+- Karakteristikker: `str`, `con`, `siz`, `dex`, `int`, `pow`, `app`, `edu`
+- Avledede: `hp`, `mp`, `san`, `luck`, `db`, `build`, `move`, `dodge`
+- Tekst: `weapons`, `talents`, `backstory`, `notes`
+- Ferdigheter: `skills` (som `{ "Feltnavn": "verdi" }`-objekt)
+- Ekstra (scenario-pakke): `initiative`, `token`
+
+Oppføringer uten `name` hoppes over automatisk.
+
+### Bruke eksporterte filer og Claude-genererte pakker
+
+Du kan importere:
+- Karakterfiler eksportert fra andre Eldritch Portal-installasjoner
+- Scenario-pakker generert av Claude eller andre AI-verktøy
+
+For å be Claude lage en karakterpakke, bruk dette i prompten din:
+
+```text
+Generer en JSON-liste med karakterer for Eldritch Portal-appen.
+Bruk dette formatet:
+
+[
+  {
+    "name": "Karakternavn",
+    "type": "PC | NPC | Fiende",
+    "occ": "Yrke",
+    "dex": 45,
+    "hp": 10,
+    "san": 60,
+    "notes": "Keepernotater",
+    "skills": { "Feltnavn": "verdi" }
+  }
+]
+
+Output kun gyldig JSON. Ingen forklaring utenfor JSON-en.
+Bruk kun "PC", "NPC" eller "Fiende" som type-verdi.
+Ukjente felt: bruk tom streng "".
+```
 
 ---
 

@@ -2254,10 +2254,13 @@ try:
             if self._tool_sub == 'chars':
                 self._tool_action_bar.add_widget(
                     mkbtn("+ Ny", self._new_char, accent=True,
-                          size_hint_x=0.35))
+                          size_hint_x=0.28))
+                self._tool_action_bar.add_widget(
+                    mkbtn("Importer", self._chars_do_pick_file,
+                          small=True, size_hint_x=0.28))
                 self._tool_action_bar.add_widget(
                     mkbtn("Oppdater", self._show_list,
-                          small=True, size_hint_x=0.35))
+                          small=True, size_hint_x=0.22))
                 self._tool_action_bar.add_widget(
                     mklbl("Karakterer", color=GOLD, size=14, bold=True))
                 self._show_list()
@@ -2508,6 +2511,249 @@ try:
                 self.chars.pop(idx)
                 save_json(CHAR_FILE, self.chars)
                 self._show_list()
+
+        # ---------- KARAKTER-IMPORT ----------
+
+        def _chars_do_pick_file(self):
+            """Åpne Android filvelger for karakterimport."""
+            if platform != 'android':
+                self._chars_show_message(
+                    "Ikke støttet",
+                    "Filvelger er kun tilgjengelig på Android.",
+                    is_error=True)
+                return
+            self._chars_show_message(
+                "Åpner filvelger...",
+                "Velg en .json-fil med karakterer. Du kan bla til "
+                "Documents, Downloads, Drive, eller hvor som helst "
+                "du har fila.",
+                is_error=False)
+            Clock.schedule_once(
+                lambda dt: self._chars_close_overlay(), 0.8)
+            Clock.schedule_once(
+                lambda dt: self.file_picker.pick(
+                    self._chars_on_file_picked,
+                    mime_type='*/*'),
+                1.0)
+
+        def _chars_on_file_picked(self, ok, text_or_err):
+            """Callback når filvelgeren er ferdig."""
+            if not ok:
+                if text_or_err != "Avbrutt":
+                    self._chars_show_message(
+                        "Kunne ikke lese fil",
+                        text_or_err, is_error=True)
+                return
+            try:
+                data = json.loads(text_or_err)
+            except json.JSONDecodeError as e:
+                self._chars_show_message(
+                    "Ugyldig JSON",
+                    f"Fila er ikke gyldig JSON:\n{e}",
+                    is_error=True)
+                return
+            # Support both bare array and wrapped { "characters": [...] }
+            if isinstance(data, list):
+                raw_chars = data
+            elif isinstance(data, dict) and isinstance(
+                    data.get('characters'), list):
+                raw_chars = data['characters']
+            else:
+                self._chars_show_message(
+                    "Feil format",
+                    "Fila må inneholde enten en liste [...] eller et "
+                    "objekt med en \"characters\"-array "
+                    "{ \"characters\": [...] }.",
+                    is_error=True)
+                return
+            # Normalize entries; skip those without a name
+            normalized = []
+            skipped = 0
+            for entry in raw_chars:
+                if not isinstance(entry, dict):
+                    skipped += 1
+                    continue
+                if not str(entry.get('name', '')).strip():
+                    skipped += 1
+                    continue
+                normalized.append(self._chars_normalize_entry(entry))
+            if not normalized:
+                self._chars_show_message(
+                    "Ingen karakterer funnet",
+                    "Fila inneholdt ingen gyldige karakteroppføringer "
+                    "med navn.",
+                    is_error=True)
+                return
+            self._chars_show_import_preview(normalized, skipped)
+
+        def _chars_normalize_entry(self, entry):
+            """Normaliser en rå karakter-dict til appens interne format."""
+            all_str_fields = (
+                [k for k, _ in CHAR_INFO]
+                + [k for k, _ in CHAR_STATS]
+                + [k for k, _ in CHAR_DERIVED]
+                + [k for k, _ in CHAR_TEXT]
+            )
+            result = {}
+            for field in all_str_fields:
+                val = entry.get(field, '')
+                result[field] = str(val) if val != '' else ''
+            # skills must be a dict
+            sk = entry.get('skills', {})
+            if not isinstance(sk, dict):
+                sk = {}
+            result['skills'] = sk
+            # Preserve scenario-package extra fields
+            for key in ('initiative', 'token'):
+                if key in entry:
+                    result[key] = entry[key]
+            return result
+
+        def _chars_show_import_preview(self, chars, skipped):
+            """Vis forhåndsvisning-overlay før import."""
+            count = len(chars)
+            preview_names = [ch.get('name', '?') for ch in chars[:5]]
+            names_text = "\n".join(f"• {n}" for n in preview_names)
+            if count > 5:
+                names_text += f"\n… og {count - 5} til"
+            skip_text = (
+                f"\n\n({skipped} oppføring"
+                f"{'er' if skipped != 1 else ''} uten navn ble "
+                "hoppet over)"
+            ) if skipped else ""
+
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.9, 0.65),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                "Importer karakterer",
+                color=GOLD, size=14, bold=True, h=28))
+            overlay.add_widget(mklbl(
+                f"{count} karakter"
+                f"{'er' if count != 1 else ''} funnet:"
+                f"{skip_text}",
+                color=TXT, size=11, wrap=True))
+
+            scroll = ScrollView()
+            names_lbl = mklbl(names_text, color=DIM, size=11, wrap=True)
+            scroll.add_widget(names_lbl)
+            overlay.add_widget(scroll)
+
+            overlay.add_widget(mklbl(
+                "Hvordan vil du importere?",
+                color=GOLD, size=12, bold=True, h=22))
+
+            btns = BoxLayout(
+                size_hint_y=None, height=dp(44), spacing=dp(6))
+            btns.add_widget(mkbtn(
+                "Avbryt", self._chars_close_overlay,
+                small=True, size_hint_x=0.3))
+            btns.add_widget(mkbtn(
+                "Slå sammen",
+                lambda: self._chars_do_import(chars, replace=False),
+                accent=True, size_hint_x=0.35))
+            btns.add_widget(mkbtn(
+                "Erstatt",
+                lambda: self._chars_do_import(chars, replace=True),
+                danger=True, size_hint_x=0.35))
+            overlay.add_widget(btns)
+
+            root = self.tool_area
+            while root.parent and not isinstance(
+                    root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCci, Rectangle as GRci
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCci(rgba=[0, 0, 0, 0.6])
+                dr = GRci(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+
+            self._chars_overlay = overlay
+            self._chars_dim = dim
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _chars_do_import(self, chars, replace):
+            """Utfør import — erstatt eksisterende eller slå sammen."""
+            self._chars_close_overlay()
+            if replace:
+                self.chars = list(chars)
+            else:
+                self.chars = self.chars + list(chars)
+            save_json(CHAR_FILE, self.chars)
+            self._show_list()
+            count = len(chars)
+            mode = "Erstattet med" if replace else "La til"
+            self._chars_show_message(
+                "Import vellykket",
+                f"{mode} {count} karakter"
+                f"{'er' if count != 1 else ''}.",
+                is_error=False)
+
+        def _chars_show_message(self, title, msg, is_error=False):
+            """Vis en melding som overlay i karakterer-fanen."""
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.88, 0.5),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                title,
+                color=RED if is_error else GOLD,
+                size=14, bold=True, h=28))
+
+            scroll = ScrollView()
+            overlay.add_widget(scroll)
+            body = mklbl(msg, color=TXT, size=11, wrap=True)
+            scroll.add_widget(body)
+
+            overlay.add_widget(mkbtn(
+                "OK", self._chars_close_overlay,
+                accent=True, size_hint_y=None, height=dp(44)))
+
+            root = self.tool_area
+            while root.parent and not isinstance(
+                    root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+
+            from kivy.graphics import Color as GCcm, Rectangle as GRcm
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCcm(rgba=[0, 0, 0, 0.6])
+                dr = GRcm(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            dim.bind(on_touch_down=lambda w, t:
+                     self._chars_close_overlay() or True)
+
+            self._chars_dim = dim
+            self._chars_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _chars_close_overlay(self):
+            """Lukk karakterimport-overlay."""
+            ov = getattr(self, '_chars_overlay', None)
+            dm = getattr(self, '_chars_dim', None)
+            if ov and ov.parent:
+                ov.parent.remove_widget(ov)
+            if dm and dm.parent:
+                dm.parent.remove_widget(dm)
+            self._chars_overlay = None
+            self._chars_dim = None
 
         # ---------- INITIATIV-TRACKER (CoC / Pulp Cthulhu) ----------
         def _init_tracker_init(self):
