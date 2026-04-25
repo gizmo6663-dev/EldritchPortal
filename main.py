@@ -2309,18 +2309,20 @@ try:
             scroll.add_widget(g)
             self.tool_area.add_widget(scroll)
 
-        def _view_char(self, idx):
+        def _view_char(self, idx, back_fn=None):
             if idx < 0 or idx >= len(self.chars):
                 return
             ch = self.chars[idx]
             self.tool_area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(6))
             top = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6))
-            top.add_widget(mkbtn("Tilbake", self._show_list, small=True, size_hint_x=0.3))
-            top.add_widget(mkbtn("Rediger", lambda: self._edit_char(idx),
-                                 accent=True, small=True, size_hint_x=0.3))
-            top.add_widget(mkbtn("Slett", lambda: self._del_char(idx),
-                                 danger=True, small=True, size_hint_x=0.3))
+            _back = back_fn if back_fn is not None else self._show_list
+            top.add_widget(mkbtn("Tilbake", _back, small=True, size_hint_x=0.3))
+            if back_fn is None:
+                top.add_widget(mkbtn("Rediger", lambda: self._edit_char(idx),
+                                     accent=True, small=True, size_hint_x=0.3))
+                top.add_widget(mkbtn("Slett", lambda: self._del_char(idx),
+                                     danger=True, small=True, size_hint_x=0.3))
             p.add_widget(top)
             scroll = ScrollView()
             g = GridLayout(cols=1, spacing=dp(4), padding=dp(6), size_hint_y=None)
@@ -3794,7 +3796,7 @@ try:
             """Initialiser scenario-state."""
             if not hasattr(self, '_scen_data'):
                 self._scen_data = None
-                self._scen_view = 'clues'  # clues | timeline | beats | notes
+                self._scen_view = 'clues'  # clues | timeline | beats | notes | pcs
 
         def _scen_load(self):
             """Les scenario.json fra app-private storage."""
@@ -3922,7 +3924,8 @@ try:
             for key, txt in [('clues', 'Ledetråder'),
                              ('timeline', 'Tidslinje'),
                              ('beats', 'Plot'),
-                             ('notes', 'Notater')]:
+                             ('notes', 'Notater'),
+                             ('pcs', 'PCs')]:
                 active = (key == self._scen_view)
                 b = RBtn(
                     text=txt,
@@ -3961,6 +3964,8 @@ try:
                     self._scen_data.get('beats', []),
                     None, 'done',
                     "Ingen plot-punkter.")
+            elif self._scen_view == 'pcs':
+                self._scen_build_pcs(content)
             else:
                 self._scen_build_notes(content)
             p.add_widget(content)
@@ -4417,6 +4422,40 @@ try:
                 return
             self._scen_data['notes'] = self._scen_notes_input.text
             self._scen_save()
+
+        def _scen_build_pcs(self, container):
+            """Bygg liste over PC-karakterer i scenario-visning."""
+            pcs = [(i, ch) for i, ch in enumerate(self.chars)
+                   if ch.get('type', 'PC') == 'PC']
+            if not pcs:
+                container.add_widget(mklbl(
+                    "Ingen PC-karakterer ennå.\n"
+                    "Legg til karakterer under 'Karakterer'.",
+                    color=DIM, size=11, wrap=True))
+                return
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(6), padding=dp(6),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+            for i, ch in pcs:
+                nm = ch.get('name', '?')
+                row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
+                b = mkbtn(
+                    f"[PC]  {_first_last_name(nm)}",
+                    lambda idx=i: self._view_char(
+                        idx, back_fn=lambda: self._scen_switch_view('pcs')),
+                    small=True, size_hint_x=0.72)
+                b.color = GRN
+                b.halign = 'left'
+                row.add_widget(b)
+                row.add_widget(mkbtn(
+                    "Vis",
+                    lambda idx=i: self._view_char(
+                        idx, back_fn=lambda: self._scen_switch_view('pcs')),
+                    accent=True, small=True, size_hint_x=0.28))
+                g.add_widget(row)
+            scroll.add_widget(g)
+            container.add_widget(scroll)
 
         def _scen_confirm_reset(self):
             """Spør om bekreftelse før nullstilling av alle flagg."""
