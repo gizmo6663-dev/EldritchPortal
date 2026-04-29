@@ -1426,6 +1426,8 @@ try:
                             state='down' if active else 'normal',
                             bg_color=BTNH if active else BTN,
                             color=GOLD if active else DIM,
+                            border_color=GOLD if active else GDIM,
+                            border_width=2.5 if active else 1.0,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -1519,9 +1521,13 @@ try:
             if state == 'down':
                 btn.bg_color = BTNH
                 btn.color = GOLD
+                btn.border_color = GOLD
+                btn.border_width = 2.5
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
+                btn.border_color = GDIM
+                btn.border_width = 1.0
 
         def _init(self):
             ensure_dirs()
