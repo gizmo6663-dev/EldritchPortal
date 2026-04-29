@@ -117,21 +117,21 @@ try:
                 log(f"makedirs {d}: {e}")
         log(f"Dirs OK: {os.path.exists(IMG_DIR)}, {os.path.exists(MUSIC_DIR)}")
 
-    # === FARGER – ABYSSAL PURPLE ===
-    BG   = [0.05, 0.03, 0.07, 1]      # dyp lilla-svart bakgrunn
-    BG2  = [0.10, 0.05, 0.12, 1]      # panel
-    INPUT= [0.07, 0.03, 0.09, 1]      # tekstfelt-bakgrunn
-    BTN  = [0.22, 0.10, 0.16, 1]      # knapp (burgunder)
-    BTNH = [0.38, 0.15, 0.22, 1]      # aktiv fane
-    SHAD = [0.02, 0.01, 0.03, 0.6]    # skygge
-    GOLD = [0.95, 0.78, 0.22, 1]      # gylden aksent
-    GDIM = [0.58, 0.45, 0.20, 1]      # dempet gull
-    TXT  = [0.90, 0.85, 0.80, 1]      # lys tekst
-    DIM  = [0.52, 0.38, 0.45, 1]      # dempet tekst (lilla-tone)
-    RED  = [0.75, 0.20, 0.22, 1]      # fare/stopp
-    GRN  = [0.25, 0.58, 0.32, 1]      # OK/PC
-    BLUE = [0.30, 0.40, 0.65, 1]      # info
-    BLK  = [0.0, 0.0, 0.0, 1]         # svart (preview-bg)
+    # === COLORS – Necronomicon Burgundy ===
+    BG   = [0.08, 0.04, 0.06, 1]      # dypt bok-brunt/burgunder
+    BG2  = [0.14, 0.07, 0.10, 1]      # panel-burgunder
+    INPUT= [0.10, 0.05, 0.07, 1]      # text input
+    BTN  = [0.24, 0.11, 0.14, 1]      # knapp (vinrød)
+    BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
+    SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
+    GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
+    GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
+    TXT  = [0.93, 0.86, 0.74, 1]      # pergament-tekst
+    DIM  = [0.58, 0.42, 0.40, 1]      # dempet tekst
+    RED  = [0.78, 0.22, 0.24, 1]
+    GRN  = [0.30, 0.60, 0.34, 1]
+    BLUE = [0.32, 0.40, 0.62, 1]
+    BLK  = [0.0, 0.0, 0.0, 1]
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
