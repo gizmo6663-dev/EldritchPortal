@@ -1433,9 +1433,23 @@ try:
                 self._tabs[key] = b
             main.add_widget(tabs)
 
-            # HOVEDINNHOLD
-            self.content = RBox(bg_color=BG2)
-            main.add_widget(self.content)
+            # HOVEDINNHOLD – med Cthulhu-segl som vannmerke
+            content_wrap = FloatLayout(size_hint=(1, 1))
+            bg_path = os.path.join(_BUNDLE_DIR, 'background.png')
+            if os.path.exists(bg_path):
+                self._content_bg = Image(
+                    source=bg_path,
+                    allow_stretch=True,
+                    keep_ratio=True,
+                    size_hint=(1.1, 1.1),
+                    pos_hint={'center_x': 0.5, 'center_y': 0.4},
+                    opacity=0.18)
+                content_wrap.add_widget(self._content_bg)
+            self.content = RBox(bg_color=[BG2[0], BG2[1], BG2[2], 0.78],
+                                size_hint=(1, 1),
+                                pos_hint={'x': 0, 'y': 0})
+            content_wrap.add_widget(self.content)
+            main.add_widget(content_wrap)
 
             # MINI-PLAYER
             mp = RBox(size_hint_y=None, height=dp(48), spacing=dp(6),
