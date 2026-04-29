@@ -206,14 +206,18 @@ try:
             rectangle: (self.x, self.y, self.width, self.height)
             width: 1.5
 ''')
+    
     class RBtn(Button):
         bg_color = ListProperty(BTN)
         shadow_color = ListProperty(SHAD)
+        border_color = ListProperty(GDIM)
         radius = NumericProperty(dp(14))
 
     class RToggle(ToggleButton):
         bg_color = ListProperty(BTN)
         shadow_color = ListProperty(SHAD)
+        border_color = ListProperty(GDIM)
+        border_width = NumericProperty(1.2)
         radius = NumericProperty(dp(14))
 
     class RBox(BoxLayout):
