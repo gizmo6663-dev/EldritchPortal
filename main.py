@@ -159,6 +159,11 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        Color:
+            rgba: self.border_color
+        Line:
+            rounded_rectangle: (self.x + dp(1), self.y + dp(1), self.width - dp(2), self.height - dp(2), self.radius)
+            width: 1.2
 
 <RToggle>:
     background_normal: ''
@@ -178,6 +183,11 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        Color:
+            rgba: self.border_color
+        Line:
+            rounded_rectangle: (self.x + dp(1), self.y + dp(1), self.width - dp(2), self.height - dp(2), self.radius)
+            width: self.border_width
 
 <RBox>:
     canvas.before:
@@ -196,7 +206,6 @@ try:
             rectangle: (self.x, self.y, self.width, self.height)
             width: 1.5
 ''')
-
     class RBtn(Button):
         bg_color = ListProperty(BTN)
         shadow_color = ListProperty(SHAD)
