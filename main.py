@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.3.3 – Kamp + Lyd + Scenario) ===")
+log("=== APP START (v0.4.0 – Necronomicon) ===")
 
 try:
     from kivy.app import App
@@ -1372,7 +1372,7 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (v0.3.2 Abyssal Purple) ===")
+            log("=== BUILD (v0.4.0 Necronomicon) ===")
             Window.clearcolor = BG
             self.title = "Eldritch Portal"
             self.tracks = []
