@@ -125,13 +125,11 @@ try:
             log(f"Font missing: {path}")
         return False
 
-    # Overskriver Kivy's default 'Roboto'-alias så HELE appen bruker myoldrem
-    _reg_font('Roboto')
     # Registrer splash-fonten under eget alias
+    # (Generell font er Kivy's default Roboto - støtter norske tegn)
     _reg_font('Cthulhumbus', 'JMHCthulhumbusUG.ttf')
 
     FONT_TITLE = 'Cthulhumbus'   # splash-screen
-    FONT_BODY  = 'Roboto'        # alt annet (= myoldrem)
 
     def ensure_dirs():
         """Opprett mapper ETTER tillatelser er gitt."""
