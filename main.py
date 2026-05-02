@@ -109,6 +109,70 @@ try:
     # Favoritter lagres i user_data_dir (app-private, alltid skrivbar).
     # WEAPONS_FAV_FILE settes i build() når user_data_dir er tilgjengelig.
 
+    # === BOUT OF MADNESS – Pulp Cthulhu / CoC 7e ===
+    # Indeks 0 = trill 1 osv. Bytt gjerne ut tekst med formuleringer
+    # rett fra Pulp Cthulhu-boka hvis du ønsker.
+    PULP_MADNESS_RT = [
+        ("Hukommelsestap",
+         "Karakteren mister hukommelsen for de siste hendelsene "
+         "(siste 1d10 minutter)."),
+        ("Psykosomatisk handikap",
+         "Plutselig blind, døv eller lam i 1d10 runder "
+         "(keeper bestemmer)."),
+        ("Vold",
+         "Angriper nærmeste mål — venn eller fiende — i 1d10 runder."),
+        ("Paranoia",
+         "Mistenker alle og alt; ser konspirasjoner overalt "
+         "i 1d10 runder."),
+        ("Betydelig person",
+         "Forveksler en tilstedeværende med en viktig person fra "
+         "fortiden; oppfører seg deretter i 1d10 runder."),
+        ("Besvimelse",
+         "Kollapser bevisstløs av sjokket i 1d10 runder."),
+        ("Flukt",
+         "Flykter i blind panikk vekk fra trusselen i 1d10 runder."),
+        ("Fysisk hysteri",
+         "Gråter, ler eller skriker ukontrollert i 1d10 runder; "
+         "ute av stand til å handle."),
+        ("Fobi",
+         "Utvikler en ny fobi knyttet til kilden av sjokket; "
+         "varer i 1d10 runder."),
+        ("Mani",
+         "Utvikler en ny mani knyttet til kilden av sjokket; "
+         "varer i 1d10 runder."),
+    ]
+
+    PULP_MADNESS_SUM = [
+        ("Hukommelsestap",
+         "Våkner et trygt sted uten minne om hva som hendte de siste "
+         "1d10 timene."),
+        ("Stjålne timer",
+         "Forsvinner i 1d10 dager; ingen — heller ikke karakteren "
+         "selv — vet hvor han har vært."),
+        ("Voldelig adferd",
+         "Begår voldelige handlinger i 1d10 dager; må forklare seg "
+         "for myndighetene etterpå."),
+        ("Paranoia",
+         "Sterk paranoia i 1d10 dager; ser fiender i skygger og "
+         "venner."),
+        ("Betydelig person",
+         "Identifiserer noen som ekstremt betydningsfull og følger "
+         "eller jakter dem i 1d10 dager."),
+        ("Innlagt",
+         "Våkner i et sykehus, asyl eller fengsel uten å vite "
+         "hvordan; 1d10 dagers opphold."),
+        ("Hjemflukt",
+         "Drar instinktivt mot hjemmet eller barndomstedet; reisen "
+         "tar 1d10 dager."),
+        ("Hysteri",
+         "Overveldende emosjonell tilstand i 1d10 dager; må "
+         "stabiliseres av andre."),
+        ("Fobi",
+         "Utvikler en ny vedvarende fobi som varer 1d10 måneder."),
+        ("Mani",
+         "Utvikler en ny vedvarende mani som varer 1d10 måneder."),
+    ]
+
     # === FONTER ===
     _FONT_DIR = os.path.join(_BUNDLE_DIR, 'fonts')
 
@@ -1467,7 +1531,7 @@ try:
                     allow_stretch=True,
                     keep_ratio=True,
                     size_hint=(1.1, 1.1),
-                    pos_hint={'center_x': 0.5, 'center_y': 0.3},
+                    pos_hint={'center_x': 0.5, 'center_y': 0.6},
                     opacity=0.45)
                 content_wrap.add_widget(self._content_bg)
             self.content = RBox(bg_color=[BG2[0], BG2[1], BG2[2], 0.78],
@@ -1605,14 +1669,33 @@ try:
             self._weap_last_error = err
 
         def _tab(self, k):
-            self.content.clear_widgets()
             builders = {
                 'img': self._mk_img, 'snd': self._mk_sound,
                 'cmb': self._mk_combat, 'tool': self._mk_tool,
                 'rules': self._mk_rules, 'cast': self._mk_cast,
             }
-            if k in builders:
-                self.content.add_widget(builders[k]())
+            if k not in builders:
+                return
+
+            def _swap_in(*_a):
+                self.content.clear_widgets()
+                new_w = builders[k]()
+                new_w.opacity = 0
+                self.content.add_widget(new_w)
+                Animation(opacity=1, duration=0.18,
+                          t='out_quad').start(new_w)
+
+            # Første render: ingen fade-out
+            if not self.content.children:
+                _swap_in()
+                return
+
+            # Fade ut nåværende, deretter swap inn nytt
+            cur = self.content.children[0]
+            Animation.cancel_all(cur)
+            fade_out = Animation(opacity=0, duration=0.12, t='in_quad')
+            fade_out.bind(on_complete=_swap_in)
+            fade_out.start(cur)
 
         # ---------- BILDER ----------
         def _mk_img(self):
@@ -2292,6 +2375,15 @@ try:
             self._sub_btn_scen.bind(on_release=lambda b: self._tool_switch('scen'))
             sub_bar.add_widget(self._sub_btn_scen)
 
+            self._sub_btn_mad = RToggle(
+                text='Galskap', group='tool_sub',
+                state='down' if self._tool_sub == 'mad' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'mad' else BTN,
+                color=GOLD if self._tool_sub == 'mad' else DIM,
+                font_size=sp(11), bold=True)
+            self._sub_btn_mad.bind(on_release=lambda b: self._tool_switch('mad'))
+            sub_bar.add_widget(self._sub_btn_mad)
+
             p.add_widget(sub_bar)
 
             # Handlings-rad
@@ -2312,11 +2404,12 @@ try:
             return p
 
         def _tool_switch(self, which):
-            """Bytt mellom karakterer, våpen og scenario."""
+            """Bytt mellom karakterer, våpen, scenario og galskap."""
             self._tool_sub = which
             for key, btn in (('chars', self._sub_btn_chars),
                              ('weap',  self._sub_btn_weap),
-                             ('scen',  self._sub_btn_scen)):
+                             ('scen',  self._sub_btn_scen),
+                             ('mad',   self._sub_btn_mad)):
                 active = (key == which)
                 btn.state    = 'down'   if active else 'normal'
                 btn.bg_color = BTNH     if active else BTN
@@ -2341,8 +2434,68 @@ try:
                 self._show_list()
             elif self._tool_sub == 'scen':
                 self._mk_scenario()
+            elif self._tool_sub == 'mad':
+                self._mk_madness()
             else:
                 self._mk_weapons()
+
+        # ---------- BOUT OF MADNESS ----------
+        def _mk_madness(self):
+            """Bout of Madness sub-tab — to triller (Real-Time / Summary)."""
+            self.tool_area.clear_widgets()
+            wrap = BoxLayout(orientation='vertical', spacing=dp(8),
+                             padding=dp(10))
+
+            wrap.add_widget(mklbl("Bout of Madness", color=GOLD, size=18,
+                                  bold=True, h=34))
+            wrap.add_widget(mklbl("Pulp Cthulhu", color=DIM, size=11, h=18))
+            wrap.add_widget(mksep(8))
+
+            # Trill-knapper
+            row = BoxLayout(size_hint_y=None, height=dp(50), spacing=dp(8))
+            row.add_widget(mkbtn("Real-Time (1d10)",
+                                 lambda: self._roll_madness('rt'),
+                                 accent=True))
+            row.add_widget(mkbtn("Summary (1d10)",
+                                 lambda: self._roll_madness('sum'),
+                                 accent=True))
+            wrap.add_widget(row)
+            wrap.add_widget(mksep(6))
+
+            # Resultat-område (fylles av _roll_madness)
+            self._mad_result = RBox(orientation='vertical',
+                                    bg_color=INPUT, radius=dp(10),
+                                    padding=dp(12), spacing=dp(6))
+            placeholder = mklbl(
+                "Trykk på en knapp for å trille…",
+                color=DIM, size=12, h=30)
+            self._mad_result.add_widget(placeholder)
+            wrap.add_widget(self._mad_result)
+
+            self.tool_area.add_widget(wrap)
+
+        def _roll_madness(self, kind):
+            """Trill 1d10 på riktig tabell og vis resultatet."""
+            table = PULP_MADNESS_RT if kind == 'rt' else PULP_MADNESS_SUM
+            label = "Real-Time" if kind == 'rt' else "Summary"
+            roll = random.randint(1, 10)
+            title, desc = table[roll - 1]
+
+            self._mad_result.clear_widgets()
+            header = mklbl(f"{label}  —  trill: {roll}",
+                           color=DIM, size=11, h=22)
+            self._mad_result.add_widget(header)
+            self._mad_result.add_widget(
+                mklbl(title, color=GOLD, size=18, bold=True, h=30))
+            self._mad_result.add_widget(
+                mklbl(desc, color=TXT, size=13, wrap=True))
+
+            # Trill-igjen knapp
+            again = mkbtn(f"Trill {label} på nytt",
+                          lambda: self._roll_madness(kind),
+                          small=True, size_hint_y=None, height=dp(38))
+            self._mad_result.add_widget(mksep(6))
+            self._mad_result.add_widget(again)
 
         def _show_list(self):
             self.tool_area.clear_widgets()
@@ -3856,7 +4009,10 @@ try:
             """Initialiser scenario-state."""
             if not hasattr(self, '_scen_data'):
                 self._scen_data = None
-                self._scen_view = 'clues'  # clues | timeline | beats | notes | pcs
+                self._scen_view = 'clues'  # clues | timeline | beats | notes | pcs | sessions
+                # Sesjons-modus: 'list' | 'view' | 'edit'
+                self._scen_sess_mode = 'list'
+                self._scen_sess_idx = None  # indeks i sessions-lista
 
         def _scen_load(self):
             """Les scenario.json fra app-private storage."""
@@ -3985,13 +4141,14 @@ try:
                              ('timeline', 'Tidslinje'),
                              ('beats', 'Plot'),
                              ('notes', 'Notater'),
-                             ('pcs', 'PCs')]:
+                             ('pcs', 'PCs'),
+                             ('sessions', 'Sesjoner')]:
                 active = (key == self._scen_view)
                 b = RBtn(
                     text=txt,
                     bg_color=BTNH if active else BTN,
                     color=GOLD if active else TXT,
-                    font_size=sp(11), bold=active,
+                    font_size=sp(10), bold=active,
                     size_hint_y=None, height=dp(36))
                 b.bind(on_release=lambda x, k=key:
                        self._scen_switch_view(k))
@@ -4026,6 +4183,8 @@ try:
                     "Ingen plot-punkter.")
             elif self._scen_view == 'pcs':
                 self._scen_build_pcs(content)
+            elif self._scen_view == 'sessions':
+                self._scen_build_sessions(content)
             else:
                 self._scen_build_notes(content)
             p.add_widget(content)
@@ -4316,6 +4475,10 @@ try:
 
         def _scen_switch_view(self, view):
             self._scen_view = view
+            # Reset til liste-modus når vi bytter til Sesjoner
+            if view == 'sessions':
+                self._scen_sess_mode = 'list'
+                self._scen_sess_idx = None
             self._tool_render_sub()
 
         def _scen_build_list(self, container, items,
@@ -4516,6 +4679,416 @@ try:
                 g.add_widget(row)
             scroll.add_widget(g)
             container.add_widget(scroll)
+
+        # ---------- SESJONSJOURNAL ----------
+        def _scen_build_sessions(self, container):
+            """Bygg sesjonsjournal-visning. Tre moduser: list, view, edit."""
+            mode = getattr(self, '_scen_sess_mode', 'list')
+            if mode == 'edit':
+                self._scen_sessions_edit(container)
+            elif mode == 'view':
+                self._scen_sessions_view(container)
+            else:
+                self._scen_sessions_list(container)
+
+        def _scen_sessions_list(self, container):
+            """Liste over alle sesjoner i aktivt scenario."""
+            sessions = self._scen_data.get('sessions', [])
+
+            wrap = BoxLayout(orientation='vertical',
+                             spacing=dp(6), padding=dp(4))
+
+            # Handlings-rad
+            row = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
+            row.add_widget(mkbtn(
+                "+ Ny sesjon", self._scen_session_new,
+                accent=True, size_hint_x=0.4))
+            if sessions:
+                row.add_widget(mkbtn(
+                    "Eksporter til tekst",
+                    self._scen_session_export,
+                    small=True, size_hint_x=0.6))
+            wrap.add_widget(row)
+
+            if not sessions:
+                wrap.add_widget(mklbl(
+                    "Ingen sesjoner ennå.\n"
+                    "Trykk '+ Ny sesjon' for å logge første økt.",
+                    color=DIM, size=12, wrap=True))
+                container.add_widget(wrap)
+                return
+
+            # Sesjons-liste
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(6), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+            for i, s in enumerate(sessions):
+                num = s.get('num', i + 1)
+                date = s.get('date', '?')
+                title = s.get('title', '').strip() or '(uten tittel)'
+                btn_txt = f"S{num}  •  {date}  •  {title}"
+                rrow = BoxLayout(size_hint_y=None, height=dp(46),
+                                 spacing=dp(6))
+                b = mkbtn(btn_txt,
+                          lambda idx=i: self._scen_session_open(idx),
+                          small=True, size_hint_x=0.78)
+                b.color = TXT
+                b.halign = 'left'
+                rrow.add_widget(b)
+                rrow.add_widget(mkbtn(
+                    "Slett",
+                    lambda idx=i: self._scen_session_confirm_delete(idx),
+                    danger=True, small=True, size_hint_x=0.22))
+                g.add_widget(rrow)
+            scroll.add_widget(g)
+            wrap.add_widget(scroll)
+            container.add_widget(wrap)
+
+        def _scen_sessions_view(self, container):
+            """Detaljvisning av én sesjon (read-only)."""
+            sessions = self._scen_data.get('sessions', [])
+            idx = self._scen_sess_idx
+            if idx is None or idx < 0 or idx >= len(sessions):
+                self._scen_sess_mode = 'list'
+                self._scen_sessions_list(container)
+                return
+            s = sessions[idx]
+
+            wrap = BoxLayout(orientation='vertical',
+                             spacing=dp(6), padding=dp(4))
+
+            # Topp-rad
+            top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            top.add_widget(mkbtn(
+                "< Tilbake", self._scen_session_back,
+                small=True, size_hint_x=0.32))
+            top.add_widget(mkbtn(
+                "Rediger",
+                lambda: self._scen_session_edit(idx),
+                accent=True, small=True, size_hint_x=0.34))
+            top.add_widget(mkbtn(
+                "Slett",
+                lambda: self._scen_session_confirm_delete(idx),
+                danger=True, small=True, size_hint_x=0.34))
+            wrap.add_widget(top)
+
+            # Header
+            num = s.get('num', idx + 1)
+            wrap.add_widget(mklbl(
+                f"Sesjon {num}", color=GOLD, size=18,
+                bold=True, h=30))
+            wrap.add_widget(mklbl(
+                f"Dato: {s.get('date', '?')}", color=DIM, size=11, h=18))
+            t = s.get('title', '').strip()
+            if t:
+                wrap.add_widget(mklbl(
+                    t, color=TXT, size=14, bold=True, wrap=True))
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(8), padding=dp(6),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            for key, label in [
+                ('players',     'Deltakere'),
+                ('summary',     'Sammendrag'),
+                ('clues_found', 'Ledetråder funnet'),
+                ('sanity',      'Sanity-tap'),
+                ('rolls',       'XP / Forbedringssjekker'),
+                ('cliffhanger', 'Cliffhanger / til neste gang'),
+            ]:
+                v = s.get(key, '').strip()
+                if not v:
+                    continue
+                g.add_widget(mklbl(
+                    label.upper(), color=GOLD, size=11,
+                    bold=True, h=20))
+                g.add_widget(mklbl(
+                    v, color=TXT, size=12, wrap=True))
+                g.add_widget(mksep(2))
+
+            scroll.add_widget(g)
+            wrap.add_widget(scroll)
+            container.add_widget(wrap)
+
+        def _scen_sessions_edit(self, container):
+            """Rediger eller opprett sesjon."""
+            sessions = self._scen_data.get('sessions', [])
+            idx = self._scen_sess_idx
+            is_new = (idx is None)
+            if is_new:
+                num = (max((s.get('num', 0) for s in sessions),
+                           default=0) + 1)
+                from datetime import date as _date_cls
+                s = {
+                    'num': num,
+                    'date': _date_cls.today().isoformat(),
+                    'title': '', 'players': '', 'summary': '',
+                    'clues_found': '', 'sanity': '',
+                    'rolls': '', 'cliffhanger': '',
+                }
+            else:
+                s = dict(sessions[idx])
+
+            wrap = BoxLayout(orientation='vertical',
+                             spacing=dp(4), padding=dp(4))
+
+            top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            top.add_widget(mkbtn(
+                "Avbryt", self._scen_session_back,
+                small=True, size_hint_x=0.4))
+            top.add_widget(mkbtn(
+                "Lagre",
+                lambda: self._scen_session_save(is_new),
+                accent=True, small=True, size_hint_x=0.6))
+            wrap.add_widget(top)
+
+            wrap.add_widget(mklbl(
+                f"Sesjon {s['num']}",
+                color=GOLD, size=16, bold=True, h=28))
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(8), padding=dp(6),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+
+            self._scen_sess_inputs = {}
+
+            def _add_field(key, label, multiline=False, h=None):
+                g.add_widget(mklbl(
+                    label, color=GOLD, size=11, bold=True, h=20))
+                ti = TextInput(
+                    text=s.get(key, ''),
+                    multiline=multiline,
+                    background_color=INPUT, foreground_color=TXT,
+                    cursor_color=GOLD, font_size=sp(12),
+                    padding=[dp(8), dp(8)],
+                    size_hint_y=None,
+                    height=dp(h if h else (140 if multiline else 44)))
+                g.add_widget(ti)
+                self._scen_sess_inputs[key] = ti
+
+            _add_field('date',        'Dato (YYYY-MM-DD)', False, 44)
+            _add_field('title',       'Tittel',            False, 44)
+            _add_field('players',     'Deltakere',         False, 44)
+            _add_field('summary',     'Sammendrag',        True, 180)
+            _add_field('clues_found', 'Ledetråder funnet', True, 120)
+            _add_field('sanity',      'Sanity-tap',        True, 100)
+            _add_field('rolls',       'XP / Forbedringssjekker',
+                                                           True, 100)
+            _add_field('cliffhanger', 'Cliffhanger / til neste gang',
+                                                           True, 100)
+
+            scroll.add_widget(g)
+            wrap.add_widget(scroll)
+            container.add_widget(wrap)
+
+            self._scen_sess_pending_num = s['num']
+
+        # ---- Sesjons-handlinger ----
+        def _scen_session_new(self):
+            self._scen_sess_mode = 'edit'
+            self._scen_sess_idx = None
+            self._tool_render_sub()
+
+        def _scen_session_open(self, idx):
+            self._scen_sess_mode = 'view'
+            self._scen_sess_idx = idx
+            self._tool_render_sub()
+
+        def _scen_session_edit(self, idx):
+            self._scen_sess_mode = 'edit'
+            self._scen_sess_idx = idx
+            self._tool_render_sub()
+
+        def _scen_session_back(self):
+            self._scen_sess_mode = 'list'
+            self._scen_sess_idx = None
+            self._tool_render_sub()
+
+        def _scen_session_save(self, is_new):
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            inputs = getattr(self, '_scen_sess_inputs', {})
+            if not inputs:
+                return
+            new_data = {
+                'num':         self._scen_sess_pending_num,
+                'date':        inputs['date'].text.strip(),
+                'title':       inputs['title'].text.strip(),
+                'players':     inputs['players'].text.strip(),
+                'summary':     inputs['summary'].text.strip(),
+                'clues_found': inputs['clues_found'].text.strip(),
+                'sanity':      inputs['sanity'].text.strip(),
+                'rolls':       inputs['rolls'].text.strip(),
+                'cliffhanger': inputs['cliffhanger'].text.strip(),
+            }
+            if 'sessions' not in self._scen_data:
+                self._scen_data['sessions'] = []
+            if is_new:
+                self._scen_data['sessions'].append(new_data)
+                self._scen_sess_idx = len(
+                    self._scen_data['sessions']) - 1
+            else:
+                idx = self._scen_sess_idx
+                if idx is not None and 0 <= idx < len(
+                        self._scen_data['sessions']):
+                    self._scen_data['sessions'][idx] = new_data
+            self._scen_save()
+            self._scen_sess_mode = 'view'
+            self._tool_render_sub()
+
+        def _scen_session_confirm_delete(self, idx):
+            """Bekreft sletting av sesjon (overlay)."""
+            sessions = self._scen_data.get('sessions', [])
+            if idx < 0 or idx >= len(sessions):
+                return
+            s = sessions[idx]
+            num = s.get('num', idx + 1)
+            title = s.get('title', '').strip() or '(uten tittel)'
+
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.8, 0.4),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                "Slette sesjon?",
+                color=GOLD, size=14, bold=True, h=28))
+            overlay.add_widget(mklbl(
+                f"S{num} — {title}\n\nDette kan ikke angres.",
+                color=TXT, size=11, wrap=True))
+            btns = BoxLayout(size_hint_y=None, height=dp(44),
+                             spacing=dp(6))
+            btns.add_widget(mkbtn(
+                "Avbryt", self._scen_close_overlay,
+                small=True, size_hint_x=0.5))
+            btns.add_widget(mkbtn(
+                "Slett",
+                lambda: self._scen_session_do_delete(idx),
+                danger=True, size_hint_x=0.5))
+            overlay.add_widget(btns)
+
+            root = self.tool_area
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+            from kivy.graphics import Color as GCs, Rectangle as GRs
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCs(rgba=[0, 0, 0, 0.6])
+                dr = GRs(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _scen_session_do_delete(self, idx):
+            sessions = self._scen_data.get('sessions', [])
+            if 0 <= idx < len(sessions):
+                sessions.pop(idx)
+                self._scen_save()
+            self._scen_close_overlay()
+            self._scen_sess_mode = 'list'
+            self._scen_sess_idx = None
+            self._tool_render_sub()
+
+        def _scen_session_export(self):
+            """Eksporter alle sesjoner til pen tekstfil i Documents."""
+            if not self._scen_data:
+                return
+            sessions = self._scen_data.get('sessions', [])
+            if not sessions:
+                return
+            scen_title = self._scen_data.get('title', 'scenario')
+            safe = ''.join(c if c.isalnum() or c in (' ', '-', '_')
+                           else '_' for c in scen_title).strip()
+            safe = safe.replace(' ', '_') or 'scenario'
+            out_path = os.path.join(BASE_DIR,
+                                    f"sesjoner_{safe}.txt")
+
+            lines = []
+            lines.append("=" * 60)
+            lines.append(f"SESJONSJOURNAL — {scen_title}")
+            sys_txt = self._scen_data.get('system', '')
+            if sys_txt:
+                lines.append(f"System: {sys_txt}")
+            lines.append("=" * 60)
+            lines.append("")
+
+            for s in sessions:
+                num = s.get('num', '?')
+                date = s.get('date', '?')
+                title = s.get('title', '').strip() or '(uten tittel)'
+                lines.append("-" * 60)
+                lines.append(f"SESJON {num}  —  {date}  —  {title}")
+                lines.append("-" * 60)
+
+                for key, label in [
+                    ('players',     'Deltakere'),
+                    ('summary',     'Sammendrag'),
+                    ('clues_found', 'Ledetråder funnet'),
+                    ('sanity',      'Sanity-tap'),
+                    ('rolls',       'XP / Forbedringssjekker'),
+                    ('cliffhanger', 'Cliffhanger / til neste gang'),
+                ]:
+                    v = s.get(key, '').strip()
+                    if not v:
+                        continue
+                    lines.append("")
+                    lines.append(f"{label.upper()}:")
+                    lines.append(v)
+                lines.append("")
+
+            try:
+                os.makedirs(BASE_DIR, exist_ok=True)
+                with open(out_path, 'w', encoding='utf-8') as f:
+                    f.write("\n".join(lines))
+                msg = f"Eksportert til:\n{out_path}"
+                log(f"Sesjons-eksport OK: {out_path}")
+            except Exception as e:
+                msg = f"Eksport feilet:\n{type(e).__name__}: {e}"
+                log(f"Sesjons-eksport feilet: {e}")
+
+            # Vis bekreftelse som overlay
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.85, 0.35),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                "Eksport", color=GOLD, size=14, bold=True, h=28))
+            overlay.add_widget(mklbl(msg, color=TXT, size=11, wrap=True))
+            btns = BoxLayout(size_hint_y=None, height=dp(44))
+            btns.add_widget(mkbtn(
+                "OK", self._scen_close_overlay,
+                accent=True))
+            overlay.add_widget(btns)
+
+            root = self.tool_area
+            while root.parent and not isinstance(root.parent, FloatLayout):
+                root = root.parent
+            if not isinstance(root.parent, FloatLayout):
+                return
+            fl = root.parent
+            from kivy.graphics import Color as GCe, Rectangle as GRe
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCe(rgba=[0, 0, 0, 0.6])
+                dr = GRe(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
 
         def _scen_confirm_reset(self):
             """Spør om bekreftelse før nullstilling av alle flagg."""
