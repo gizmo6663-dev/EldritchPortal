@@ -126,7 +126,7 @@ try:
         return False
 
     # Overskriver Kivy's default 'Roboto'-alias så HELE appen bruker myoldrem
-    _reg_font('Roboto',      'myoldrem.ttf')
+    _reg_font('Roboto')
     # Registrer splash-fonten under eget alias
     _reg_font('Cthulhumbus', 'JMHCthulhumbusUG.ttf')
 
