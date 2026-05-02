@@ -60,6 +60,7 @@ try:
     from kivy.animation import Animation
     from kivy.properties import ListProperty, NumericProperty
     from kivy.lang import Builder
+    from kivy.core.text import LabelBase
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -107,6 +108,30 @@ try:
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
     # Favoritter lagres i user_data_dir (app-private, alltid skrivbar).
     # WEAPONS_FAV_FILE settes i build() når user_data_dir er tilgjengelig.
+
+    # === FONTER ===
+    _FONT_DIR = os.path.join(_BUNDLE_DIR, 'fonts')
+
+    def _reg_font(alias, filename):
+        path = os.path.join(_FONT_DIR, filename)
+        if os.path.exists(path):
+            try:
+                LabelBase.register(name=alias, fn_regular=path)
+                log(f"Font registered: {alias} -> {filename}")
+                return True
+            except Exception as e:
+                log(f"Font failed: {alias} -> {e}")
+        else:
+            log(f"Font missing: {path}")
+        return False
+
+    # Overskriver Kivy's default 'Roboto'-alias så HELE appen bruker myoldrem
+    _reg_font('Roboto',      'myoldrem.ttf')
+    # Registrer splash-fonten under eget alias
+    _reg_font('Cthulhumbus', 'JMHCthulhumbusUG.ttf')
+
+    FONT_TITLE = 'Cthulhumbus'   # splash-screen
+    FONT_BODY  = 'Roboto'        # alt annet (= myoldrem)
 
     def ensure_dirs():
         """Opprett mapper ETTER tillatelser er gitt."""
@@ -1481,13 +1506,17 @@ try:
                                pos_hint={'x': 0, 'y': 0})
             # Sentrert innhold
             self.splash.add_widget(Widget())  # fyll topp
-            t1 = Label(text="ELDRITCH", font_size=sp(42), color=GOLD,
-                       bold=True, size_hint_y=None, height=dp(60),
+            t1 = Label(text="ELDRITCH", font_size=sp(54),
+                       font_name=FONT_TITLE,
+                       color=GOLD,
+                       size_hint_y=None, height=dp(72),
                        halign='center')
             t1.bind(size=t1.setter('text_size'))
             self.splash.add_widget(t1)
-            t2 = Label(text="PORTAL", font_size=sp(42), color=GDIM,
-                       bold=True, size_hint_y=None, height=dp(60),
+            t2 = Label(text="PORTAL", font_size=sp(54),
+                       font_name=FONT_TITLE,
+                       color=GDIM,
+                       size_hint_y=None, height=dp(72),
                        halign='center')
             t2.bind(size=t2.setter('text_size'))
             self.splash.add_widget(t2)
