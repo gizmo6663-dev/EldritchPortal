@@ -1461,6 +1461,8 @@ try:
         def build(self):
             log("=== BUILD (v0.4.0 Necronomicon) ===")
             Window.clearcolor = BG
+            # Skroll innholdet opp så tastaturet ikke dekker aktivt input
+            Window.softinput_mode = 'below_target'
             self.title = "Eldritch Portal"
             self.tracks = []
             self.ct = -1
@@ -1531,7 +1533,7 @@ try:
                     allow_stretch=True,
                     keep_ratio=True,
                     size_hint=(1.1, 1.1),
-                    pos_hint={'center_x': 0.5, 'center_y': 0.3},
+                    pos_hint={'center_x': 0.5, 'center_y': 0.6},
                     opacity=0.45)
                 content_wrap.add_widget(self._content_bg)
             self.content = RBox(bg_color=[BG2[0], BG2[1], BG2[2], 0.78],
@@ -2587,17 +2589,39 @@ try:
                     derived_row.add_widget(framed)
                 g.add_widget(derived_row)
             sk = ch.get('skills', {})
-            if sk and isinstance(sk, dict):
-                g.add_widget(mksep(4))
-                g.add_widget(mklbl("FERDIGHETER", color=GOLD, size=13, bold=True, h=24))
-                for sn in sorted(sk.keys()):
-                    sv = sk[sn]
-                    if sv:
-                        sk_txt = f"{sn}: {sv}"
-                        framed = FramedBox(orientation='horizontal', size_hint_y=None, 
-                                         height=dp(34), padding=dp(4), spacing=dp(4))
-                        framed.add_widget(mklbl(sk_txt, color=TXT, size=12, wrap=True))
-                        g.add_widget(framed)
+            if not isinstance(sk, dict):
+                sk = {}
+            g.add_widget(mksep(4))
+            g.add_widget(mklbl("FERDIGHETER", color=GOLD, size=13,
+                               bold=True, h=24))
+            # 3-kolonners grid for skills
+            sk_grid = GridLayout(cols=3, spacing=dp(4),
+                                 size_hint_y=None)
+            sk_grid.bind(minimum_height=sk_grid.setter('height'))
+            for sname, sdefault in SKILLS:
+                is_spec = sname.endswith(':')
+                user_val = str(sk.get(sname, '')).strip()
+                # Spec-skills hoppes over hvis brukeren ikke har spesifisert
+                if is_spec and not user_val:
+                    continue
+                if is_spec:
+                    sk_txt = f"{sname} {user_val}"
+                    color = TXT
+                elif user_val:
+                    sk_txt = f"{sname}: {user_val}"
+                    color = TXT
+                else:
+                    # Default-verdi (ikke endret av brukeren)
+                    display_val = sdefault if sdefault else '—'
+                    sk_txt = f"{sname}: {display_val}"
+                    color = DIM
+                framed = FramedBox(orientation='horizontal',
+                                   size_hint_y=None, height=dp(40),
+                                   padding=dp(4), spacing=dp(4))
+                framed.add_widget(mklbl(sk_txt, color=color,
+                                        size=10, wrap=True))
+                sk_grid.add_widget(framed)
+            g.add_widget(sk_grid)
             for key, lbl in CHAR_TEXT:
                 v = ch.get(key, '')
                 if v:
@@ -2704,32 +2728,86 @@ try:
             top.add_widget(mkbtn("Tilbake", lambda: self._edit_char(idx),
                                  small=True, size_hint_x=0.5))
             p.add_widget(top)
-            p.add_widget(mklbl(f"Skills: {ch.get('name', '?')}", color=GOLD, size=13, bold=True, h=26))
+            p.add_widget(mklbl(f"Skills: {ch.get('name', '?')}",
+                               color=GOLD, size=13, bold=True, h=26))
             scroll = ScrollView()
-            g = GridLayout(cols=1, spacing=dp(4), padding=dp(4), size_hint_y=None)
-            g.bind(minimum_height=g.setter('height'))
+            outer = GridLayout(cols=1, spacing=dp(6), padding=dp(4),
+                               size_hint_y=None)
+            outer.bind(minimum_height=outer.setter('height'))
+
             self._sk_inputs = {}
+
+            # Vanlige skills i 3-kolonners grid
+            sk_grid = GridLayout(cols=3, spacing=dp(6),
+                                 size_hint_y=None)
+            sk_grid.bind(minimum_height=sk_grid.setter('height'))
+
+            # Spec-skills (de som ender med ':') i egen seksjon
+            spec_rows = []
+
             for sname, sdefault in SKILLS:
-                row = BoxLayout(size_hint_y=None, height=dp(34), spacing=dp(6))
                 is_spec = sname.endswith(':')
                 if is_spec:
-                    row.add_widget(Label(text=sname, font_size=sp(10), color=GDIM,
-                                         size_hint_x=0.35, halign='right'))
-                    w = TextInput(text=str(sk.get(sname, '')), hint_text="Spesifiser + verdi",
-                                  font_size=sp(11), multiline=False, background_color=BTN,
-                                  foreground_color=TXT, size_hint_x=0.65, padding=[dp(6), dp(4)])
+                    row = BoxLayout(size_hint_y=None, height=dp(34),
+                                    spacing=dp(6))
+                    row.add_widget(Label(text=sname, font_size=sp(10),
+                                         color=GDIM, size_hint_x=0.35,
+                                         halign='right'))
+                    w = TextInput(text=str(sk.get(sname, '')),
+                                  hint_text="Spesifiser + verdi",
+                                  font_size=sp(11), multiline=False,
+                                  background_color=BTN, foreground_color=TXT,
+                                  size_hint_x=0.65, padding=[dp(6), dp(4)])
+                    row.add_widget(w)
                     self._sk_inputs[sname] = w
+                    spec_rows.append(row)
                 else:
-                    row.add_widget(Label(text=f"{sname} ({sdefault})", font_size=sp(10),
-                                         color=DIM, size_hint_x=0.65, halign='left'))
-                    w = TextInput(text=str(sk.get(sname, '')), hint_text=sdefault,
-                                  font_size=sp(12), multiline=False, background_color=BTN,
-                                  foreground_color=TXT, size_hint_x=0.35,
-                                  padding=[dp(6), dp(4)], input_filter='int')
+                    # Vertikal celle: navn (default) over input
+                    cell = BoxLayout(orientation='vertical',
+                                     size_hint_y=None, height=dp(64),
+                                     spacing=dp(2), padding=[0, dp(2)])
+                    name_lbl = Label(text=sname, font_size=sp(10),
+                                     color=DIM, size_hint_y=None,
+                                     height=dp(18), halign='center',
+                                     shorten=True, shorten_from='right')
+                    name_lbl.bind(size=lambda w, v:
+                                  setattr(w, 'text_size', (v[0], None)))
+                    cell.add_widget(name_lbl)
+                    def_lbl = Label(text=f"({sdefault})", font_size=sp(9),
+                                    color=GDIM, size_hint_y=None,
+                                    height=dp(14), halign='center')
+                    def_lbl.bind(size=lambda w, v:
+                                 setattr(w, 'text_size', (v[0], None)))
+                    cell.add_widget(def_lbl)
+                    w = TextInput(text=str(sk.get(sname, '')),
+                                  hint_text=sdefault,
+                                  font_size=sp(12), multiline=False,
+                                  background_color=BTN,
+                                  foreground_color=TXT,
+                                  padding=[dp(6), dp(4)],
+                                  input_filter='int',
+                                  size_hint_y=None, height=dp(30))
+                    cell.add_widget(w)
                     self._sk_inputs[sname] = w
-                row.add_widget(w)
-                g.add_widget(row)
-            scroll.add_widget(g)
+                    sk_grid.add_widget(cell)
+
+            outer.add_widget(sk_grid)
+
+            if spec_rows:
+                outer.add_widget(mksep(8))
+                outer.add_widget(mklbl("Spesifiserte ferdigheter:",
+                                       color=GOLD, size=11, bold=True, h=22))
+                spec_grid = GridLayout(cols=1, spacing=dp(4),
+                                       size_hint_y=None)
+                spec_grid.bind(minimum_height=spec_grid.setter('height'))
+                for r in spec_rows:
+                    spec_grid.add_widget(r)
+                outer.add_widget(spec_grid)
+
+            # Litt ekstra plass under så tastaturet kan skroll opp
+            outer.add_widget(Widget(size_hint_y=None, height=dp(80)))
+
+            scroll.add_widget(outer)
             p.add_widget(scroll)
             self.tool_area.add_widget(p)
 
