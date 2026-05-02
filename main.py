@@ -1834,6 +1834,7 @@ try:
                 font_size=sp(12), bold=True)
             b_init.bind(on_release=lambda b: self._cmb_switch('init'))
             sub_bar.add_widget(b_init)
+            self._cmb_btn_init = b_init
 
             b_map = RToggle(
                 text='Kart', group='cmb_sub',
@@ -1843,6 +1844,7 @@ try:
                 font_size=sp(12), bold=True)
             b_map.bind(on_release=lambda b: self._cmb_switch('map'))
             sub_bar.add_widget(b_map)
+            self._cmb_btn_map = b_map
 
             p.add_widget(sub_bar)
 
@@ -1856,6 +1858,12 @@ try:
 
         def _cmb_switch(self, which):
             self._cmb_sub = which
+            for key, btn in (('init', self._cmb_btn_init),
+                             ('map',  self._cmb_btn_map)):
+                active = (key == which)
+                btn.state    = 'down' if active else 'normal'
+                btn.bg_color = BTNH   if active else BTN
+                btn.color    = GOLD   if active else DIM
             self._cmb_render()
 
         def _cmb_render(self):
@@ -1960,6 +1968,7 @@ try:
                 font_size=sp(12), bold=True)
             b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
             sub_bar.add_widget(b_mus)
+            self._snd_btn_mus = b_mus
 
             b_amb = RToggle(
                 text='Ambient', group='sound_sub',
@@ -1969,6 +1978,7 @@ try:
                 font_size=sp(12), bold=True)
             b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
             sub_bar.add_widget(b_amb)
+            self._snd_btn_amb = b_amb
 
             p.add_widget(sub_bar)
 
@@ -1981,6 +1991,12 @@ try:
 
         def _sound_switch(self, which):
             self._sound_sub = which
+            for key, btn in (('mus', self._snd_btn_mus),
+                             ('amb', self._snd_btn_amb)):
+                active = (key == which)
+                btn.state    = 'down' if active else 'normal'
+                btn.bg_color = BTNH   if active else BTN
+                btn.color    = GOLD   if active else DIM
             self._sound_render()
 
         def _sound_render(self):
