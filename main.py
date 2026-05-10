@@ -224,7 +224,8 @@ try:
     SPLASH_IMG_POS_HINT = {'center_x': 0.5, 'y': 0.06}
     SPLASH_IMG_OPACITY = 0.65
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
-    SPLASH_TEXT_POS_HINT = {'x': 0, 'top': 0.82}
+    SPLASH_TEXT_TOP = 0.82
+    SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
