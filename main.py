@@ -106,7 +106,6 @@ try:
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
     BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
     UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bgtb.png")
-    UI_BG_TEXTURE_BUTTON_PATH = UI_BG_TEXTURE_PATH
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
@@ -287,7 +286,7 @@ try:
                 try:
                     tex = CoreImage(UI_BG_TEXTURE_PATH).texture
                 except Exception as e:
-                    log(f"UI bg texture load failed for {UI_BG_TEXTURE_PATH}: {e}; falling back to flat widget fills")
+                    log(f"UI bg texture load failed for {UI_BG_TEXTURE_PATH}: {e}; widgets will render without the texture layer")
             _GRADIENT_CACHE[key] = tex
         return _GRADIENT_CACHE[key]
 
@@ -4012,8 +4011,8 @@ try:
                 for x in range(self.BM_SIZE):
                     btn = Button(
                         text='',
-                        background_normal=UI_BG_TEXTURE_BUTTON_PATH,
-                        background_down=UI_BG_TEXTURE_BUTTON_PATH,
+                        background_normal=UI_BG_TEXTURE_PATH,
+                        background_down=UI_BG_TEXTURE_PATH,
                         background_color=BG2,
                         font_size=sp(9),
                         bold=True,
