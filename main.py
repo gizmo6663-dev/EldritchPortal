@@ -245,7 +245,7 @@ try:
         tex = Texture.create(size=(1, height), colorfmt='rgba')
         buf = bytearray()
         for y in range(height):
-            t = y / float(max(1, height - 1))
+            t = y / float(height - 1)
             r = rgb_bot[0] + (rgb_top[0] - rgb_bot[0]) * t
             g = rgb_bot[1] + (rgb_top[1] - rgb_bot[1]) * t
             b = rgb_bot[2] + (rgb_top[2] - rgb_bot[2]) * t
@@ -258,6 +258,7 @@ try:
             ))
         tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
         tex.wrap = 'clamp_to_edge'
+        # Flip vertically so the stronger alpha stays closest to the widget.
         tex.uvsize = (1, -1)
         return tex
 
@@ -1888,7 +1889,7 @@ try:
         def _mk_img(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
             preview_box = PreviewFrame(size_hint_y=0.4, bg_color=BLK,
-                                       radius=dp(18), padding=dp(10))
+                                       padding=dp(10))
             self.preview = Image(allow_stretch=True, keep_ratio=True,
                                  color=[1, 1, 1, 0] if not self.sel_img else [1, 1, 1, 1])
             if self.sel_img:
