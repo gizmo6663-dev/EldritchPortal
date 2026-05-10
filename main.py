@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.1 – Necronomicon, UI-rens) ===")
+log("=== APP START (v0.4.2 – Necronomicon, fane-glow + animasjon) ===")
 
 try:
     from kivy.app import App
@@ -323,6 +323,50 @@ try:
             _GRADIENT_CACHE[key] = make_diag_shadow_tex(width=96, height=96)
         return _GRADIENT_CACHE[key]
 
+    def make_glow_bar_tex(rgb, width=256, height=12):
+        """En horisontal lys-stripe med myk falloff på begge akser.
+        Brukt som indikator for aktive faner — ser ut som et lysskjær
+        i stedet for en hard stripe.
+
+        - rgb: 3-tuple (r, g, b) 0..1 (alpha bygges fra falloff).
+        - Horisontal: sterk fade på begge ender (~sin^1.35).
+        - Vertikal: bred lys-kjerne med litt mykere topp/bunn (~sin^0.45).
+        """
+        import math
+        width = max(2, int(width))
+        height = max(2, int(height))
+        tex = Texture.create(size=(width, height), colorfmt='rgba')
+        buf = bytearray()
+        r255 = int(max(0, min(255, round(rgb[0] * 255))))
+        g255 = int(max(0, min(255, round(rgb[1] * 255))))
+        b255 = int(max(0, min(255, round(rgb[2] * 255))))
+        for y in range(height):
+            yn = y / float(height - 1)
+            v_factor = math.sin(math.pi * yn) ** 0.45
+            for x in range(width):
+                xn = x / float(width - 1)
+                h_factor = math.sin(math.pi * xn) ** 1.35
+                a = h_factor * v_factor
+                buf.extend((
+                    r255, g255, b255,
+                    int(max(0, min(255, round(a * 255)))),
+                ))
+        tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
+        tex.wrap = 'clamp_to_edge'
+        return tex
+
+    def get_glow_bar_tex():
+        key = 'glow_bar'
+        if key not in _GRADIENT_CACHE:
+            # Varm, blek gull — lysere enn GOLD selv så det føles
+            # som lys, ikke metall.
+            _GRADIENT_CACHE[key] = make_glow_bar_tex(
+                (1.0, 0.95, 0.78),
+                width=256,
+                height=12,
+            )
+        return _GRADIENT_CACHE[key]
+
     def get_gold_bar_tex():
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
@@ -464,13 +508,15 @@ try:
         Line:
             rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1.6))
             width: self.border_width
-        # Tab-indikator: ren gullstripe i bunn — KUN ved aktiv tab
+        # Tab-indikator: lysskjær i bunn — KUN ved aktiv tab.
+        # Bruker en RGBA-tekstur med horisontal + vertikal alpha-fade
+        # så den ser ut som et lys snarere enn en hard stripe.
         Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], 1.0 if self.state == 'down' else 0.0
-        RoundedRectangle:
-            pos: self.x + dp(14), self.y + dp(5)
-            size: self.width - dp(28), dp(3)
-            radius: [dp(1.5)]
+            rgba: 1, 1, 1, 1.0 if self.state == 'down' else 0.0
+        Rectangle:
+            texture: self.glow_tex
+            pos: self.x + dp(6), self.y + dp(2)
+            size: self.width - dp(12), dp(8)
 
 <RBox>:
     canvas.before:
@@ -596,6 +642,7 @@ try:
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
         accent_tex = ObjectProperty(None, allownone=True)
+        glow_tex = ObjectProperty(None, allownone=True)
 
         def _get_shadow_dx(self):
             return dp(5) if self.state == 'down' else dp(6)
@@ -622,6 +669,7 @@ try:
             self.shadow_tex = get_drop_shadow_tex()
             self.bg_tex = get_ui_bg_tex()
             self.accent_tex = get_gold_bar_tex()
+            self.glow_tex = get_glow_bar_tex()
 
     class RBox(BoxLayout):
         bg_color = ListProperty(BG2)
@@ -1934,9 +1982,26 @@ try:
                              size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
             main.add_widget(Widget(size_hint_y=None, height=dp(10)))
 
-            # FANER
-            tabs = RBox(size_hint_y=None, height=dp(60), spacing=dp(4),
-                        padding=[dp(8), dp(4)], bg_color=BTN)
+            # === TAB-PANEL ===
+            # Et samlet panel for hovedfaner + sub-faner. Når man bytter
+            # til en fane med sub-faner (Lyd/Kamp/Verktøy) utvides
+            # panelet nedover for å gi plass til sub-faner. Når man
+            # bytter til en fane uten sub-faner, kollapser det igjen.
+            self.tab_panel = RBox(
+                orientation='vertical',
+                size_hint_y=None,
+                height=dp(60),
+                spacing=dp(4),
+                padding=[dp(8), dp(4)],
+                bg_color=BTN)
+
+            # Hovedfane-rad
+            main_tab_row = BoxLayout(
+                orientation='horizontal',
+                size_hint_y=None,
+                height=dp(52),
+                spacing=dp(4))
+
             self._tabs = {}
             min_cutout_gap = dp(72)
             max_cutout_gap = dp(108)
@@ -1956,7 +2021,8 @@ try:
             ]
             for spec in tab_specs:
                 if spec is None:
-                    tabs.add_widget(Widget(size_hint_x=None, width=cutout_gap))
+                    main_tab_row.add_widget(
+                        Widget(size_hint_x=None, width=cutout_gap))
                     continue
                 key, txt = spec
                 active = key == 'img'
@@ -1970,9 +2036,21 @@ try:
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
-                tabs.add_widget(b)
+                main_tab_row.add_widget(b)
                 self._tabs[key] = b
-            main.add_widget(tabs)
+            self.tab_panel.add_widget(main_tab_row)
+
+            # Sub-fane-rad (kollapset i utgangspunktet, fylles dynamisk
+            # av _update_subtabs når aktiv tab har sub-faner).
+            self.subtab_row = BoxLayout(
+                orientation='horizontal',
+                size_hint_y=None,
+                height=0,
+                opacity=0,
+                spacing=dp(4))
+            self.tab_panel.add_widget(self.subtab_row)
+
+            main.add_widget(self.tab_panel)
 
             # HOVEDINNHOLD
             content_wrap = FloatLayout(size_hint=(1, 1))
@@ -2138,6 +2216,9 @@ try:
             if k not in builders:
                 return
 
+            # Animer sub-fane-panelet inn/ut samtidig som innholdet bytter
+            self._update_subtabs(k)
+
             def _swap_in(*_a):
                 self.content.clear_widgets()
                 new_w = builders[k]()
@@ -2157,6 +2238,170 @@ try:
             fade_out = Animation(opacity=0, duration=0.12, t='in_quad')
             fade_out.bind(on_complete=_swap_in)
             fade_out.start(cur)
+
+        # ---------- SUB-FANER (felles panel) ----------
+        def _update_subtabs(self, k):
+            """Animer sub-fane-rad inn/ut basert på aktiv hovedfane.
+
+            - Faner med sub-faner (snd/cmb/tool): panelet utvides
+              nedover og sub-fanene fades inn.
+            - Faner uten sub-faner (img/rules/cast): panelet kollapser.
+            """
+            builders = {
+                'snd':  self._build_snd_subtabs,
+                'cmb':  self._build_cmb_subtabs,
+                'tool': self._build_tool_subtabs,
+            }
+
+            sub_h = dp(42)
+            collapsed_h = dp(60)
+            # Padding 4+4 + spacing 4 mellom main_tab_row og subtab_row
+            expanded_h = dp(60) + dp(4) + sub_h
+
+            # Avbryt eventuelle pågående animasjoner
+            Animation.cancel_all(self.tab_panel, 'height')
+            Animation.cancel_all(self.subtab_row, 'height', 'opacity')
+
+            if k in builders:
+                # Bygg sub-faner først
+                self.subtab_row.clear_widgets()
+                builders[k](self.subtab_row)
+                # Animer åpning + fade-inn
+                Animation(height=sub_h, duration=0.22,
+                          t='out_quad').start(self.subtab_row)
+                Animation(opacity=1, duration=0.22,
+                          t='out_quad').start(self.subtab_row)
+                Animation(height=expanded_h, duration=0.22,
+                          t='out_quad').start(self.tab_panel)
+            else:
+                # Animer lukking. Fjern barn først når animasjonen er ferdig
+                # så de ikke flimrer mens raden krymper.
+                def _clear_subs(*_a):
+                    self.subtab_row.clear_widgets()
+                Animation(opacity=0, duration=0.15,
+                          t='in_quad').start(self.subtab_row)
+                h_anim = Animation(height=0, duration=0.18, t='in_quad')
+                h_anim.bind(on_complete=_clear_subs)
+                h_anim.start(self.subtab_row)
+                Animation(height=collapsed_h, duration=0.18,
+                          t='in_quad').start(self.tab_panel)
+
+        def _build_snd_subtabs(self, row):
+            """Bygg Musikk/Ambient-toggle-knapper inn i sub-fane-raden."""
+            if not hasattr(self, '_sound_sub'):
+                self._sound_sub = 'mus'
+
+            b_mus = RToggle(
+                text='Musikk', group='sound_sub',
+                state='down' if self._sound_sub == 'mus' else 'normal',
+                bg_color=BTNH if self._sound_sub == 'mus' else BTN,
+                color=GOLD if self._sound_sub == 'mus' else DIM,
+                border_color=GOLD if self._sound_sub == 'mus' else GSOFT,
+                border_width=3.2 if self._sound_sub == 'mus' else 2.2,
+                accent_bar_alpha=0.48 if self._sound_sub == 'mus' else 0.0,
+                font_size=sp(12), bold=True)
+            b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
+            row.add_widget(b_mus)
+            self._snd_btn_mus = b_mus
+
+            b_amb = RToggle(
+                text='Ambient', group='sound_sub',
+                state='down' if self._sound_sub == 'amb' else 'normal',
+                bg_color=BTNH if self._sound_sub == 'amb' else BTN,
+                color=GOLD if self._sound_sub == 'amb' else DIM,
+                border_color=GOLD if self._sound_sub == 'amb' else GSOFT,
+                border_width=3.2 if self._sound_sub == 'amb' else 2.2,
+                accent_bar_alpha=0.48 if self._sound_sub == 'amb' else 0.0,
+                font_size=sp(12), bold=True)
+            b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
+            row.add_widget(b_amb)
+            self._snd_btn_amb = b_amb
+
+        def _build_cmb_subtabs(self, row):
+            """Bygg Initiativ/Kart-toggle-knapper inn i sub-fane-raden."""
+            self._init_tracker_init()
+            if not hasattr(self, '_cmb_sub'):
+                self._cmb_sub = 'init'
+
+            b_init = RToggle(
+                text='Initiativ', group='cmb_sub',
+                state='down' if self._cmb_sub == 'init' else 'normal',
+                bg_color=BTNH if self._cmb_sub == 'init' else BTN,
+                color=GOLD if self._cmb_sub == 'init' else DIM,
+                border_color=GOLD if self._cmb_sub == 'init' else GSOFT,
+                border_width=3.2 if self._cmb_sub == 'init' else 2.2,
+                accent_bar_alpha=0.48 if self._cmb_sub == 'init' else 0.0,
+                font_size=sp(12), bold=True)
+            b_init.bind(on_release=lambda b: self._cmb_switch('init'))
+            row.add_widget(b_init)
+            self._cmb_btn_init = b_init
+
+            b_map = RToggle(
+                text='Kart', group='cmb_sub',
+                state='down' if self._cmb_sub == 'map' else 'normal',
+                bg_color=BTNH if self._cmb_sub == 'map' else BTN,
+                color=GOLD if self._cmb_sub == 'map' else DIM,
+                border_color=GOLD if self._cmb_sub == 'map' else GSOFT,
+                border_width=3.2 if self._cmb_sub == 'map' else 2.2,
+                accent_bar_alpha=0.48 if self._cmb_sub == 'map' else 0.0,
+                font_size=sp(12), bold=True)
+            b_map.bind(on_release=lambda b: self._cmb_switch('map'))
+            row.add_widget(b_map)
+            self._cmb_btn_map = b_map
+
+        def _build_tool_subtabs(self, row):
+            """Bygg Karakter/Våpen/Scenario/Galskap-faner inn i sub-fane-raden."""
+            self._scen_init()
+            if not hasattr(self, '_tool_sub') or self._tool_sub == 'init':
+                self._tool_sub = 'chars'
+
+            self._sub_btn_chars = RToggle(
+                text='Karakterer', group='tool_sub',
+                state='down' if self._tool_sub == 'chars' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'chars' else BTN,
+                color=GOLD if self._tool_sub == 'chars' else DIM,
+                border_color=GOLD if self._tool_sub == 'chars' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'chars' else 2.2,
+                accent_bar_alpha=0.48 if self._tool_sub == 'chars' else 0.0,
+                font_size=sp(11), bold=True)
+            self._sub_btn_chars.bind(on_release=lambda b: self._tool_switch('chars'))
+            row.add_widget(self._sub_btn_chars)
+
+            self._sub_btn_weap = RToggle(
+                text='Våpen', group='tool_sub',
+                state='down' if self._tool_sub == 'weap' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'weap' else BTN,
+                color=GOLD if self._tool_sub == 'weap' else DIM,
+                border_color=GOLD if self._tool_sub == 'weap' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'weap' else 2.2,
+                accent_bar_alpha=0.48 if self._tool_sub == 'weap' else 0.0,
+                font_size=sp(11), bold=True)
+            self._sub_btn_weap.bind(on_release=lambda b: self._tool_switch('weap'))
+            row.add_widget(self._sub_btn_weap)
+
+            self._sub_btn_scen = RToggle(
+                text='Scenario', group='tool_sub',
+                state='down' if self._tool_sub == 'scen' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'scen' else BTN,
+                color=GOLD if self._tool_sub == 'scen' else DIM,
+                border_color=GOLD if self._tool_sub == 'scen' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'scen' else 2.2,
+                accent_bar_alpha=0.48 if self._tool_sub == 'scen' else 0.0,
+                font_size=sp(11), bold=True)
+            self._sub_btn_scen.bind(on_release=lambda b: self._tool_switch('scen'))
+            row.add_widget(self._sub_btn_scen)
+
+            self._sub_btn_mad = RToggle(
+                text='Galskap', group='tool_sub',
+                state='down' if self._tool_sub == 'mad' else 'normal',
+                bg_color=BTNH if self._tool_sub == 'mad' else BTN,
+                color=GOLD if self._tool_sub == 'mad' else DIM,
+                border_color=GOLD if self._tool_sub == 'mad' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'mad' else 2.2,
+                accent_bar_alpha=0.48 if self._tool_sub == 'mad' else 0.0,
+                font_size=sp(11), bold=True)
+            self._sub_btn_mad.bind(on_release=lambda b: self._tool_switch('mad'))
+            row.add_widget(self._sub_btn_mad)
 
         # ---------- BILDER ----------
         def _mk_img(self):
@@ -2277,53 +2522,21 @@ try:
 
         # ---------- KAMP (Initiativ + Kart i sub-tabs) ----------
         def _mk_combat(self):
-            """Kamp-fane med sub-tabs: Initiativ og Kart."""
+            """Kamp-fane med sub-tabs: Initiativ og Kart.
+
+            Sub-fanene bygges nå i det globale tab-panelet av
+            _build_cmb_subtabs(). Denne metoden returnerer kun
+            innholds-området.
+            """
             self._init_tracker_init()
             if not hasattr(self, '_cmb_sub'):
                 self._cmb_sub = 'init'
 
-            p = BoxLayout(orientation='vertical', spacing=dp(6))
-
-            # Sub-tab-rad
-            sub_bar = RBox(size_hint_y=None, height=dp(42),
-                           spacing=dp(4), padding=[dp(6), dp(4)],
-                           bg_color=BTN, radius=dp(10))
-
-            b_init = RToggle(
-                text='Initiativ', group='cmb_sub',
-                state='down' if self._cmb_sub == 'init' else 'normal',
-                bg_color=BTNH if self._cmb_sub == 'init' else BTN,
-                color=GOLD if self._cmb_sub == 'init' else DIM,
-                border_color=GOLD if self._cmb_sub == 'init' else GSOFT,
-                border_width=3.2 if self._cmb_sub == 'init' else 2.2,
-                accent_bar_alpha=0.48 if self._cmb_sub == 'init' else 0.0,
-                font_size=sp(12), bold=True)
-            b_init.bind(on_release=lambda b: self._cmb_switch('init'))
-            sub_bar.add_widget(b_init)
-            self._cmb_btn_init = b_init
-
-            b_map = RToggle(
-                text='Kart', group='cmb_sub',
-                state='down' if self._cmb_sub == 'map' else 'normal',
-                bg_color=BTNH if self._cmb_sub == 'map' else BTN,
-                color=GOLD if self._cmb_sub == 'map' else DIM,
-                border_color=GOLD if self._cmb_sub == 'map' else GSOFT,
-                border_width=3.2 if self._cmb_sub == 'map' else 2.2,
-                accent_bar_alpha=0.48 if self._cmb_sub == 'map' else 0.0,
-                font_size=sp(12), bold=True)
-            b_map.bind(on_release=lambda b: self._cmb_switch('map'))
-            sub_bar.add_widget(b_map)
-            self._cmb_btn_map = b_map
-
-            p.add_widget(sub_bar)
-
             # Innholds-område — fungerer som "tool_area" for init-tracker
             # og som vert for kart-visningen.
             self._cmb_area = BoxLayout()
-            p.add_widget(self._cmb_area)
-
             self._cmb_render()
-            return p
+            return self._cmb_area
 
         def _cmb_switch(self, which):
             self._cmb_sub = which
@@ -2421,51 +2634,18 @@ try:
 
         # ---------- LYD (kombinert Musikk + Ambient) ----------
         def _mk_sound(self):
-            """Lyd-fane med toggle mellom Musikk og Ambient."""
+            """Lyd-fane med toggle mellom Musikk og Ambient.
+
+            Sub-fanene bygges nå i det globale tab-panelet av
+            _build_snd_subtabs(). Denne metoden returnerer kun
+            innholds-området.
+            """
             if not hasattr(self, '_sound_sub'):
                 self._sound_sub = 'mus'
 
-            p = BoxLayout(orientation='vertical', spacing=dp(6))
-
-            # Sub-tab-rad
-            sub_bar = RBox(size_hint_y=None, height=dp(42),
-                           spacing=dp(4), padding=[dp(6), dp(4)],
-                           bg_color=BTN, radius=dp(10))
-
-            b_mus = RToggle(
-                text='Musikk', group='sound_sub',
-                state='down' if self._sound_sub == 'mus' else 'normal',
-                bg_color=BTNH if self._sound_sub == 'mus' else BTN,
-                color=GOLD if self._sound_sub == 'mus' else DIM,
-                border_color=GOLD if self._sound_sub == 'mus' else GSOFT,
-                border_width=3.2 if self._sound_sub == 'mus' else 2.2,
-                accent_bar_alpha=0.48 if self._sound_sub == 'mus' else 0.0,
-                font_size=sp(12), bold=True)
-            b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
-            sub_bar.add_widget(b_mus)
-            self._snd_btn_mus = b_mus
-
-            b_amb = RToggle(
-                text='Ambient', group='sound_sub',
-                state='down' if self._sound_sub == 'amb' else 'normal',
-                bg_color=BTNH if self._sound_sub == 'amb' else BTN,
-                color=GOLD if self._sound_sub == 'amb' else DIM,
-                border_color=GOLD if self._sound_sub == 'amb' else GSOFT,
-                border_width=3.2 if self._sound_sub == 'amb' else 2.2,
-                accent_bar_alpha=0.48 if self._sound_sub == 'amb' else 0.0,
-                font_size=sp(12), bold=True)
-            b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
-            sub_bar.add_widget(b_amb)
-            self._snd_btn_amb = b_amb
-
-            p.add_widget(sub_bar)
-
-            # Innholds-område
             self._sound_area = BoxLayout()
-            p.add_widget(self._sound_area)
-
             self._sound_render()
-            return p
+            return self._sound_area
 
         def _sound_switch(self, which):
             self._sound_sub = which
@@ -2923,67 +3103,18 @@ try:
 
         # ---------- KARAKTERER / VERKTØY ----------
         def _mk_tool(self):
-            """Verktøy-fane med sub-tabs: Karakterer, Våpen, Scenario."""
+            """Verktøy-fane med sub-tabs: Karakterer, Våpen, Scenario, Galskap.
+
+            Sub-fanene bygges nå i det globale tab-panelet av
+            _build_tool_subtabs(). Denne metoden returnerer bare
+            handlings-raden + innholdsområdet.
+            """
             self._scen_init()
             # Migrer bort fra gammel 'init'-sub-tab hvis det ligger igjen
             if not hasattr(self, '_tool_sub') or self._tool_sub == 'init':
                 self._tool_sub = 'chars'
 
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-
-            # Sub-tab-rad
-            sub_bar = RBox(size_hint_y=None, height=dp(42),
-                           spacing=dp(4), padding=[dp(6), dp(4)],
-                           bg_color=BTN, radius=dp(10))
-            self._sub_btn_chars = RToggle(
-                text='Karakterer', group='tool_sub',
-                state='down' if self._tool_sub == 'chars' else 'normal',
-                bg_color=BTNH if self._tool_sub == 'chars' else BTN,
-                color=GOLD if self._tool_sub == 'chars' else DIM,
-                border_color=GOLD if self._tool_sub == 'chars' else GSOFT,
-                border_width=3.2 if self._tool_sub == 'chars' else 2.2,
-                accent_bar_alpha=0.48 if self._tool_sub == 'chars' else 0.0,
-                font_size=sp(11), bold=True)
-            self._sub_btn_chars.bind(on_release=lambda b: self._tool_switch('chars'))
-            sub_bar.add_widget(self._sub_btn_chars)
-
-            self._sub_btn_weap = RToggle(
-                text='Våpen', group='tool_sub',
-                state='down' if self._tool_sub == 'weap' else 'normal',
-                bg_color=BTNH if self._tool_sub == 'weap' else BTN,
-                color=GOLD if self._tool_sub == 'weap' else DIM,
-                border_color=GOLD if self._tool_sub == 'weap' else GSOFT,
-                border_width=3.2 if self._tool_sub == 'weap' else 2.2,
-                accent_bar_alpha=0.48 if self._tool_sub == 'weap' else 0.0,
-                font_size=sp(11), bold=True)
-            self._sub_btn_weap.bind(on_release=lambda b: self._tool_switch('weap'))
-            sub_bar.add_widget(self._sub_btn_weap)
-
-            self._sub_btn_scen = RToggle(
-                text='Scenario', group='tool_sub',
-                state='down' if self._tool_sub == 'scen' else 'normal',
-                bg_color=BTNH if self._tool_sub == 'scen' else BTN,
-                color=GOLD if self._tool_sub == 'scen' else DIM,
-                border_color=GOLD if self._tool_sub == 'scen' else GSOFT,
-                border_width=3.2 if self._tool_sub == 'scen' else 2.2,
-                accent_bar_alpha=0.48 if self._tool_sub == 'scen' else 0.0,
-                font_size=sp(11), bold=True)
-            self._sub_btn_scen.bind(on_release=lambda b: self._tool_switch('scen'))
-            sub_bar.add_widget(self._sub_btn_scen)
-
-            self._sub_btn_mad = RToggle(
-                text='Galskap', group='tool_sub',
-                state='down' if self._tool_sub == 'mad' else 'normal',
-                bg_color=BTNH if self._tool_sub == 'mad' else BTN,
-                color=GOLD if self._tool_sub == 'mad' else DIM,
-                border_color=GOLD if self._tool_sub == 'mad' else GSOFT,
-                border_width=3.2 if self._tool_sub == 'mad' else 2.2,
-                accent_bar_alpha=0.48 if self._tool_sub == 'mad' else 0.0,
-                font_size=sp(11), bold=True)
-            self._sub_btn_mad.bind(on_release=lambda b: self._tool_switch('mad'))
-            sub_bar.add_widget(self._sub_btn_mad)
-
-            p.add_widget(sub_bar)
 
             # Handlings-rad
             self._tool_action_bar = BoxLayout(
