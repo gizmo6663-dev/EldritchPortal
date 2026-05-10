@@ -229,6 +229,8 @@ try:
     BLK  = [0.0, 0.0, 0.0, 1]
     TOGGLE_ACCENT_ALPHA_IDLE = 0.75
     TOGGLE_ACCENT_ALPHA_ACTIVE = 1.0
+    TAB_ACCENT_ALPHA_ACTIVE = 0.36
+    TAB_STRIPE_ALPHA_ACTIVE = 1.0
     # Bakgrunnsbildet fyller hele skjermen på splash.
     # Aspect ratio beholdes ikke, slik at bildet dekker hele flaten.
     SPLASH_IMG_SIZE_HINT = (1, 1)
@@ -1952,8 +1954,8 @@ try:
                             color=GOLD if active else DIM,
                             border_color=GOLD if active else GSOFT,
                             border_width=3.2 if active else 2.2,
-                            accent_bar_alpha=0.36 if active else 0.0,
-                            tab_stripe_alpha=1.0 if active else 0.0,
+                            accent_bar_alpha=TAB_ACCENT_ALPHA_ACTIVE if active else 0.0,
+                            tab_stripe_alpha=TAB_STRIPE_ALPHA_ACTIVE if active else 0.0,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -2060,8 +2062,8 @@ try:
                 btn.color = GOLD
                 btn.border_color = GOLD
                 btn.border_width = 3.2
-                btn.accent_bar_alpha = 0.36
-                btn.tab_stripe_alpha = 1.0
+                btn.accent_bar_alpha = TAB_ACCENT_ALPHA_ACTIVE
+                btn.tab_stripe_alpha = TAB_STRIPE_ALPHA_ACTIVE
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
