@@ -241,6 +241,7 @@ try:
     SPLASH_TEXT_TOP = 0.82
     SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
+    CUSTOM_AMBIENT_NAME = "Egen lyd"
     HTTP_PORT = 8089
 
     _GRADIENT_CACHE = {}
@@ -1655,8 +1656,8 @@ try:
                                 Intent.FLAG_GRANT_READ_URI_PERMISSION
                                 | Intent.FLAG_GRANT_WRITE_URI_PERMISSION))
                     except Exception as e:
-                        log(f"FilePicker persist-uri varsel: {e}")
-                    name = "Egen lyd"
+                        log(f"FilePicker persist-uri feil: {e}")
+                    name = CUSTOM_AMBIENT_NAME
                     try:
                         OpenableColumns = autoclass(
                             'android.provider.OpenableColumns')
@@ -1671,7 +1672,7 @@ try:
                             finally:
                                 cursor.close()
                     except Exception as e:
-                        log(f"FilePicker navn-varsel: {e}")
+                        log(f"FilePicker navn-feil: {e}")
                     payload = {'uri': uri.toString(), 'name': name}
                     Clock.schedule_once(
                         lambda dt, data=payload: cb(True, data), 0)
@@ -2632,7 +2633,8 @@ try:
                 self._amb_refresh_custom_btn()
                 return
             self._ambient_custom_uri = data_or_err.get('uri')
-            self._ambient_custom_name = data_or_err.get('name') or "Egen lyd"
+            self._ambient_custom_name = (
+                data_or_err.get('name') or CUSTOM_AMBIENT_NAME)
             self.amb_custom_lbl.text = f"Valgt: {self._ambient_custom_name}"
             self.amb_custom_lbl.color = GOLD
             self.amb_lbl.text = "Trykk for å starte sømløs loop"
@@ -2649,7 +2651,8 @@ try:
             if not self._ambient_custom_uri:
                 self._amb_pick_custom()
                 return
-            self._ambient_name = self._ambient_custom_name or "Egen lyd"
+            self._ambient_name = (
+                self._ambient_custom_name or CUSTOM_AMBIENT_NAME)
             self._ambient_source = 'custom'
             self.amb_lbl.text = f"Starter loop: {self._ambient_name}"
             self.amb_lbl.color = DIM
