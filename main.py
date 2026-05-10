@@ -1640,6 +1640,7 @@ try:
                 return
             try:
                 from jnius import autoclass
+                Intent = autoclass('android.content.Intent')
                 uri = intent.getData()
                 if uri is None:
                     Clock.schedule_once(
@@ -1651,8 +1652,8 @@ try:
                         flags = intent.getFlags()
                         resolver.takePersistableUriPermission(
                             uri, flags & (
-                                autoclass('android.content.Intent').FLAG_GRANT_READ_URI_PERMISSION
-                                | autoclass('android.content.Intent').FLAG_GRANT_WRITE_URI_PERMISSION))
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                | Intent.FLAG_GRANT_WRITE_URI_PERMISSION))
                     except Exception as e:
                         log(f"FilePicker persist-uri varsel: {e}")
                     name = "Egen lyd"
@@ -1785,7 +1786,6 @@ try:
         def play_url(self, url):
             def _setup(mp):
                 mp.setDataSource(url)
-                mp.setLooping(False)
             return self._play_android(_setup)
         def play_uri(self, uri_text, loop=False):
             def _setup(mp):
@@ -2649,12 +2649,12 @@ try:
             if not self._ambient_custom_uri:
                 self._amb_pick_custom()
                 return
-            self._an = self._ambient_custom_name or "Egen lyd"
+            self._ambient_name = self._ambient_custom_name or "Egen lyd"
             self._ambient_source = 'custom'
-            self.amb_lbl.text = f"Starter loop: {self._an}"
+            self.amb_lbl.text = f"Starter loop: {self._ambient_name}"
             self.amb_lbl.color = DIM
             if self.streamer.play_uri(self._ambient_custom_uri, loop=True):
-                self.amb_lbl.text = f"Looper: {self._an}"
+                self.amb_lbl.text = f"Looper: {self._ambient_name}"
                 self.amb_lbl.color = GRN
             else:
                 self.amb_lbl.text = "Egen ambient-opplasting støttes på Android"
@@ -2663,7 +2663,7 @@ try:
             self._amb_refresh_custom_btn()
 
         def _pa(self, url, name):
-            self._an = name
+            self._ambient_name = name
             self._ac = 0
             self._ambient_source = 'stream'
             self.amb_lbl.text = f"Laster: {name}..."
@@ -2675,14 +2675,14 @@ try:
         def _poll(self, dt):
             self._ac += 1
             if self.streamer.is_playing:
-                self.amb_lbl.text = f"Spiller: {self._an}"
+                self.amb_lbl.text = f"Spiller: {self._ambient_name}"
                 self.amb_lbl.color = GRN
                 return False
             if self._ac >= 10:
-                self.amb_lbl.text = f"Feilet: {self._an}"
+                self.amb_lbl.text = f"Feilet: {self._ambient_name}"
                 self.amb_lbl.color = RED
                 return False
-            self.amb_lbl.text = f"Laster: {self._an} ({self._ac*2}s)..."
+            self.amb_lbl.text = f"Laster: {self._ambient_name} ({self._ac*2}s)..."
             return True
 
         def _sa(self):
