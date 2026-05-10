@@ -258,7 +258,8 @@ try:
             ))
         tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
         tex.wrap = 'clamp_to_edge'
-        # Flip vertically so the stronger alpha stays closest to the widget.
+        # In Kivy, a negative V uvsize flips the texture vertically so the
+        # stronger alpha band stays closest to the widget instead of the floor.
         tex.uvsize = (1, -1)
         return tex
 
@@ -1888,8 +1889,7 @@ try:
         # ---------- BILDER ----------
         def _mk_img(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-            preview_box = PreviewFrame(size_hint_y=0.4, bg_color=BLK,
-                                       padding=dp(10))
+            preview_box = PreviewFrame(size_hint_y=0.4, padding=dp(10))
             self.preview = Image(allow_stretch=True, keep_ratio=True,
                                  color=[1, 1, 1, 0] if not self.sel_img else [1, 1, 1, 1])
             if self.sel_img:
