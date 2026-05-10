@@ -1589,7 +1589,7 @@ try:
             t1 = Label(text="ELDRITCH", font_size=sp(54),
                        font_name=FONT_TITLE,
                        color=GOLD,
-                        size_hint_y=None, height=dp(72),
+                       size_hint_y=None, height=dp(72),
                        halign='center')
             t1.bind(size=t1.setter('text_size'))
             splash_text.add_widget(t1)
