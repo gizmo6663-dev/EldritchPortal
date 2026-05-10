@@ -90,6 +90,7 @@ jobs:
             ${{ runner.os }}-buildozer-nojnius-
 
       - name: Bygg APK
+        if: steps.changes.outputs.full_build == 'true'
         run: |
           if [[ "${{ github.event.inputs.clean_build }}" == "true" ]]; then
             echo "🧹 Sletter .buildozer-mappe for clean build"
@@ -98,6 +99,7 @@ jobs:
           yes | buildozer android debug
 
       - name: Last opp APK (artifact)
+        if: steps.changes.outputs.full_build == 'true'
         uses: actions/upload-artifact@v4
         continue-on-error: true
         with:
@@ -106,6 +108,7 @@ jobs:
           retention-days: 7
 
       - name: Lag GitHub Release
+        if: steps.changes.outputs.full_build == 'true'
         run: |
           VERSION=$(grep '^version' buildozer.spec | sed 's/version = //')
           TAG="v${VERSION}-build${{ github.run_number }}"
