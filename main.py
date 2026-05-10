@@ -1527,7 +1527,21 @@ try:
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
                         padding=[dp(8), 0], bg_color=BTN)
             self._tabs = {}
-            for key, txt in [('img','Bilder'),('snd','Lyd'),('cmb','Kamp'),('tool','Verktøy'),('rules','Regler'),('cast','Cast')]:
+            cutout_gap = min(dp(108), max(dp(72), Window.width * 0.18))
+            tab_specs = [
+                ('img', 'Bilder'),
+                ('snd', 'Lyd'),
+                ('cmb', 'Kamp'),
+                None,
+                ('tool', 'Verktøy'),
+                ('rules', 'Regler'),
+                ('cast', 'Cast'),
+            ]
+            for spec in tab_specs:
+                if spec is None:
+                    tabs.add_widget(Widget(size_hint_x=None, width=cutout_gap))
+                    continue
+                key, txt = spec
                 active = key == 'img'
                 b = RToggle(text=txt, group='tabs',
                             state='down' if active else 'normal',
@@ -1539,8 +1553,6 @@ try:
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
                 tabs.add_widget(b)
-                if key == 'cmb':
-                    tabs.add_widget(Widget(size_hint_x=None, width=dp(84)))
                 self._tabs[key] = b
             main.add_widget(tabs)
 
