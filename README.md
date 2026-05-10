@@ -56,6 +56,8 @@ Kombinert fane med sub-fanene **Musikk** og **Ambient**:
 **Ambient** — stemningslyder fra Internet Archive
 - Utvalg av natur, storm, nattlyder og horror/uhygge
 - Egen volumkontroll som kan brukes separat fra musikken
+- Kan laste opp egen ambientfil via Android-filvelger
+- Egen opplastet ambient kan loopes sømløst og stoppes fra samme fane
 - Ingen opplasting eller egen medieserver nødvendig for selve lydutvalget
 
 ### ⚔️ Kamp
