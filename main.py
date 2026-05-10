@@ -1467,7 +1467,7 @@ try:
     class EldritchApp(App):
         def build(self):
             log("=== BUILD (v0.4.0 Necronomicon) ===")
-            Window.clearcolor = BG
+            Window.clearcolor = (0, 0, 0, 1)
             # Skroll innholdet opp så tastaturet ikke dekker aktivt input
             Window.softinput_mode = 'below_target'
             self.title = "Eldritch Portal"
@@ -1508,6 +1508,17 @@ try:
             # FloatLayout som rot – lar oss legge splash oppå
             wrapper = FloatLayout()
 
+            background_image_path = os.path.join(_BUNDLE_DIR, 'background.png')
+            if os.path.exists(background_image_path):
+                wrapper.add_widget(Image(
+                    source=background_image_path,
+                    allow_stretch=True,
+                    keep_ratio=False,
+                    size_hint=(1, 1),
+                    pos_hint={'x': 0, 'y': 0},
+                    opacity=1.0
+                ))
+
             main = BoxLayout(orientation='vertical', spacing=0,
                              size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
             main.add_widget(Widget(size_hint_y=None, height=dp(30)))
@@ -1531,19 +1542,9 @@ try:
                 self._tabs[key] = b
             main.add_widget(tabs)
 
-            # HOVEDINNHOLD – med Cthulhu-segl som vannmerke
+            # HOVEDINNHOLD
             content_wrap = FloatLayout(size_hint=(1, 1))
-            background_image_path = os.path.join(_BUNDLE_DIR, 'background.png')
-            if os.path.exists(background_image_path):
-                self._content_bg = Image(
-                    source=background_image_path,
-                    allow_stretch=True,
-                    keep_ratio=True,
-                    size_hint=(1.1, 1.1),
-                    pos_hint={'center_x': 0.5, 'center_y': 0.3},
-                    opacity=0.45)
-                content_wrap.add_widget(self._content_bg)
-            self.content = RBox(bg_color=[BG2[0], BG2[1], BG2[2], 0.78],
+            self.content = RBox(bg_color=[0, 0, 0, 0],
                                 size_hint=(1, 1),
                                 pos_hint={'x': 0, 'y': 0})
             content_wrap.add_widget(self.content)
@@ -1573,22 +1574,7 @@ try:
             # === SPLASH SCREEN ===
             self.splash = FloatLayout(size_hint=(1, 1),
                                       pos_hint={'x': 0, 'y': 0})
-            self.splash.add_widget(
-                RBox(bg_color=BG, radius=0,
-                     size_hint=(1, 1),
-                     pos_hint={'x': 0, 'y': 0})
-            )
-            if os.path.exists(background_image_path):
-                self.splash.add_widget(
-                    Image(
-                        source=background_image_path,
-                        allow_stretch=True,
-                        keep_ratio=True,
-                        size_hint=SPLASH_IMG_SIZE_HINT,
-                        pos_hint=SPLASH_IMG_POS_HINT,
-                        opacity=SPLASH_IMG_OPACITY
-                    )
-                )
+            # Ingen solid bakgrunn og ingen eget bilde — bakgrunnen fra wrapper skinner gjennom
             splash_text = BoxLayout(orientation='vertical',
                                     size_hint=SPLASH_TEXT_SIZE_HINT,
                                     pos_hint=SPLASH_TEXT_POS_HINT)
