@@ -318,7 +318,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -365,7 +365,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -401,7 +401,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -432,7 +432,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
