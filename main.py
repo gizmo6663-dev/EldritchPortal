@@ -215,8 +215,8 @@ try:
     BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
     SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
-    GGRAD_TOP = [1.0, 0.96, 0.82, 0.0]
-    GGRAD_BOTTOM = [0.98, 0.78, 0.26, 0.92]
+    GOLD_GRADIENT_TOP = [1.0, 0.96, 0.82, 0.0]
+    GOLD_GRADIENT_BOTTOM = [0.98, 0.78, 0.26, 0.92]
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
     GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
@@ -227,6 +227,8 @@ try:
     GRN  = [0.30, 0.60, 0.34, 1]
     BLUE = [0.32, 0.40, 0.62, 1]
     BLK  = [0.0, 0.0, 0.0, 1]
+    TOGGLE_ACCENT_ALPHA_IDLE = 0.85
+    TOGGLE_ACCENT_ALPHA_ACTIVE = 1.85
     # Bakgrunnsbildet fyller hele skjermen på splash.
     # Aspect ratio beholdes ikke, slik at bildet dekker hele flaten.
     SPLASH_IMG_SIZE_HINT = (1, 1)
@@ -286,8 +288,8 @@ try:
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                GGRAD_TOP,
-                GGRAD_BOTTOM,
+                GOLD_GRADIENT_TOP,
+                GOLD_GRADIENT_BOTTOM,
                 height=96
             )
         return _GRADIENT_CACHE[key]
@@ -316,15 +318,15 @@ try:
 #:set RBTN_SHADOW_X dp(5)
 #:set RBTN_SHADOW_Y dp(8)
 #:set RBTN_SHADOW_W dp(10)
-#:set RBTN_SHADOW_H 0.78
+#:set RBTN_SHADOW_HEIGHT_RATIO 0.78
 #:set RBOX_SHADOW_X dp(8)
 #:set RBOX_SHADOW_Y dp(10)
 #:set RBOX_SHADOW_W dp(16)
-#:set RBOX_SHADOW_H 0.72
+#:set RBOX_SHADOW_HEIGHT_RATIO 0.72
 #:set PREVIEW_SHADOW_X dp(8)
 #:set PREVIEW_SHADOW_Y dp(8)
 #:set PREVIEW_SHADOW_W dp(16)
-#:set PREVIEW_SHADOW_H 0.82
+#:set PREVIEW_SHADOW_HEIGHT_RATIO 0.82
 <RBtn>:
     background_normal: ''
     background_down: ''
@@ -336,7 +338,7 @@ try:
         RoundedRectangle:
             texture: self.shadow_tex
             pos: self.x + RBTN_SHADOW_X, self.y - RBTN_SHADOW_Y
-            size: self.width - RBTN_SHADOW_W, self.height * RBTN_SHADOW_H
+            size: self.width - RBTN_SHADOW_W, self.height * RBTN_SHADOW_HEIGHT_RATIO
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -440,7 +442,7 @@ try:
         RoundedRectangle:
             texture: self.shadow_tex
             pos: self.x + RBOX_SHADOW_X, self.y - RBOX_SHADOW_Y
-            size: self.width - RBOX_SHADOW_W, self.height * RBOX_SHADOW_H
+            size: self.width - RBOX_SHADOW_W, self.height * RBOX_SHADOW_HEIGHT_RATIO
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -493,7 +495,7 @@ try:
         RoundedRectangle:
             texture: self.shadow_tex
             pos: self.x + PREVIEW_SHADOW_X, self.y - PREVIEW_SHADOW_Y
-            size: self.width - PREVIEW_SHADOW_W, self.height * PREVIEW_SHADOW_H
+            size: self.width - PREVIEW_SHADOW_W, self.height * PREVIEW_SHADOW_HEIGHT_RATIO
             radius: [self.radius + dp(1)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -581,7 +583,8 @@ try:
             return 0.72 if self.state == 'down' else 0.78
 
         def _get_accent_alpha_mult(self):
-            return 1.85 if self.state == 'down' else 0.85
+            return (TOGGLE_ACCENT_ALPHA_ACTIVE if self.state == 'down'
+                    else TOGGLE_ACCENT_ALPHA_IDLE)
 
         shadow_dx = AliasProperty(_get_shadow_dx, None, bind=('state',))
         shadow_dy = AliasProperty(_get_shadow_dy, None, bind=('state',))
