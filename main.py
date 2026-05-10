@@ -106,6 +106,7 @@ try:
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
     BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
     UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bgtb.png")
+    UI_BG_TEXTURE_BUTTON_PATH = UI_BG_TEXTURE_PATH if os.path.exists(UI_BG_TEXTURE_PATH) else ''
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
@@ -231,6 +232,7 @@ try:
     SPLASH_IMG_POS_HINT = {'x': 0, 'y': 0}
     SPLASH_IMG_OPACITY = 0.65
     APP_BG_IMG_OPACITY = 0.55
+    UI_TEXTURE_TINT_ALPHA = 0.82
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
     SPLASH_TEXT_TOP = 0.82
     SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
@@ -291,7 +293,8 @@ try:
     # ============================================================
     # KV REGLER – skygge + avrundede hjørner
     # Skygge: en mørk RoundedRectangle forskjøvet 2dp ned.
-    # Hoveddel: RoundedRectangle med bg_color oppå.
+    # Hoveddel: tegn først bgtb.png uten tint, og legg så bg_color
+    # semitransparent oppå for å bevare den eksisterende fargepaletten.
     # ============================================================
     Builder.load_string('''
 <RBtn>:
@@ -315,7 +318,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -362,7 +365,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -398,7 +401,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -429,7 +432,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * UI_TEXTURE_TINT_ALPHA
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -4008,8 +4011,8 @@ try:
                 for x in range(self.BM_SIZE):
                     btn = Button(
                         text='',
-                        background_normal=UI_BG_TEXTURE_PATH if os.path.exists(UI_BG_TEXTURE_PATH) else '',
-                        background_down=UI_BG_TEXTURE_PATH if os.path.exists(UI_BG_TEXTURE_PATH) else '',
+                        background_normal=UI_BG_TEXTURE_BUTTON_PATH,
+                        background_down=UI_BG_TEXTURE_BUTTON_PATH,
                         background_color=BG2,
                         font_size=sp(9),
                         bold=True,
