@@ -400,11 +400,6 @@ try:
             size: self.width - dp(24), dp(8)
             radius: [dp(4)]
         Color:
-            rgba: 1, 1, 0.9, 0.16
-        Line:
-            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1))
-            width: 1.0
-        Color:
             rgba: self.border_dark_color
         Line:
             rounded_rectangle: (self.x + dp(0.9), self.y + dp(0.9), self.width - dp(1.8), self.height - dp(1.8), self.radius - dp(0.8))
@@ -414,11 +409,6 @@ try:
         Line:
             rounded_rectangle: (self.x + dp(1.8), self.y + dp(1.8), self.width - dp(3.6), self.height - dp(3.6), self.radius - dp(1.6))
             width: self.border_width
-        Color:
-            rgba: self.border_glint_color
-        Line:
-            rounded_rectangle: (self.x + dp(4.2), self.y + dp(4.2), self.width - dp(8.4), self.height - dp(8.4), self.radius - dp(3.4))
-            width: 1.1
 
 <RToggle>:
     background_normal: ''
@@ -454,11 +444,6 @@ try:
             size: self.width - dp(24), dp(8)
             radius: [dp(4)]
         Color:
-            rgba: 1, 1, 0.9, 0.18 if self.state == 'down' else 0.12
-        Line:
-            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1))
-            width: 1.0
-        Color:
             rgba: self.border_dark_color
         Line:
             rounded_rectangle: (self.x + dp(0.9), self.y + dp(0.9), self.width - dp(1.8), self.height - dp(1.8), self.radius - dp(0.8))
@@ -469,10 +454,10 @@ try:
             rounded_rectangle: (self.x + dp(1.8), self.y + dp(1.8), self.width - dp(3.6), self.height - dp(3.6), self.radius - dp(1.6))
             width: self.border_width
         Color:
-            rgba: self.border_glint_color
-        Line:
-            rounded_rectangle: (self.x + dp(4.2), self.y + dp(4.2), self.width - dp(8.4), self.height - dp(8.4), self.radius - dp(3.4))
-            width: 1.1
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.tab_stripe_alpha
+        Rectangle:
+            pos: self.x, self.y
+            size: self.width, dp(3)
 
 <RBox>:
     canvas.before:
@@ -500,9 +485,9 @@ try:
             rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * self.bg_color[3]
         RoundedRectangle:
             texture: self.accent_tex
-            pos: self.x + dp(18), self.y + dp(8)
-            size: self.width - dp(36), dp(14)
-            radius: [dp(6)]
+            pos: self.x + dp(14), self.y + dp(6)
+            size: self.width - dp(28), dp(10)
+            radius: [dp(5)]
         Color:
             rgba: self.border_dark_color[0], self.border_dark_color[1], self.border_dark_color[2], self.border_dark_color[3] * self.bg_color[3]
         Line:
@@ -513,11 +498,6 @@ try:
         Line:
             rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(2))
             width: self.border_width
-        Color:
-            rgba: self.border_glint_color[0], self.border_glint_color[1], self.border_glint_color[2], self.border_glint_color[3] * self.bg_color[3]
-        Line:
-            rounded_rectangle: (self.x + dp(4), self.y + dp(4), self.width - dp(8), self.height - dp(8), self.radius - dp(3))
-            width: 1.0
 
 <FramedBox>:
     canvas.before:
@@ -553,29 +533,19 @@ try:
             rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha
         RoundedRectangle:
             texture: self.accent_tex
-            pos: self.x + dp(20), self.y + dp(10)
-            size: self.width - dp(40), dp(16)
-            radius: [dp(7)]
+            pos: self.x + dp(16), self.y + dp(8)
+            size: self.width - dp(32), dp(12)
+            radius: [dp(6)]
         Color:
             rgba: self.border_dark_color
         Line:
             rounded_rectangle: (self.x + dp(1.5), self.y + dp(1.5), self.width - dp(3), self.height - dp(3), self.radius - dp(1))
-            width: 2.8
+            width: 2.0
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x + dp(3.2), self.y + dp(3.2), self.width - dp(6.4), self.height - dp(6.4), self.radius - dp(2))
+            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
             width: self.border_width
-        Color:
-            rgba: self.border_glint_color
-        Line:
-            rounded_rectangle: (self.x + dp(6.5), self.y + dp(6.5), self.width - dp(13), self.height - dp(13), self.radius - dp(4))
-            width: 1.4
-        Color:
-            rgba: self.highlight_color
-        Line:
-            rounded_rectangle: (self.x + dp(8), self.top - dp(18), self.width - dp(16), dp(10), dp(4))
-            width: 1.0
 ''')
     
     class RBtn(Button):
@@ -606,6 +576,7 @@ try:
         border_glint_color = ListProperty(GGLINT)
         accent_bar_color = ListProperty(GOLD)
         accent_bar_alpha = NumericProperty(0.22)
+        tab_stripe_alpha = NumericProperty(0.0)
         border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
@@ -668,7 +639,7 @@ try:
         highlight_color = ListProperty([1.0, 0.93, 0.72, 0.26])
         accent_bar_color = ListProperty(GOLD)
         accent_bar_alpha = NumericProperty(0.28)
-        border_width = NumericProperty(3.4)
+        border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(16))
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
@@ -1981,7 +1952,8 @@ try:
                             color=GOLD if active else DIM,
                             border_color=GOLD if active else GSOFT,
                             border_width=3.2 if active else 2.2,
-                            accent_bar_alpha=0.48 if active else 0.0,
+                            accent_bar_alpha=0.36 if active else 0.0,
+                            tab_stripe_alpha=1.0 if active else 0.0,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -2088,13 +2060,15 @@ try:
                 btn.color = GOLD
                 btn.border_color = GOLD
                 btn.border_width = 3.2
-                btn.accent_bar_alpha = 0.48
+                btn.accent_bar_alpha = 0.36
+                btn.tab_stripe_alpha = 1.0
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
                 btn.border_color = GSOFT
                 btn.border_width = 2.2
                 btn.accent_bar_alpha = 0.0
+                btn.tab_stripe_alpha = 0.0
 
         def _init(self):
             ensure_dirs()
