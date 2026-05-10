@@ -219,6 +219,11 @@ try:
     GRN  = [0.30, 0.60, 0.34, 1]
     BLUE = [0.32, 0.40, 0.62, 1]
     BLK  = [0.0, 0.0, 0.0, 1]
+    SPLASH_IMG_SIZE_HINT = (0.9, 0.42)
+    SPLASH_IMG_POS_HINT = {'center_x': 0.5, 'y': 0.06}
+    SPLASH_IMG_OPACITY = 0.65
+    SPLASH_TEXT_SIZE_HINT = (1, 0.48)
+    SPLASH_TEXT_POS_HINT = {'x': 0, 'top': 0.82}
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
@@ -1577,14 +1582,14 @@ try:
                         source=bg_path,
                         allow_stretch=True,
                         keep_ratio=True,
-                        size_hint=(0.9, 0.42),
-                        pos_hint={'center_x': 0.5, 'y': 0.06},
-                        opacity=0.65
+                        size_hint=SPLASH_IMG_SIZE_HINT,
+                        pos_hint=SPLASH_IMG_POS_HINT,
+                        opacity=SPLASH_IMG_OPACITY
                     )
                 )
             splash_text = BoxLayout(orientation='vertical',
-                                    size_hint=(1, 0.48),
-                                    pos_hint={'x': 0, 'top': 0.82})
+                                    size_hint=SPLASH_TEXT_SIZE_HINT,
+                                    pos_hint=SPLASH_TEXT_POS_HINT)
             splash_text.add_widget(Widget())  # fyll topp
             t1 = Label(text="ELDRITCH", font_size=sp(54),
                        font_name=FONT_TITLE,
