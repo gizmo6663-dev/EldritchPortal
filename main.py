@@ -232,6 +232,7 @@ try:
     SPLASH_IMG_POS_HINT = {'x': 0, 'y': 0}
     SPLASH_IMG_OPACITY = 0.65
     APP_BG_IMG_OPACITY = 0.55
+    # Hold onto most of the theme color while still letting the paper texture show through.
     UI_TEXTURE_TINT_ALPHA = 0.82
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
     SPLASH_TEXT_TOP = 0.82
@@ -286,7 +287,7 @@ try:
                 try:
                     tex = CoreImage(UI_BG_TEXTURE_PATH).texture
                 except Exception as e:
-                    log(f"UI bg texture load failed: {e}")
+                    log(f"UI bg texture load failed for {UI_BG_TEXTURE_PATH}: {e}")
             _GRADIENT_CACHE[key] = tex
         return _GRADIENT_CACHE[key]
 
