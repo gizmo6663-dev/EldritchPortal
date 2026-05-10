@@ -1527,7 +1527,13 @@ try:
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
                         padding=[dp(8), 0], bg_color=BTN)
             self._tabs = {}
-            cutout_gap = min(dp(108), max(dp(72), Window.width * 0.18))
+            min_cutout_gap = dp(72)
+            max_cutout_gap = dp(108)
+            cutout_width_ratio = 0.18
+            cutout_gap = min(
+                max_cutout_gap,
+                max(min_cutout_gap, Window.width * cutout_width_ratio)
+            )
             tab_specs = [
                 ('img', 'Bilder'),
                 ('snd', 'Lyd'),
