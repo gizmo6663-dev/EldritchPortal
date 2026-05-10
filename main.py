@@ -215,8 +215,8 @@ try:
     BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
     SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
-    GOLD_GRADIENT_TOP = [1.0, 0.96, 0.82, 0.0]
-    GOLD_GRADIENT_BOTTOM = [0.98, 0.78, 0.26, 0.92]
+    GOLD_ACCENT_GRADIENT_TOP = [1.0, 0.96, 0.82, 0.0]
+    GOLD_ACCENT_GRADIENT_BOTTOM = [0.98, 0.78, 0.26, 0.92]
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
     GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
@@ -227,8 +227,8 @@ try:
     GRN  = [0.30, 0.60, 0.34, 1]
     BLUE = [0.32, 0.40, 0.62, 1]
     BLK  = [0.0, 0.0, 0.0, 1]
-    TOGGLE_ACCENT_ALPHA_IDLE = 0.85
-    TOGGLE_ACCENT_ALPHA_ACTIVE = 1.85
+    TOGGLE_ACCENT_ALPHA_IDLE = 0.75
+    TOGGLE_ACCENT_ALPHA_ACTIVE = 1.0
     # Bakgrunnsbildet fyller hele skjermen på splash.
     # Aspect ratio beholdes ikke, slik at bildet dekker hele flaten.
     SPLASH_IMG_SIZE_HINT = (1, 1)
@@ -288,8 +288,8 @@ try:
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                GOLD_GRADIENT_TOP,
-                GOLD_GRADIENT_BOTTOM,
+                GOLD_ACCENT_GRADIENT_TOP,
+                GOLD_ACCENT_GRADIENT_BOTTOM,
                 height=96
             )
         return _GRADIENT_CACHE[key]
