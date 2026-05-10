@@ -1574,7 +1574,22 @@ try:
             # === SPLASH SCREEN ===
             self.splash = FloatLayout(size_hint=(1, 1),
                                       pos_hint={'x': 0, 'y': 0})
-            # Ingen solid bakgrunn og ingen eget bilde — bakgrunnen fra wrapper skinner gjennom
+            self.splash.add_widget(
+                RBox(bg_color=BG, radius=0,
+                     size_hint=(1, 1),
+                     pos_hint={'x': 0, 'y': 0})
+            )
+            if os.path.exists(background_image_path):
+                self.splash.add_widget(
+                    Image(
+                        source=background_image_path,
+                        allow_stretch=True,
+                        keep_ratio=True,
+                        size_hint=SPLASH_IMG_SIZE_HINT,
+                        pos_hint=SPLASH_IMG_POS_HINT,
+                        opacity=SPLASH_IMG_OPACITY
+                    )
+                )
             splash_text = BoxLayout(orientation='vertical',
                                     size_hint=SPLASH_TEXT_SIZE_HINT,
                                     pos_hint=SPLASH_TEXT_POS_HINT)
