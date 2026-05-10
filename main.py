@@ -1570,6 +1570,7 @@ try:
             self.callback = None
             self._activity = None
             self._bound = False
+            self._return_mode = 'text'
 
         def _ensure_bound(self):
             """Koble på Android activity-result-listener."""
@@ -1592,6 +1593,16 @@ try:
         def pick(self, callback, mime_type='application/json'):
             """Åpne filvelger. callback(ok, text_or_err) kalles
             når brukeren har valgt (eller avbrutt)."""
+            self._return_mode = 'text'
+            self._pick(callback, mime_type)
+
+        def pick_uri(self, callback, mime_type='audio/*'):
+            """Åpne filvelger og returner URI/meta for valgt fil."""
+            self._return_mode = 'uri'
+            self._pick(callback, mime_type)
+
+        def _pick(self, callback, mime_type):
+            """Intern åpning av Android filvelger."""
             if platform != 'android':
                 callback(False, "Filvelger kun tilgjengelig på Android")
                 return
@@ -1606,6 +1617,8 @@ try:
                 intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
                 intent.addCategory(Intent.CATEGORY_OPENABLE)
                 intent.setType(mime_type)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                intent.addFlags(Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
                 self._activity.startActivityForResult(
                     intent, self.REQUEST_CODE)
             except Exception as e:
@@ -1632,8 +1645,37 @@ try:
                     Clock.schedule_once(
                         lambda dt: cb(False, "Ingen fil valgt"), 0)
                     return
-                # Åpne input stream via content resolver
                 resolver = self._activity.getContentResolver()
+                if self._return_mode == 'uri':
+                    try:
+                        flags = intent.getFlags()
+                        resolver.takePersistableUriPermission(
+                            uri, flags & (
+                                autoclass('android.content.Intent').FLAG_GRANT_READ_URI_PERMISSION
+                                | autoclass('android.content.Intent').FLAG_GRANT_WRITE_URI_PERMISSION))
+                    except Exception as e:
+                        log(f"FilePicker persist-uri varsel: {e}")
+                    name = "Egen lyd"
+                    try:
+                        OpenableColumns = autoclass(
+                            'android.provider.OpenableColumns')
+                        cursor = resolver.query(uri, None, None, None, None)
+                        if cursor:
+                            try:
+                                if cursor.moveToFirst():
+                                    idx = cursor.getColumnIndex(
+                                        OpenableColumns.DISPLAY_NAME)
+                                    if idx >= 0:
+                                        name = cursor.getString(idx)
+                            finally:
+                                cursor.close()
+                    except Exception as e:
+                        log(f"FilePicker navn-varsel: {e}")
+                    payload = {'uri': uri.toString(), 'name': name}
+                    Clock.schedule_once(
+                        lambda dt, data=payload: cb(True, data), 0)
+                    return
+                # Åpne input stream via content resolver
                 stream = resolver.openInputStream(uri)
                 # Les innhold (byte-vis gjennom InputStreamReader)
                 BufferedReader = autoclass(
@@ -1714,28 +1756,45 @@ try:
             self.mp = None
             self.is_playing = False
             self._v = 0.5
-        def play_url(self, url):
+        def _play_android(self, setup_cb):
             self.stop()
             if not USE_JNIUS:
                 return False
             def _s():
+                mp = None
                 try:
-                    self.mp = MediaPlayer()
-                    self.mp.setDataSource(url)
-                    self.mp.setVolume(self._v, self._v)
-                    self.mp.prepare()
-                    self.mp.start()
+                    mp = MediaPlayer()
+                    setup_cb(mp)
+                    mp.setVolume(self._v, self._v)
+                    mp.prepare()
+                    mp.start()
+                    self.mp = mp
                     self.is_playing = True
-                    log("Stream OK")
+                    log("Ambient OK")
                 except Exception as e:
-                    log(f"Stream err: {e}")
-                    if self.mp:
-                        try: self.mp.release()
-                        except: pass
-                        self.mp = None
+                    log(f"Ambient err: {e}")
+                    if mp:
+                        try:
+                            mp.release()
+                        except:
+                            pass
+                    self.mp = None
                     self.is_playing = False
             threading.Thread(target=_s, daemon=True).start()
             return True
+        def play_url(self, url):
+            def _setup(mp):
+                mp.setDataSource(url)
+                mp.setLooping(False)
+            return self._play_android(_setup)
+        def play_uri(self, uri_text, loop=False):
+            def _setup(mp):
+                from jnius import autoclass
+                PythonActivity = autoclass('org.kivy.android.PythonActivity')
+                Uri = autoclass('android.net.Uri')
+                mp.setDataSource(PythonActivity.mActivity, Uri.parse(uri_text))
+                mp.setLooping(loop)
+            return self._play_android(_setup)
         def stop(self):
             if self.mp:
                 try:
@@ -1805,6 +1864,9 @@ try:
             self.cast = CastMgr()
             self.server = MediaServer()
             self.file_picker = FilePicker()
+            self._ambient_source = None
+            self._ambient_custom_uri = None
+            self._ambient_custom_name = ""
             self.chars = load_json(CHAR_FILE, [])
             self.edit_idx = None
 
@@ -2496,6 +2558,29 @@ try:
         # ---------- AMBIENT ----------
         def _mk_amb(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
+            p.add_widget(mklbl("Egen ambient – sømløs loop", color=GDIM,
+                               size=11, bold=True, h=24))
+            custom_ctrl = BoxLayout(size_hint_y=None, height=dp(44),
+                                    spacing=dp(6))
+            custom_ctrl.add_widget(
+                mkbtn("Velg egen lyd", self._amb_pick_custom,
+                      accent=True, small=True))
+            self._amb_toggle_btn = mkbtn("Velg lyd først",
+                                         self._amb_toggle_custom,
+                                         small=True)
+            custom_ctrl.add_widget(self._amb_toggle_btn)
+            custom_ctrl.add_widget(
+                mkbtn("Stopp ambient", self._sa, danger=True, small=True))
+            p.add_widget(custom_ctrl)
+            self.amb_custom_lbl = mklbl(
+                "Velg en lokal lydfil for å loope den sømløst.",
+                color=DIM, size=10, wrap=True, h=34)
+            p.add_widget(self.amb_custom_lbl)
+            p.add_widget(mklbl(
+                "Støtter .mp3, .ogg, .wav og .flac via Android-filvelgeren.",
+                color=DIM, size=10, wrap=True, h=28))
+            p.add_widget(mklbl("Nettlyder", color=GDIM,
+                               size=11, bold=True, h=22))
             scroll = ScrollView()
             g = GridLayout(cols=1, spacing=dp(4), padding=dp(6), size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
@@ -2509,18 +2594,81 @@ try:
                               small=True, size_hint_y=None, height=dp(40)))
             scroll.add_widget(g)
             p.add_widget(scroll)
-            p.add_widget(mkbtn("Stopp ambient", self._sa, danger=True,
-                               size_hint_y=None, height=dp(44)))
             p.add_widget(mkvol(self.streamer.vol, 0.5))
             self.amb_lbl = mklbl("", color=DIM, size=11, h=20)
             p.add_widget(self.amb_lbl)
             p.add_widget(Widget(size_hint_y=1))
+            self._amb_refresh_custom_btn()
             return p
+
+        def _amb_refresh_custom_btn(self):
+            if not hasattr(self, '_amb_toggle_btn'):
+                return
+            if self._ambient_source == 'custom' and self.streamer.is_playing:
+                self._amb_toggle_btn.text = "Stopp valgt lyd"
+            elif self._ambient_custom_uri:
+                self._amb_toggle_btn.text = "Loop valgt lyd"
+            else:
+                self._amb_toggle_btn.text = "Velg lyd først"
+
+        def _amb_pick_custom(self, *_):
+            if platform != 'android':
+                self.amb_lbl.text = "Egen ambient-opplasting støttes på Android"
+                self.amb_lbl.color = RED
+                return
+            self.amb_lbl.text = "Åpner filvelger for ambientlyd..."
+            self.amb_lbl.color = DIM
+            Clock.schedule_once(
+                lambda dt: self.file_picker.pick_uri(
+                    self._amb_on_custom_picked,
+                    mime_type='audio/*'),
+                0.2)
+
+        def _amb_on_custom_picked(self, ok, data_or_err):
+            if not ok:
+                if data_or_err != "Avbrutt":
+                    self.amb_lbl.text = data_or_err
+                    self.amb_lbl.color = RED
+                self._amb_refresh_custom_btn()
+                return
+            self._ambient_custom_uri = data_or_err.get('uri')
+            self._ambient_custom_name = data_or_err.get('name') or "Egen lyd"
+            self.amb_custom_lbl.text = f"Valgt: {self._ambient_custom_name}"
+            self.amb_custom_lbl.color = GOLD
+            self.amb_lbl.text = "Trykk for å starte sømløs loop"
+            self.amb_lbl.color = DIM
+            if self._ambient_source == 'custom' and self.streamer.is_playing:
+                self.streamer.stop()
+                self._ambient_source = None
+            self._amb_refresh_custom_btn()
+
+        def _amb_toggle_custom(self, *_):
+            if self._ambient_source == 'custom' and self.streamer.is_playing:
+                self._sa()
+                return
+            if not self._ambient_custom_uri:
+                self._amb_pick_custom()
+                return
+            self._an = self._ambient_custom_name or "Egen lyd"
+            self._ambient_source = 'custom'
+            self.amb_lbl.text = f"Starter loop: {self._an}"
+            self.amb_lbl.color = DIM
+            if self.streamer.play_uri(self._ambient_custom_uri, loop=True):
+                self.amb_lbl.text = f"Looper: {self._an}"
+                self.amb_lbl.color = GRN
+            else:
+                self.amb_lbl.text = "Egen ambient-opplasting støttes på Android"
+                self.amb_lbl.color = RED
+                self._ambient_source = None
+            self._amb_refresh_custom_btn()
 
         def _pa(self, url, name):
             self._an = name
             self._ac = 0
+            self._ambient_source = 'stream'
             self.amb_lbl.text = f"Laster: {name}..."
+            self.amb_lbl.color = DIM
+            self._amb_refresh_custom_btn()
             if self.streamer.play_url(url):
                 Clock.schedule_interval(self._poll, 2)
 
@@ -2539,8 +2687,10 @@ try:
 
         def _sa(self):
             self.streamer.stop()
+            self._ambient_source = None
             self.amb_lbl.text = "Stoppet"
             self.amb_lbl.color = DIM
+            self._amb_refresh_custom_btn()
 
         # ---------- REGLER ----------
         def _mk_rules(self):
