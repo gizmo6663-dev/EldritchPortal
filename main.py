@@ -219,9 +219,10 @@ try:
     GRN  = [0.30, 0.60, 0.34, 1]
     BLUE = [0.32, 0.40, 0.62, 1]
     BLK  = [0.0, 0.0, 0.0, 1]
-    # Teksten holdes i øvre halvdel mens bildet ligger lavere på skjermen.
-    SPLASH_IMG_SIZE_HINT = (0.9, 0.42)
-    SPLASH_IMG_POS_HINT = {'center_x': 0.5, 'y': 0.06}
+    # Bakgrunnsbildet fyller hele skjermen på splash.
+    # Aspect ratio beholdes ikke, slik at bildet dekker hele flaten.
+    SPLASH_IMG_SIZE_HINT = (1, 1)
+    SPLASH_IMG_POS_HINT = {'x': 0, 'y': 0}
     SPLASH_IMG_OPACITY = 0.65
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
     SPLASH_TEXT_TOP = 0.82
@@ -1510,10 +1511,11 @@ try:
 
             background_image_path = os.path.join(_BUNDLE_DIR, 'background.png')
             if os.path.exists(background_image_path):
+                # Bildet strekkes bevisst til fullskjerm som app-bakgrunn.
                 wrapper.add_widget(Image(
                     source=background_image_path,
                     allow_stretch=True,
-                    keep_ratio=True,
+                    keep_ratio=False,
                     size_hint=(1, 1),
                     pos_hint={'x': 0, 'y': 0},
                     opacity=1.0
@@ -1604,7 +1606,7 @@ try:
                     Image(
                         source=background_image_path,
                         allow_stretch=True,
-                        keep_ratio=True,
+                        keep_ratio=False,
                         size_hint=SPLASH_IMG_SIZE_HINT,
                         pos_hint=SPLASH_IMG_POS_HINT,
                         opacity=SPLASH_IMG_OPACITY
