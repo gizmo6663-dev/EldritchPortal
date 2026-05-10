@@ -58,6 +58,7 @@ try:
     from kivy.utils import platform
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
+    from kivy.core.image import Image as CoreImage
     from kivy.properties import ListProperty, NumericProperty, ObjectProperty
     from kivy.lang import Builder
     from kivy.core.text import LabelBase
@@ -104,6 +105,7 @@ try:
         _BUNDLE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
     BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
+    UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bgtb.png")
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
@@ -274,6 +276,18 @@ try:
             )
         return _GRADIENT_CACHE[key]
 
+    def get_ui_bg_tex():
+        key = 'ui_bg'
+        if key not in _GRADIENT_CACHE:
+            tex = None
+            if os.path.exists(UI_BG_TEXTURE_PATH):
+                try:
+                    tex = CoreImage(UI_BG_TEXTURE_PATH).texture
+                except Exception as e:
+                    log(f"UI bg texture load failed: {e}")
+            _GRADIENT_CACHE[key] = tex
+        return _GRADIENT_CACHE[key]
+
     # ============================================================
     # KV REGLER – skygge + avrundede hjørner
     # Skygge: en mørk RoundedRectangle forskjøvet 2dp ned.
@@ -294,7 +308,14 @@ try:
             size: self.width, self.height
             radius: [self.radius + dp(2)]
         Color:
-            rgba: self.bg_color
+            rgba: 1, 1, 1, self.bg_color[3]
+        RoundedRectangle:
+            texture: self.bg_tex
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+        Color:
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -334,7 +355,14 @@ try:
             size: self.width, self.height
             radius: [self.radius + dp(2)]
         Color:
-            rgba: self.bg_color
+            rgba: 1, 1, 1, self.bg_color[3]
+        RoundedRectangle:
+            texture: self.bg_tex
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+        Color:
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -363,7 +391,14 @@ try:
 <RBox>:
     canvas.before:
         Color:
-            rgba: self.bg_color
+            rgba: 1, 1, 1, self.bg_color[3]
+        RoundedRectangle:
+            texture: self.bg_tex
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+        Color:
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -387,7 +422,14 @@ try:
             size: self.width - dp(8), self.height
             radius: [self.radius + dp(1)]
         Color:
-            rgba: self.bg_color
+            rgba: 1, 1, 1, self.bg_color[3]
+        RoundedRectangle:
+            texture: self.bg_tex
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+        Color:
+            rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
@@ -423,10 +465,12 @@ try:
         border_width = NumericProperty(2.8)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
+        bg_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
+            self.bg_tex = get_ui_bg_tex()
 
     class RToggle(ToggleButton):
         bg_color = ListProperty(BTN)
@@ -437,14 +481,21 @@ try:
         border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
+        bg_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
+            self.bg_tex = get_ui_bg_tex()
 
     class RBox(BoxLayout):
         bg_color = ListProperty(BG2)
         radius = NumericProperty(dp(20))
+        bg_tex = ObjectProperty(None, allownone=True)
+
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self.bg_tex = get_ui_bg_tex()
 
     class FramedBox(BoxLayout):
         frame_color = ListProperty(GOLD)
@@ -458,10 +509,12 @@ try:
         border_width = NumericProperty(3.4)
         radius = NumericProperty(dp(16))
         shadow_tex = ObjectProperty(None, allownone=True)
+        bg_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
+            self.bg_tex = get_ui_bg_tex()
 
     # === LYDKILDER ===
     AMBIENT_SOUNDS = [
@@ -3955,8 +4008,8 @@ try:
                 for x in range(self.BM_SIZE):
                     btn = Button(
                         text='',
-                        background_normal='',
-                        background_down='',
+                        background_normal=UI_BG_TEXTURE_PATH if os.path.exists(UI_BG_TEXTURE_PATH) else '',
+                        background_down=UI_BG_TEXTURE_PATH if os.path.exists(UI_BG_TEXTURE_PATH) else '',
                         background_color=BG2,
                         font_size=sp(9),
                         bold=True,
