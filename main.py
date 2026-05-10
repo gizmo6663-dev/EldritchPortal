@@ -228,6 +228,7 @@ try:
     SPLASH_IMG_SIZE_HINT = (1, 1)
     SPLASH_IMG_POS_HINT = {'x': 0, 'y': 0}
     SPLASH_IMG_OPACITY = 0.65
+    APP_BG_IMG_OPACITY = 0.55
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
     SPLASH_TEXT_TOP = 0.82
     SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
@@ -1658,7 +1659,7 @@ try:
                     keep_ratio=False,
                     size_hint=(1, 1),
                     pos_hint={'x': 0, 'y': 0},
-                    opacity=1.0
+                    opacity=APP_BG_IMG_OPACITY
                 ))
 
             main = BoxLayout(orientation='vertical', spacing=0,
