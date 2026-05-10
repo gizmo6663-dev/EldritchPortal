@@ -231,7 +231,7 @@ try:
     SPLASH_IMG_POS_HINT = {'x': 0, 'y': 0}
     SPLASH_IMG_OPACITY = 0.65
     APP_BG_IMG_OPACITY = 0.55
-    # 0.82 keeps the existing burgundy/gold theme dominant while still making the paper texture readable.
+    # 0.82 kept the existing burgundy/gold theme dominant while still leaving the paper texture clearly visible.
     UI_TEXTURE_TINT_ALPHA = 0.82
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
     SPLASH_TEXT_TOP = 0.82
@@ -286,15 +286,15 @@ try:
                 try:
                     tex = CoreImage(UI_BG_TEXTURE_PATH).texture
                 except Exception as e:
-                    log(f"UI bg texture load failed for {UI_BG_TEXTURE_PATH}: {e}; widgets will render without the texture layer")
+                    log(f"Failed to load UI background texture: {e}")
             _GRADIENT_CACHE[key] = tex
         return _GRADIENT_CACHE[key]
 
     # ============================================================
     # KV REGLER – skygge + avrundede hjørner
     # Skygge: en mørk RoundedRectangle forskjøvet 2dp ned.
-    # Hoveddel: tegn først bgtb.png uten tint, og legg så bg_color
-    # semitransparent oppå for å bevare den eksisterende fargepaletten.
+    # Main part: draw bgtb.png without tint first, then add bg_color
+    # semi-transparently on top to preserve the existing color palette.
     # ============================================================
     Builder.load_string('''
 <RBtn>:
@@ -4006,13 +4006,14 @@ try:
             self._bm_grid = GridLayout(
                 cols=self.BM_SIZE, rows=self.BM_SIZE,
                 spacing=dp(1))
+            bm_btn_bg = UI_BG_TEXTURE_PATH if get_ui_bg_tex() else ''
             self._bm_cells = {}
             for y in range(self.BM_SIZE):
                 for x in range(self.BM_SIZE):
                     btn = Button(
                         text='',
-                        background_normal=UI_BG_TEXTURE_PATH,
-                        background_down=UI_BG_TEXTURE_PATH,
+                        background_normal=bm_btn_bg,
+                        background_down=bm_btn_bg,
                         background_color=BG2,
                         font_size=sp(9),
                         bold=True,
