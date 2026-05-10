@@ -1530,9 +1530,10 @@ try:
             min_cutout_gap = dp(72)
             max_cutout_gap = dp(108)
             cutout_width_ratio = 0.18
-            cutout_gap = Window.width * cutout_width_ratio
-            cutout_gap = max(min_cutout_gap, cutout_gap)
-            cutout_gap = min(max_cutout_gap, cutout_gap)
+            cutout_gap = max(
+                min_cutout_gap,
+                min(max_cutout_gap, Window.width * cutout_width_ratio)
+            )
             tab_specs = [
                 ('img', 'Bilder'),
                 ('snd', 'Lyd'),
