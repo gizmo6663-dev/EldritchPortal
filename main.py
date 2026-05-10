@@ -1513,7 +1513,7 @@ try:
                 wrapper.add_widget(Image(
                     source=background_image_path,
                     allow_stretch=True,
-                    keep_ratio=False,
+                    keep_ratio=True,
                     size_hint=(1, 1),
                     pos_hint={'x': 0, 'y': 0},
                     opacity=1.0
@@ -1521,13 +1521,33 @@ try:
 
             main = BoxLayout(orientation='vertical', spacing=0,
                              size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
-            main.add_widget(Widget(size_hint_y=None, height=dp(30)))
+            main.add_widget(Widget(size_hint_y=None, height=dp(10)))
 
             # FANER
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
                         padding=[dp(8), 0], bg_color=BTN)
             self._tabs = {}
-            for key, txt in [('img','Bilder'),('snd','Lyd'),('cmb','Kamp'),('tool','Verktøy'),('rules','Regler'),('cast','Cast')]:
+            min_cutout_gap = dp(72)
+            max_cutout_gap = dp(108)
+            cutout_width_ratio = 0.18
+            cutout_gap = max(
+                min_cutout_gap,
+                min(max_cutout_gap, Window.width * cutout_width_ratio)
+            )
+            tab_specs = [
+                ('img', 'Bilder'),
+                ('snd', 'Lyd'),
+                ('cmb', 'Kamp'),
+                None,
+                ('tool', 'Verktøy'),
+                ('rules', 'Regler'),
+                ('cast', 'Cast'),
+            ]
+            for spec in tab_specs:
+                if spec is None:
+                    tabs.add_widget(Widget(size_hint_x=None, width=cutout_gap))
+                    continue
+                key, txt = spec
                 active = key == 'img'
                 b = RToggle(text=txt, group='tabs',
                             state='down' if active else 'normal',
