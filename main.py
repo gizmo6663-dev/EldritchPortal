@@ -1899,7 +1899,8 @@ try:
             preview_box.add_widget(self.preview)
             p.add_widget(preview_box)
             p.add_widget(Label(text="ELDRITCH PORTAL", font_size=sp(18), color=GDIM,
-                               bold=True, size_hint_y=None, height=dp(28)))
+                               font_name=FONT_TITLE, bold=True,
+                               size_hint_y=None, height=dp(28)))
             self.img_lbl = Label(text="", font_size=sp(12), color=DIM,
                                  size_hint_y=None, height=dp(20))
             p.add_widget(self.img_lbl)
