@@ -207,13 +207,13 @@ try:
                 log(f"makedirs {d}: {e}")
         log(f"Dirs OK: {os.path.exists(IMG_DIR)}, {os.path.exists(MUSIC_DIR)}")
 
-    # === COLORS – Necronomicon Burgundy ===
+    # === COLORS – Eldritch bronze + moss ===
     BG   = [0.08, 0.04, 0.06, 1]      # dypt bok-brunt/burgunder
-    BG2  = [0.14, 0.07, 0.10, 1]      # panel-burgunder
-    INPUT= [0.10, 0.05, 0.07, 1]      # text input
-    BTN  = [0.24, 0.11, 0.14, 1]      # knapp (vinrød)
-    BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
-    SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
+    BG2  = [0.14, 0.22, 0.13, 1]      # panel-grønn
+    INPUT= [0.10, 0.12, 0.09, 1]      # text input
+    BTN  = [0.18, 0.28, 0.16, 1]      # knapp/panel
+    BTNH = [0.30, 0.44, 0.24, 1]      # aktiv tab
+    SHAD = [0.02, 0.03, 0.02, 0.82]   # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
@@ -272,9 +272,19 @@ try:
         key = 'drop_shadow'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                [0.12, 0.06, 0.08, 0.30],
+                [0.16, 0.11, 0.05, 0.42],
                 [0.01, 0.00, 0.01, 0.0],
                 height=128
+            )
+        return _GRADIENT_CACHE[key]
+
+    def get_gold_bar_tex():
+        key = 'gold_bar'
+        if key not in _GRADIENT_CACHE:
+            _GRADIENT_CACHE[key] = make_vert_gradient_tex(
+                [1.0, 0.96, 0.82, 0.0],
+                [0.98, 0.78, 0.26, 0.92],
+                height=96
             )
         return _GRADIENT_CACHE[key]
 
@@ -307,8 +317,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + dp(2), self.y - dp(4)
-            size: self.width, self.height
+            pos: self.x + dp(5), self.y - dp(8)
+            size: self.width - dp(10), self.height * 0.78
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -323,6 +333,13 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        Color:
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha
+        RoundedRectangle:
+            texture: self.accent_tex
+            pos: self.x + dp(16), self.y + dp(5)
+            size: self.width - dp(32), dp(12)
+            radius: [dp(5)]
         Color:
             rgba: 1, 1, 0.9, 0.16
         Line:
@@ -354,8 +371,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + (dp(1) if self.state == 'down' else dp(2)), self.y - (dp(3) if self.state == 'down' else dp(4))
-            size: self.width, self.height
+            pos: self.x + (dp(4) if self.state == 'down' else dp(5)), self.y - (dp(7) if self.state == 'down' else dp(8))
+            size: self.width - dp(10), self.height * (0.72 if self.state == 'down' else 0.78)
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -370,6 +387,13 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        Color:
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * (1.85 if self.state == 'down' else 0.85)
+        RoundedRectangle:
+            texture: self.accent_tex
+            pos: self.x + dp(16), self.y + dp(5)
+            size: self.width - dp(32), dp(12)
+            radius: [dp(5)]
         Color:
             rgba: 1, 1, 0.9, 0.18 if self.state == 'down' else 0.12
         Line:
@@ -396,6 +420,13 @@ try:
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
+            texture: self.shadow_tex
+            pos: self.x + dp(8), self.y - dp(10)
+            size: self.width - dp(16), self.height * 0.72
+            radius: [self.radius + dp(2)]
+        Color:
+            rgba: 1, 1, 1, self.bg_color[3]
+        RoundedRectangle:
             texture: self.bg_tex
             pos: self.pos
             size: self.size
@@ -406,6 +437,28 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        Color:
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * self.bg_color[3]
+        RoundedRectangle:
+            texture: self.accent_tex
+            pos: self.x + dp(18), self.y + dp(8)
+            size: self.width - dp(36), dp(14)
+            radius: [dp(6)]
+        Color:
+            rgba: self.border_dark_color[0], self.border_dark_color[1], self.border_dark_color[2], self.border_dark_color[3] * self.bg_color[3]
+        Line:
+            rounded_rectangle: (self.x - dp(1), self.y - dp(1), self.width + dp(2), self.height + dp(2), self.radius + dp(1))
+            width: 2.2
+        Color:
+            rgba: self.border_color[0], self.border_color[1], self.border_color[2], self.border_color[3] * self.bg_color[3]
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            width: self.border_width
+        Color:
+            rgba: self.border_glint_color[0], self.border_glint_color[1], self.border_glint_color[2], self.border_glint_color[3] * self.bg_color[3]
+        Line:
+            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            width: 1.0
 
 <FramedBox>:
     canvas.before:
@@ -421,8 +474,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + dp(4), self.y - dp(4)
-            size: self.width - dp(8), self.height
+            pos: self.x + dp(8), self.y - dp(8)
+            size: self.width - dp(16), self.height * 0.82
             radius: [self.radius + dp(1)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -437,6 +490,13 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        Color:
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha
+        RoundedRectangle:
+            texture: self.accent_tex
+            pos: self.x + dp(20), self.y + dp(10)
+            size: self.width - dp(40), dp(16)
+            radius: [dp(7)]
         Color:
             rgba: self.border_dark_color
         Line:
@@ -465,15 +525,19 @@ try:
         border_color = ListProperty(GOLD)
         border_dark_color = ListProperty(GDARK)
         border_glint_color = ListProperty(GGLINT)
+        accent_bar_color = ListProperty(GOLD)
+        accent_bar_alpha = NumericProperty(0.24)
         border_width = NumericProperty(2.8)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
+        accent_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
             self.bg_tex = get_ui_bg_tex()
+            self.accent_tex = get_gold_bar_tex()
 
     class RToggle(ToggleButton):
         bg_color = ListProperty(BTN)
@@ -481,24 +545,38 @@ try:
         border_color = ListProperty(GSOFT)
         border_dark_color = ListProperty(GDARK)
         border_glint_color = ListProperty(GGLINT)
+        accent_bar_color = ListProperty(GOLD)
+        accent_bar_alpha = NumericProperty(0.22)
         border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
+        accent_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
             self.bg_tex = get_ui_bg_tex()
+            self.accent_tex = get_gold_bar_tex()
 
     class RBox(BoxLayout):
         bg_color = ListProperty(BG2)
+        border_color = ListProperty(GSOFT)
+        border_dark_color = ListProperty(GDARK)
+        border_glint_color = ListProperty(GGLINT)
+        accent_bar_color = ListProperty(GOLD)
+        accent_bar_alpha = NumericProperty(0.16)
+        border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(20))
+        shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
+        accent_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
+            self.shadow_tex = get_drop_shadow_tex()
             self.bg_tex = get_ui_bg_tex()
+            self.accent_tex = get_gold_bar_tex()
 
     class FramedBox(BoxLayout):
         frame_color = ListProperty(GOLD)
@@ -509,15 +587,19 @@ try:
         border_dark_color = ListProperty(GDARK)
         border_glint_color = ListProperty(GGLINT)
         highlight_color = ListProperty([1.0, 0.93, 0.72, 0.26])
+        accent_bar_color = ListProperty(GOLD)
+        accent_bar_alpha = NumericProperty(0.28)
         border_width = NumericProperty(3.4)
         radius = NumericProperty(dp(16))
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
+        accent_tex = ObjectProperty(None, allownone=True)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
             self.bg_tex = get_ui_bg_tex()
+            self.accent_tex = get_gold_bar_tex()
 
     # === LYDKILDER ===
     AMBIENT_SOUNDS = [
@@ -1305,7 +1387,11 @@ try:
 
     def mkbtn(text, cb=None, accent=False, danger=False, small=False, **kw):
         c = GOLD if accent else (RED if danger else TXT)
-        b = RBtn(text=text, color=c, bg_color=BTN,
+        b = RBtn(text=text, color=c,
+                 bg_color=BTNH if accent else BTN,
+                 border_color=GOLD if accent else GSOFT,
+                 border_width=3.2 if accent else 2.8,
+                 accent_bar_alpha=0.48 if accent else 0.24,
                  font_size=sp(11) if small else sp(13), **kw)
         if cb:
             b.bind(on_release=lambda x: cb())
@@ -1754,6 +1840,7 @@ try:
                             color=GOLD if active else DIM,
                             border_color=GOLD if active else GSOFT,
                             border_width=3.2 if active else 2.2,
+                            accent_bar_alpha=0.52 if active else 0.18,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -1860,11 +1947,13 @@ try:
                 btn.color = GOLD
                 btn.border_color = GOLD
                 btn.border_width = 3.2
+                btn.accent_bar_alpha = 0.52
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
                 btn.border_color = GSOFT
                 btn.border_width = 2.2
+                btn.accent_bar_alpha = 0.18
 
         def _init(self):
             ensure_dirs()
@@ -2079,6 +2168,9 @@ try:
                 state='down' if self._cmb_sub == 'init' else 'normal',
                 bg_color=BTNH if self._cmb_sub == 'init' else BTN,
                 color=GOLD if self._cmb_sub == 'init' else DIM,
+                border_color=GOLD if self._cmb_sub == 'init' else GSOFT,
+                border_width=3.2 if self._cmb_sub == 'init' else 2.2,
+                accent_bar_alpha=0.52 if self._cmb_sub == 'init' else 0.18,
                 font_size=sp(12), bold=True)
             b_init.bind(on_release=lambda b: self._cmb_switch('init'))
             sub_bar.add_widget(b_init)
@@ -2089,6 +2181,9 @@ try:
                 state='down' if self._cmb_sub == 'map' else 'normal',
                 bg_color=BTNH if self._cmb_sub == 'map' else BTN,
                 color=GOLD if self._cmb_sub == 'map' else DIM,
+                border_color=GOLD if self._cmb_sub == 'map' else GSOFT,
+                border_width=3.2 if self._cmb_sub == 'map' else 2.2,
+                accent_bar_alpha=0.52 if self._cmb_sub == 'map' else 0.18,
                 font_size=sp(12), bold=True)
             b_map.bind(on_release=lambda b: self._cmb_switch('map'))
             sub_bar.add_widget(b_map)
@@ -2112,6 +2207,9 @@ try:
                 btn.state    = 'down' if active else 'normal'
                 btn.bg_color = BTNH   if active else BTN
                 btn.color    = GOLD   if active else DIM
+                btn.border_color = GOLD if active else GSOFT
+                btn.border_width = 3.2 if active else 2.2
+                btn.accent_bar_alpha = 0.52 if active else 0.18
             self._cmb_render()
 
         def _cmb_render(self):
@@ -2213,6 +2311,9 @@ try:
                 state='down' if self._sound_sub == 'mus' else 'normal',
                 bg_color=BTNH if self._sound_sub == 'mus' else BTN,
                 color=GOLD if self._sound_sub == 'mus' else DIM,
+                border_color=GOLD if self._sound_sub == 'mus' else GSOFT,
+                border_width=3.2 if self._sound_sub == 'mus' else 2.2,
+                accent_bar_alpha=0.52 if self._sound_sub == 'mus' else 0.18,
                 font_size=sp(12), bold=True)
             b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
             sub_bar.add_widget(b_mus)
@@ -2223,6 +2324,9 @@ try:
                 state='down' if self._sound_sub == 'amb' else 'normal',
                 bg_color=BTNH if self._sound_sub == 'amb' else BTN,
                 color=GOLD if self._sound_sub == 'amb' else DIM,
+                border_color=GOLD if self._sound_sub == 'amb' else GSOFT,
+                border_width=3.2 if self._sound_sub == 'amb' else 2.2,
+                accent_bar_alpha=0.52 if self._sound_sub == 'amb' else 0.18,
                 font_size=sp(12), bold=True)
             b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
             sub_bar.add_widget(b_amb)
@@ -2245,6 +2349,9 @@ try:
                 btn.state    = 'down' if active else 'normal'
                 btn.bg_color = BTNH   if active else BTN
                 btn.color    = GOLD   if active else DIM
+                btn.border_color = GOLD if active else GSOFT
+                btn.border_width = 3.2 if active else 2.2
+                btn.accent_bar_alpha = 0.52 if active else 0.18
             self._sound_render()
 
         def _sound_render(self):
@@ -2617,6 +2724,9 @@ try:
                 state='down' if self._tool_sub == 'chars' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'chars' else BTN,
                 color=GOLD if self._tool_sub == 'chars' else DIM,
+                border_color=GOLD if self._tool_sub == 'chars' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'chars' else 2.2,
+                accent_bar_alpha=0.52 if self._tool_sub == 'chars' else 0.18,
                 font_size=sp(11), bold=True)
             self._sub_btn_chars.bind(on_release=lambda b: self._tool_switch('chars'))
             sub_bar.add_widget(self._sub_btn_chars)
@@ -2626,6 +2736,9 @@ try:
                 state='down' if self._tool_sub == 'weap' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'weap' else BTN,
                 color=GOLD if self._tool_sub == 'weap' else DIM,
+                border_color=GOLD if self._tool_sub == 'weap' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'weap' else 2.2,
+                accent_bar_alpha=0.52 if self._tool_sub == 'weap' else 0.18,
                 font_size=sp(11), bold=True)
             self._sub_btn_weap.bind(on_release=lambda b: self._tool_switch('weap'))
             sub_bar.add_widget(self._sub_btn_weap)
@@ -2635,6 +2748,9 @@ try:
                 state='down' if self._tool_sub == 'scen' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'scen' else BTN,
                 color=GOLD if self._tool_sub == 'scen' else DIM,
+                border_color=GOLD if self._tool_sub == 'scen' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'scen' else 2.2,
+                accent_bar_alpha=0.52 if self._tool_sub == 'scen' else 0.18,
                 font_size=sp(11), bold=True)
             self._sub_btn_scen.bind(on_release=lambda b: self._tool_switch('scen'))
             sub_bar.add_widget(self._sub_btn_scen)
@@ -2644,6 +2760,9 @@ try:
                 state='down' if self._tool_sub == 'mad' else 'normal',
                 bg_color=BTNH if self._tool_sub == 'mad' else BTN,
                 color=GOLD if self._tool_sub == 'mad' else DIM,
+                border_color=GOLD if self._tool_sub == 'mad' else GSOFT,
+                border_width=3.2 if self._tool_sub == 'mad' else 2.2,
+                accent_bar_alpha=0.52 if self._tool_sub == 'mad' else 0.18,
                 font_size=sp(11), bold=True)
             self._sub_btn_mad.bind(on_release=lambda b: self._tool_switch('mad'))
             sub_bar.add_widget(self._sub_btn_mad)
@@ -2678,6 +2797,9 @@ try:
                 btn.state    = 'down'   if active else 'normal'
                 btn.bg_color = BTNH     if active else BTN
                 btn.color    = GOLD     if active else DIM
+                btn.border_color = GOLD if active else GSOFT
+                btn.border_width = 3.2 if active else 2.2
+                btn.accent_bar_alpha = 0.52 if active else 0.18
             self._tool_render_sub()
 
         def _tool_render_sub(self):
@@ -3447,6 +3569,9 @@ try:
                         state='down' if entry.get('firearms') else 'normal',
                         color=GOLD if entry.get('firearms') else DIM,
                         bg_color=BTNH if entry.get('firearms') else INPUT,
+                        border_color=GOLD if entry.get('firearms') else GSOFT,
+                        border_width=3.2 if entry.get('firearms') else 2.2,
+                        accent_bar_alpha=0.52 if entry.get('firearms') else 0.16,
                         font_size=sp(11), bold=True,
                         size_hint_x=None, width=dp(34))
                     fa_tog._init_idx = i
@@ -3491,6 +3616,9 @@ try:
                 inst.text = 'X' if on else ''
                 inst.color = GOLD if on else DIM
                 inst.bg_color = BTNH if on else INPUT
+                inst.border_color = GOLD if on else GSOFT
+                inst.border_width = 3.2 if on else 2.2
+                inst.accent_bar_alpha = 0.52 if on else 0.16
 
         def _init_show_char_picker(self):
             """Vis Investigator-velger."""
@@ -4489,6 +4617,9 @@ try:
                     text=txt,
                     bg_color=BTNH if active else BTN,
                     color=GOLD if active else TXT,
+                    border_color=GOLD if active else GSOFT,
+                    border_width=3.2 if active else 2.4,
+                    accent_bar_alpha=0.52 if active else 0.18,
                     font_size=sp(10), bold=active,
                     size_hint_y=None, height=dp(36))
                 b.bind(on_release=lambda x, k=key:
@@ -5560,6 +5691,9 @@ try:
                 state='down' if self._weap_fav_only else 'normal',
                 bg_color=BTNH if self._weap_fav_only else BTN,
                 color=GOLD if self._weap_fav_only else DIM,
+                border_color=GOLD if self._weap_fav_only else GSOFT,
+                border_width=3.2 if self._weap_fav_only else 2.2,
+                accent_bar_alpha=0.52 if self._weap_fav_only else 0.18,
                 font_size=sp(14), bold=True,
                 size_hint_x=0.2)
             fav_tog.bind(on_release=self._weap_toggle_fav_filter)
@@ -5585,6 +5719,9 @@ try:
                     text=lbl,
                     bg_color=BTNH if active else BTN,
                     color=GOLD if active else TXT,
+                    border_color=GOLD if active else GSOFT,
+                    border_width=3.2 if active else 2.4,
+                    accent_bar_alpha=0.52 if active else 0.18,
                     font_size=sp(11), bold=active,
                     size_hint_x=None, width=dp(90),
                     size_hint_y=None, height=dp(36))
@@ -5678,6 +5815,9 @@ try:
             self._weap_fav_only = (inst.state == 'down')
             inst.bg_color = BTNH if self._weap_fav_only else BTN
             inst.color = GOLD if self._weap_fav_only else DIM
+            inst.border_color = GOLD if self._weap_fav_only else GSOFT
+            inst.border_width = 3.2 if self._weap_fav_only else 2.2
+            inst.accent_bar_alpha = 0.52 if self._weap_fav_only else 0.18
             self._weap_render_list()
 
         def _weap_filter(self):
