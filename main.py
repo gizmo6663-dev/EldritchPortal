@@ -58,9 +58,10 @@ try:
     from kivy.utils import platform
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
-    from kivy.properties import ListProperty, NumericProperty
+    from kivy.properties import BooleanProperty, ListProperty, NumericProperty, ObjectProperty
     from kivy.lang import Builder
     from kivy.core.text import LabelBase
+    from kivy.graphics.texture import Texture
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -213,6 +214,9 @@ try:
     SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
+    GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
+    GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
+    GSOFT = [0.78, 0.60, 0.24, 1]     # varm mellomtone for gull
     TXT  = [0.93, 0.86, 0.74, 1]      # pergament-tekst
     DIM  = [0.58, 0.42, 0.40, 1]      # dempet tekst
     RED  = [0.78, 0.22, 0.24, 1]
@@ -230,6 +234,38 @@ try:
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
+    _GRADIENT_CACHE = {}
+
+    def make_vert_gradient_tex(rgb_top, rgb_bot, height=128):
+        tex = Texture.create(size=(1, height), colorfmt='rgba')
+        buf = bytearray()
+        for y in range(height):
+            t = y / float(max(1, height - 1))
+            r = rgb_bot[0] + (rgb_top[0] - rgb_bot[0]) * t
+            g = rgb_bot[1] + (rgb_top[1] - rgb_bot[1]) * t
+            b = rgb_bot[2] + (rgb_top[2] - rgb_bot[2]) * t
+            a = rgb_bot[3] + (rgb_top[3] - rgb_bot[3]) * t
+            buf.extend((
+                int(max(0, min(255, round(r * 255)))),
+                int(max(0, min(255, round(g * 255)))),
+                int(max(0, min(255, round(b * 255)))),
+                int(max(0, min(255, round(a * 255)))),
+            ))
+        tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
+        tex.wrap = 'clamp_to_edge'
+        tex.uvsize = (1, -1)
+        return tex
+
+    def get_drop_shadow_tex():
+        key = 'drop_shadow'
+        if key not in _GRADIENT_CACHE:
+            _GRADIENT_CACHE[key] = make_vert_gradient_tex(
+                [0.12, 0.06, 0.08, 0.30],
+                [0.01, 0.00, 0.01, 0.0],
+                height=128
+            )
+        return _GRADIENT_CACHE[key]
+
     # ============================================================
     # KV REGLER – skygge + avrundede hjørner
     # Skygge: en mørk RoundedRectangle forskjøvet 2dp ned.
@@ -243,11 +279,12 @@ try:
     bold: True
     canvas.before:
         Color:
-            rgba: self.shadow_color
+            rgba: 1, 1, 1, 1
         RoundedRectangle:
-            pos: self.x, self.y - dp(2)
+            texture: self.shadow_tex
+            pos: self.x + dp(2), self.y - dp(4)
             size: self.width, self.height
-            radius: [self.radius]
+            radius: [self.radius + dp(2)]
         Color:
             rgba: self.bg_color
         RoundedRectangle:
@@ -255,10 +292,25 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
+            rgba: 1, 1, 0.9, 0.16
+        Line:
+            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1))
+            width: 1.0
+        Color:
+            rgba: self.border_dark_color
+        Line:
+            rounded_rectangle: (self.x - dp(1), self.y - dp(1), self.width + dp(2), self.height + dp(2), self.radius + dp(1))
+            width: 2.2
+        Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x + dp(1), self.y + dp(1), self.width - dp(2), self.height - dp(2), self.radius)
-            width: 1.2
+            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            width: self.border_width
+        Color:
+            rgba: self.border_glint_color
+        Line:
+            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            width: 1.1
 
 <RToggle>:
     background_normal: ''
@@ -267,11 +319,12 @@ try:
     bold: True
     canvas.before:
         Color:
-            rgba: self.shadow_color
+            rgba: 1, 1, 1, 1
         RoundedRectangle:
-            pos: self.x, self.y - dp(2)
+            texture: self.shadow_tex
+            pos: self.x + (dp(1) if self.state == 'down' else dp(2)), self.y - (dp(3) if self.state == 'down' else dp(4))
             size: self.width, self.height
-            radius: [self.radius]
+            radius: [self.radius + dp(2)]
         Color:
             rgba: self.bg_color
         RoundedRectangle:
@@ -279,10 +332,25 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
+            rgba: 1, 1, 0.9, 0.18 if self.state == 'down' else 0.12
+        Line:
+            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1))
+            width: 1.0
+        Color:
+            rgba: self.border_dark_color
+        Line:
+            rounded_rectangle: (self.x - dp(1), self.y - dp(1), self.width + dp(2), self.height + dp(2), self.radius + dp(1))
+            width: 2.2
+        Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x + dp(1), self.y + dp(1), self.width - dp(2), self.height - dp(2), self.radius)
+            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
             width: self.border_width
+        Color:
+            rgba: self.border_glint_color
+        Line:
+            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            width: 1.1
 
 <RBox>:
     canvas.before:
@@ -300,20 +368,82 @@ try:
         Line:
             rectangle: (self.x, self.y, self.width, self.height)
             width: 1.5
+
+<PreviewFrame>:
+    canvas.before:
+        Color:
+            rgba: 1, 1, 1, 1
+        RoundedRectangle:
+            texture: self.shadow_tex
+            pos: self.x + dp(3), self.y - dp(6)
+            size: self.width, self.height
+            radius: [self.radius + dp(3)]
+        Color:
+            rgba: self.bg_color
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [self.radius]
+        Color:
+            rgba: self.border_dark_color
+        Line:
+            rounded_rectangle: (self.x - dp(1.5), self.y - dp(1.5), self.width + dp(3), self.height + dp(3), self.radius + dp(2))
+            width: 2.8
+        Color:
+            rgba: self.border_color
+        Line:
+            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            width: self.border_width
+        Color:
+            rgba: self.border_glint_color
+        Line:
+            rounded_rectangle: (self.x + dp(4), self.y + dp(4), self.width - dp(8), self.height - dp(8), self.radius - dp(3))
+            width: 1.4
+        Color:
+            rgba: self.highlight_color
+        Line:
+            rounded_rectangle: (self.x + dp(8), self.top - dp(18), self.width - dp(16), dp(10), dp(4))
+            width: 1.0
 ''')
     
     class RBtn(Button):
         bg_color = ListProperty(BTN)
         shadow_color = ListProperty(SHAD)
-        border_color = ListProperty(GDIM)
+        border_color = ListProperty(GOLD)
+        border_dark_color = ListProperty(GDARK)
+        border_glint_color = ListProperty(GGLINT)
+        border_width = NumericProperty(2.8)
         radius = NumericProperty(dp(14))
+        shadow_tex = ObjectProperty(None, allownone=True)
+        _pressed = BooleanProperty(False)
+
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self.shadow_tex = get_drop_shadow_tex()
+
+        def on_press(self):
+            self._pressed = True
+
+        def on_release(self):
+            self._pressed = False
+
+        def on_touch_up(self, touch):
+            self._pressed = False
+            return super().on_touch_up(touch)
 
     class RToggle(ToggleButton):
         bg_color = ListProperty(BTN)
         shadow_color = ListProperty(SHAD)
-        border_color = ListProperty(GDIM)
-        border_width = NumericProperty(1.2)
+        border_color = ListProperty(GSOFT)
+        border_dark_color = ListProperty(GDARK)
+        border_glint_color = ListProperty(GGLINT)
+        border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(14))
+        shadow_tex = ObjectProperty(None, allownone=True)
+
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self.shadow_tex = get_drop_shadow_tex()
 
     class RBox(BoxLayout):
         bg_color = ListProperty(BG2)
@@ -321,6 +451,20 @@ try:
 
     class FramedBox(BoxLayout):
         frame_color = ListProperty(GOLD)
+
+    class PreviewFrame(BoxLayout):
+        bg_color = ListProperty(BLK)
+        border_color = ListProperty(GOLD)
+        border_dark_color = ListProperty(GDARK)
+        border_glint_color = ListProperty(GGLINT)
+        highlight_color = ListProperty([1.0, 0.93, 0.72, 0.26])
+        border_width = NumericProperty(3.4)
+        radius = NumericProperty(dp(16))
+        shadow_tex = ObjectProperty(None, allownone=True)
+
+        def __init__(self, **kw):
+            super().__init__(**kw)
+            self.shadow_tex = get_drop_shadow_tex()
 
     # === LYDKILDER ===
     AMBIENT_SOUNDS = [
@@ -1555,8 +1699,8 @@ try:
                             state='down' if active else 'normal',
                             bg_color=BTNH if active else BTN,
                             color=GOLD if active else DIM,
-                            border_color=GOLD if active else GDIM,
-                            border_width=2.5 if active else 1.0,
+                            border_color=GOLD if active else GSOFT,
+                            border_width=3.2 if active else 2.2,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -1662,12 +1806,12 @@ try:
                 btn.bg_color = BTNH
                 btn.color = GOLD
                 btn.border_color = GOLD
-                btn.border_width = 2.5
+                btn.border_width = 3.2
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
-                btn.border_color = GDIM
-                btn.border_width = 1.0
+                btn.border_color = GSOFT
+                btn.border_width = 2.2
 
         def _init(self):
             ensure_dirs()
@@ -1749,8 +1893,8 @@ try:
         # ---------- BILDER ----------
         def _mk_img(self):
             p = BoxLayout(orientation='vertical', spacing=dp(6))
-            # Svart bakgrunn bak preview-bildet
-            preview_box = RBox(size_hint_y=0.4, bg_color=BLK, radius=dp(12))
+            preview_box = PreviewFrame(size_hint_y=0.4, bg_color=BLK,
+                                       radius=dp(18), padding=dp(10))
             self.preview = Image(allow_stretch=True, keep_ratio=True,
                                  color=[1, 1, 1, 0] if not self.sel_img else [1, 1, 1, 1])
             if self.sel_img:
