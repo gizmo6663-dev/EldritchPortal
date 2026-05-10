@@ -219,6 +219,13 @@ try:
     GRN  = [0.30, 0.60, 0.34, 1]
     BLUE = [0.32, 0.40, 0.62, 1]
     BLK  = [0.0, 0.0, 0.0, 1]
+    # Teksten holdes i øvre halvdel mens bildet ligger lavere på skjermen.
+    SPLASH_IMG_SIZE_HINT = (0.9, 0.42)
+    SPLASH_IMG_POS_HINT = {'center_x': 0.5, 'y': 0.06}
+    SPLASH_IMG_OPACITY = 0.65
+    SPLASH_TEXT_SIZE_HINT = (1, 0.48)
+    SPLASH_TEXT_TOP = 0.82
+    SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     HTTP_PORT = 8089
 
@@ -1526,10 +1533,10 @@ try:
 
             # HOVEDINNHOLD – med Cthulhu-segl som vannmerke
             content_wrap = FloatLayout(size_hint=(1, 1))
-            bg_path = os.path.join(_BUNDLE_DIR, 'background.png')
-            if os.path.exists(bg_path):
+            background_image_path = os.path.join(_BUNDLE_DIR, 'background.png')
+            if os.path.exists(background_image_path):
                 self._content_bg = Image(
-                    source=bg_path,
+                    source=background_image_path,
                     allow_stretch=True,
                     keep_ratio=True,
                     size_hint=(1.1, 1.1),
@@ -1564,32 +1571,49 @@ try:
             wrapper.add_widget(main)
 
             # === SPLASH SCREEN ===
-            self.splash = RBox(bg_color=BG, radius=0,
-                               orientation='vertical',
-                               size_hint=(1, 1),
-                               pos_hint={'x': 0, 'y': 0})
-            # Sentrert innhold
-            self.splash.add_widget(Widget())  # fyll topp
+            self.splash = FloatLayout(size_hint=(1, 1),
+                                      pos_hint={'x': 0, 'y': 0})
+            self.splash.add_widget(
+                RBox(bg_color=BG, radius=0,
+                     size_hint=(1, 1),
+                     pos_hint={'x': 0, 'y': 0})
+            )
+            if os.path.exists(background_image_path):
+                self.splash.add_widget(
+                    Image(
+                        source=background_image_path,
+                        allow_stretch=True,
+                        keep_ratio=True,
+                        size_hint=SPLASH_IMG_SIZE_HINT,
+                        pos_hint=SPLASH_IMG_POS_HINT,
+                        opacity=SPLASH_IMG_OPACITY
+                    )
+                )
+            splash_text = BoxLayout(orientation='vertical',
+                                    size_hint=SPLASH_TEXT_SIZE_HINT,
+                                    pos_hint=SPLASH_TEXT_POS_HINT)
+            splash_text.add_widget(Widget())  # fyll topp
             t1 = Label(text="ELDRITCH", font_size=sp(54),
                        font_name=FONT_TITLE,
                        color=GOLD,
                        size_hint_y=None, height=dp(72),
                        halign='center')
             t1.bind(size=t1.setter('text_size'))
-            self.splash.add_widget(t1)
+            splash_text.add_widget(t1)
             t2 = Label(text="PORTAL", font_size=sp(54),
                        font_name=FONT_TITLE,
                        color=GDIM,
                        size_hint_y=None, height=dp(72),
                        halign='center')
             t2.bind(size=t2.setter('text_size'))
-            self.splash.add_widget(t2)
+            splash_text.add_widget(t2)
             sub = Label(text="Keeper Companion Tool", font_size=sp(13),
                         color=DIM, size_hint_y=None, height=dp(30),
                         halign='center')
             sub.bind(size=sub.setter('text_size'))
-            self.splash.add_widget(sub)
-            self.splash.add_widget(Widget())  # fyll bunn
+            splash_text.add_widget(sub)
+            splash_text.add_widget(Widget())  # fyll bunn
+            self.splash.add_widget(splash_text)
             wrapper.add_widget(self.splash)
 
             self._tab('img')
