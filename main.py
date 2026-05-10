@@ -219,6 +219,7 @@ try:
     GRN  = [0.30, 0.60, 0.34, 1]
     BLUE = [0.32, 0.40, 0.62, 1]
     BLK  = [0.0, 0.0, 0.0, 1]
+    # Teksten holdes i øvre halvdel mens bildet ligger lavere på skjermen.
     SPLASH_IMG_SIZE_HINT = (0.9, 0.42)
     SPLASH_IMG_POS_HINT = {'center_x': 0.5, 'y': 0.06}
     SPLASH_IMG_OPACITY = 0.65
@@ -1531,10 +1532,10 @@ try:
 
             # HOVEDINNHOLD – med Cthulhu-segl som vannmerke
             content_wrap = FloatLayout(size_hint=(1, 1))
-            bg_path = os.path.join(_BUNDLE_DIR, 'background.png')
-            if os.path.exists(bg_path):
+            background_image_path = os.path.join(_BUNDLE_DIR, 'background.png')
+            if os.path.exists(background_image_path):
                 self._content_bg = Image(
-                    source=bg_path,
+                    source=background_image_path,
                     allow_stretch=True,
                     keep_ratio=True,
                     size_hint=(1.1, 1.1),
@@ -1576,10 +1577,10 @@ try:
                      size_hint=(1, 1),
                      pos_hint={'x': 0, 'y': 0})
             )
-            if os.path.exists(bg_path):
+            if os.path.exists(background_image_path):
                 self.splash.add_widget(
                     Image(
-                        source=bg_path,
+                        source=background_image_path,
                         allow_stretch=True,
                         keep_ratio=True,
                         size_hint=SPLASH_IMG_SIZE_HINT,
