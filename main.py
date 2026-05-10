@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.0 – Necronomicon) ===")
+log("=== APP START (v0.4.1 – Necronomicon, UI-rens) ===")
 
 try:
     from kivy.app import App
@@ -229,8 +229,6 @@ try:
     BLK  = [0.0, 0.0, 0.0, 1]
     TOGGLE_ACCENT_ALPHA_IDLE = 0.75
     TOGGLE_ACCENT_ALPHA_ACTIVE = 1.0
-    TAB_ACCENT_ALPHA_ACTIVE = 0.36
-    TAB_STRIPE_ALPHA_ACTIVE = 1.0
     # Bakgrunnsbildet fyller hele skjermen på splash.
     # Aspect ratio beholdes ikke, slik at bildet dekker hele flaten.
     SPLASH_IMG_SIZE_HINT = (1, 1)
@@ -355,6 +353,21 @@ try:
     # Main part: draw bgtb.png without tint first, then add bg_color
     # semi-transparently on top to preserve the existing color palette.
     # ============================================================
+    # ============================================================
+    # KV-regler – Forenklet utseende (v0.4.1)
+    # Tidligere tegnet vi 3-4 stablede border-linjer + en intern
+    # gull-gradient-stripe inni hver knapp/panel. Det ga 8 canvas-
+    # operasjoner per widget og et veldig "vilt" inntrykk.
+    #
+    # Ny stil:
+    #   - RBtn / RToggle / RBox: skygge + bakgrunn + 2 rene
+    #     border-linjer (mørk amber + gull) — slankere og roligere.
+    #   - RToggle: tynn gullstripe i bunnen som KUN vises når
+    #     state == 'down' — Material-style indikator likt
+    #     CampaignForge.
+    #   - PreviewFrame (galleri-rammer): 2 border-linjer + topp-glød.
+    #     Beholder ornamentert preg, men uten indre glint-støy.
+    # ============================================================
     Builder.load_string('''
 #:set RBTN_SHADOW_X dp(6)
 #:set RBTN_SHADOW_Y dp(7)
@@ -374,6 +387,7 @@ try:
     background_color: 0, 0, 0, 0
     bold: True
     canvas.before:
+        # Drop shadow
         Color:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
@@ -381,6 +395,7 @@ try:
             pos: self.x + RBTN_SHADOW_X, self.y - RBTN_SHADOW_Y
             size: self.width - RBTN_SHADOW_W, self.height * RBTN_SHADOW_HEIGHT_RATIO
             radius: [self.radius + dp(2)]
+        # Tekstur-bakgrunn (papir)
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
@@ -388,28 +403,24 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        # Farge-overlay (burgunder/vinrød)
         Color:
             rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [self.radius]
-        Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha
-        RoundedRectangle:
-            texture: self.accent_tex
-            pos: self.x + dp(12), self.y + dp(6)
-            size: self.width - dp(24), dp(8)
-            radius: [dp(4)]
+        # Mørk ytre kant (gir dybde)
         Color:
             rgba: self.border_dark_color
         Line:
-            rounded_rectangle: (self.x + dp(0.9), self.y + dp(0.9), self.width - dp(1.8), self.height - dp(1.8), self.radius - dp(0.8))
-            width: 2.0
+            rounded_rectangle: (self.x + dp(0.8), self.y + dp(0.8), self.width - dp(1.6), self.height - dp(1.6), self.radius - dp(0.6))
+            width: 1.4
+        # Hoved gull-kant
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x + dp(1.8), self.y + dp(1.8), self.width - dp(3.6), self.height - dp(3.6), self.radius - dp(1.6))
+            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1.6))
             width: self.border_width
 
 <RToggle>:
@@ -418,6 +429,7 @@ try:
     background_color: 0, 0, 0, 0
     bold: True
     canvas.before:
+        # Drop shadow
         Color:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
@@ -425,6 +437,7 @@ try:
             pos: self.x + self.shadow_dx, self.y - self.shadow_dy
             size: self.width - RBTN_SHADOW_W, self.height * self.shadow_height_ratio
             radius: [self.radius + dp(2)]
+        # Tekstur-bakgrunn
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
@@ -432,37 +445,36 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        # Farge-overlay
         Color:
             rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [self.radius]
-        Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * self.accent_alpha_mult
-        RoundedRectangle:
-            texture: self.accent_tex
-            pos: self.x + dp(12), self.y + dp(6)
-            size: self.width - dp(24), dp(8)
-            radius: [dp(4)]
+        # Mørk ytre kant
         Color:
             rgba: self.border_dark_color
         Line:
-            rounded_rectangle: (self.x + dp(0.9), self.y + dp(0.9), self.width - dp(1.8), self.height - dp(1.8), self.radius - dp(0.8))
-            width: 2.0
+            rounded_rectangle: (self.x + dp(0.8), self.y + dp(0.8), self.width - dp(1.6), self.height - dp(1.6), self.radius - dp(0.6))
+            width: 1.4
+        # Hoved-kant (gull eller dempet gull)
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x + dp(1.8), self.y + dp(1.8), self.width - dp(3.6), self.height - dp(3.6), self.radius - dp(1.6))
+            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1.6))
             width: self.border_width
+        # Tab-indikator: ren gullstripe i bunn — KUN ved aktiv tab
         Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.tab_stripe_alpha
-        Rectangle:
-            pos: self.x, self.y
-            size: self.width, dp(3)
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], 1.0 if self.state == 'down' else 0.0
+        RoundedRectangle:
+            pos: self.x + dp(14), self.y + dp(5)
+            size: self.width - dp(28), dp(3)
+            radius: [dp(1.5)]
 
 <RBox>:
     canvas.before:
+        # Drop shadow
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
@@ -470,6 +482,7 @@ try:
             pos: self.x + RBOX_SHADOW_X, self.y - RBOX_SHADOW_Y
             size: self.width - RBOX_SHADOW_W, self.height * RBOX_SHADOW_HEIGHT_RATIO
             radius: [self.radius + dp(2)]
+        # Tekstur-bakgrunn
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
@@ -477,28 +490,24 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        # Farge-overlay
         Color:
             rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [self.radius]
-        Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * self.bg_color[3]
-        RoundedRectangle:
-            texture: self.accent_tex
-            pos: self.x + dp(14), self.y + dp(6)
-            size: self.width - dp(28), dp(10)
-            radius: [dp(5)]
+        # Mørk ytre kant
         Color:
             rgba: self.border_dark_color[0], self.border_dark_color[1], self.border_dark_color[2], self.border_dark_color[3] * self.bg_color[3]
         Line:
             rounded_rectangle: (self.x + dp(1), self.y + dp(1), self.width - dp(2), self.height - dp(2), self.radius - dp(1))
-            width: 2.0
+            width: 1.4
+        # Hoved gull-kant
         Color:
             rgba: self.border_color[0], self.border_color[1], self.border_color[2], self.border_color[3] * self.bg_color[3]
         Line:
-            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(2))
+            rounded_rectangle: (self.x + dp(2.4), self.y + dp(2.4), self.width - dp(4.8), self.height - dp(4.8), self.radius - dp(2))
             width: self.border_width
 
 <FramedBox>:
@@ -511,6 +520,7 @@ try:
 
 <PreviewFrame>:
     canvas.before:
+        # Drop shadow
         Color:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
@@ -518,6 +528,7 @@ try:
             pos: self.x + PREVIEW_SHADOW_X, self.y - PREVIEW_SHADOW_Y
             size: self.width - PREVIEW_SHADOW_W, self.height * PREVIEW_SHADOW_HEIGHT_RATIO
             radius: [self.radius + dp(1)]
+        # Tekstur-bakgrunn
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
@@ -525,29 +536,31 @@ try:
             pos: self.pos
             size: self.size
             radius: [self.radius]
+        # Farge-overlay
         Color:
             rgba: self.bg_color[0], self.bg_color[1], self.bg_color[2], self.bg_color[3] * 0.82
         RoundedRectangle:
             pos: self.pos
             size: self.size
             radius: [self.radius]
-        Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha
-        RoundedRectangle:
-            texture: self.accent_tex
-            pos: self.x + dp(16), self.y + dp(8)
-            size: self.width - dp(32), dp(12)
-            radius: [dp(6)]
+        # Mørk ytre kant
         Color:
             rgba: self.border_dark_color
         Line:
             rounded_rectangle: (self.x + dp(1.5), self.y + dp(1.5), self.width - dp(3), self.height - dp(3), self.radius - dp(1))
-            width: 2.0
+            width: 2.4
+        # Hoved gull-kant (litt tykkere — det er en bilderamme)
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            rounded_rectangle: (self.x + dp(3.2), self.y + dp(3.2), self.width - dp(6.4), self.height - dp(6.4), self.radius - dp(2))
             width: self.border_width
+        # Topp-glød (subtil høylysrefleks i overkant)
+        Color:
+            rgba: self.highlight_color
+        Line:
+            rounded_rectangle: (self.x + dp(8), self.top - dp(18), self.width - dp(16), dp(10), dp(4))
+            width: 1.0
 ''')
     
     class RBtn(Button):
@@ -578,7 +591,6 @@ try:
         border_glint_color = ListProperty(GGLINT)
         accent_bar_color = ListProperty(GOLD)
         accent_bar_alpha = NumericProperty(0.22)
-        tab_stripe_alpha = NumericProperty(0.0)
         border_width = NumericProperty(2.2)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
@@ -641,7 +653,7 @@ try:
         highlight_color = ListProperty([1.0, 0.93, 0.72, 0.26])
         accent_bar_color = ListProperty(GOLD)
         accent_bar_alpha = NumericProperty(0.28)
-        border_width = NumericProperty(2.2)
+        border_width = NumericProperty(3.4)
         radius = NumericProperty(dp(16))
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
@@ -1954,8 +1966,7 @@ try:
                             color=GOLD if active else DIM,
                             border_color=GOLD if active else GSOFT,
                             border_width=3.2 if active else 2.2,
-                            accent_bar_alpha=TAB_ACCENT_ALPHA_ACTIVE if active else 0.0,
-                            tab_stripe_alpha=TAB_STRIPE_ALPHA_ACTIVE if active else 0.0,
+                            accent_bar_alpha=0.48 if active else 0.0,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -2062,15 +2073,13 @@ try:
                 btn.color = GOLD
                 btn.border_color = GOLD
                 btn.border_width = 3.2
-                btn.accent_bar_alpha = TAB_ACCENT_ALPHA_ACTIVE
-                btn.tab_stripe_alpha = TAB_STRIPE_ALPHA_ACTIVE
+                btn.accent_bar_alpha = 0.48
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
                 btn.border_color = GSOFT
                 btn.border_width = 2.2
                 btn.accent_bar_alpha = 0.0
-                btn.tab_stripe_alpha = 0.0
 
         def _init(self):
             ensure_dirs()
