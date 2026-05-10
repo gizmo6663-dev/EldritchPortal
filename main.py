@@ -207,13 +207,13 @@ try:
                 log(f"makedirs {d}: {e}")
         log(f"Dirs OK: {os.path.exists(IMG_DIR)}, {os.path.exists(MUSIC_DIR)}")
 
-    # === COLORS – Eldritch bronze + moss ===
+    # === COLORS – Necronomicon Burgundy ===
     BG   = [0.08, 0.04, 0.06, 1]      # dypt bok-brunt/burgunder
-    BG2  = [0.14, 0.22, 0.13, 1]      # panel-grønn
-    INPUT= [0.10, 0.12, 0.09, 1]      # text input
-    BTN  = [0.18, 0.28, 0.16, 1]      # knapp/panel
-    BTNH = [0.30, 0.44, 0.24, 1]      # aktiv tab
-    SHAD = [0.02, 0.03, 0.02, 0.82]   # skygge
+    BG2  = [0.14, 0.07, 0.10, 1]      # panel-burgunder
+    INPUT= [0.10, 0.05, 0.07, 1]      # text input
+    BTN  = [0.24, 0.11, 0.14, 1]      # knapp (vinrød)
+    BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
+    SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
     GOLD_BAR_TOP = [1.0, 0.96, 0.82, 0.0]
     GOLD_BAR_BOTTOM = [0.98, 0.78, 0.26, 0.92]
@@ -274,7 +274,7 @@ try:
         key = 'drop_shadow'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                [0.16, 0.11, 0.05, 0.42],
+                [0.12, 0.06, 0.08, 0.42],
                 [0.01, 0.00, 0.01, 0.0],
                 height=128
             )
