@@ -215,8 +215,8 @@ try:
     BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
     SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
-    GBAR_TOP = [1.0, 0.96, 0.82, 0.0]
-    GBAR_BOTTOM = [0.98, 0.78, 0.26, 0.92]
+    GGRAD_TOP = [1.0, 0.96, 0.82, 0.0]
+    GGRAD_BOTTOM = [0.98, 0.78, 0.26, 0.92]
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
     GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
@@ -286,8 +286,8 @@ try:
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                GBAR_TOP,
-                GBAR_BOTTOM,
+                GGRAD_TOP,
+                GGRAD_BOTTOM,
                 height=96
             )
         return _GRADIENT_CACHE[key]
@@ -306,7 +306,9 @@ try:
 
     # ============================================================
     # KV REGLER – skygge + avrundede hjørner
-    # Skygge: en mørk RoundedRectangle forskjøvet 2dp ned.
+    # Skygge: en mørk RoundedRectangle forskjøvet ned og gjort litt smalere,
+    # mens høyden beholdes som en ratio av widgeten for å gi en mykere
+    # "floor shadow" uten å endre selve knapp/panel-bredden.
     # Main part: draw bgtb.png without tint first, then add bg_color
     # semi-transparently on top to preserve the existing color palette.
     # ============================================================
