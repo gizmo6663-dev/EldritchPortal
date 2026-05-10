@@ -212,11 +212,11 @@ try:
     BG2  = [0.14, 0.07, 0.10, 1]      # panel-burgunder
     INPUT= [0.10, 0.05, 0.07, 1]      # text input
     BTN  = [0.24, 0.11, 0.14, 1]      # knapp (vinrød)
-    BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
+    BTNH = [0.46, 0.21, 0.25, 1]      # aktiv tab
     SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
-    GOLD_ACCENT_GRADIENT_TOP = [1.0, 0.96, 0.82, 0.0]
-    GOLD_ACCENT_GRADIENT_BOTTOM = [0.98, 0.78, 0.26, 0.92]
+    GOLD_ACCENT_GRADIENT_TOP = [1.0, 0.97, 0.88, 0.94]
+    GOLD_ACCENT_GRADIENT_BOTTOM = [0.95, 0.82, 0.38, 0.72]
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
     GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
@@ -238,7 +238,7 @@ try:
     # 0.82 kept the existing burgundy/gold theme dominant while still leaving the paper texture clearly visible.
     UI_TEXTURE_TINT_ALPHA = 0.82
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
-    SPLASH_TEXT_TOP = 0.82
+    SPLASH_TEXT_TOP = 0.88
     SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     CUSTOM_AMBIENT_NAME = "Egen lyd"
@@ -273,25 +273,63 @@ try:
         tex.uvsize = (1, -1)
         return tex
 
+    def make_horiz_gradient_tex(rgb_left, rgb_right, width=128):
+        """Build a cached horizontal RGBA gradient texture."""
+        width = max(2, int(width))
+        tex = Texture.create(size=(width, 1), colorfmt='rgba')
+        buf = bytearray()
+        for x in range(width):
+            t = x / float(width - 1)
+            r = rgb_left[0] + (rgb_right[0] - rgb_left[0]) * t
+            g = rgb_left[1] + (rgb_right[1] - rgb_left[1]) * t
+            b = rgb_left[2] + (rgb_right[2] - rgb_left[2]) * t
+            a = rgb_left[3] + (rgb_right[3] - rgb_left[3]) * t
+            buf.extend((
+                int(max(0, min(255, round(r * 255)))),
+                int(max(0, min(255, round(g * 255)))),
+                int(max(0, min(255, round(b * 255)))),
+                int(max(0, min(255, round(a * 255)))),
+            ))
+        tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
+        tex.wrap = 'clamp_to_edge'
+        return tex
+
+    def make_diag_shadow_tex(width=96, height=96):
+        """Build a cached shadow texture that fades toward the lower-right."""
+        width = max(2, int(width))
+        height = max(2, int(height))
+        tex = Texture.create(size=(width, height), colorfmt='rgba')
+        buf = bytearray()
+        for y in range(height):
+            yn = y / float(height - 1)
+            for x in range(width):
+                xn = x / float(width - 1)
+                fade = max(0.0, 1.0 - ((xn * 0.85) + (yn * 1.1)) / 1.95)
+                alpha = (fade ** 1.65) * 0.34
+                buf.extend((
+                    int(8),
+                    int(3),
+                    int(6),
+                    int(max(0, min(255, round(alpha * 255)))),
+                ))
+        tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
+        tex.wrap = 'clamp_to_edge'
+        tex.uvsize = (1, -1)
+        return tex
+
     def get_drop_shadow_tex():
         key = 'drop_shadow'
         if key not in _GRADIENT_CACHE:
-            # Slightly stronger alpha than before so the new chrome details
-            # read clearly without changing the burgundy base palette.
-            _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                [0.12, 0.06, 0.08, 0.42],
-                [0.01, 0.00, 0.01, 0.0],
-                height=128
-            )
+            _GRADIENT_CACHE[key] = make_diag_shadow_tex(width=96, height=96)
         return _GRADIENT_CACHE[key]
 
     def get_gold_bar_tex():
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
-            _GRADIENT_CACHE[key] = make_vert_gradient_tex(
+            _GRADIENT_CACHE[key] = make_horiz_gradient_tex(
                 GOLD_ACCENT_GRADIENT_TOP,
                 GOLD_ACCENT_GRADIENT_BOTTOM,
-                height=96
+                width=160
             )
         return _GRADIENT_CACHE[key]
 
@@ -316,16 +354,16 @@ try:
     # semi-transparently on top to preserve the existing color palette.
     # ============================================================
     Builder.load_string('''
-#:set RBTN_SHADOW_X dp(5)
-#:set RBTN_SHADOW_Y dp(8)
+#:set RBTN_SHADOW_X dp(6)
+#:set RBTN_SHADOW_Y dp(7)
 #:set RBTN_SHADOW_W dp(10)
-#:set RBTN_SHADOW_HEIGHT_RATIO 0.78
-#:set RBOX_SHADOW_X dp(8)
-#:set RBOX_SHADOW_Y dp(10)
+#:set RBTN_SHADOW_HEIGHT_RATIO 0.8
+#:set RBOX_SHADOW_X dp(9)
+#:set RBOX_SHADOW_Y dp(9)
 #:set RBOX_SHADOW_W dp(16)
 #:set RBOX_SHADOW_HEIGHT_RATIO 0.72
-#:set PREVIEW_SHADOW_X dp(8)
-#:set PREVIEW_SHADOW_Y dp(8)
+#:set PREVIEW_SHADOW_X dp(9)
+#:set PREVIEW_SHADOW_Y dp(9)
 #:set PREVIEW_SHADOW_W dp(16)
 #:set PREVIEW_SHADOW_HEIGHT_RATIO 0.82
 <RBtn>:
@@ -358,9 +396,9 @@ try:
             rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha
         RoundedRectangle:
             texture: self.accent_tex
-            pos: self.x + dp(16), self.y + dp(5)
-            size: self.width - dp(32), dp(12)
-            radius: [dp(5)]
+            pos: self.x + dp(12), self.y + dp(6)
+            size: self.width - dp(24), dp(8)
+            radius: [dp(4)]
         Color:
             rgba: 1, 1, 0.9, 0.16
         Line:
@@ -369,17 +407,17 @@ try:
         Color:
             rgba: self.border_dark_color
         Line:
-            rounded_rectangle: (self.x - dp(1), self.y - dp(1), self.width + dp(2), self.height + dp(2), self.radius + dp(1))
-            width: 2.2
+            rounded_rectangle: (self.x + dp(0.9), self.y + dp(0.9), self.width - dp(1.8), self.height - dp(1.8), self.radius - dp(0.8))
+            width: 2.0
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            rounded_rectangle: (self.x + dp(1.8), self.y + dp(1.8), self.width - dp(3.6), self.height - dp(3.6), self.radius - dp(1.6))
             width: self.border_width
         Color:
             rgba: self.border_glint_color
         Line:
-            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            rounded_rectangle: (self.x + dp(4.2), self.y + dp(4.2), self.width - dp(8.4), self.height - dp(8.4), self.radius - dp(3.4))
             width: 1.1
 
 <RToggle>:
@@ -412,9 +450,9 @@ try:
             rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * self.accent_alpha_mult
         RoundedRectangle:
             texture: self.accent_tex
-            pos: self.x + dp(16), self.y + dp(5)
-            size: self.width - dp(32), dp(12)
-            radius: [dp(5)]
+            pos: self.x + dp(12), self.y + dp(6)
+            size: self.width - dp(24), dp(8)
+            radius: [dp(4)]
         Color:
             rgba: 1, 1, 0.9, 0.18 if self.state == 'down' else 0.12
         Line:
@@ -423,17 +461,17 @@ try:
         Color:
             rgba: self.border_dark_color
         Line:
-            rounded_rectangle: (self.x - dp(1), self.y - dp(1), self.width + dp(2), self.height + dp(2), self.radius + dp(1))
-            width: 2.2
+            rounded_rectangle: (self.x + dp(0.9), self.y + dp(0.9), self.width - dp(1.8), self.height - dp(1.8), self.radius - dp(0.8))
+            width: 2.0
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            rounded_rectangle: (self.x + dp(1.8), self.y + dp(1.8), self.width - dp(3.6), self.height - dp(3.6), self.radius - dp(1.6))
             width: self.border_width
         Color:
             rgba: self.border_glint_color
         Line:
-            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            rounded_rectangle: (self.x + dp(4.2), self.y + dp(4.2), self.width - dp(8.4), self.height - dp(8.4), self.radius - dp(3.4))
             width: 1.1
 
 <RBox>:
@@ -468,17 +506,17 @@ try:
         Color:
             rgba: self.border_dark_color[0], self.border_dark_color[1], self.border_dark_color[2], self.border_dark_color[3] * self.bg_color[3]
         Line:
-            rounded_rectangle: (self.x - dp(1), self.y - dp(1), self.width + dp(2), self.height + dp(2), self.radius + dp(1))
-            width: 2.2
+            rounded_rectangle: (self.x + dp(1), self.y + dp(1), self.width - dp(2), self.height - dp(2), self.radius - dp(1))
+            width: 2.0
         Color:
             rgba: self.border_color[0], self.border_color[1], self.border_color[2], self.border_color[3] * self.bg_color[3]
         Line:
-            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(2))
             width: self.border_width
         Color:
             rgba: self.border_glint_color[0], self.border_glint_color[1], self.border_glint_color[2], self.border_glint_color[3] * self.bg_color[3]
         Line:
-            rounded_rectangle: (self.x + dp(3), self.y + dp(3), self.width - dp(6), self.height - dp(6), self.radius - dp(2))
+            rounded_rectangle: (self.x + dp(4), self.y + dp(4), self.width - dp(8), self.height - dp(8), self.radius - dp(3))
             width: 1.0
 
 <FramedBox>:
@@ -575,10 +613,10 @@ try:
         accent_tex = ObjectProperty(None, allownone=True)
 
         def _get_shadow_dx(self):
-            return dp(4) if self.state == 'down' else dp(5)
+            return dp(5) if self.state == 'down' else dp(6)
 
         def _get_shadow_dy(self):
-            return dp(7) if self.state == 'down' else dp(8)
+            return dp(6) if self.state == 'down' else dp(7)
 
         def _get_shadow_height_ratio(self):
             return 0.72 if self.state == 'down' else 0.78
@@ -1943,7 +1981,7 @@ try:
                             color=GOLD if active else DIM,
                             border_color=GOLD if active else GSOFT,
                             border_width=3.2 if active else 2.2,
-                            accent_bar_alpha=0.52 if active else 0.18,
+                            accent_bar_alpha=0.48 if active else 0.0,
                             font_size=sp(11))
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
@@ -2050,13 +2088,13 @@ try:
                 btn.color = GOLD
                 btn.border_color = GOLD
                 btn.border_width = 3.2
-                btn.accent_bar_alpha = 0.52
+                btn.accent_bar_alpha = 0.48
             else:
                 btn.bg_color = BTN
                 btn.color = DIM
                 btn.border_color = GSOFT
                 btn.border_width = 2.2
-                btn.accent_bar_alpha = 0.18
+                btn.accent_bar_alpha = 0.0
 
         def _init(self):
             ensure_dirs()
@@ -2273,7 +2311,7 @@ try:
                 color=GOLD if self._cmb_sub == 'init' else DIM,
                 border_color=GOLD if self._cmb_sub == 'init' else GSOFT,
                 border_width=3.2 if self._cmb_sub == 'init' else 2.2,
-                accent_bar_alpha=0.52 if self._cmb_sub == 'init' else 0.18,
+                accent_bar_alpha=0.48 if self._cmb_sub == 'init' else 0.0,
                 font_size=sp(12), bold=True)
             b_init.bind(on_release=lambda b: self._cmb_switch('init'))
             sub_bar.add_widget(b_init)
@@ -2286,7 +2324,7 @@ try:
                 color=GOLD if self._cmb_sub == 'map' else DIM,
                 border_color=GOLD if self._cmb_sub == 'map' else GSOFT,
                 border_width=3.2 if self._cmb_sub == 'map' else 2.2,
-                accent_bar_alpha=0.52 if self._cmb_sub == 'map' else 0.18,
+                accent_bar_alpha=0.48 if self._cmb_sub == 'map' else 0.0,
                 font_size=sp(12), bold=True)
             b_map.bind(on_release=lambda b: self._cmb_switch('map'))
             sub_bar.add_widget(b_map)
@@ -2312,7 +2350,7 @@ try:
                 btn.color    = GOLD   if active else DIM
                 btn.border_color = GOLD if active else GSOFT
                 btn.border_width = 3.2 if active else 2.2
-                btn.accent_bar_alpha = 0.52 if active else 0.18
+                btn.accent_bar_alpha = 0.48 if active else 0.0
             self._cmb_render()
 
         def _cmb_render(self):
@@ -2416,7 +2454,7 @@ try:
                 color=GOLD if self._sound_sub == 'mus' else DIM,
                 border_color=GOLD if self._sound_sub == 'mus' else GSOFT,
                 border_width=3.2 if self._sound_sub == 'mus' else 2.2,
-                accent_bar_alpha=0.52 if self._sound_sub == 'mus' else 0.18,
+                accent_bar_alpha=0.48 if self._sound_sub == 'mus' else 0.0,
                 font_size=sp(12), bold=True)
             b_mus.bind(on_release=lambda b: self._sound_switch('mus'))
             sub_bar.add_widget(b_mus)
@@ -2429,7 +2467,7 @@ try:
                 color=GOLD if self._sound_sub == 'amb' else DIM,
                 border_color=GOLD if self._sound_sub == 'amb' else GSOFT,
                 border_width=3.2 if self._sound_sub == 'amb' else 2.2,
-                accent_bar_alpha=0.52 if self._sound_sub == 'amb' else 0.18,
+                accent_bar_alpha=0.48 if self._sound_sub == 'amb' else 0.0,
                 font_size=sp(12), bold=True)
             b_amb.bind(on_release=lambda b: self._sound_switch('amb'))
             sub_bar.add_widget(b_amb)
@@ -2454,7 +2492,7 @@ try:
                 btn.color    = GOLD   if active else DIM
                 btn.border_color = GOLD if active else GSOFT
                 btn.border_width = 3.2 if active else 2.2
-                btn.accent_bar_alpha = 0.52 if active else 0.18
+                btn.accent_bar_alpha = 0.48 if active else 0.0
             self._sound_render()
 
         def _sound_render(self):
@@ -2919,7 +2957,7 @@ try:
                 color=GOLD if self._tool_sub == 'chars' else DIM,
                 border_color=GOLD if self._tool_sub == 'chars' else GSOFT,
                 border_width=3.2 if self._tool_sub == 'chars' else 2.2,
-                accent_bar_alpha=0.52 if self._tool_sub == 'chars' else 0.18,
+                accent_bar_alpha=0.48 if self._tool_sub == 'chars' else 0.0,
                 font_size=sp(11), bold=True)
             self._sub_btn_chars.bind(on_release=lambda b: self._tool_switch('chars'))
             sub_bar.add_widget(self._sub_btn_chars)
@@ -2931,7 +2969,7 @@ try:
                 color=GOLD if self._tool_sub == 'weap' else DIM,
                 border_color=GOLD if self._tool_sub == 'weap' else GSOFT,
                 border_width=3.2 if self._tool_sub == 'weap' else 2.2,
-                accent_bar_alpha=0.52 if self._tool_sub == 'weap' else 0.18,
+                accent_bar_alpha=0.48 if self._tool_sub == 'weap' else 0.0,
                 font_size=sp(11), bold=True)
             self._sub_btn_weap.bind(on_release=lambda b: self._tool_switch('weap'))
             sub_bar.add_widget(self._sub_btn_weap)
@@ -2943,7 +2981,7 @@ try:
                 color=GOLD if self._tool_sub == 'scen' else DIM,
                 border_color=GOLD if self._tool_sub == 'scen' else GSOFT,
                 border_width=3.2 if self._tool_sub == 'scen' else 2.2,
-                accent_bar_alpha=0.52 if self._tool_sub == 'scen' else 0.18,
+                accent_bar_alpha=0.48 if self._tool_sub == 'scen' else 0.0,
                 font_size=sp(11), bold=True)
             self._sub_btn_scen.bind(on_release=lambda b: self._tool_switch('scen'))
             sub_bar.add_widget(self._sub_btn_scen)
@@ -2955,7 +2993,7 @@ try:
                 color=GOLD if self._tool_sub == 'mad' else DIM,
                 border_color=GOLD if self._tool_sub == 'mad' else GSOFT,
                 border_width=3.2 if self._tool_sub == 'mad' else 2.2,
-                accent_bar_alpha=0.52 if self._tool_sub == 'mad' else 0.18,
+                accent_bar_alpha=0.48 if self._tool_sub == 'mad' else 0.0,
                 font_size=sp(11), bold=True)
             self._sub_btn_mad.bind(on_release=lambda b: self._tool_switch('mad'))
             sub_bar.add_widget(self._sub_btn_mad)
@@ -2992,7 +3030,7 @@ try:
                 btn.color    = GOLD     if active else DIM
                 btn.border_color = GOLD if active else GSOFT
                 btn.border_width = 3.2 if active else 2.2
-                btn.accent_bar_alpha = 0.52 if active else 0.18
+                btn.accent_bar_alpha = 0.48 if active else 0.0
             self._tool_render_sub()
 
         def _tool_render_sub(self):
@@ -4812,7 +4850,7 @@ try:
                     color=GOLD if active else TXT,
                     border_color=GOLD if active else GSOFT,
                     border_width=3.2 if active else 2.4,
-                    accent_bar_alpha=0.52 if active else 0.18,
+                    accent_bar_alpha=0.48 if active else 0.0,
                     font_size=sp(10), bold=active,
                     size_hint_y=None, height=dp(36))
                 b.bind(on_release=lambda x, k=key:
@@ -5914,7 +5952,7 @@ try:
                     color=GOLD if active else TXT,
                     border_color=GOLD if active else GSOFT,
                     border_width=3.2 if active else 2.4,
-                    accent_bar_alpha=0.52 if active else 0.18,
+                accent_bar_alpha=0.48 if active else 0.0,
                     font_size=sp(11), bold=active,
                     size_hint_x=None, width=dp(90),
                     size_hint_y=None, height=dp(36))
