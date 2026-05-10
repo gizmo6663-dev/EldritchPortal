@@ -383,9 +383,9 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + dp(3), self.y - dp(6)
-            size: self.width, self.height
-            radius: [self.radius + dp(3)]
+            pos: self.x + dp(4), self.y - dp(4)
+            size: self.width - dp(8), self.height
+            radius: [self.radius + dp(1)]
         Color:
             rgba: self.bg_color
         RoundedRectangle:
@@ -395,17 +395,17 @@ try:
         Color:
             rgba: self.border_dark_color
         Line:
-            rounded_rectangle: (self.x - dp(1.5), self.y - dp(1.5), self.width + dp(3), self.height + dp(3), self.radius + dp(2))
+            rounded_rectangle: (self.x + dp(1.5), self.y + dp(1.5), self.width - dp(3), self.height - dp(3), self.radius - dp(1))
             width: 2.8
         Color:
             rgba: self.border_color
         Line:
-            rounded_rectangle: (self.x, self.y, self.width, self.height, self.radius)
+            rounded_rectangle: (self.x + dp(3.2), self.y + dp(3.2), self.width - dp(6.4), self.height - dp(6.4), self.radius - dp(2))
             width: self.border_width
         Color:
             rgba: self.border_glint_color
         Line:
-            rounded_rectangle: (self.x + dp(4), self.y + dp(4), self.width - dp(8), self.height - dp(8), self.radius - dp(3))
+            rounded_rectangle: (self.x + dp(6.5), self.y + dp(6.5), self.width - dp(13), self.height - dp(13), self.radius - dp(4))
             width: 1.4
         Color:
             rgba: self.highlight_color
@@ -1667,8 +1667,8 @@ try:
             main.add_widget(Widget(size_hint_y=None, height=dp(10)))
 
             # FANER
-            tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
-                        padding=[dp(8), 0], bg_color=BTN)
+            tabs = RBox(size_hint_y=None, height=dp(60), spacing=dp(4),
+                        padding=[dp(8), dp(4)], bg_color=BTN)
             self._tabs = {}
             min_cutout_gap = dp(72)
             max_cutout_gap = dp(108)
@@ -1889,7 +1889,8 @@ try:
 
         # ---------- BILDER ----------
         def _mk_img(self):
-            p = BoxLayout(orientation='vertical', spacing=dp(6))
+            p = BoxLayout(orientation='vertical', spacing=dp(10),
+                          padding=[0, dp(10), 0, dp(6)])
             preview_box = PreviewFrame(size_hint_y=0.4, padding=dp(10))
             self.preview = Image(allow_stretch=True, keep_ratio=True,
                                  color=[1, 1, 1, 0] if not self.sel_img else [1, 1, 1, 1])
@@ -1902,7 +1903,8 @@ try:
             self.img_lbl = Label(text="", font_size=sp(12), color=DIM,
                                  size_hint_y=None, height=dp(20))
             p.add_widget(self.img_lbl)
-            nav = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6), padding=[dp(6), 0])
+            nav = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6),
+                            padding=[dp(6), dp(3)])
             self.path_lbl = Label(text="", font_size=sp(10), color=DIM, size_hint_x=0.35)
             nav.add_widget(self.path_lbl)
             nav.add_widget(mkbtn("Opp", self.folder_up, small=True, size_hint_x=0.2))
