@@ -1513,7 +1513,7 @@ try:
                 wrapper.add_widget(Image(
                     source=background_image_path,
                     allow_stretch=True,
-                    keep_ratio=False,
+                    keep_ratio=True,
                     size_hint=(1, 1),
                     pos_hint={'x': 0, 'y': 0},
                     opacity=1.0
@@ -1521,7 +1521,7 @@ try:
 
             main = BoxLayout(orientation='vertical', spacing=0,
                              size_hint=(1, 1), pos_hint={'x': 0, 'y': 0})
-            main.add_widget(Widget(size_hint_y=None, height=dp(30)))
+            main.add_widget(Widget(size_hint_y=None, height=dp(10)))
 
             # FANER
             tabs = RBox(size_hint_y=None, height=dp(52), spacing=dp(4),
@@ -1539,6 +1539,8 @@ try:
                 b.bind(state=self._tab_color)
                 b.bind(on_release=lambda x, k=key: self._tab(k))
                 tabs.add_widget(b)
+                if key == 'cmb':
+                    tabs.add_widget(Widget(size_hint_x=None, width=dp(84)))
                 self._tabs[key] = b
             main.add_widget(tabs)
 
