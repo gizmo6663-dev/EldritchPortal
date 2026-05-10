@@ -59,7 +59,7 @@ try:
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
     from kivy.core.image import Image as CoreImage
-    from kivy.properties import ListProperty, NumericProperty, ObjectProperty
+    from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty
     from kivy.lang import Builder
     from kivy.core.text import LabelBase
     from kivy.graphics.texture import Texture
@@ -215,6 +215,8 @@ try:
     BTNH = [0.30, 0.44, 0.24, 1]      # aktiv tab
     SHAD = [0.02, 0.03, 0.02, 0.82]   # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
+    GOLD_BAR_TOP = [1.0, 0.96, 0.82, 0.0]
+    GOLD_BAR_BOTTOM = [0.98, 0.78, 0.26, 0.92]
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
     GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
@@ -282,8 +284,8 @@ try:
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                [1.0, 0.96, 0.82, 0.0],
-                [0.98, 0.78, 0.26, 0.92],
+                GOLD_BAR_TOP,
+                GOLD_BAR_BOTTOM,
                 height=96
             )
         return _GRADIENT_CACHE[key]
@@ -391,8 +393,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + (RTOGGLE_SHADOW_X_DOWN if self.state == 'down' else RTOGGLE_SHADOW_X_UP), self.y - (RTOGGLE_SHADOW_Y_DOWN if self.state == 'down' else RTOGGLE_SHADOW_Y_UP)
-            size: self.width - RBTN_SHADOW_W, self.height * (RTOGGLE_SHADOW_H_DOWN if self.state == 'down' else RTOGGLE_SHADOW_H_UP)
+            pos: self.x + self.shadow_dx, self.y - self.shadow_dy
+            size: self.width - RBTN_SHADOW_W, self.height * self.shadow_height_ratio
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -408,7 +410,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * (RTOGGLE_ACCENT_ACTIVE_MULT if self.state == 'down' else RTOGGLE_ACCENT_IDLE_MULT)
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * self.accent_alpha_mult
         RoundedRectangle:
             texture: self.accent_tex
             pos: self.x + dp(16), self.y + dp(5)
@@ -572,6 +574,25 @@ try:
         shadow_tex = ObjectProperty(None, allownone=True)
         bg_tex = ObjectProperty(None, allownone=True)
         accent_tex = ObjectProperty(None, allownone=True)
+
+        def _get_shadow_dx(self):
+            return dp(4) if self.state == 'down' else dp(5)
+
+        def _get_shadow_dy(self):
+            return dp(7) if self.state == 'down' else dp(8)
+
+        def _get_shadow_height_ratio(self):
+            return 0.72 if self.state == 'down' else 0.78
+
+        def _get_accent_alpha_mult(self):
+            return 1.85 if self.state == 'down' else 0.85
+
+        shadow_dx = AliasProperty(_get_shadow_dx, None, bind=('state',))
+        shadow_dy = AliasProperty(_get_shadow_dy, None, bind=('state',))
+        shadow_height_ratio = AliasProperty(
+            _get_shadow_height_ratio, None, bind=('state',))
+        accent_alpha_mult = AliasProperty(
+            _get_accent_alpha_mult, None, bind=('state',))
 
         def __init__(self, **kw):
             super().__init__(**kw)
