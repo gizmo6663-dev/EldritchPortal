@@ -307,6 +307,26 @@ try:
     # semi-transparently on top to preserve the existing color palette.
     # ============================================================
     Builder.load_string('''
+#:set RBTN_SHADOW_X dp(5)
+#:set RBTN_SHADOW_Y dp(8)
+#:set RBTN_SHADOW_W dp(10)
+#:set RBTN_SHADOW_H 0.78
+#:set RTOGGLE_SHADOW_X_UP dp(5)
+#:set RTOGGLE_SHADOW_X_DOWN dp(4)
+#:set RTOGGLE_SHADOW_Y_UP dp(8)
+#:set RTOGGLE_SHADOW_Y_DOWN dp(7)
+#:set RTOGGLE_SHADOW_H_UP 0.78
+#:set RTOGGLE_SHADOW_H_DOWN 0.72
+#:set RTOGGLE_ACCENT_IDLE_MULT 0.85
+#:set RTOGGLE_ACCENT_ACTIVE_MULT 1.85
+#:set RBOX_SHADOW_X dp(8)
+#:set RBOX_SHADOW_Y dp(10)
+#:set RBOX_SHADOW_W dp(16)
+#:set RBOX_SHADOW_H 0.72
+#:set PREVIEW_SHADOW_X dp(8)
+#:set PREVIEW_SHADOW_Y dp(8)
+#:set PREVIEW_SHADOW_W dp(16)
+#:set PREVIEW_SHADOW_H 0.82
 <RBtn>:
     background_normal: ''
     background_down: ''
@@ -317,8 +337,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + dp(5), self.y - dp(8)
-            size: self.width - dp(10), self.height * 0.78
+            pos: self.x + RBTN_SHADOW_X, self.y - RBTN_SHADOW_Y
+            size: self.width - RBTN_SHADOW_W, self.height * RBTN_SHADOW_H
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -371,8 +391,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + (dp(4) if self.state == 'down' else dp(5)), self.y - (dp(7) if self.state == 'down' else dp(8))
-            size: self.width - dp(10), self.height * (0.72 if self.state == 'down' else 0.78)
+            pos: self.x + (RTOGGLE_SHADOW_X_DOWN if self.state == 'down' else RTOGGLE_SHADOW_X_UP), self.y - (RTOGGLE_SHADOW_Y_DOWN if self.state == 'down' else RTOGGLE_SHADOW_Y_UP)
+            size: self.width - RBTN_SHADOW_W, self.height * (RTOGGLE_SHADOW_H_DOWN if self.state == 'down' else RTOGGLE_SHADOW_H_UP)
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -388,7 +408,7 @@ try:
             size: self.size
             radius: [self.radius]
         Color:
-            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * (1.85 if self.state == 'down' else 0.85)
+            rgba: self.accent_bar_color[0], self.accent_bar_color[1], self.accent_bar_color[2], self.accent_bar_alpha * (RTOGGLE_ACCENT_ACTIVE_MULT if self.state == 'down' else RTOGGLE_ACCENT_IDLE_MULT)
         RoundedRectangle:
             texture: self.accent_tex
             pos: self.x + dp(16), self.y + dp(5)
@@ -421,8 +441,8 @@ try:
             rgba: 1, 1, 1, self.bg_color[3]
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + dp(8), self.y - dp(10)
-            size: self.width - dp(16), self.height * 0.72
+            pos: self.x + RBOX_SHADOW_X, self.y - RBOX_SHADOW_Y
+            size: self.width - RBOX_SHADOW_W, self.height * RBOX_SHADOW_H
             radius: [self.radius + dp(2)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
@@ -474,8 +494,8 @@ try:
             rgba: 1, 1, 1, 1
         RoundedRectangle:
             texture: self.shadow_tex
-            pos: self.x + dp(8), self.y - dp(8)
-            size: self.width - dp(16), self.height * 0.82
+            pos: self.x + PREVIEW_SHADOW_X, self.y - PREVIEW_SHADOW_Y
+            size: self.width - PREVIEW_SHADOW_W, self.height * PREVIEW_SHADOW_H
             radius: [self.radius + dp(1)]
         Color:
             rgba: 1, 1, 1, self.bg_color[3]
