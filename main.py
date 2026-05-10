@@ -215,8 +215,8 @@ try:
     BTNH = [0.42, 0.18, 0.22, 1]      # aktiv tab
     SHAD = [0.02, 0.01, 0.02, 0.7]    # skygge
     GOLD = [0.92, 0.72, 0.32, 1]      # antikk gull
-    GOLD_BAR_TOP = [1.0, 0.96, 0.82, 0.0]
-    GOLD_BAR_BOTTOM = [0.98, 0.78, 0.26, 0.92]
+    GBAR_TOP = [1.0, 0.96, 0.82, 0.0]
+    GBAR_BOTTOM = [0.98, 0.78, 0.26, 0.92]
     GDIM = [0.62, 0.46, 0.22, 1]      # dempet gull (border)
     GDARK = [0.35, 0.22, 0.08, 0.95]  # mørk amber for ytre ramme
     GGLINT = [1.0, 0.94, 0.74, 0.62]  # lys metallisk highlight
@@ -273,6 +273,8 @@ try:
     def get_drop_shadow_tex():
         key = 'drop_shadow'
         if key not in _GRADIENT_CACHE:
+            # Slightly stronger alpha than before so the new chrome details
+            # read clearly without changing the burgundy base palette.
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
                 [0.12, 0.06, 0.08, 0.42],
                 [0.01, 0.00, 0.01, 0.0],
@@ -284,8 +286,8 @@ try:
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
             _GRADIENT_CACHE[key] = make_vert_gradient_tex(
-                GOLD_BAR_TOP,
-                GOLD_BAR_BOTTOM,
+                GBAR_TOP,
+                GBAR_BOTTOM,
                 height=96
             )
         return _GRADIENT_CACHE[key]
@@ -313,14 +315,6 @@ try:
 #:set RBTN_SHADOW_Y dp(8)
 #:set RBTN_SHADOW_W dp(10)
 #:set RBTN_SHADOW_H 0.78
-#:set RTOGGLE_SHADOW_X_UP dp(5)
-#:set RTOGGLE_SHADOW_X_DOWN dp(4)
-#:set RTOGGLE_SHADOW_Y_UP dp(8)
-#:set RTOGGLE_SHADOW_Y_DOWN dp(7)
-#:set RTOGGLE_SHADOW_H_UP 0.78
-#:set RTOGGLE_SHADOW_H_DOWN 0.72
-#:set RTOGGLE_ACCENT_IDLE_MULT 0.85
-#:set RTOGGLE_ACCENT_ACTIVE_MULT 1.85
 #:set RBOX_SHADOW_X dp(8)
 #:set RBOX_SHADOW_Y dp(10)
 #:set RBOX_SHADOW_W dp(16)
