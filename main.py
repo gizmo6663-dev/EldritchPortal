@@ -58,7 +58,7 @@ try:
     from kivy.utils import platform
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
-    from kivy.properties import BooleanProperty, ListProperty, NumericProperty, ObjectProperty
+    from kivy.properties import ListProperty, NumericProperty, ObjectProperty
     from kivy.lang import Builder
     from kivy.core.text import LabelBase
     from kivy.graphics.texture import Texture
@@ -237,6 +237,11 @@ try:
     _GRADIENT_CACHE = {}
 
     def make_vert_gradient_tex(rgb_top, rgb_bot, height=128):
+        """Build a cached 1px-wide vertical RGBA gradient texture.
+
+        rgb_top/rgb_bot are expected to be 4-item color lists in 0..1 range.
+        """
+        height = max(2, int(height))
         tex = Texture.create(size=(1, height), colorfmt='rgba')
         buf = bytearray()
         for y in range(height):
@@ -415,21 +420,10 @@ try:
         border_width = NumericProperty(2.8)
         radius = NumericProperty(dp(14))
         shadow_tex = ObjectProperty(None, allownone=True)
-        _pressed = BooleanProperty(False)
 
         def __init__(self, **kw):
             super().__init__(**kw)
             self.shadow_tex = get_drop_shadow_tex()
-
-        def on_press(self):
-            self._pressed = True
-
-        def on_release(self):
-            self._pressed = False
-
-        def on_touch_up(self, touch):
-            self._pressed = False
-            return super().on_touch_up(touch)
 
     class RToggle(ToggleButton):
         bg_color = ListProperty(BTN)
