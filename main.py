@@ -106,7 +106,7 @@ try:
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
     BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
     UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bgtb.png")
-    UI_BG_TEXTURE_BUTTON_PATH = UI_BG_TEXTURE_PATH if os.path.exists(UI_BG_TEXTURE_PATH) else ''
+    UI_BG_TEXTURE_BUTTON_PATH = UI_BG_TEXTURE_PATH
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
@@ -232,7 +232,7 @@ try:
     SPLASH_IMG_POS_HINT = {'x': 0, 'y': 0}
     SPLASH_IMG_OPACITY = 0.65
     APP_BG_IMG_OPACITY = 0.55
-    # Hold onto most of the theme color while still letting the paper texture show through.
+    # 0.82 keeps the existing burgundy/gold theme dominant while still making the paper texture readable.
     UI_TEXTURE_TINT_ALPHA = 0.82
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
     SPLASH_TEXT_TOP = 0.82
@@ -287,7 +287,7 @@ try:
                 try:
                     tex = CoreImage(UI_BG_TEXTURE_PATH).texture
                 except Exception as e:
-                    log(f"UI bg texture load failed for {UI_BG_TEXTURE_PATH}: {e}")
+                    log(f"UI bg texture load failed for {UI_BG_TEXTURE_PATH}: {e}; falling back to flat widget fills")
             _GRADIENT_CACHE[key] = tex
         return _GRADIENT_CACHE[key]
 
