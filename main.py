@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.2 – Necronomicon, fane-glow + animasjon) ===")
+log("=== APP START (v0.4.3 – Necronomicon, glow + layout-fiks) ===")
 
 try:
     from kivy.app import App
@@ -238,7 +238,7 @@ try:
     # 0.82 kept the existing burgundy/gold theme dominant while still leaving the paper texture clearly visible.
     UI_TEXTURE_TINT_ALPHA = 0.82
     SPLASH_TEXT_SIZE_HINT = (1, 0.48)
-    SPLASH_TEXT_TOP = 0.88
+    SPLASH_TEXT_TOP = 0.96
     SPLASH_TEXT_POS_HINT = {'x': 0, 'top': SPLASH_TEXT_TOP}
     IMG_EXT   = ('.png','.jpg','.jpeg','.webp')
     CUSTOM_AMBIENT_NAME = "Egen lyd"
@@ -358,10 +358,11 @@ try:
     def get_glow_bar_tex():
         key = 'glow_bar'
         if key not in _GRADIENT_CACHE:
-            # Varm, blek gull — lysere enn GOLD selv så det føles
-            # som lys, ikke metall.
+            # Varm amber-gull — midt mellom GOLD og pale-gold.
+            # Lysere enn det rene GOLD-en, men fortsatt tydelig gull
+            # snarere enn nesten-hvit.
             _GRADIENT_CACHE[key] = make_glow_bar_tex(
-                (1.0, 0.95, 0.78),
+                (0.96, 0.83, 0.55),
                 width=256,
                 height=12,
             )
@@ -1987,11 +1988,14 @@ try:
             # til en fane med sub-faner (Lyd/Kamp/Verktøy) utvides
             # panelet nedover for å gi plass til sub-faner. Når man
             # bytter til en fane uten sub-faner, kollapser det igjen.
+            # NB: spacing starter på 0 og animeres til dp(4) når panelet
+            # utvides — ellers ville den 4dp mellomraden tatt plass selv
+            # når sub-raden er tom, og dyttet hovedfanene ut av panelet.
             self.tab_panel = RBox(
                 orientation='vertical',
                 size_hint_y=None,
                 height=dp(60),
-                spacing=dp(4),
+                spacing=0,
                 padding=[dp(8), dp(4)],
                 bg_color=BTN)
 
@@ -2246,6 +2250,11 @@ try:
             - Faner med sub-faner (snd/cmb/tool): panelet utvides
               nedover og sub-fanene fades inn.
             - Faner uten sub-faner (img/rules/cast): panelet kollapser.
+
+            spacing animeres sammen med høyden (0 ↔ dp(4)) slik at
+            geometrien stemmer i begge tilstander. Uten dette ville den
+            4dp mellomraden tatt plass i kollapset tilstand og dyttet
+            hovedfanene ut av panelet.
             """
             builders = {
                 'snd':  self._build_snd_subtabs,
@@ -2254,25 +2263,26 @@ try:
             }
 
             sub_h = dp(42)
+            row_spacing = dp(4)
             collapsed_h = dp(60)
-            # Padding 4+4 + spacing 4 mellom main_tab_row og subtab_row
-            expanded_h = dp(60) + dp(4) + sub_h
+            expanded_h = collapsed_h + row_spacing + sub_h
 
             # Avbryt eventuelle pågående animasjoner
-            Animation.cancel_all(self.tab_panel, 'height')
+            Animation.cancel_all(self.tab_panel, 'height', 'spacing')
             Animation.cancel_all(self.subtab_row, 'height', 'opacity')
 
             if k in builders:
                 # Bygg sub-faner først
                 self.subtab_row.clear_widgets()
                 builders[k](self.subtab_row)
-                # Animer åpning + fade-inn
+                # Animer åpning + fade-inn (alle bruker samme varighet/easing
+                # så geometrien holder seg konsistent gjennom animasjonen)
                 Animation(height=sub_h, duration=0.22,
                           t='out_quad').start(self.subtab_row)
                 Animation(opacity=1, duration=0.22,
                           t='out_quad').start(self.subtab_row)
-                Animation(height=expanded_h, duration=0.22,
-                          t='out_quad').start(self.tab_panel)
+                Animation(height=expanded_h, spacing=row_spacing,
+                          duration=0.22, t='out_quad').start(self.tab_panel)
             else:
                 # Animer lukking. Fjern barn først når animasjonen er ferdig
                 # så de ikke flimrer mens raden krymper.
@@ -2283,8 +2293,8 @@ try:
                 h_anim = Animation(height=0, duration=0.18, t='in_quad')
                 h_anim.bind(on_complete=_clear_subs)
                 h_anim.start(self.subtab_row)
-                Animation(height=collapsed_h, duration=0.18,
-                          t='in_quad').start(self.tab_panel)
+                Animation(height=collapsed_h, spacing=0,
+                          duration=0.18, t='in_quad').start(self.tab_panel)
 
         def _build_snd_subtabs(self, row):
             """Bygg Musikk/Ambient-toggle-knapper inn i sub-fane-raden."""
