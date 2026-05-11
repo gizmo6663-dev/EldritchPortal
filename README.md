@@ -27,6 +27,43 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 ---
 
+## Skjermbilder
+
+<table>
+  <tr>
+    <td align="center">
+      <details>
+        <summary><img src="https://github.com/user-attachments/assets/49be452a-34f2-47b4-a28f-f613f913ee14" width="150"/></summary>
+        <img src="https://github.com/user-attachments/assets/49be452a-34f2-47b4-a28f-f613f913ee14" width="400"/>
+      </details>
+      Splash-skjerm
+    </td>
+    <td align="center">
+      <details>
+        <summary><img src="https://github.com/user-attachments/assets/997c4a24-e90e-4b2d-9292-b0b7b54e7d3c" width="150"/></summary>
+        <img src="https://github.com/user-attachments/assets/997c4a24-e90e-4b2d-9292-b0b7b54e7d3c" width="400"/>
+      </details>
+      Bilder
+    </td>
+    <td align="center">
+      <details>
+        <summary><img src="https://github.com/user-attachments/assets/e9dada3b-8d95-402d-9435-4c1fc19644a9" width="150"/></summary>
+        <img src="https://github.com/user-attachments/assets/e9dada3b-8d95-402d-9435-4c1fc19644a9" width="400"/>
+      </details>
+      Lyd
+    </td>
+    <td align="center">
+      <details>
+        <summary><img src="https://github.com/user-attachments/assets/756de217-40f2-47a1-a0f2-288dd774bf69" width="150"/></summary>
+        <img src="https://github.com/user-attachments/assets/756de217-40f2-47a1-a0f2-288dd774bf69" width="400"/>
+      </details>
+      Kamp
+    </td>
+  </tr>
+</table>
+
+---
+
 ## Hva appen prøver å være
 
 Eldritch Portal er laget som et gratis hjelpemiddel for folk som spiller Call of Cthulhu og Pulp Cthulhu. Det er ikke et kommersielt produkt, og det er ikke laget av et profesjonelt team. Det er et lite verktøy jeg har bygget fordi jeg selv trengte noe som gjorde bordspillet litt enklere.
