@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.3 – Necronomicon, glow + layout-fiks) ===")
+log("=== APP START (v0.4.4 – Necronomicon, fane-puls) ===")
 
 try:
     from kivy.app import App
@@ -474,6 +474,34 @@ try:
     background_color: 0, 0, 0, 0
     bold: True
     canvas.before:
+        # === PULS-GLOW ===
+        # Tre konsentriske, mykere-mot-utsiden avrundede rektangler
+        # som henger BAK fanen. Alle bruker `self.pulse` (0..1) som
+        # animeres når state == 'down'. Resultatet ligner blur: hver
+        # ring er litt større og litt svakere, så øyet leser dem som
+        # ett mykt glow snarere enn tre separate lag.
+        # Innerste ring (sterkest, minst utbredelse)
+        Color:
+            rgba: 1.0, 0.87, 0.55, 0.45 * self.pulse
+        RoundedRectangle:
+            pos: self.x - dp(3), self.y - dp(3)
+            size: self.width + dp(6), self.height + dp(6)
+            radius: [self.radius + dp(3)]
+        # Mellomring
+        Color:
+            rgba: 1.0, 0.85, 0.50, 0.25 * self.pulse
+        RoundedRectangle:
+            pos: self.x - dp(7), self.y - dp(7)
+            size: self.width + dp(14), self.height + dp(14)
+            radius: [self.radius + dp(7)]
+        # Ytre ring (svakest, bredeste utbredelse)
+        Color:
+            rgba: 1.0, 0.83, 0.45, 0.12 * self.pulse
+        RoundedRectangle:
+            pos: self.x - dp(12), self.y - dp(12)
+            size: self.width + dp(24), self.height + dp(24)
+            radius: [self.radius + dp(12)]
+        # === FANE ===
         # Drop shadow
         Color:
             rgba: 1, 1, 1, 1
@@ -509,15 +537,13 @@ try:
         Line:
             rounded_rectangle: (self.x + dp(2), self.y + dp(2), self.width - dp(4), self.height - dp(4), self.radius - dp(1.6))
             width: self.border_width
-        # Tab-indikator: lysskjær i bunn — KUN ved aktiv tab.
-        # Bruker en RGBA-tekstur med horisontal + vertikal alpha-fade
-        # så den ser ut som et lys snarere enn en hard stripe.
+        # Tab-indikator: smal lysskjær-stripe i bunn — KUN ved aktiv tab
         Color:
             rgba: 1, 1, 1, 1.0 if self.state == 'down' else 0.0
         Rectangle:
             texture: self.glow_tex
-            pos: self.x + dp(6), self.y + dp(2)
-            size: self.width - dp(12), dp(8)
+            pos: self.x + dp(6), self.y + dp(3)
+            size: self.width - dp(12), dp(5)
 
 <RBox>:
     canvas.before:
@@ -644,6 +670,10 @@ try:
         bg_tex = ObjectProperty(None, allownone=True)
         accent_tex = ObjectProperty(None, allownone=True)
         glow_tex = ObjectProperty(None, allownone=True)
+        # Puls-amplitude (0..1) — drevet av Animation når state='down'.
+        # KV-en gjør resten: tre stablede halo-lag blendes med denne
+        # verdien for å skape pust-effekten.
+        pulse = NumericProperty(0.0)
 
         def _get_shadow_dx(self):
             return dp(5) if self.state == 'down' else dp(6)
@@ -671,6 +701,33 @@ try:
             self.bg_tex = get_ui_bg_tex()
             self.accent_tex = get_gold_bar_tex()
             self.glow_tex = get_glow_bar_tex()
+            self._pulse_anim = None
+            self.bind(state=self._on_state_pulse)
+            # Hvis vi opprettes i down-state, start pulsing umiddelbart
+            if self.state == 'down':
+                Clock.schedule_once(lambda *_: self._start_pulse(), 0)
+
+        def _on_state_pulse(self, *_a):
+            if self.state == 'down':
+                self._start_pulse()
+            else:
+                self._stop_pulse()
+
+        def _start_pulse(self):
+            if self._pulse_anim is not None:
+                return
+            # Sakte pust: 1.6s opp, 1.6s ned, sinus-easing.
+            up = Animation(pulse=1.0, duration=1.6, t='in_out_sine')
+            down = Animation(pulse=0.0, duration=1.6, t='in_out_sine')
+            self._pulse_anim = up + down
+            self._pulse_anim.repeat = True
+            self._pulse_anim.start(self)
+
+        def _stop_pulse(self):
+            if self._pulse_anim is not None:
+                self._pulse_anim.cancel(self)
+                self._pulse_anim = None
+            self.pulse = 0.0
 
     class RBox(BoxLayout):
         bg_color = ListProperty(BG2)
