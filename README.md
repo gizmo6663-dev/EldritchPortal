@@ -27,6 +27,37 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 ---
 
+## Skjermbilder
+
+<table>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172144_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172144_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172152_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172152_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172157_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172157_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172200_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172200_Eldritch%20Portal.jpg" width="400"/></details></td>
+  </tr>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172203_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172203_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172211_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172211_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172235_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172235_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172244_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172244_Eldritch%20Portal.jpg" width="400"/></details></td>
+  </tr>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172312_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172312_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172317_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172317_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172322_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172322_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172326_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172326_Eldritch%20Portal.jpg" width="400"/></details></td>
+  </tr>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172333_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172333_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172346_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172346_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td></td>
+    <td></td>
+  </tr>
+</table>
+
+---
+
 ## Hva appen prøver å være
 
 Eldritch Portal er laget som et gratis hjelpemiddel for folk som spiller Call of Cthulhu og Pulp Cthulhu. Det er ikke et kommersielt produkt, og det er ikke laget av et profesjonelt team. Det er et lite verktøy jeg har bygget fordi jeg selv trengte noe som gjorde bordspillet litt enklere.
