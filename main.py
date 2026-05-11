@@ -368,7 +368,7 @@ try:
             )
         return _GRADIENT_CACHE[key]
 
-    def make_pulse_glow_tex(rgb, size=128, inset_ratio=0.42):
+    def make_pulse_glow_tex(rgb, size=128, inset_ratio=0.32):
         """Generer en 2D glow-tekstur for puls-effekten på faner.
 
         Strukturen er en distansefelt-basert "blurret avrundet
