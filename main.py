@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.4 – Necronomicon, fane-puls) ===")
+log("=== APP START (v0.4.5 – Necronomicon, glatt puls-glow) ===")
 
 try:
     from kivy.app import App
@@ -368,6 +368,68 @@ try:
             )
         return _GRADIENT_CACHE[key]
 
+    def make_pulse_glow_tex(rgb, size=128, inset_ratio=0.42):
+        """Generer en 2D glow-tekstur for puls-effekten på faner.
+
+        Strukturen er en distansefelt-basert "blurret avrundet
+        rektangel":
+        - Et indre kjerne-rektangel (inset_ratio * size fra kantene)
+          har full alpha.
+        - Utenfor kjernen faller alpha kontinuerlig av med en cosine-
+          falloff til 0 ved teksturens kant.
+
+        Cosine gir mykere fall enn ren gaussian — vi treffer nøyaktig
+        alpha=0 ved kantene, slik at det IKKE er en synlig "klipping"
+        der teksturen ender. Tilsvarende metode som lysstripen.
+        """
+        import math
+        size = max(16, int(size))
+        tex = Texture.create(size=(size, size), colorfmt='rgba')
+        buf = bytearray()
+        r255 = int(max(0, min(255, round(rgb[0] * 255))))
+        g255 = int(max(0, min(255, round(rgb[1] * 255))))
+        b255 = int(max(0, min(255, round(rgb[2] * 255))))
+
+        inset = int(size * inset_ratio * 0.5)
+        rect_min = inset
+        rect_max = size - inset
+        # Maks distanse fra kjernen til teksturens kant
+        max_dist = float(inset) if inset > 0 else 1.0
+
+        for y in range(size):
+            for x in range(size):
+                # Distanse fra (x, y) til kjernerektangelet
+                dx = max(rect_min - x, x - rect_max, 0)
+                dy = max(rect_min - y, y - rect_max, 0)
+                if dx == 0 and dy == 0:
+                    a = 1.0
+                else:
+                    d = math.sqrt(dx * dx + dy * dy)
+                    if d >= max_dist:
+                        a = 0.0
+                    else:
+                        # Cosine-falloff: 1.0 ved d=0, 0.0 ved d=max_dist
+                        # Mye mykere enn lineær, ingen synlig "klipping"
+                        a = 0.5 * (1.0 + math.cos(math.pi * d / max_dist))
+                buf.extend((
+                    r255, g255, b255,
+                    int(max(0, min(255, round(a * 255)))),
+                ))
+        tex.blit_buffer(bytes(buf), colorfmt='rgba', bufferfmt='ubyte')
+        tex.wrap = 'clamp_to_edge'
+        return tex
+
+    def get_pulse_glow_tex():
+        key = 'pulse_glow'
+        if key not in _GRADIENT_CACHE:
+            # Samme varme amber-gull som lysstripen for visuell sammenheng
+            _GRADIENT_CACHE[key] = make_pulse_glow_tex(
+                (0.96, 0.83, 0.55),
+                size=128,
+                inset_ratio=0.42,
+            )
+        return _GRADIENT_CACHE[key]
+
     def get_gold_bar_tex():
         key = 'gold_bar'
         if key not in _GRADIENT_CACHE:
@@ -475,32 +537,17 @@ try:
     bold: True
     canvas.before:
         # === PULS-GLOW ===
-        # Tre konsentriske, mykere-mot-utsiden avrundede rektangler
-        # som henger BAK fanen. Alle bruker `self.pulse` (0..1) som
-        # animeres når state == 'down'. Resultatet ligner blur: hver
-        # ring er litt større og litt svakere, så øyet leser dem som
-        # ett mykt glow snarere enn tre separate lag.
-        # Innerste ring (sterkest, minst utbredelse)
+        # Én Rectangle som bruker en blurret avrundet-rektangel-tekstur.
+        # Teksturen har cosine-falloff fra full alpha i kjernen til
+        # nøyaktig 0 ved kantene, så det er INGEN synlige klippekanter
+        # uansett hvor stor `pulse` er. Samme prinsipp som lysstripen.
+        # Smal margin (dp(7)) gir tett, kontrollert glow rundt fanen.
         Color:
-            rgba: 1.0, 0.87, 0.55, 0.45 * self.pulse
-        RoundedRectangle:
-            pos: self.x - dp(3), self.y - dp(3)
-            size: self.width + dp(6), self.height + dp(6)
-            radius: [self.radius + dp(3)]
-        # Mellomring
-        Color:
-            rgba: 1.0, 0.85, 0.50, 0.25 * self.pulse
-        RoundedRectangle:
+            rgba: 1, 1, 1, 0.55 * self.pulse
+        Rectangle:
+            texture: self.pulse_glow_tex
             pos: self.x - dp(7), self.y - dp(7)
             size: self.width + dp(14), self.height + dp(14)
-            radius: [self.radius + dp(7)]
-        # Ytre ring (svakest, bredeste utbredelse)
-        Color:
-            rgba: 1.0, 0.83, 0.45, 0.12 * self.pulse
-        RoundedRectangle:
-            pos: self.x - dp(12), self.y - dp(12)
-            size: self.width + dp(24), self.height + dp(24)
-            radius: [self.radius + dp(12)]
         # === FANE ===
         # Drop shadow
         Color:
@@ -670,9 +717,10 @@ try:
         bg_tex = ObjectProperty(None, allownone=True)
         accent_tex = ObjectProperty(None, allownone=True)
         glow_tex = ObjectProperty(None, allownone=True)
+        pulse_glow_tex = ObjectProperty(None, allownone=True)
         # Puls-amplitude (0..1) — drevet av Animation når state='down'.
-        # KV-en gjør resten: tre stablede halo-lag blendes med denne
-        # verdien for å skape pust-effekten.
+        # KV-en gjør resten: én blurret glow-tekstur fades inn/ut med
+        # denne verdien for å skape pust-effekten.
         pulse = NumericProperty(0.0)
 
         def _get_shadow_dx(self):
@@ -701,6 +749,7 @@ try:
             self.bg_tex = get_ui_bg_tex()
             self.accent_tex = get_gold_bar_tex()
             self.glow_tex = get_glow_bar_tex()
+            self.pulse_glow_tex = get_pulse_glow_tex()
             self._pulse_anim = None
             self.bind(state=self._on_state_pulse)
             # Hvis vi opprettes i down-state, start pulsing umiddelbart
@@ -716,9 +765,10 @@ try:
         def _start_pulse(self):
             if self._pulse_anim is not None:
                 return
-            # Sakte pust: 1.6s opp, 1.6s ned, sinus-easing.
-            up = Animation(pulse=1.0, duration=1.6, t='in_out_sine')
-            down = Animation(pulse=0.0, duration=1.6, t='in_out_sine')
+            # Mye tregere pust: 3.5s opp, 3.5s ned (7s total syklus).
+            # Sinus-easing for myk akselerasjon i begge ender.
+            up = Animation(pulse=1.0, duration=3.5, t='in_out_sine')
+            down = Animation(pulse=0.0, duration=3.5, t='in_out_sine')
             self._pulse_anim = up + down
             self._pulse_anim.repeat = True
             self._pulse_anim.start(self)
