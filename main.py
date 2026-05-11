@@ -105,7 +105,7 @@ try:
         _BUNDLE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
     BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
-    UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bgtb.png")
+    UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bght.png")
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
     EXTERNAL_WEAPONS = os.path.join(BASE_DIR, "weapons.json")
