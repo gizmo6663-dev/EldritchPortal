@@ -31,34 +31,28 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 
 <table>
   <tr>
-    <td align="center">
-      <details>
-        <summary><img src="https://github.com/user-attachments/assets/49be452a-34f2-47b4-a28f-f613f913ee14" width="150"/></summary>
-        <img src="https://github.com/user-attachments/assets/49be452a-34f2-47b4-a28f-f613f913ee14" width="400"/>
-      </details>
-      Splash-skjerm
-    </td>
-    <td align="center">
-      <details>
-        <summary><img src="https://github.com/user-attachments/assets/997c4a24-e90e-4b2d-9292-b0b7b54e7d3c" width="150"/></summary>
-        <img src="https://github.com/user-attachments/assets/997c4a24-e90e-4b2d-9292-b0b7b54e7d3c" width="400"/>
-      </details>
-      Bilder
-    </td>
-    <td align="center">
-      <details>
-        <summary><img src="https://github.com/user-attachments/assets/e9dada3b-8d95-402d-9435-4c1fc19644a9" width="150"/></summary>
-        <img src="https://github.com/user-attachments/assets/e9dada3b-8d95-402d-9435-4c1fc19644a9" width="400"/>
-      </details>
-      Lyd
-    </td>
-    <td align="center">
-      <details>
-        <summary><img src="https://github.com/user-attachments/assets/756de217-40f2-47a1-a0f2-288dd774bf69" width="150"/></summary>
-        <img src="https://github.com/user-attachments/assets/756de217-40f2-47a1-a0f2-288dd774bf69" width="400"/>
-      </details>
-      Kamp
-    </td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172144_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172144_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172152_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172152_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172157_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172157_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172200_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172200_Eldritch%20Portal.jpg" width="400"/></details></td>
+  </tr>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172203_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172203_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172211_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172211_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172235_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172235_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172244_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172244_Eldritch%20Portal.jpg" width="400"/></details></td>
+  </tr>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172312_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172312_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172317_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172317_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172322_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172322_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172326_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172326_Eldritch%20Portal.jpg" width="400"/></details></td>
+  </tr>
+  <tr>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172333_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172333_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td align="center"><details><summary><img src="screenshots/Screenshot_20260511_172346_Eldritch%20Portal.jpg" width="150"/></summary><img src="screenshots/Screenshot_20260511_172346_Eldritch%20Portal.jpg" width="400"/></details></td>
+    <td></td>
+    <td></td>
   </tr>
 </table>
 
