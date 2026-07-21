@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.5 – Necronomicon, glatt puls-glow) ===")
+log("=== APP START (v0.4.6 – Necronomicon, smart tekst + oppsummering) ===")
 
 try:
     from kivy.app import App
@@ -59,7 +59,8 @@ try:
     from kivy.metrics import dp, sp
     from kivy.animation import Animation
     from kivy.core.image import Image as CoreImage
-    from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty
+    from kivy.properties import (AliasProperty, ListProperty, NumericProperty,
+                                  ObjectProperty, BooleanProperty, StringProperty)
     from kivy.lang import Builder
     from kivy.core.text import LabelBase
     from kivy.graphics.texture import Texture
@@ -682,7 +683,83 @@ try:
             rounded_rectangle: (self.x + dp(8), self.top - dp(18), self.width - dp(16), dp(10), dp(4))
             width: 1.0
 ''')
-    
+
+    # Tegn som avslutter en setning – neste ikke-mellomrom kapitaliseres.
+    _SENTENCE_END = ('.', '!', '?')
+
+    class SmartTextInput(TextInput):
+        """TextInput med tastatur-oppførsel man forventer i en app:
+
+        - autocap: stor forbokstav ved feltets start og etter . ! ?
+        - Android ordforslag/autokorrektur på (av som standard i Kivy)
+        - 'neste'-tasten hopper til neste felt i stedet for ny linje
+          (enkeltlinje-felt), via focus_next / focus_previous
+
+        Slås av per instans:
+        - autocap=False   → ingen kapitalisering (tall-, søke- og kodefelt)
+        - suggestions=False → ingen ordforslag
+        """
+        autocap = BooleanProperty(True)
+        suggestions = BooleanProperty(True)
+        focus_next = ObjectProperty(None, allownone=True)
+        focus_previous = ObjectProperty(None, allownone=True)
+
+        def __init__(self, **kw):
+            # Standard-stil hentes fra temaet med mindre kalleren overstyrer.
+            kw.setdefault('background_color', INPUT)
+            kw.setdefault('foreground_color', TXT)
+            kw.setdefault('cursor_color', GOLD)
+            # input_filter (f.eks. 'int') skal aldri kapitaliseres.
+            if kw.get('input_filter'):
+                kw.setdefault('autocap', False)
+                kw.setdefault('suggestions', False)
+            super().__init__(**kw)
+            # Android-tastaturets ordforslag/autokorrektur (av som std i Kivy).
+            self.keyboard_suggestions = bool(self.suggestions)
+            # Enkeltlinje-felt: Tab/next flytter fokus i stedet for tegn.
+            if not self.multiline:
+                self.write_tab = False
+
+        def _should_autocap_at(self, index):
+            """True hvis tegnet som settes inn ved 'index' starter en
+            ny setning (feltets start eller etter . ! ? + mellomrom)."""
+            if not self.autocap:
+                return False
+            text = self.text
+            i = index - 1
+            # Hopp over mellomrom/linjeskift rett bak markøren.
+            while i >= 0 and text[i] in ' \t\n':
+                i -= 1
+            if i < 0:
+                return True  # feltets start
+            return text[i] in _SENTENCE_END
+
+        def insert_text(self, substring, from_undo=False):
+            # Bare kapitaliser når brukeren skriver ett vanlig tegn.
+            if (self.autocap and not from_undo and len(substring) == 1
+                    and substring.isalpha()):
+                col, row = self.cursor
+                # Absolutt indeks i self.text for gjeldende markørposisjon.
+                idx = self.cursor_index()
+                if self._should_autocap_at(idx):
+                    substring = substring.upper()
+            return super().insert_text(substring, from_undo=from_undo)
+
+        def keyboard_on_key_down(self, window, keycode, text, modifiers):
+            # Tab / 'neste' → flytt fokus. Shift+Tab → forrige.
+            key = keycode[1] if isinstance(keycode, (list, tuple)) else keycode
+            if key in ('tab', 9) and not self.multiline:
+                if 'shift' in (modifiers or []) and self.focus_previous:
+                    self.focus = False
+                    self.focus_previous.focus = True
+                    return True
+                if self.focus_next:
+                    self.focus = False
+                    self.focus_next.focus = True
+                    return True
+            return super().keyboard_on_key_down(
+                window, keycode, text, modifiers)
+
     class RBtn(Button):
         bg_color = ListProperty(BTN)
         shadow_color = ListProperty(SHAD)
@@ -2073,6 +2150,7 @@ try:
 
             # FloatLayout som rot – lar oss legge splash oppå
             wrapper = FloatLayout()
+            self._root_fl = wrapper
 
             background_image_path = os.path.join(_BUNDLE_DIR, 'background.png')
             if os.path.exists(background_image_path):
@@ -3474,12 +3552,13 @@ try:
                 return
             self.edit_idx = idx
             self._weap_char_target = idx
+            self._char_edit_dirty = False
             ch = self.chars[idx]
             self.tool_area.clear_widgets()
             p = BoxLayout(orientation='vertical', spacing=dp(4), padding=dp(6))
             top = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(6))
             top.add_widget(mkbtn("Lagre", self._save_edit, accent=True, small=True, size_hint_x=0.35))
-            top.add_widget(mkbtn("Avbryt", self._show_list, small=True, size_hint_x=0.35))
+            top.add_widget(mkbtn("Avbryt", self._cancel_edit, small=True, size_hint_x=0.35))
             top.add_widget(mkbtn("Skills", lambda: self._edit_skills(idx), small=True, size_hint_x=0.3))
             p.add_widget(top)
             scroll = ScrollView()
@@ -3495,8 +3574,8 @@ try:
                     w = Spinner(text=ch.get(key, 'PC'), values=['PC', 'NPC', 'Fiende'],
                                 background_color=BTN, color=GOLD, font_size=sp(11), size_hint_x=0.7)
                 else:
-                    w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
-                                  background_color=BTN, foreground_color=TXT,
+                    w = SmartTextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
+                                  background_color=INPUT, foreground_color=TXT,
                                   size_hint_x=0.7, padding=[dp(6), dp(4)])
                 self._ei[key] = w
                 row.add_widget(w)
@@ -3510,9 +3589,9 @@ try:
                         key, lbl = CHAR_STATS[i + j]
                         row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
                                              size_hint_x=0.15, halign='right'))
-                        w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
-                                      background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
-                                      padding=[dp(6), dp(4)], input_filter='int')
+                        w = SmartTextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
+                                      background_color=INPUT, foreground_color=TXT, size_hint_x=0.35,
+                                      padding=[dp(6), dp(4)], input_filter='int', input_type='number')
                         self._ei[key] = w
                         row.add_widget(w)
                 g.add_widget(row)
@@ -3525,8 +3604,8 @@ try:
                         key, lbl = CHAR_DERIVED[i + j]
                         row.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
                                              size_hint_x=0.15, halign='right'))
-                        w = TextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
-                                      background_color=BTN, foreground_color=TXT, size_hint_x=0.35,
+                        w = SmartTextInput(text=str(ch.get(key, '')), font_size=sp(12), multiline=False,
+                                      background_color=INPUT, foreground_color=TXT, size_hint_x=0.35,
                                       padding=[dp(6), dp(4)])
                         self._ei[key] = w
                         row.add_widget(w)
@@ -3536,16 +3615,35 @@ try:
             for key, lbl in CHAR_TEXT:
                 g.add_widget(Label(text=lbl, font_size=sp(10), color=DIM,
                                    size_hint_y=None, height=dp(20), halign='left'))
-                w = TextInput(text=str(ch.get(key, '')), font_size=sp(11), multiline=True,
-                              background_color=BTN, foreground_color=TXT,
+                w = SmartTextInput(text=str(ch.get(key, '')), font_size=sp(11), multiline=True,
+                              background_color=INPUT, foreground_color=TXT,
                               size_hint_y=None, height=dp(80), padding=[dp(6), dp(4)])
                 self._ei[key] = w
                 g.add_widget(w)
+
+            # Spor ulagrede endringer på alle redigeringsfelt.
+            def _mark_dirty(*_a):
+                self._char_edit_dirty = True
+            for _w in self._ei.values():
+                if isinstance(_w, SmartTextInput):
+                    _w.bind(text=_mark_dirty)
+                elif isinstance(_w, Spinner):
+                    _w.bind(text=_mark_dirty)
+
             scroll.add_widget(g)
             p.add_widget(scroll)
             self.tool_area.add_widget(p)
 
-        def _edit_skills(self, idx):
+        def _cancel_edit(self):
+            """Avbryt karakterredigering – advar ved ulagrede endringer."""
+            if getattr(self, '_char_edit_dirty', False):
+                self._confirm_discard(self._discard_char_edit)
+            else:
+                self._show_list()
+
+        def _discard_char_edit(self):
+            self._char_edit_dirty = False
+            self._show_list()
             if idx < 0 or idx >= len(self.chars):
                 return
             ch = self.chars[idx]
@@ -3585,10 +3683,11 @@ try:
                     row.add_widget(Label(text=sname, font_size=sp(10),
                                          color=GDIM, size_hint_x=0.35,
                                          halign='right'))
-                    w = TextInput(text=str(sk.get(sname, '')),
+                    w = SmartTextInput(text=str(sk.get(sname, '')),
                                   hint_text="Spesifiser + verdi",
                                   font_size=sp(11), multiline=False,
-                                  background_color=BTN, foreground_color=TXT,
+                                  autocap=False,
+                                  background_color=INPUT, foreground_color=TXT,
                                   size_hint_x=0.65, padding=[dp(6), dp(4)])
                     row.add_widget(w)
                     self._sk_inputs[sname] = w
@@ -3611,13 +3710,13 @@ try:
                     def_lbl.bind(size=lambda w, v:
                                  setattr(w, 'text_size', (v[0], None)))
                     cell.add_widget(def_lbl)
-                    w = TextInput(text=str(sk.get(sname, '')),
+                    w = SmartTextInput(text=str(sk.get(sname, '')),
                                   hint_text=sdefault,
                                   font_size=sp(12), multiline=False,
-                                  background_color=BTN,
+                                  background_color=INPUT,
                                   foreground_color=TXT,
                                   padding=[dp(6), dp(4)],
-                                  input_filter='int',
+                                  input_filter='int', input_type='number',
                                   size_hint_y=None, height=dp(30))
                     cell.add_widget(w)
                     self._sk_inputs[sname] = w
@@ -3658,6 +3757,8 @@ try:
             for key, w in self._ei.items():
                 ch[key] = w.text if isinstance(w, (TextInput, Spinner)) else ''
             save_json(CHAR_FILE, self.chars)
+            self._char_edit_dirty = False
+            self._toast("Karakter lagret")
             self._show_list()
 
         def _del_char(self, idx):
@@ -4015,13 +4116,13 @@ try:
 
                     # DEX-verdi (redigerbar)
                     dex_val = str(entry.get('dex', entry.get('base_dex', 0)))
-                    dex_inp = TextInput(
+                    dex_inp = SmartTextInput(
                         text=dex_val, font_size=sp(13), multiline=False,
                         background_color=INPUT, foreground_color=TXT,
                         cursor_color=GOLD,
                         size_hint_x=None, width=dp(50),
                         padding=[dp(4), dp(6)],
-                        input_filter='int')
+                        input_filter='int', input_type='number')
                     dex_inp._init_idx = i
                     dex_inp.bind(text=self._init_on_dex_change)
                     self._init_inputs.append(dex_inp)
@@ -4279,7 +4380,7 @@ try:
             name_row.add_widget(Label(text="Navn:", font_size=sp(11),
                                       color=DIM, size_hint_x=0.2,
                                       halign='right', valign='middle'))
-            self._init_custom_name = TextInput(
+            self._init_custom_name = SmartTextInput(
                 text='', font_size=sp(12), multiline=False,
                 background_color=INPUT, foreground_color=TXT,
                 cursor_color=GOLD, padding=[dp(8), dp(6)],
@@ -4291,11 +4392,11 @@ try:
             stat_row.add_widget(Label(text="DEX:", font_size=sp(11),
                                       color=DIM, size_hint_x=0.2,
                                       halign='right', valign='middle'))
-            self._init_custom_dex = TextInput(
+            self._init_custom_dex = SmartTextInput(
                 text='50', font_size=sp(12), multiline=False,
                 background_color=INPUT, foreground_color=TXT,
                 cursor_color=GOLD, padding=[dp(8), dp(6)],
-                size_hint_x=0.2, input_filter='int')
+                size_hint_x=0.2, input_filter='int', input_type='number')
             stat_row.add_widget(self._init_custom_dex)
 
             stat_row.add_widget(Widget(size_hint_x=0.1))
@@ -4946,6 +5047,11 @@ try:
                 # Sesjons-modus: 'list' | 'view' | 'edit'
                 self._scen_sess_mode = 'list'
                 self._scen_sess_idx = None  # indeks i sessions-lista
+                # Ulagret-endring-vakter
+                self._scen_sess_dirty = False
+                self._scen_notes_dirty = False
+                # Søk/filter i ledetråder/tidslinje/plot
+                self._scen_filter = ''
 
         def _scen_load(self):
             """Les scenario.json fra app-private storage."""
@@ -4986,6 +5092,44 @@ try:
                               ensure_ascii=False, indent=2)
             except Exception as e:
                 log(f"Scenario-lagring feilet: {e}")
+
+        def _session_draft_path(self):
+            return os.path.join(self.user_data_dir, "session_draft.json")
+
+        def _save_session_draft(self, *_a):
+            """Auto-lagre gjeldende sesjons-utkast til disk, slik at et
+            krasj midt i økta ikke sletter oppsummeringen."""
+            inputs = getattr(self, '_scen_sess_inputs', {})
+            if not inputs:
+                return
+            draft = {k: w.text for k, w in inputs.items()}
+            draft['_num'] = getattr(self, '_scen_sess_pending_num', None)
+            draft['_idx'] = self._scen_sess_idx
+            try:
+                with open(self._session_draft_path(), 'w',
+                          encoding='utf-8') as f:
+                    json.dump(draft, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                log(f"Utkast-lagring feilet: {e}")
+
+        def _load_session_draft(self):
+            """Les auto-lagret utkast hvis det finnes."""
+            try:
+                p = self._session_draft_path()
+                if not os.path.exists(p):
+                    return None
+                with open(p, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except Exception:
+                return None
+
+        def _clear_session_draft(self):
+            try:
+                p = self._session_draft_path()
+                if os.path.exists(p):
+                    os.remove(p)
+            except Exception:
+                pass
 
         def _scen_try_import(self):
             """Prøv å kopiere scenario.json fra Documents-mappen til
@@ -5411,6 +5555,8 @@ try:
 
         def _scen_switch_view(self, view):
             self._scen_view = view
+            # Nullstill søkefilter når vi bytter visning.
+            self._scen_filter = ''
             # Reset til liste-modus når vi bytter til Sesjoner
             if view == 'sessions':
                 self._scen_sess_mode = 'list'
@@ -5419,10 +5565,50 @@ try:
 
         def _scen_build_list(self, container, items,
                              subtitle_key, flag_key, empty_msg):
-            """Bygg liste med checkbox-rader."""
+            """Bygg liste med checkbox-rader, med søkefelt på toppen."""
             if not items:
                 container.add_widget(mklbl(
                     empty_msg, color=DIM, size=11, wrap=True))
+                return
+
+            outer = BoxLayout(orientation='vertical', spacing=dp(4))
+
+            # Søkefelt
+            q = getattr(self, '_scen_filter', '') or ''
+            search_row = BoxLayout(size_hint_y=None, height=dp(40),
+                                   spacing=dp(6))
+            search_inp = SmartTextInput(
+                text=q, hint_text='Søk i ledetråder…',
+                multiline=False, autocap=False, suggestions=False,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD, font_size=sp(12),
+                size_hint_x=0.78, padding=[dp(8), dp(8)])
+            search_inp.bind(text=self._scen_on_filter)
+            search_row.add_widget(search_inp)
+            if q:
+                search_row.add_widget(mkbtn(
+                    "Nullstill", self._scen_clear_filter,
+                    small=True, size_hint_x=0.22))
+            outer.add_widget(search_row)
+
+            # Filtrer
+            ql = q.strip().lower()
+            if ql:
+                def _match(it):
+                    hay = " ".join([
+                        str(it.get('title', '')),
+                        str(it.get(subtitle_key, '')) if subtitle_key else '',
+                        str(it.get('description', '')),
+                    ]).lower()
+                    return ql in hay
+                shown = [it for it in items if _match(it)]
+            else:
+                shown = items
+
+            if not shown:
+                outer.add_widget(mklbl(
+                    "Ingen treff.", color=DIM, size=11, wrap=True))
+                container.add_widget(outer)
                 return
 
             scroll = ScrollView()
@@ -5430,12 +5616,27 @@ try:
                            size_hint_y=None)
             g.bind(minimum_height=g.setter('height'))
 
-            for item in items:
+            for item in shown:
                 g.add_widget(self._scen_make_row(
                     item, subtitle_key, flag_key))
 
             scroll.add_widget(g)
-            container.add_widget(scroll)
+            outer.add_widget(scroll)
+            container.add_widget(outer)
+
+        def _scen_on_filter(self, widget, value):
+            """Oppdater filter uten full re-render (unngå fokustap ved
+            hvert tastetrykk). Debounce en lett gjenoppbygging."""
+            self._scen_filter = value
+            ev = getattr(self, '_scen_filter_ev', None)
+            if ev:
+                ev.cancel()
+            self._scen_filter_ev = Clock.schedule_once(
+                lambda dt: self._tool_render_sub(), 0.35)
+
+        def _scen_clear_filter(self):
+            self._scen_filter = ''
+            self._tool_render_sub()
 
         def _scen_make_row(self, item, subtitle_key, flag_key):
             """Bygg en rad for en clue/timeline/beat."""
@@ -5484,6 +5685,15 @@ try:
 
             row.add_widget(mid)
 
+            # Kopier-til-oppsummering-knapp (høyre)
+            copy_btn = RBtn(
+                text='->', bg_color=BTN, color=GOLD,
+                font_size=sp(13), bold=True,
+                size_hint_x=None, width=dp(40))
+            copy_btn.bind(on_release=lambda b, it=item:
+                          self._scen_copy_to_summary(it))
+            row.add_widget(copy_btn)
+
             # Info-knapp (høyre)
             desc = item.get('description', '')
             if desc:
@@ -5493,8 +5703,8 @@ try:
                     size_hint_x=None, width=dp(44))
                 info_btn.bind(on_release=lambda b,
                               t=item.get('title', '?'),
-                              d=desc:
-                              self._scen_show_detail(t, d))
+                              d=desc, it=item:
+                              self._scen_show_detail(t, d, it))
                 row.add_widget(info_btn)
 
             return row
@@ -5505,7 +5715,127 @@ try:
             self._scen_save()
             self._tool_render_sub()
 
-        def _scen_show_detail(self, title, desc):
+        def _scen_item_as_text(self, item):
+            """Formater et clue/timeline/beat-element som tekstlinje(r)
+            for innliming i en oppsummering."""
+            title = (item.get('title', '') or '').strip()
+            # Undertittel: 'where' (clue) eller 'when' (timeline) hvis satt.
+            sub = (item.get('where', '') or item.get('when', '')
+                   or '').strip()
+            desc = (item.get('description', '') or '').strip()
+            line = "- " + title if title else "- (uten tittel)"
+            if sub:
+                line += f" ({sub})"
+            if desc:
+                line += f": {desc}"
+            return line
+
+        def _scen_copy_to_summary(self, item):
+            """Kopier et element til en sesjons-oppsummering.
+
+            0 sesjoner  -> opprett ny og legg inn automatisk
+            1 sesjon    -> legg inn i den ene automatisk
+            2+ sesjoner -> vis liten velger
+            """
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            sessions = self._scen_data.setdefault('sessions', [])
+            text = self._scen_item_as_text(item)
+
+            if len(sessions) == 0:
+                from datetime import date as _date_cls
+                new_sess = {
+                    'num': 1,
+                    'date': _date_cls.today().isoformat(),
+                    'title': '', 'players': '', 'summary': '',
+                    'clues_found': text, 'sanity': '',
+                    'rolls': '', 'cliffhanger': '',
+                }
+                sessions.append(new_sess)
+                self._scen_save()
+                self._toast("Ny sesjon opprettet – lagt til")
+            elif len(sessions) == 1:
+                self._scen_append_to_session(0, text)
+                self._toast("Lagt til i sesjon")
+            else:
+                self._scen_pick_session(item)
+
+        def _scen_append_to_session(self, idx, text, field='clues_found'):
+            """Føy 'text' til et felt i sesjon 'idx' (på ny linje)."""
+            sessions = self._scen_data.get('sessions', [])
+            if idx < 0 or idx >= len(sessions):
+                return
+            s = sessions[idx]
+            existing = (s.get(field, '') or '').rstrip()
+            # Unngå duplikat hvis nøyaktig samme linje allerede finnes.
+            if text in existing.splitlines():
+                self._toast("Allerede i oppsummeringen")
+                return
+            s[field] = (existing + "\n" + text).strip() if existing else text
+            self._scen_save()
+            # Hvis vi står i sesjonsvisning på samme sesjon, oppdater.
+            if (self._scen_view == 'sessions'
+                    and self._scen_sess_idx == idx):
+                self._tool_render_sub()
+
+        def _scen_pick_session(self, item):
+            """Sprettopp for å velge hvilken sesjon elementet skal til."""
+            sessions = self._scen_data.get('sessions', [])
+            text = self._scen_item_as_text(item)
+
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.86, 0.6),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            hdr = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            hdr.add_widget(mkbtn("Avbryt", self._scen_close_overlay,
+                                 danger=True, small=True, size_hint_x=0.35))
+            hdr.add_widget(mklbl("Velg sesjon", color=GOLD,
+                                 size=14, bold=True))
+            overlay.add_widget(hdr)
+
+            scroll = ScrollView()
+            g = GridLayout(cols=1, spacing=dp(6), padding=dp(4),
+                           size_hint_y=None)
+            g.bind(minimum_height=g.setter('height'))
+            for i, s in enumerate(sessions):
+                num = s.get('num', i + 1)
+                title = (s.get('title', '') or '').strip() or '(uten tittel)'
+                date = (s.get('date', '') or '').strip()
+                label = f"S{num} — {title}"
+                if date:
+                    label += f"  ·  {date}"
+
+                def _pick(idx=i):
+                    self._scen_close_overlay()
+                    self._scen_append_to_session(idx, text)
+                    self._toast(f"Lagt til i sesjon {sessions[idx].get('num', idx + 1)}")
+                g.add_widget(mkbtn(
+                    label, _pick, small=True,
+                    size_hint_y=None, height=dp(46)))
+            scroll.add_widget(g)
+            overlay.add_widget(scroll)
+
+            fl = getattr(self, '_root_fl', None)
+            if fl is None:
+                return
+            from kivy.graphics import Color as GCs, Rectangle as GRs
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCs(rgba=[0, 0, 0, 0.6])
+                dr = GRs(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            dim.bind(on_touch_down=lambda w, t:
+                     self._scen_close_overlay() or True)
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _scen_show_detail(self, title, desc, item=None):
             """Vis full beskrivelse som overlay."""
             overlay = RBox(
                 bg_color=BG, radius=dp(16),
@@ -5526,6 +5856,14 @@ try:
             body = mklbl(desc, color=TXT, size=12, wrap=True)
             scroll.add_widget(body)
             overlay.add_widget(scroll)
+
+            # Kopier hele elementet (tittel + beskrivelse) til oppsummering.
+            if item is not None:
+                overlay.add_widget(mkbtn(
+                    "Kopier til oppsummering",
+                    lambda: (self._scen_close_overlay(),
+                             self._scen_copy_to_summary(item)),
+                    accent=True, size_hint_y=None, height=dp(44)))
 
             # Legg på FloatLayout-roten
             root = self.tool_area
@@ -5560,15 +5898,108 @@ try:
             self._scen_overlay = None
             self._scen_dim = None
 
+        def _confirm_discard(self, on_confirm, msg=None):
+            """Vis 'ulagrede endringer'-advarsel. Kjør on_confirm() bare
+            hvis brukeren velger å forkaste. Gjenbruker scen-overlay-slot."""
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.82, 0.4),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                "Ulagrede endringer",
+                color=GOLD, size=14, bold=True, h=28))
+            overlay.add_widget(mklbl(
+                msg or ("Du har endringer som ikke er lagret. "
+                        "Vil du forkaste dem?"),
+                color=TXT, size=11, wrap=True))
+            btns = BoxLayout(size_hint_y=None, height=dp(44),
+                             spacing=dp(6))
+            btns.add_widget(mkbtn(
+                "Bli værende", self._scen_close_overlay,
+                small=True, size_hint_x=0.5))
+
+            def _do():
+                self._scen_close_overlay()
+                on_confirm()
+            btns.add_widget(mkbtn(
+                "Forkast", _do,
+                danger=True, size_hint_x=0.5))
+            overlay.add_widget(btns)
+
+            fl = getattr(self, '_root_fl', None)
+            if fl is None:
+                return
+            from kivy.graphics import Color as GCs, Rectangle as GRs
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCs(rgba=[0, 0, 0, 0.6])
+                dr = GRs(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _toast(self, msg, duration=1.6):
+            """Kort bekreftelses-melding nederst på skjermen som
+            forsvinner av seg selv. Brukes ved lagring o.l."""
+            fl = getattr(self, '_root_fl', None)
+            if fl is None:
+                return
+            # Fjern en eventuell forrige toast før vi viser en ny.
+            prev = getattr(self, '_toast_widget', None)
+            if prev is not None:
+                if prev.parent:
+                    prev.parent.remove_widget(prev)
+                anim_prev = getattr(self, '_toast_anim', None)
+                if anim_prev:
+                    anim_prev.cancel(prev)
+
+            toast = RBox(
+                bg_color=BTNH, radius=dp(14),
+                border_color=GOLD, border_width=2.4,
+                orientation='vertical', padding=[dp(16), dp(10)],
+                size_hint=(None, None),
+                pos_hint={'center_x': 0.5, 'y': 0.08})
+            lbl = Label(
+                text=msg, font_size=sp(12), color=TXT,
+                bold=True, halign='center', valign='middle',
+                size_hint=(None, None))
+            lbl.bind(texture_size=lambda w, v: (
+                setattr(lbl, 'size', v),
+                setattr(toast, 'size',
+                        (v[0] + dp(32), v[1] + dp(20)))))
+            lbl.text_size = (None, None)
+            toast.add_widget(lbl)
+            fl.add_widget(toast)
+            self._toast_widget = toast
+
+            def _remove(*_a):
+                if toast.parent:
+                    toast.parent.remove_widget(toast)
+                if getattr(self, '_toast_widget', None) is toast:
+                    self._toast_widget = None
+            fade = Animation(opacity=0, duration=0.4)
+            fade.bind(on_complete=lambda *a: _remove())
+            self._toast_anim = fade
+            # Vent 'duration', deretter fade ut.
+            Clock.schedule_once(lambda dt: fade.start(toast), duration)
+
         def _scen_build_notes(self, container):
             """Bygg notat-visning."""
             box = BoxLayout(orientation='vertical', spacing=dp(4))
             notes = self._scen_data.get('notes', '')
-            self._scen_notes_input = TextInput(
+            self._scen_notes_input = SmartTextInput(
                 text=notes, multiline=True,
                 background_color=INPUT, foreground_color=TXT,
                 cursor_color=GOLD, font_size=sp(12),
                 padding=[dp(8), dp(8)])
+            self._scen_notes_dirty = False
+            self._scen_notes_input.bind(
+                text=lambda *a: setattr(self, '_scen_notes_dirty', True))
             box.add_widget(self._scen_notes_input)
             box.add_widget(mkbtn(
                 "Lagre notater", self._scen_save_notes,
@@ -5581,6 +6012,8 @@ try:
                 return
             self._scen_data['notes'] = self._scen_notes_input.text
             self._scen_save()
+            self._scen_notes_dirty = False
+            self._toast("Notater lagret")
 
         def _scen_build_pcs(self, container):
             """Bygg liste over PC-karakterer i scenario-visning."""
@@ -5770,9 +6203,17 @@ try:
             wrap = BoxLayout(orientation='vertical',
                              spacing=dp(4), padding=dp(4))
 
+            # Gjenopprett auto-lagret utkast hvis det gjelder samme sesjon.
+            draft = self._load_session_draft()
+            if draft and draft.get('_idx') == idx:
+                for k in list(s.keys()):
+                    if k in draft:
+                        s[k] = draft[k]
+                self._scen_sess_dirty = True
+
             top = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
             top.add_widget(mkbtn(
-                "Avbryt", self._scen_session_back,
+                "Avbryt", self._scen_session_cancel,
                 small=True, size_hint_x=0.4))
             top.add_widget(mkbtn(
                 "Lagre",
@@ -5790,11 +6231,22 @@ try:
             g.bind(minimum_height=g.setter('height'))
 
             self._scen_sess_inputs = {}
+            self._scen_sess_is_new = is_new
+            order = []
+
+            def _on_edit(*_a):
+                self._scen_sess_dirty = True
+                # Auto-lagre utkast litt forsinket (debounce via Clock).
+                ev = getattr(self, '_scen_draft_ev', None)
+                if ev:
+                    ev.cancel()
+                self._scen_draft_ev = Clock.schedule_once(
+                    self._save_session_draft, 0.8)
 
             def _add_field(key, label, multiline=False, h=None):
                 g.add_widget(mklbl(
                     label, color=GOLD, size=11, bold=True, h=20))
-                ti = TextInput(
+                ti = SmartTextInput(
                     text=s.get(key, ''),
                     multiline=multiline,
                     background_color=INPUT, foreground_color=TXT,
@@ -5802,8 +6254,10 @@ try:
                     padding=[dp(8), dp(8)],
                     size_hint_y=None,
                     height=dp(h if h else (140 if multiline else 44)))
+                ti.bind(text=_on_edit)
                 g.add_widget(ti)
                 self._scen_sess_inputs[key] = ti
+                order.append(ti)
 
             _add_field('date',        'Dato (YYYY-MM-DD)', False, 44)
             _add_field('title',       'Tittel',            False, 44)
@@ -5816,16 +6270,36 @@ try:
             _add_field('cliffhanger', 'Cliffhanger / til neste gang',
                                                            True, 100)
 
+            # Kjed fokus for enkeltlinje-feltene (Tab / 'neste' hopper).
+            for a, b in zip(order, order[1:]):
+                if not a.multiline:
+                    a.focus_next = b
+                    b.focus_previous = a
+
             scroll.add_widget(g)
             wrap.add_widget(scroll)
             container.add_widget(wrap)
 
             self._scen_sess_pending_num = s['num']
 
+        def _scen_session_cancel(self):
+            """Avbryt redigering – advar hvis det finnes ulagrede endringer."""
+            if getattr(self, '_scen_sess_dirty', False):
+                self._confirm_discard(self._scen_session_discard)
+            else:
+                self._scen_session_back()
+
+        def _scen_session_discard(self):
+            self._scen_sess_dirty = False
+            self._clear_session_draft()
+            self._scen_session_back()
+
         # ---- Sesjons-handlinger ----
         def _scen_session_new(self):
             self._scen_sess_mode = 'edit'
             self._scen_sess_idx = None
+            self._scen_sess_dirty = False
+            self._clear_session_draft()
             self._tool_render_sub()
 
         def _scen_session_open(self, idx):
@@ -5836,11 +6310,13 @@ try:
         def _scen_session_edit(self, idx):
             self._scen_sess_mode = 'edit'
             self._scen_sess_idx = idx
+            self._scen_sess_dirty = False
             self._tool_render_sub()
 
         def _scen_session_back(self):
             self._scen_sess_mode = 'list'
             self._scen_sess_idx = None
+            self._scen_sess_dirty = False
             self._tool_render_sub()
 
         def _scen_session_save(self, is_new):
@@ -5873,6 +6349,10 @@ try:
                     self._scen_data['sessions'][idx] = new_data
             self._scen_save()
             self._scen_sess_mode = 'view'
+            # Lagringen er fullført: fjern auto-lagret utkast og dirty-flagg.
+            self._scen_sess_dirty = False
+            self._clear_session_draft()
+            self._toast("Sesjon lagret")
             self._tool_render_sub()
 
         def _scen_session_confirm_delete(self, idx):
@@ -6129,10 +6609,11 @@ try:
                 return
 
             # Action-bar: søk + epoke + favoritt-toggle
-            search_inp = TextInput(
+            search_inp = SmartTextInput(
                 text=self._weap_search,
                 hint_text='Søk…',
                 font_size=sp(12), multiline=False,
+                autocap=False, suggestions=False,
                 background_color=INPUT, foreground_color=TXT,
                 cursor_color=GOLD,
                 size_hint_x=0.45,
