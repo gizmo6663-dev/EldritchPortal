@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.7 – Necronomicon, kryssref + status + skjul) ===")
+log("=== APP START (v0.4.8 – Necronomicon, dag-inndelt tidslinje) ===")
 
 try:
     from kivy.app import App
@@ -5275,11 +5275,9 @@ try:
                     'where', 'found',
                     "Ingen ledetråder i denne scenarioet.")
             elif self._scen_view == 'timeline':
-                self._scen_build_list(
+                self._scen_build_timeline(
                     content,
-                    self._scen_data.get('timeline', []),
-                    'when', 'triggered',
-                    "Ingen tidslinje-hendelser.")
+                    self._scen_data.get('timeline', []))
             elif self._scen_view == 'beats':
                 self._scen_build_list(
                     content,
@@ -5588,6 +5586,178 @@ try:
                 self._scen_sess_mode = 'list'
                 self._scen_sess_idx = None
             self._tool_render_sub()
+
+        def _scen_build_timeline(self, container, items):
+            """Bygg tidslinje gruppert i én boks per dag, med hendelser
+            kronologisk i hver boks. Respekterer søk og skjul-oppdaget."""
+            if not items:
+                container.add_widget(mklbl(
+                    "Ingen tidslinje-hendelser.",
+                    color=DIM, size=11, wrap=True))
+                return
+
+            outer = BoxLayout(orientation='vertical', spacing=dp(4))
+
+            # Søkefelt (samme mønster som ledetråd-lista)
+            q = getattr(self, '_scen_filter', '') or ''
+            search_row = BoxLayout(size_hint_y=None, height=dp(40),
+                                   spacing=dp(6))
+            search_inp = SmartTextInput(
+                text=q, hint_text='Søk i tidslinjen…',
+                multiline=False, autocap=False, suggestions=False,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD, font_size=sp(12),
+                size_hint_x=0.78, padding=[dp(8), dp(8)])
+            search_inp.bind(text=self._scen_on_filter)
+            search_row.add_widget(search_inp)
+            if q:
+                search_row.add_widget(mkbtn(
+                    "Nullstill", self._scen_clear_filter,
+                    small=True, size_hint_x=0.22))
+            outer.add_widget(search_row)
+
+            ql = q.strip().lower()
+            hide = getattr(self, '_scen_hide_done', False)
+
+            def _visible(it):
+                if hide and bool(it.get('triggered', False)):
+                    return False
+                if ql:
+                    hay = " ".join([
+                        str(it.get('title', '')),
+                        str(it.get('day', '')),
+                        str(it.get('when', '')),
+                        str(it.get('description', '')),
+                    ]).lower()
+                    if ql not in hay:
+                        return False
+                return True
+
+            # Grupper etter 'day' i rekkefølgen de opptrer i filen.
+            day_order = []
+            by_day = {}
+            for it in items:
+                if not _visible(it):
+                    continue
+                day = it.get('day', '') or '(udatert)'
+                if day not in by_day:
+                    by_day[day] = []
+                    day_order.append(day)
+                by_day[day].append(it)
+
+            if not day_order:
+                msg = ("Alt er utløst - ingen skjulte igjen."
+                       if hide and not ql else "Ingen treff.")
+                outer.add_widget(mklbl(msg, color=DIM, size=11, wrap=True))
+                container.add_widget(outer)
+                return
+
+            scroll = ScrollView()
+            col = GridLayout(cols=1, spacing=dp(10), padding=dp(4),
+                             size_hint_y=None)
+            col.bind(minimum_height=col.setter('height'))
+
+            for day in day_order:
+                evs = by_day[day]
+                done_n = sum(1 for e in evs
+                             if bool(e.get('triggered', False)))
+                # Dag-boks
+                box = RBox(orientation='vertical',
+                           bg_color=BG2, radius=dp(12),
+                           border_color=GSOFT, border_width=2.4,
+                           padding=[dp(8), dp(8)], spacing=dp(4),
+                           size_hint_y=None)
+                box.bind(minimum_height=box.setter('height'))
+
+                # Dag-header
+                hdr = BoxLayout(size_hint_y=None, height=dp(26),
+                                spacing=dp(6))
+                dlbl = Label(text=day, font_size=sp(13), bold=True,
+                             color=GOLD, halign='left', valign='middle')
+                dlbl.bind(size=lambda w, v: setattr(
+                    w, 'text_size', (v[0], None)))
+                hdr.add_widget(dlbl)
+                cnt = Label(text=f"{done_n}/{len(evs)}",
+                            font_size=sp(10), color=DIM,
+                            size_hint_x=None, width=dp(44),
+                            halign='right', valign='middle')
+                cnt.bind(size=lambda w, v: setattr(
+                    w, 'text_size', (v[0], None)))
+                hdr.add_widget(cnt)
+                box.add_widget(hdr)
+                box.add_widget(mksep(2))
+
+                # Hendelser i dagen
+                for ev in evs:
+                    box.add_widget(self._scen_make_timeline_row(ev))
+
+                col.add_widget(box)
+
+            scroll.add_widget(col)
+            outer.add_widget(scroll)
+            container.add_widget(outer)
+
+        def _scen_make_timeline_row(self, item):
+            """En kompakt hendelsesrad inne i en dag-boks."""
+            done = bool(item.get('triggered', False))
+            row = RBox(orientation='horizontal',
+                       bg_color=BTN if done else INPUT,
+                       size_hint_y=None, height=dp(58),
+                       padding=[dp(6), dp(4)], spacing=dp(6),
+                       radius=dp(8))
+
+            # Toggle
+            tog = RBtn(
+                text='[X]' if done else '[ ]',
+                bg_color=BTNH if done else BG2,
+                color=GOLD if done else DIM,
+                font_size=sp(13), bold=True,
+                size_hint_x=None, width=dp(46))
+            tog.bind(on_release=lambda b, it=item:
+                     self._scen_toggle(it, 'triggered'))
+            row.add_widget(tog)
+
+            # Midt: klokkeslett + tittel
+            mid = BoxLayout(orientation='vertical', spacing=dp(1))
+            when = (item.get('when', '') or '').strip()
+            if when:
+                wlbl = Label(text=when, font_size=sp(9), color=DIM,
+                             halign='left', valign='middle',
+                             size_hint_y=None, height=dp(14))
+                wlbl.bind(size=lambda w, v: setattr(
+                    w, 'text_size', (v[0], None)))
+                mid.add_widget(wlbl)
+            tlbl = Label(text=item.get('title', '?'),
+                         font_size=sp(11),
+                         color=DIM if done else GOLD, bold=True,
+                         halign='left', valign='middle')
+            tlbl.bind(size=lambda w, v: setattr(
+                w, 'text_size', (v[0], None)))
+            mid.add_widget(tlbl)
+            row.add_widget(mid)
+
+            # Kopier-knapp
+            copy_btn = RBtn(
+                text='->', bg_color=BTN, color=GOLD,
+                font_size=sp(12), bold=True,
+                size_hint_x=None, width=dp(36))
+            copy_btn.bind(on_release=lambda b, it=item:
+                          self._scen_copy_to_summary(it))
+            row.add_widget(copy_btn)
+
+            # Info-knapp
+            if item.get('description') or item.get('connects_to'):
+                info_btn = RBtn(
+                    text='i', bg_color=BTN, color=TXT,
+                    font_size=sp(13), bold=True,
+                    size_hint_x=None, width=dp(38))
+                info_btn.bind(on_release=lambda b, it=item:
+                              self._scen_show_detail(
+                                  it.get('title', '?'),
+                                  it.get('description', ''), it))
+                row.add_widget(info_btn)
+
+            return row
 
         def _scen_build_list(self, container, items,
                              subtitle_key, flag_key, empty_msg):
@@ -6628,6 +6798,25 @@ try:
                 lines.append("-" * 60)
                 lines.append(f"{header}  ({done_n}/{len(items)})")
                 lines.append("-" * 60)
+
+                if sec == 'timeline':
+                    # Gruppert etter dag, som i appen.
+                    cur_day = None
+                    for it in items:
+                        day = (it.get('day', '') or '').strip()
+                        if day and day != cur_day:
+                            cur_day = day
+                            lines.append("")
+                            lines.append(f"[{day}]")
+                        mark = "[X]" if it.get(flag, False) else "[ ]"
+                        title = (it.get('title', '') or '?').strip()
+                        when = (it.get('when', '') or '').strip()
+                        if when:
+                            lines.append(f"  {mark} {when} - {title}")
+                        else:
+                            lines.append(f"  {mark} {title}")
+                    continue
+
                 for it in items:
                     mark = "[X]" if it.get(flag, False) else "[ ]"
                     title = (it.get('title', '') or '?').strip()
