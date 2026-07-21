@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.6 – Necronomicon, smart tekst + oppsummering) ===")
+log("=== APP START (v0.4.7 – Necronomicon, kryssref + status + skjul) ===")
 
 try:
     from kivy.app import App
@@ -5052,6 +5052,8 @@ try:
                 self._scen_notes_dirty = False
                 # Søk/filter i ledetråder/tidslinje/plot
                 self._scen_filter = ''
+                # Skjul/vis oppdagede (avkryssede) elementer
+                self._scen_hide_done = False
 
         def _scen_load(self):
             """Les scenario.json fra app-private storage."""
@@ -5183,18 +5185,21 @@ try:
 
             self._tool_action_bar.add_widget(
                 mkbtn("Velg fil", self._scen_do_pick_file,
-                      accent=True, small=True, size_hint_x=0.3))
+                      accent=True, small=True, size_hint_x=0.24))
             self._tool_action_bar.add_widget(
                 mkbtn("Last inn", self._scen_reload,
-                      small=True, size_hint_x=0.25))
+                      small=True, size_hint_x=0.2))
+            self._tool_action_bar.add_widget(
+                mkbtn("Status", self._scen_export_status,
+                      small=True, size_hint_x=0.2))
             self._tool_action_bar.add_widget(
                 mkbtn("Nullstill", self._scen_confirm_reset,
-                      danger=True, small=True, size_hint_x=0.25))
+                      danger=True, small=True, size_hint_x=0.2))
             title_text = "Scenario"
             if self._scen_data and '_error' not in self._scen_data:
                 title_text = self._scen_data.get('title', 'Scenario')
             self._tool_action_bar.add_widget(
-                mklbl(title_text, color=GOLD, size=11, bold=True))
+                mklbl(title_text, color=GOLD, size=10, bold=True))
 
             self.tool_area.clear_widgets()
 
@@ -5240,6 +5245,26 @@ try:
             if sys_txt:
                 p.add_widget(mklbl(f"System: {sys_txt}",
                                    color=DIM, size=10, h=16))
+
+            # Skjul/vis oppdaget-bryter (kun for de avkryssbare listene)
+            if self._scen_view in ('clues', 'timeline', 'beats'):
+                flag_key = {'clues': 'found', 'timeline': 'triggered',
+                            'beats': 'done'}[self._scen_view]
+                items = self._scen_data.get(self._scen_view, [])
+                done_n = sum(1 for it in items
+                             if bool(it.get(flag_key, False)))
+                tot_n = len(items)
+                bar = BoxLayout(size_hint_y=None, height=dp(34),
+                                spacing=dp(6))
+                hide = self._scen_hide_done
+                bar.add_widget(mkbtn(
+                    ("Vis oppdaget" if hide else "Skjul oppdaget"),
+                    self._scen_toggle_hide_done,
+                    accent=hide, small=True, size_hint_x=0.5))
+                bar.add_widget(mklbl(
+                    f"{done_n}/{tot_n} oppdaget",
+                    color=DIM, size=10))
+                p.add_widget(bar)
 
             # Innhold
             content = BoxLayout()
@@ -5557,6 +5582,7 @@ try:
             self._scen_view = view
             # Nullstill søkefilter når vi bytter visning.
             self._scen_filter = ''
+            self._scen_hide_done = False
             # Reset til liste-modus når vi bytter til Sesjoner
             if view == 'sessions':
                 self._scen_sess_mode = 'list'
@@ -5591,7 +5617,7 @@ try:
                     small=True, size_hint_x=0.22))
             outer.add_widget(search_row)
 
-            # Filtrer
+            # Filtrer på søketekst
             ql = q.strip().lower()
             if ql:
                 def _match(it):
@@ -5603,11 +5629,19 @@ try:
                     return ql in hay
                 shown = [it for it in items if _match(it)]
             else:
-                shown = items
+                shown = list(items)
+
+            # Skjul oppdagede (avkryssede) hvis bryteren er på
+            if getattr(self, '_scen_hide_done', False):
+                shown = [it for it in shown
+                         if not bool(it.get(flag_key, False))]
 
             if not shown:
+                msg = ("Alt er oppdaget - ingen skjulte igjen."
+                       if getattr(self, '_scen_hide_done', False) and not ql
+                       else "Ingen treff.")
                 outer.add_widget(mklbl(
-                    "Ingen treff.", color=DIM, size=11, wrap=True))
+                    msg, color=DIM, size=11, wrap=True))
                 container.add_widget(outer)
                 return
 
@@ -5636,6 +5670,11 @@ try:
 
         def _scen_clear_filter(self):
             self._scen_filter = ''
+            self._tool_render_sub()
+
+        def _scen_toggle_hide_done(self):
+            self._scen_hide_done = not getattr(
+                self, '_scen_hide_done', False)
             self._tool_render_sub()
 
         def _scen_make_row(self, item, subtitle_key, flag_key):
@@ -5696,18 +5735,31 @@ try:
 
             # Info-knapp (høyre)
             desc = item.get('description', '')
-            if desc:
+            if desc or item.get('connects_to'):
                 info_btn = RBtn(
                     text='i', bg_color=BTN, color=TXT,
                     font_size=sp(14), bold=True,
                     size_hint_x=None, width=dp(44))
-                info_btn.bind(on_release=lambda b,
-                              t=item.get('title', '?'),
-                              d=desc, it=item:
-                              self._scen_show_detail(t, d, it))
+                info_btn.bind(on_release=lambda b, it=item:
+                              self._scen_show_detail(
+                                  it.get('title', '?'),
+                                  it.get('description', ''), it))
                 row.add_widget(info_btn)
 
             return row
+
+        def _scen_index(self):
+            """Bygg (og hurtigbufre) et id->element-oppslag på tvers av
+            clues/timeline/beats/npcs/handouts for kryssreferanser."""
+            idx = {}
+            if not self._scen_data or '_error' in self._scen_data:
+                return idx
+            for sec in ('clues', 'timeline', 'beats', 'npcs', 'handouts'):
+                for it in self._scen_data.get(sec, []):
+                    iid = it.get('id')
+                    if iid:
+                        idx[iid] = (sec, it)
+            return idx
 
         def _scen_toggle(self, item, flag_key):
             """Bytt flagg og lagre."""
@@ -5837,6 +5889,9 @@ try:
 
         def _scen_show_detail(self, title, desc, item=None):
             """Vis full beskrivelse som overlay."""
+            # Lukk en eventuell åpen overlay slik at kryssreferanse-
+            # navigering erstatter i stedet for å stable.
+            self._scen_close_overlay()
             overlay = RBox(
                 bg_color=BG, radius=dp(16),
                 orientation='vertical', spacing=dp(6),
@@ -5853,8 +5908,39 @@ try:
             overlay.add_widget(hdr)
 
             scroll = ScrollView()
-            body = mklbl(desc, color=TXT, size=12, wrap=True)
-            scroll.add_widget(body)
+            body_box = GridLayout(cols=1, spacing=dp(6), padding=dp(2),
+                                  size_hint_y=None)
+            body_box.bind(minimum_height=body_box.setter('height'))
+            if desc:
+                body_box.add_widget(mklbl(desc, color=TXT, size=12,
+                                          wrap=True))
+
+            # Kryssreferanser: klikkbare rader til relaterte elementer.
+            refs = (item or {}).get('connects_to', []) if item else []
+            if refs:
+                idx = self._scen_index()
+                body_box.add_widget(mksep(6))
+                body_box.add_widget(mklbl(
+                    "SER OGSÅ", color=GOLD, size=11, bold=True, h=22))
+                sec_label = {'clues': 'Ledetråd', 'timeline': 'Tidslinje',
+                             'beats': 'Plot', 'npcs': 'NPC',
+                             'handouts': 'Handout'}
+                for ref in refs:
+                    hit = idx.get(ref)
+                    if not hit:
+                        continue
+                    sec, rit = hit
+                    tag = sec_label.get(sec, sec)
+                    rtitle = rit.get('title', rit.get('name', ref))
+                    rb = mkbtn(
+                        f"[{tag}] {rtitle}",
+                        lambda r=rit: self._scen_show_detail(
+                            r.get('title', r.get('name', '?')),
+                            r.get('description', ''), r),
+                        small=True, size_hint_y=None, height=dp(40))
+                    body_box.add_widget(rb)
+
+            scroll.add_widget(body_box)
             overlay.add_widget(scroll)
 
             # Kopier hele elementet (tittel + beskrivelse) til oppsummering.
@@ -6499,6 +6585,108 @@ try:
             with dim.canvas:
                 GCe(rgba=[0, 0, 0, 0.6])
                 dr = GRe(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
+
+        def _scen_export_status(self):
+            """Eksporter gjeldende scenariostatus (hva som er oppdaget/
+            utløst/fullført) til en tekstfil i Documents."""
+            if not self._scen_data or '_error' in self._scen_data:
+                return
+            scen_title = self._scen_data.get('title', 'scenario')
+            safe = ''.join(c if c.isalnum() or c in (' ', '-', '_')
+                           else '_' for c in scen_title).strip()
+            safe = safe.replace(' ', '_') or 'scenario'
+            out_path = os.path.join(BASE_DIR, f"status_{safe}.txt")
+
+            from datetime import datetime as _dt
+            lines = []
+            lines.append("=" * 60)
+            lines.append(f"SCENARIOSTATUS - {scen_title}")
+            sys_txt = self._scen_data.get('system', '')
+            if sys_txt:
+                lines.append(f"System: {sys_txt}")
+            lines.append(f"Generert: {_dt.now().strftime('%Y-%m-%d %H:%M')}")
+            lines.append("=" * 60)
+
+            sections = [
+                ('clues', 'found', 'LEDETRÅDER', 'where'),
+                ('timeline', 'triggered', 'TIDSLINJE', 'when'),
+                ('beats', 'done', 'PLOT', None),
+            ]
+            for sec, flag, header, subkey in sections:
+                items = self._scen_data.get(sec, [])
+                if not items:
+                    continue
+                done_n = sum(1 for it in items
+                             if bool(it.get(flag, False)))
+                lines.append("")
+                lines.append("-" * 60)
+                lines.append(f"{header}  ({done_n}/{len(items)})")
+                lines.append("-" * 60)
+                for it in items:
+                    mark = "[X]" if it.get(flag, False) else "[ ]"
+                    title = (it.get('title', '') or '?').strip()
+                    sub = (it.get(subkey, '') if subkey else '') or ''
+                    sub = sub.strip()
+                    if sub:
+                        lines.append(f"{mark} {title}  —  {sub}")
+                    else:
+                        lines.append(f"{mark} {title}")
+
+            # Notater med i statusen hvis de finnes
+            notes = (self._scen_data.get('notes', '') or '').strip()
+            if notes:
+                lines.append("")
+                lines.append("-" * 60)
+                lines.append("NOTATER")
+                lines.append("-" * 60)
+                lines.append(notes)
+
+            lines.append("")
+
+            try:
+                os.makedirs(BASE_DIR, exist_ok=True)
+                with open(out_path, 'w', encoding='utf-8') as f:
+                    f.write("\n".join(lines))
+                msg = f"Status eksportert til:\n{out_path}"
+                log(f"Status-eksport OK: {out_path}")
+            except Exception as e:
+                msg = f"Eksport feilet:\n{type(e).__name__}: {e}"
+                log(f"Status-eksport feilet: {e}")
+
+            self._scen_message_overlay("Eksport", msg)
+
+        def _scen_message_overlay(self, title, msg):
+            """Enkel OK-overlay for korte meldinger."""
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(8),
+                padding=dp(16),
+                size_hint=(0.85, 0.35),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+            overlay.add_widget(mklbl(
+                title, color=GOLD, size=14, bold=True, h=28))
+            sc = ScrollView()
+            sc.add_widget(mklbl(msg, color=TXT, size=11, wrap=True))
+            overlay.add_widget(sc)
+            btns = BoxLayout(size_hint_y=None, height=dp(44))
+            btns.add_widget(mkbtn(
+                "OK", self._scen_close_overlay, accent=True))
+            overlay.add_widget(btns)
+
+            fl = getattr(self, '_root_fl', None)
+            if fl is None:
+                return
+            from kivy.graphics import Color as GCm, Rectangle as GRm
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCm(rgba=[0, 0, 0, 0.6])
+                dr = GRm(pos=dim.pos, size=dim.size)
             dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
                      size=lambda w, v: setattr(dr, 'size', w.size))
             self._scen_dim = dim
