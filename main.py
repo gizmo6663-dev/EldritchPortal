@@ -37,7 +37,7 @@ def log(msg):
     with open(LOG, "a") as f:
         f.write(msg + "\n")
 
-log("=== APP START (v0.4.8 – Necronomicon, dag-inndelt tidslinje) ===")
+log("=== APP START (v0.4.9 – Necronomicon, NPC-statblokker) ===")
 
 try:
     from kivy.app import App
@@ -5223,7 +5223,7 @@ try:
                              ('timeline', 'Tidslinje'),
                              ('beats', 'Plot'),
                              ('notes', 'Notater'),
-                             ('pcs', 'PCs'),
+                             ('npcs', 'NPCer'),
                              ('sessions', 'Sesjoner')]:
                 active = (key == self._scen_view)
                 b = RBtn(
@@ -5284,8 +5284,8 @@ try:
                     self._scen_data.get('beats', []),
                     None, 'done',
                     "Ingen plot-punkter.")
-            elif self._scen_view == 'pcs':
-                self._scen_build_pcs(content)
+            elif self._scen_view == 'npcs':
+                self._scen_build_npcs(content)
             elif self._scen_view == 'sessions':
                 self._scen_build_sessions(content)
             else:
@@ -6271,39 +6271,264 @@ try:
             self._scen_notes_dirty = False
             self._toast("Notater lagret")
 
-        def _scen_build_pcs(self, container):
-            """Bygg liste over PC-karakterer i scenario-visning."""
-            pcs = [(i, ch) for i, ch in enumerate(self.chars)
-                   if ch.get('type', 'PC') == 'PC']
-            if not pcs:
+        def _scen_build_npcs(self, container):
+            """Bygg liste over scenario-NPCer (karakterer, fiender,
+            monstre), gruppert etter kategori. Klikk åpner stat-visning."""
+            npcs = (self._scen_data or {}).get('npcs', [])
+            if not npcs:
                 container.add_widget(mklbl(
-                    "Ingen PC-karakterer ennå.\n"
-                    "Legg til karakterer under 'Karakterer'.",
+                    "Ingen NPCer i denne scenariofilen.",
                     color=DIM, size=11, wrap=True))
                 return
+
+            outer = BoxLayout(orientation='vertical', spacing=dp(4))
+
+            # Søkefelt
+            q = getattr(self, '_scen_filter', '') or ''
+            search_row = BoxLayout(size_hint_y=None, height=dp(40),
+                                   spacing=dp(6))
+            search_inp = SmartTextInput(
+                text=q, hint_text='Søk i NPCer…',
+                multiline=False, autocap=False, suggestions=False,
+                background_color=INPUT, foreground_color=TXT,
+                cursor_color=GOLD, font_size=sp(12),
+                size_hint_x=0.78, padding=[dp(8), dp(8)])
+            search_inp.bind(text=self._scen_on_filter)
+            search_row.add_widget(search_inp)
+            if q:
+                search_row.add_widget(mkbtn(
+                    "Nullstill", self._scen_clear_filter,
+                    small=True, size_hint_x=0.22))
+            outer.add_widget(search_row)
+
+            ql = q.strip().lower()
+
+            def _match(n):
+                if not ql:
+                    return True
+                hay = " ".join([
+                    str(n.get('name', '')), str(n.get('category', '')),
+                    str(n.get('role', '')), str(n.get('description', '')),
+                ]).lower()
+                return ql in hay
+
+            # Grupper etter kategori i rekkefølgen de opptrer.
+            cat_order = []
+            by_cat = {}
+            for n in npcs:
+                if not _match(n):
+                    continue
+                cat = n.get('category', 'Andre') or 'Andre'
+                if cat not in by_cat:
+                    by_cat[cat] = []
+                    cat_order.append(cat)
+                by_cat[cat].append(n)
+
+            if not cat_order:
+                outer.add_widget(mklbl(
+                    "Ingen treff.", color=DIM, size=11, wrap=True))
+                container.add_widget(outer)
+                return
+
+            # Fargekoding pr rolletype (grovt).
+            def _cat_color(cat):
+                c = cat.lower()
+                if 'antagonist' in c or 'villain' in c:
+                    return RED
+                if 'monster' in c or 'device' in c:
+                    return RED
+                if 'victim' in c:
+                    return DIM
+                if 'ally' in c or 'passenger' in c or 'crew' in c:
+                    return GRN
+                return GOLD
+
             scroll = ScrollView()
-            g = GridLayout(cols=1, spacing=dp(6), padding=dp(6),
-                           size_hint_y=None)
-            g.bind(minimum_height=g.setter('height'))
-            for i, ch in pcs:
-                nm = ch.get('name', '?')
-                row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(6))
-                b = mkbtn(
-                    f"[PC]  {_first_last_name(nm)}",
-                    lambda idx=i: self._view_char(
-                        idx, back_fn=lambda: self._scen_switch_view('pcs')),
-                    small=True, size_hint_x=0.72)
-                b.color = GRN
-                b.halign = 'left'
-                row.add_widget(b)
-                row.add_widget(mkbtn(
-                    "Vis",
-                    lambda idx=i: self._view_char(
-                        idx, back_fn=lambda: self._scen_switch_view('pcs')),
-                    accent=True, small=True, size_hint_x=0.28))
-                g.add_widget(row)
-            scroll.add_widget(g)
-            container.add_widget(scroll)
+            col = GridLayout(cols=1, spacing=dp(8), padding=dp(4),
+                             size_hint_y=None)
+            col.bind(minimum_height=col.setter('height'))
+
+            for cat in cat_order:
+                members = by_cat[cat]
+                col.add_widget(mklbl(
+                    cat.upper(), color=GOLD, size=11, bold=True, h=22))
+                for n in members:
+                    row = RBox(orientation='horizontal',
+                               bg_color=BG2, radius=dp(8),
+                               size_hint_y=None, height=dp(50),
+                               padding=[dp(8), dp(4)], spacing=dp(6))
+                    mid = BoxLayout(orientation='vertical', spacing=dp(1))
+                    nm = Label(text=n.get('name', '?'),
+                               font_size=sp(12), bold=True,
+                               color=_cat_color(cat),
+                               halign='left', valign='middle')
+                    nm.bind(size=lambda w, v: setattr(
+                        w, 'text_size', (v[0], None)))
+                    mid.add_widget(nm)
+                    role = (n.get('role', '') or '').strip()
+                    if role:
+                        rl = Label(text=role, font_size=sp(9), color=DIM,
+                                   halign='left', valign='middle',
+                                   size_hint_y=None, height=dp(14))
+                        rl.bind(size=lambda w, v: setattr(
+                            w, 'text_size', (v[0], None)))
+                        mid.add_widget(rl)
+                    row.add_widget(mid)
+                    row.add_widget(mkbtn(
+                        "Vis",
+                        lambda nn=n: self._scen_show_npc(nn),
+                        accent=True, small=True,
+                        size_hint_x=None, width=dp(60)))
+                    col.add_widget(row)
+
+            scroll.add_widget(col)
+            outer.add_widget(scroll)
+            container.add_widget(outer)
+
+        def _scen_show_npc(self, npc):
+            """Vis full NPC-statblokk som overlay."""
+            self._scen_close_overlay()
+            overlay = RBox(
+                bg_color=BG, radius=dp(16),
+                orientation='vertical', spacing=dp(6),
+                padding=dp(12),
+                size_hint=(0.95, 0.88),
+                pos_hint={'center_x': 0.5, 'center_y': 0.5})
+
+            hdr = BoxLayout(size_hint_y=None, height=dp(42), spacing=dp(6))
+            hdr.add_widget(mkbtn("Lukk", self._scen_close_overlay,
+                                 danger=True, small=True, size_hint_x=0.28))
+            hdr.add_widget(mklbl(npc.get('name', '?'),
+                                 color=GOLD, size=14, bold=True))
+            overlay.add_widget(hdr)
+
+            role = (npc.get('role', '') or '').strip()
+            cat = (npc.get('category', '') or '').strip()
+            sub = "  ·  ".join([x for x in (cat, role) if x])
+            if sub:
+                overlay.add_widget(mklbl(sub, color=DIM, size=10, h=18))
+
+            scroll = ScrollView()
+            body = GridLayout(cols=1, spacing=dp(6), padding=dp(2),
+                              size_hint_y=None)
+            body.bind(minimum_height=body.setter('height'))
+
+            def _section(label):
+                body.add_widget(mksep(4))
+                body.add_widget(mklbl(
+                    label, color=GOLD, size=11, bold=True, h=20))
+
+            # Beskrivelse
+            desc = (npc.get('description', '') or '').strip()
+            if desc:
+                body.add_widget(mklbl(desc, color=TXT, size=12, wrap=True))
+
+            # Karakteristikker (rutenett)
+            stats = npc.get('stats', {})
+            if stats:
+                _section("KARAKTERISTIKKER")
+                order = ['STR', 'CON', 'SIZ', 'DEX', 'INT', 'APP',
+                         'POW', 'EDU', 'SAN', 'HP', 'MP', 'Luck',
+                         'DB', 'Build', 'Move', 'Armor']
+                keys = [k for k in order if k in stats]
+                keys += [k for k in stats if k not in order]
+                grid = GridLayout(cols=3, spacing=dp(4), size_hint_y=None)
+                grid.bind(minimum_height=grid.setter('height'))
+                for k in keys:
+                    cell = RBox(orientation='horizontal', bg_color=INPUT,
+                                radius=dp(6), padding=[dp(6), dp(2)],
+                                size_hint_y=None, height=dp(28))
+                    kl = Label(text=k, font_size=sp(9), color=DIM,
+                               halign='left', valign='middle')
+                    kl.bind(size=lambda w, v: setattr(
+                        w, 'text_size', (v[0], None)))
+                    vl = Label(text=str(stats[k]), font_size=sp(11),
+                               color=TXT, bold=True,
+                               halign='right', valign='middle')
+                    vl.bind(size=lambda w, v: setattr(
+                        w, 'text_size', (v[0], None)))
+                    cell.add_widget(kl)
+                    cell.add_widget(vl)
+                    grid.add_widget(cell)
+                body.add_widget(grid)
+
+            # Kamp
+            combat = npc.get('combat', [])
+            if combat:
+                _section("KAMP")
+                for line in combat:
+                    body.add_widget(mklbl(
+                        f"• {line}", color=TXT, size=11, wrap=True))
+
+            # Ferdigheter
+            skills = npc.get('skills', '')
+            if skills and skills != '-':
+                _section("FERDIGHETER")
+                body.add_widget(mklbl(skills, color=TXT, size=11, wrap=True))
+
+            # Rustning
+            armor = (npc.get('armor', '') or '').strip()
+            if armor:
+                _section("RUSTNING")
+                body.add_widget(mklbl(armor, color=TXT, size=11, wrap=True))
+
+            # Pulp-talenter
+            talents = npc.get('pulp_talents', [])
+            if talents:
+                _section("PULP-TALENTER")
+                for t in talents:
+                    body.add_widget(mklbl(
+                        f"• {t}", color=TXT, size=11, wrap=True))
+
+            # Formler
+            spells = npc.get('spells', '')
+            if spells and spells != '-':
+                _section("FORMLER")
+                body.add_widget(mklbl(spells, color=TXT, size=11, wrap=True))
+
+            # Spesialevner
+            special = (npc.get('special', '') or '').strip()
+            if special:
+                _section("SPESIELT")
+                body.add_widget(mklbl(special, color=TXT, size=11, wrap=True))
+
+            # Sanity-tap
+            san = (npc.get('sanity_loss', '') or '').strip()
+            if san:
+                _section("SANITY-TAP")
+                body.add_widget(mklbl(san, color=TXT, size=11, wrap=True))
+
+            # Våpen / eiendeler
+            poss = (npc.get('possessions', '') or '').strip()
+            if poss:
+                _section("VÅPEN / EIENDELER")
+                body.add_widget(mklbl(poss, color=TXT, size=11, wrap=True))
+
+            # Notater
+            notes = (npc.get('notes', '') or '').strip()
+            if notes:
+                _section("NOTATER")
+                body.add_widget(mklbl(notes, color=DIM, size=11, wrap=True))
+
+            scroll.add_widget(body)
+            overlay.add_widget(scroll)
+
+            fl = getattr(self, '_root_fl', None)
+            if fl is None:
+                return
+            from kivy.graphics import Color as GCn, Rectangle as GRn
+            dim = Widget(size_hint=(1, 1))
+            with dim.canvas:
+                GCn(rgba=[0, 0, 0, 0.6])
+                dr = GRn(pos=dim.pos, size=dim.size)
+            dim.bind(pos=lambda w, v: setattr(dr, 'pos', w.pos),
+                     size=lambda w, v: setattr(dr, 'size', w.size))
+            dim.bind(on_touch_down=lambda w, t:
+                     self._scen_close_overlay() or True)
+            self._scen_dim = dim
+            self._scen_overlay = overlay
+            fl.add_widget(dim)
+            fl.add_widget(overlay)
 
         # ---------- SESJONSJOURNAL ----------
         def _scen_build_sessions(self, container):
