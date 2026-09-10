@@ -764,7 +764,7 @@ const FLAGS = { clues: "found", timeline: "triggered",
                 handouts: "found" };
 
 const state = {
-  library: { items: [], active: null, seeded: [] },
+  library: { items: [], active: null, seeded: {} },
   scenario: null,     // aktivt innhold, med fremdrift lagt på
   scenarioId: null,
   progress: null,     // { flags, notes, itemNotes, sessions }
@@ -829,10 +829,14 @@ function counts(data) {
 async function loadLibrary() {
   const lib = await store.get("library");
   state.library = lib && typeof lib === "object"
-    ? Object.assign({ items: [], active: null, seeded: [] }, lib)
-    : { items: [], active: null, seeded: [] };
+    ? Object.assign({ items: [], active: null, seeded: {} }, lib)
+    : { items: [], active: null, seeded: {} };
   if (!Array.isArray(state.library.items)) state.library.items = [];
-  if (!Array.isArray(state.library.seeded)) state.library.seeded = [];
+  // seeded er {id: versjon}. Eldre lagringer har en liste; den
+  // konverteres i seedBundled(), så her skal den bare ikke nullstilles.
+  if (!state.library.seeded || typeof state.library.seeded !== "object") {
+    state.library.seeded = {};
+  }
 }
 
 async function saveLibrary() { await store.set("library", state.library); }
@@ -900,12 +904,28 @@ async function seedBundled() {
   const node = document.getElementById("bundled-scenarios");
   let bundled = [];
   try { bundled = JSON.parse(node.textContent) || []; } catch (e) { return; }
+
+  // Eldre lagringer har «seeded» som en liste med id-er. Regn dem som
+  // versjon 1, slik at et oppdatert innebygd scenario byttes inn.
+  let seeded = state.library.seeded;
+  if (Array.isArray(seeded)) {
+    const migrated = {};
+    seeded.forEach((id) => { migrated[id] = 1; });
+    seeded = migrated;
+  } else if (!seeded || typeof seeded !== "object") {
+    seeded = {};
+  }
+  state.library.seeded = seeded;
+
   let changed = false;
   for (const data of bundled) {
     const key = data.id || slugify(data.title);
-    if (state.library.seeded.indexOf(key) !== -1) continue;
-    state.library.seeded.push(key);
+    const version = data.version || 1;
+    if (seeded[key] === version) continue;
+    seeded[key] = version;
     changed = true;
+    // Innholdet byttes ut; fremdriften ligger i en egen nøkkel og
+    // røres ikke av addScenario().
     await addScenario(JSON.parse(JSON.stringify(data)),
                       !state.library.active);
   }
@@ -1135,21 +1155,16 @@ function openItem(item, section) {
         el("p", { text: item.roll }),
       ]));
     }
-    if (section === "handouts" && /READ TO THE PLAYERS/.test(item.description || "")) {
-      // Handouts har en opplesningsdel — sett den i egen ramme.
-      const parts = item.description.split(/READ TO THE PLAYERS:\s*/);
-      if (parts[0].trim()) {
-        body.appendChild(el("p", { class: "prose", text: parts[0].trim() }));
-      }
-      const rest = parts[1] || "";
-      const split = rest.split(/\n\n(?=[A-ZÆØÅ][A-ZÆØÅ ]{3,}:)/);
-      body.appendChild(el("div", { class: "readaloud", text: split[0].trim() }));
-      if (split.length > 1) {
-        body.appendChild(el("p", { class: "prose",
-                                   text: split.slice(1).join("\n\n").trim() }));
-      }
-    } else if (item.description) {
+    if (item.description) {
       body.appendChild(el("p", { class: "prose", text: item.description }));
+    }
+    // Det som faktisk skal leses høyt eller vises fram, i egen ramme.
+    if (item.read_aloud) {
+      body.appendChild(el("p", { class: "eyebrow", text: "Les høyt" }));
+      body.appendChild(el("div", { class: "readaloud", text: item.read_aloud }));
+    }
+    if (item.aside) {
+      body.appendChild(el("p", { class: "prose tight", text: item.aside }));
     }
     if (item.body) body.appendChild(el("p", { class: "prose", text: item.body }));
     const refs = crossRefs(item);

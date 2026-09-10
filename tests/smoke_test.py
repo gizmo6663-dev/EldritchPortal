@@ -146,6 +146,44 @@ assert still["notes"] == "Spillerne mistenker Hallander.", \
     "re-import wiped the notes"
 print("  ok    checkmarks and notes survive a re-import")
 
+print("\n== a bundled update replaces content but keeps progress ==")
+# Simuler en eldre installasjon: gammel 'seeded'-liste, og et innhold
+# med lavere versjon enn det som ligger i appen.
+lib = app._lib_load()
+bundle_name = "slow-boat-to-china.json"
+lib["seeded"] = [bundle_name]          # gammelt listeformat
+app._lib_save(lib)
+stale = main.load_json(app._lib_content_path(sid), None)
+stale["title"] = "Utdatert tittel"
+stale["version"] = 1
+main.save_json(app._lib_content_path(sid), stale)
+
+before = app._prog_load(sid)
+app._lib_seed_bundled()
+app._scen_data = None
+app._scen_load()
+after = app._prog_load(sid)
+
+assert app._scen_data["title"] != "Utdatert tittel", \
+    "the bundled update did not replace the stale content"
+assert after["flags"] == before["flags"], \
+    "the bundled update clobbered the saved checkmarks"
+assert after["notes"] == before["notes"], \
+    "the bundled update clobbered the saved notes"
+seeded = app._lib_load()["seeded"]
+assert isinstance(seeded, dict) and seeded.get(bundle_name) == \
+    main.load_json(os.path.join(REPO, "scenarios", bundle_name), {})["version"], \
+    "the seeded version was not recorded"
+print("  ok    content updated, progress kept, version recorded")
+
+print("\n== the scenario reads as Norwegian ==")
+first_beat = app._scen_data["beats"][0]
+assert "Akt" in first_beat["act"], f"act not translated: {first_beat['act']}"
+assert app._scen_data["handouts"][0].get("read_aloud"), \
+    "handout is missing its read-aloud text"
+print("  ok    act =", first_beat["act"])
+print("  ok    handout 1 has read_aloud")
+
 print("\n== detail overlays ==")
 step("clue detail", lambda: app._scen_show_detail(
     data["clues"][0]["title"], data["clues"][0]["description"],

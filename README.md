@@ -130,8 +130,8 @@ Sub-faner for forberedelse og oppslag:
 - Kan overstyres med egen `weapons.json` i Documents-mappen hvis du ønsker det
 
 **Scenario** — scenariohåndtering og fremdrift
-- Leser inn en `scenario.json` med strukturert data
-- Fire visninger: **Ledetråder** · **Tidslinje** · **Plot** · **Notater**
+- Bibliotek med flere scenarier du bytter fritt mellom
+- Elleve visninger: **Oversikt** · **Tidslinje** · **Scener** · **Spor** · **NPCer** · **Steder** · **Handouts** · **Regler** · **Notater** · **Sesjoner** · **Bibliotek**
 - Kryss av ting etter hvert som de skjer i spillet
 - Notater kan redigeres underveis
 - Scenarioet kan importeres og lagres i appens private lagring, som er nyttig på Android 13+ der vanlig filtilgang kan være begrenset
@@ -326,12 +326,22 @@ Notater lagres av seg selv to sekunder etter siste tastetrykk, og flushes når a
 | `clues` | `{id, title, where, roll, description}` |
 | `npcs` | `{id, name, category, role, description, traits, quotes, stats, combat, skills, spells, special, sanity_loss, possessions, notes}` |
 | `locations` | `{id, title, deck, description}` |
-| `handouts` | `{id, title, description}` — bruk `READ TO THE PLAYERS:` for opplesningsdelen |
+| `handouts` | `{id, title, description, read_aloud, aside}` — `read_aloud` vises i egen ramme til opplesning |
 | `reference` | `{id, title, description}` — regler og skipsdata |
 
-Alle elementer kan ha `connects_to: [id, ...]`, som blir klikkbare kryssreferanser. Mangler et element `id`, lager appen en stabil en selv.
+Toppnivået kan i tillegg ha `version` (se under). Alle elementer kan ha `connects_to: [id, ...]`, som blir klikkbare kryssreferanser. Mangler et element `id`, lager appen en stabil en selv.
 
 `scenarios/slow-boat-to-china.json` i dette repoet er et komplett eksempel — hele Pulp Cthulhu-scenarioet *A Slow Boat to China*, med 29 hendelser, 17 scener, 18 spor, 26 NPCer, 14 steder, 3 handouts og 10 oppslagsartikler. Det følger med appen og ligger i biblioteket ved første oppstart. `scenarios/build_slow_boat.py` er skriptet som genererer det.
+
+### Språk i scenariodata
+
+Innholdet er på **norsk** — hendelser, scener, personbeskrivelser, replikker og handouts. **Spillmekaniske begreper står på engelsk**, slik de gjør i regelboka: ferdighetsnavn (`Spot Hidden`, `Fast Talk`), vanskegrader (`Hard`, `Extreme`), karakteristikker (`STR`, `POW`), formler (`Dominate`, `Consume Likeness`), terningnotasjon og `Sanity`. Egennavn og boktitler beholdes som de er.
+
+### Oppdatering av innebygde scenarier
+
+Feltet `version` styrer om et innebygd scenario skal byttes ut i biblioteket. Øker du tallet, henter appen inn det nye innholdet ved neste oppstart — **uten** å røre avkryssinger, notater eller sesjoner, siden fremdriften ligger i en egen fil og er koblet til elementenes `id`.
+
+Derfor: **endre aldri en `id` i en oppdatering.** Gjør du det, mister brukeren fremdriften knyttet til det elementet. Titler kan trygt endres; id-er kan ikke.
 
 ---
 

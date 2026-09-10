@@ -5331,32 +5331,48 @@ try:
         def _lib_seed_bundled(self):
             """Legg scenarier som følger med appen inn i biblioteket.
 
-            Hver fil legges inn bare én gang, slik at et scenario
-            brukeren har slettet ikke dukker opp igjen ved neste
-            oppstart."""
+            Hver fil legges inn én gang, slik at et scenario brukeren
+            har slettet ikke dukker opp igjen ved neste oppstart. Men
+            får fila et høyere 'version'-tall i en ny appversjon, byttes
+            innholdet ut — fremdriften ligger i en egen fil og røres
+            ikke."""
             src_dir = os.path.join(_BUNDLE_DIR, "scenarios")
             if not os.path.isdir(src_dir):
                 return
             lib = self._lib_load()
-            seeded = set(lib.get('seeded', []))
+            # Eldre installasjoner har 'seeded' som en ren liste med
+            # filnavn. Regn dem som versjon 1.
+            seeded = lib.get('seeded', {})
+            if isinstance(seeded, list):
+                seeded = {name: 1 for name in seeded}
+            elif not isinstance(seeded, dict):
+                seeded = {}
             changed = False
+
             for fname in sorted(os.listdir(src_dir)):
-                if not fname.endswith('.json') or fname in seeded:
+                if not fname.endswith('.json'):
                     continue
                 data = load_json(os.path.join(src_dir, fname), None)
-                seeded.add(fname)
-                changed = True
                 if not isinstance(data, dict) or not data:
                     continue
+                version = data.get('version', 1)
+                if seeded.get(fname) == version:
+                    continue
+                first_time = fname not in seeded
+                seeded[fname] = version
+                changed = True
                 try:
                     self._lib_add(self._ensure_ids(data),
                                   make_active=not lib.get('active'))
-                    log(f"Innebygd scenario lagt til: {fname}")
+                    log(f"Innebygd scenario "
+                        f"{'lagt til' if first_time else 'oppdatert'}: "
+                        f"{fname} (v{version})")
                 except Exception as e:
                     log(f"Kunne ikke legge til {fname}: {e}")
+
             if changed:
                 lib = self._lib_load()
-                lib['seeded'] = sorted(seeded)
+                lib['seeded'] = seeded
                 self._lib_save(lib)
 
         # ---------- FREMDRIFT ----------
@@ -6568,6 +6584,29 @@ try:
                 body_box.add_widget(mklbl(desc, color=TXT, size=12,
                                           wrap=True))
 
+            # Opplesningstekst – det som faktisk skal leses høyt eller
+            # vises fram, i egen ramme så det er lett å finne igjen
+            # midt i en scene.
+            aloud = (it.get('read_aloud', '') or '').strip()
+            if aloud:
+                frame = RBox(orientation='vertical', bg_color=INPUT,
+                             radius=dp(8), border_color=GOLD,
+                             border_width=2.4, padding=dp(10),
+                             spacing=dp(4), size_hint_y=None)
+                frame.bind(minimum_height=frame.setter('height'))
+                frame.add_widget(mklbl("LES HØYT", color=GOLD, size=10,
+                                       bold=True, h=16))
+                frame.add_widget(mklbl(aloud, color=TXT, size=12,
+                                       wrap=True))
+                body_box.add_widget(mksep(4))
+                body_box.add_widget(frame)
+
+            aside = (it.get('aside', '') or '').strip()
+            if aside:
+                body_box.add_widget(mksep(4))
+                body_box.add_widget(mklbl(aside, color=DIM, size=11,
+                                          wrap=True))
+
             # Egne notater på elementet – lagres på samme sted som
             # resten av fremdriften.
             if item is not None and it.get('id'):
@@ -6908,7 +6947,10 @@ try:
                 box.bind(minimum_height=box.setter('height'))
                 box.add_widget(mklbl(h.get('title', '?'), color=GOLD,
                                      size=12, bold=True, wrap=True))
-                body = (h.get('description', '') or '')
+                # Har handouten opplesningstekst, er det den som er
+                # interessant å se på kortet — ikke innledningen.
+                body = ((h.get('read_aloud', '') or '').strip()
+                        or (h.get('description', '') or ''))
                 short = body if len(body) <= 260 else body[:257] + "..."
                 box.add_widget(mklbl(short, color=TXT, size=11, wrap=True))
                 row = BoxLayout(size_hint_y=None, height=dp(40),
