@@ -7,8 +7,10 @@ icon.filename = %(source.dir)s/icon.png
 
 source.dir = .
 source.include_exts = py,png,jpg,jpeg,webp,kv,atlas,ttf,otf,json
+# Byggeskriptet for scenariodata hører ikke hjemme i APK-en.
+source.exclude_patterns = scenarios/build_*.py,web/*
 
-version = 0.3.4
+version = 0.5.0
 
 requirements = python3,kivy,pillow,android,pychromecast,zeroconf,ifaddr,protobuf
 

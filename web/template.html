@@ -1,0 +1,2196 @@
+<title>Eldritch Portal Keeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Limelight&family=Josefin+Sans:wght@400;600;700&family=Spectral:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* ------------------------------------------------------------------
+   Eldritch Portal — Keeper-konsoll for nettleser.
+
+   Bevisst mørkt tema. Dette er et verktøy som står oppslått ved siden
+   av spillbordet i et dempet rom, og det skal se ut som den samme
+   appen på telefonen. Alle farger settes eksplisitt, slik at siden
+   holder seg uansett hvilket tema nettleseren rundt kjører.
+   ------------------------------------------------------------------ */
+:root {
+  color-scheme: dark;
+
+  --ink:        #0E0709;   /* skrogsvart, med et rødt anslag */
+  --ink-2:      #170D11;   /* panel */
+  --ink-3:      #23141A;   /* hevet flate */
+  --ink-4:      #321D24;   /* kant / hover */
+
+  --brass:      #E0B451;   /* antikk messing — eneste aksent */
+  --brass-dim:  #96773A;
+  --brass-glow: rgba(224, 180, 81, 0.14);
+
+  --parchment:  #EDE3D2;   /* brødtekst */
+  --muted:      #A08880;   /* dempet, dreid mot burgunder */
+  --faint:      #6E5A58;
+
+  --verdigris:  #5A9C7E;   /* irret kobber — «gjort» */
+  --signal:     #C6504A;   /* skiltrødt — skurkens trekk */
+  --tide:       #6E8BA8;   /* sjøblått — reise og vær */
+
+  --rule:       rgba(224, 180, 81, 0.20);
+  --rule-soft:  rgba(237, 227, 210, 0.10);
+
+  --display: "Limelight", "Josefin Sans", Georgia, serif;
+  --ui:      "Josefin Sans", "Segoe UI", system-ui, sans-serif;
+  --body:    "Spectral", Georgia, "Times New Roman", serif;
+  --mono:    "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --rail: 216px;
+  --gutter: clamp(16px, 3vw, 32px);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ink);
+  color: var(--parchment);
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.62;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Svak vignett så flaten ikke er helt død. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(120% 80% at 50% -10%, rgba(224,180,81,0.07), transparent 60%),
+    radial-gradient(90% 60% at 50% 110%, rgba(198,80,74,0.06), transparent 60%);
+}
+
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: none; }
+a { color: var(--brass); }
+
+:focus-visible {
+  outline: 2px solid var(--brass);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+/* ============================ SKALL ============================= */
+
+.shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: var(--rail) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas: "head head" "rail main";
+}
+
+.masthead {
+  grid-area: head;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px var(--gutter);
+  border-bottom: 1px solid var(--rule);
+  background: linear-gradient(180deg, var(--ink-2), var(--ink));
+}
+
+.wordmark {
+  font-family: var(--display);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--brass);
+  line-height: 1;
+  white-space: nowrap;
+}
+.wordmark span { display: block; font-size: 9px; letter-spacing: 0.34em;
+  color: var(--faint); font-family: var(--ui); margin-top: 5px; }
+
+.masthead-title {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+.masthead-title b {
+  display: block;
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  color: var(--parchment);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.masthead-title small {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.masthead-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+.chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--rule);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.chip.live { color: var(--verdigris); border-color: rgba(90,156,126,0.4); }
+.chip.local { color: var(--muted); }
+
+/* ------------------------------ nav ---------------------------- */
+
+.rail {
+  grid-area: rail;
+  border-right: 1px solid var(--rule);
+  padding: 16px 10px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.rail-group {
+  font-family: var(--ui);
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--faint);
+  padding: 16px 10px 6px;
+}
+.rail-group:first-child { padding-top: 4px; }
+
+.navlink {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 5px;
+  font-family: var(--ui);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  color: var(--muted);
+  text-align: left;
+  border-left: 2px solid transparent;
+  transition: background 0.14s, color 0.14s;
+}
+.navlink:hover { background: var(--ink-2); color: var(--parchment); }
+.navlink[aria-current="page"] {
+  background: var(--ink-3);
+  color: var(--brass);
+  border-left-color: var(--brass);
+}
+.navlink .count {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--faint);
+  font-variant-numeric: tabular-nums;
+}
+.navlink[aria-current="page"] .count { color: var(--brass-dim); }
+
+/* ----------------------------- main ---------------------------- */
+
+.main {
+  grid-area: main;
+  padding: var(--gutter);
+  padding-block: 24px 72px;
+  min-width: 0;
+}
+.view { max-width: 72ch; margin-inline: auto; }
+.view.wide { max-width: 1080px; }
+
+/* Fargeprøve i tidslinjens tegnforklaring. */
+.swatch {
+  display: inline-block; width: 9px; height: 9px;
+  border-radius: 2px; margin-right: 6px;
+  vertical-align: baseline;
+}
+
+h1 {
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: clamp(24px, 4vw, 32px);
+  letter-spacing: 0.01em;
+  margin: 0 0 4px;
+  text-wrap: balance;
+  color: var(--parchment);
+}
+h2 {
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  margin: 32px 0 10px;
+  color: var(--brass);
+  text-wrap: balance;
+}
+.view > h2:first-of-type { margin-top: 22px; }
+.lede { color: var(--muted); margin: 0 0 20px; font-size: 15px; }
+
+.eyebrow {
+  font-family: var(--ui);
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin: 0 0 6px;
+}
+
+/* --------------------------- kontroller ------------------------ */
+
+.btn {
+  font-family: var(--ui);
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  padding: 8px 14px;
+  border-radius: 5px;
+  border: 1px solid var(--rule);
+  background: var(--ink-2);
+  color: var(--parchment);
+  transition: background 0.14s, border-color 0.14s;
+}
+.btn:hover { background: var(--ink-3); border-color: var(--brass-dim); }
+.btn.primary {
+  background: var(--brass-glow);
+  border-color: var(--brass-dim);
+  color: var(--brass);
+  font-weight: 600;
+}
+.btn.primary:hover { background: rgba(224,180,81,0.22); }
+.btn.danger { color: var(--signal); border-color: rgba(198,80,74,0.35); }
+.btn.danger:hover { background: rgba(198,80,74,0.12); }
+.btn.small { font-size: 11px; padding: 5px 10px; }
+.btn[aria-pressed="true"] {
+  background: var(--brass-glow); border-color: var(--brass-dim); color: var(--brass);
+}
+
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row.spread { justify-content: space-between; }
+
+.field {
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 5px;
+  border: 1px solid var(--rule-soft);
+  background: var(--ink-2);
+  color: var(--parchment);
+  font-family: var(--body);
+}
+.field:focus { border-color: var(--brass-dim); outline: none; }
+.field::placeholder { color: var(--faint); }
+textarea.field { resize: vertical; line-height: 1.6; }
+
+/* ---------------------------- meter ---------------------------- */
+
+.meter { display: grid; gap: 5px; margin-bottom: 14px; }
+.meter-head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--ui); font-size: 13px; letter-spacing: 0.02em;
+}
+.meter-head b { font-weight: 400; color: var(--parchment); }
+.meter-head span {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.meter-track {
+  height: 6px; border-radius: 3px; background: var(--ink-3); overflow: hidden;
+}
+.meter-fill {
+  height: 100%; background: var(--brass); border-radius: 3px;
+  transition: width 0.3s ease;
+}
+.meter-fill.full { background: var(--verdigris); }
+
+/* ---------------------------- paneler -------------------------- */
+
+.panel {
+  border: 1px solid var(--rule-soft);
+  border-radius: 8px;
+  background: var(--ink-2);
+  padding: 16px 18px;
+  margin-bottom: 16px;
+}
+.panel.accent { border-color: var(--rule); background: linear-gradient(180deg, var(--ink-3), var(--ink-2)); }
+.panel h3 {
+  font-family: var(--ui); font-weight: 600; font-size: 15px;
+  margin: 0 0 6px; color: var(--parchment); letter-spacing: 0.02em;
+}
+.panel p { margin: 0 0 10px; }
+.panel p:last-child { margin-bottom: 0; }
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+/* --------------------------- listerader ------------------------ */
+
+.stack { display: flex; flex-direction: column; gap: 6px; }
+
+.entry {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--rule-soft);
+  border-left: 3px solid var(--rule-soft);
+  background: var(--ink-2);
+  text-align: left;
+  transition: background 0.14s, border-color 0.14s;
+}
+.entry:hover { background: var(--ink-3); }
+.entry.done { opacity: 0.5; }
+.entry.done .entry-title { text-decoration: line-through; text-decoration-color: var(--faint); }
+
+/* Stripa til venstre koder hva slags hendelse det er — ikke pynt. */
+.entry[data-tag="villain"] { border-left-color: var(--signal); }
+.entry[data-tag="climax"]  { border-left-color: var(--signal); }
+.entry[data-tag="event"]   { border-left-color: var(--brass-dim); }
+.entry[data-tag="voyage"]  { border-left-color: var(--tide); }
+.entry[data-tag="social"]  { border-left-color: var(--rule-soft); }
+
+.tick {
+  width: 20px; height: 20px; margin-top: 3px;
+  border-radius: 4px;
+  border: 1px solid var(--brass-dim);
+  background: transparent;
+  display: grid; place-items: center;
+  font-size: 12px; color: var(--ink);
+  flex: none;
+}
+.tick[aria-pressed="true"] { background: var(--verdigris); border-color: var(--verdigris); }
+.tick[aria-pressed="true"]::after { content: "✓"; font-weight: 700; }
+
+.entry-body { min-width: 0; }
+.entry-title {
+  font-family: var(--ui); font-weight: 600; font-size: 15px;
+  letter-spacing: 0.01em; color: var(--parchment); display: block;
+}
+.entry-sub {
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  display: block; margin-top: 2px;
+}
+.entry-note {
+  display: block; margin-top: 6px; padding-left: 9px;
+  border-left: 2px solid var(--brass-dim);
+  font-size: 13px; color: var(--muted); font-style: italic;
+}
+.entry-open {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  color: var(--faint); padding: 4px 6px; border-radius: 4px; flex: none;
+}
+.entry:hover .entry-open { color: var(--brass); }
+
+/* ---------------------------- dagbolk -------------------------- */
+
+.day {
+  margin-bottom: 22px;
+}
+.day-head {
+  display: flex; align-items: baseline; gap: 10px;
+  padding-bottom: 6px; margin-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+.day-head h3 {
+  margin: 0; font-family: var(--ui); font-weight: 700; font-size: 15px;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--brass);
+}
+.day-head span {
+  margin-left: auto; font-family: var(--mono); font-size: 11px;
+  color: var(--faint); font-variant-numeric: tabular-nums;
+}
+
+/* --------------------------- statblokk ------------------------- */
+
+.statgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
+  gap: 5px;
+  margin: 10px 0 14px;
+}
+.stat {
+  border: 1px solid var(--rule-soft);
+  border-radius: 4px;
+  padding: 5px 7px;
+  background: var(--ink);
+}
+.stat dt {
+  font-family: var(--ui); font-size: 9px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--faint);
+}
+.stat dd {
+  margin: 1px 0 0; font-family: var(--mono); font-size: 14px;
+  color: var(--parchment); font-variant-numeric: tabular-nums;
+}
+
+.section-label {
+  font-family: var(--ui); font-size: 10px; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--brass-dim);
+  margin: 18px 0 6px; padding-bottom: 3px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.bullets { margin: 0; padding-left: 18px; }
+.bullets li { margin-bottom: 4px; }
+
+.quote {
+  margin: 0 0 6px; padding-left: 11px;
+  border-left: 2px solid var(--brass-dim);
+  font-style: italic; color: var(--brass);
+}
+
+.prose { white-space: pre-wrap; }
+.prose.tight { font-size: 15px; }
+
+.caveat {
+  font-size: 12px; color: var(--faint); font-style: italic;
+  margin-top: 14px; padding-top: 8px; border-top: 1px solid var(--rule-soft);
+}
+
+/* ---------------------------- modal ---------------------------- */
+
+.scrim {
+  position: fixed; inset: 0; z-index: 50;
+  background: rgba(6, 3, 4, 0.82);
+  display: grid; place-items: center;
+  padding: var(--gutter);
+}
+.scrim[hidden] { display: none !important; }
+
+.modal {
+  width: min(760px, 100%);
+  max-height: min(88vh, 900px);
+  display: flex; flex-direction: column;
+  background: var(--ink-2);
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+  overflow: hidden;
+}
+.modal-head {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 16px 18px 12px;
+  border-bottom: 1px solid var(--rule-soft);
+  background: linear-gradient(180deg, var(--ink-3), var(--ink-2));
+}
+.modal-head h2 {
+  margin: 0; font-size: 19px; color: var(--brass);
+  font-family: var(--ui); font-weight: 700; flex: 1;
+}
+.modal-head .modal-sub {
+  display: block; margin-top: 3px;
+  font-family: var(--mono); font-size: 11px; color: var(--muted);
+  font-weight: 400; letter-spacing: 0;
+}
+.modal-body { padding: 16px 18px; overflow-y: auto; }
+.modal-foot {
+  display: flex; gap: 8px; flex-wrap: wrap;
+  padding: 12px 18px; border-top: 1px solid var(--rule-soft);
+  background: var(--ink);
+}
+
+.callout {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--brass-glow);
+  padding: 10px 12px;
+  margin-bottom: 14px;
+}
+.callout .eyebrow { color: var(--brass-dim); margin-bottom: 2px; }
+.callout p { margin: 0; font-size: 14px; }
+
+.readaloud {
+  border-left: 3px solid var(--brass);
+  background: var(--ink);
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  margin-bottom: 14px;
+  border-radius: 0 4px 4px 0;
+}
+
+/* ---------------------------- terning -------------------------- */
+
+.dice { display: flex; align-items: center; gap: 6px; }
+.dice input {
+  width: 58px; text-align: center;
+  font-family: var(--mono); font-size: 13px;
+  padding: 6px 4px; border-radius: 5px;
+  border: 1px solid var(--rule-soft); background: var(--ink-2);
+  color: var(--parchment);
+}
+.dice-out {
+  font-family: var(--mono); font-size: 12px; min-width: 128px;
+  letter-spacing: 0.02em;
+}
+.dice-out b { font-size: 15px; }
+.res-crit    { color: var(--brass); }
+.res-extreme { color: var(--verdigris); }
+.res-hard    { color: var(--verdigris); }
+.res-reg     { color: var(--parchment); }
+.res-fail    { color: var(--muted); }
+.res-fumble  { color: var(--signal); }
+
+/* --------------------------- diverse --------------------------- */
+
+.empty {
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+}
+.empty h3 { font-family: var(--ui); color: var(--parchment); margin: 0 0 6px; }
+
+.toast {
+  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  z-index: 90;
+  background: var(--ink-3); border: 1px solid var(--brass-dim);
+  color: var(--brass); border-radius: 999px;
+  padding: 9px 20px; font-family: var(--ui); font-size: 13px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  animation: rise 0.2s ease;
+}
+.toast[hidden] { display: none !important; }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 8px); } }
+
+.savestate {
+  font-family: var(--mono); font-size: 11px; color: var(--faint);
+  min-height: 16px; margin-bottom: 6px;
+}
+.savestate.saved { color: var(--verdigris); }
+
+.libcard {
+  border: 1px solid var(--rule-soft); border-radius: 8px;
+  background: var(--ink-2); padding: 14px 16px;
+}
+.libcard.active { border-color: var(--brass-dim); background: linear-gradient(180deg, var(--ink-3), var(--ink-2)); }
+.libcard h3 { margin: 0 0 2px; font-family: var(--ui); font-size: 16px; color: var(--parchment); }
+.libcard .meta { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.libcard .saved-bits { font-size: 13px; color: var(--verdigris); margin: 6px 0 10px; }
+.libcard .saved-bits.none { color: var(--faint); }
+
+.tablewrap { overflow-x: auto; }
+table.skills { border-collapse: collapse; width: 100%; font-size: 13px; }
+table.skills td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--rule-soft); }
+table.skills td:last-child { font-family: var(--mono); text-align: right; color: var(--brass); }
+
+/* ----------------------- smale skjermer ------------------------ */
+
+@media (max-width: 860px) {
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "head" "rail" "main";
+  }
+  .rail {
+    position: sticky; top: 0; z-index: 20;
+    flex-direction: row;
+    max-height: none;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: none;
+    border-bottom: 1px solid var(--rule);
+    background: var(--ink);
+    padding: 8px var(--gutter);
+    gap: 4px;
+  }
+  .rail-group { display: none; }
+  .navlink {
+    width: auto; white-space: nowrap; border-left: none;
+    border-bottom: 2px solid transparent; border-radius: 5px 5px 0 0;
+    padding: 6px 11px; font-size: 13px;
+  }
+  .navlink[aria-current="page"] { border-left: none; border-bottom-color: var(--brass); }
+  .navlink .count { margin-left: 6px; }
+  .main { padding-block: 18px 64px; }
+  .masthead { gap: 10px; padding: 12px var(--gutter); }
+  .wordmark { font-size: 17px; }
+}
+</style>
+
+<div class="shell">
+  <header class="masthead">
+    <div class="wordmark">Eldritch Portal<span>Keeper</span></div>
+    <div class="masthead-title">
+      <b id="mast-title">Laster…</b>
+      <small id="mast-sub"></small>
+    </div>
+    <div class="masthead-tools">
+      <div class="dice">
+        <input id="dice-target" type="number" min="1" max="99" value="50"
+               aria-label="Ferdighetsverdi å slå mot">
+        <button class="btn small" id="dice-roll" type="button">Slå d100</button>
+        <span class="dice-out" id="dice-out" aria-live="polite">—</span>
+      </div>
+      <span class="chip" id="sync-chip">…</span>
+    </div>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="Seksjoner"></nav>
+
+  <main class="main" id="main"><div class="view"></div></main>
+</div>
+
+<div class="scrim" id="scrim" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <h2 id="modal-title">—<span class="modal-sub" id="modal-sub"></span></h2>
+      <button class="btn small" id="modal-close" type="button">Lukk</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-foot" id="modal-foot"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script type="application/json" id="bundled-scenarios">/*__SCENARIOS__*/</script>
+
+<script>
+"use strict";
+
+/* ==================================================================
+   LAGRING
+
+   To bakender bak samme API. Når siden kjører som en publisert
+   artifact finnes «db», og da følger fremdrift, notater og karakterer
+   med mellom telefon og PC. Ellers — lokal fil, offline, en nettleser
+   uten den kapabiliteten — brukes localStorage, og alt ligger lagret
+   i den nettleseren. localStorage skrives uansett, som offline-kopi.
+   ================================================================== */
+
+const PREFIX = "eldritch:";
+let remote = null;          // db-namespace, eller null
+let remoteReady = false;
+
+function lsGet(key) {
+  try {
+    const raw = localStorage.getItem(PREFIX + key);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) { return null; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(PREFIX + key, JSON.stringify(value)); }
+  catch (e) { /* full eller blokkert — vi har fortsatt db-en */ }
+}
+function lsDel(key) {
+  try { localStorage.removeItem(PREFIX + key); } catch (e) {}
+}
+
+const store = {
+  async get(key) {
+    if (remote) {
+      try {
+        const snap = await remote.doc("state/" + key.replace(/\//g, "_")).get();
+        if (snap && snap.exists && snap.data && "value" in snap.data) {
+          lsSet(key, snap.data.value);
+          return snap.data.value;
+        }
+      } catch (e) { /* faller gjennom til lokal kopi */ }
+    }
+    return lsGet(key);
+  },
+  async set(key, value) {
+    lsSet(key, value);
+    if (remote) {
+      try {
+        await remote.doc("state/" + key.replace(/\//g, "_")).set({ value });
+      } catch (e) { /* lokal kopi er allerede skrevet */ }
+    }
+  },
+  async del(key) {
+    lsDel(key);
+    if (remote) {
+      try { await remote.doc("state/" + key.replace(/\//g, "_")).delete(); }
+      catch (e) {}
+    }
+  },
+};
+
+async function connectRemote() {
+  const chip = document.getElementById("sync-chip");
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      remote = await window.claude.use("db");
+    }
+  } catch (e) { remote = null; }
+  remoteReady = true;
+  if (remote) {
+    chip.textContent = "Synkes mellom enheter";
+    chip.className = "chip live";
+    chip.title = "Fremdrift, notater og karakterer følger med til andre " +
+                 "enheter der du åpner denne siden.";
+  } else {
+    chip.textContent = "Lagret i nettleseren";
+    chip.className = "chip local";
+    chip.title = "Alt lagres i denne nettleseren. Bruk Eksporter i " +
+                 "Biblioteket for å flytte det over på en annen maskin.";
+  }
+}
+
+/* ==================================================================
+   MODELL
+   ================================================================== */
+
+const SECTIONS = ["clues", "timeline", "beats", "npcs", "handouts",
+                  "locations", "reference"];
+const FLAGS = { clues: "found", timeline: "triggered",
+                beats: "done", locations: "visited",
+                handouts: "found" };
+
+const state = {
+  library: { items: [], active: null, seeded: [] },
+  scenario: null,     // aktivt innhold, med fremdrift lagt på
+  scenarioId: null,
+  progress: null,     // { flags, notes, itemNotes, sessions }
+  characters: [],
+  view: "overview",
+  query: "",
+  hideDone: false,
+};
+
+function slugify(text, fallback) {
+  const s = String(text || "").toLowerCase()
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return s.slice(0, 60) || fallback || "scenario";
+}
+
+function ensureIds(data) {
+  SECTIONS.forEach((sec) => {
+    (data[sec] || []).forEach((item, i) => {
+      if (!item.id) {
+        item.id = sec + "-" + i + "-" +
+          slugify(item.title || item.name || "", String(i));
+      }
+    });
+  });
+  return data;
+}
+
+function emptyProgress() {
+  return { flags: {}, notes: "", itemNotes: {}, sessions: [] };
+}
+
+function applyProgress(data, prog) {
+  SECTIONS.forEach((sec) => {
+    const flag = FLAGS[sec];
+    (data[sec] || []).forEach((item) => {
+      if (flag) item[flag] = !!prog.flags[item.id];
+      const note = prog.itemNotes[item.id];
+      item.userNotes = note || "";
+    });
+  });
+  return data;
+}
+
+function contentOnly(data) {
+  const copy = {};
+  Object.keys(data).forEach((k) => {
+    if (k !== "notes" && k !== "sessions") copy[k] = data[k];
+  });
+  return copy;
+}
+
+function counts(data) {
+  const out = {};
+  ["clues", "timeline", "beats", "npcs", "handouts", "locations",
+   "reference"].forEach((k) => { out[k] = (data[k] || []).length; });
+  return out;
+}
+
+/* ------------------------- bibliotek ---------------------------- */
+
+async function loadLibrary() {
+  const lib = await store.get("library");
+  state.library = lib && typeof lib === "object"
+    ? Object.assign({ items: [], active: null, seeded: [] }, lib)
+    : { items: [], active: null, seeded: [] };
+  if (!Array.isArray(state.library.items)) state.library.items = [];
+  if (!Array.isArray(state.library.seeded)) state.library.seeded = [];
+}
+
+async function saveLibrary() { await store.set("library", state.library); }
+
+async function addScenario(data, makeActive) {
+  ensureIds(data);
+  const id = data.id ? slugify(data.id) : slugify(data.title);
+  await store.set("content/" + id, contentOnly(data));
+
+  // Notater og sesjoner i importfila er startinnhold. De skal aldri
+  // tråkke over det brukeren selv har skrevet.
+  const prog = (await store.get("progress/" + id)) || emptyProgress();
+  if (data.notes && !prog.notes) prog.notes = data.notes;
+  if (data.sessions && data.sessions.length && !prog.sessions.length) {
+    prog.sessions = data.sessions;
+  }
+  await store.set("progress/" + id, prog);
+
+  state.library.items = state.library.items.filter((it) => it.id !== id);
+  state.library.items.push({
+    id: id,
+    title: data.title || "(uten tittel)",
+    system: data.system || "",
+    imported: new Date().toISOString().slice(0, 16).replace("T", " "),
+    counts: counts(data),
+  });
+  state.library.items.sort((a, b) => a.title.localeCompare(b.title, "nb"));
+  if (makeActive || !state.library.active) state.library.active = id;
+  await saveLibrary();
+  return id;
+}
+
+async function deleteScenario(id) {
+  await store.del("content/" + id);
+  await store.del("progress/" + id);
+  state.library.items = state.library.items.filter((it) => it.id !== id);
+  if (state.library.active === id) {
+    state.library.active = state.library.items.length
+      ? state.library.items[0].id : null;
+  }
+  await saveLibrary();
+  await loadActive();
+}
+
+async function loadActive() {
+  const id = state.library.active;
+  state.scenarioId = id;
+  if (!id) { state.scenario = null; state.progress = null; return; }
+  const content = await store.get("content/" + id);
+  if (!content) { state.scenario = null; state.progress = null; return; }
+  const prog = Object.assign(emptyProgress(),
+                             (await store.get("progress/" + id)) || {});
+  state.progress = prog;
+  state.scenario = applyProgress(ensureIds(content), prog);
+  state.scenario.notes = prog.notes;
+  state.scenario.sessions = prog.sessions;
+}
+
+async function saveProgress() {
+  if (!state.scenarioId) return;
+  await store.set("progress/" + state.scenarioId, state.progress);
+}
+
+async function seedBundled() {
+  const node = document.getElementById("bundled-scenarios");
+  let bundled = [];
+  try { bundled = JSON.parse(node.textContent) || []; } catch (e) { return; }
+  let changed = false;
+  for (const data of bundled) {
+    const key = data.id || slugify(data.title);
+    if (state.library.seeded.indexOf(key) !== -1) continue;
+    state.library.seeded.push(key);
+    changed = true;
+    await addScenario(JSON.parse(JSON.stringify(data)),
+                      !state.library.active);
+  }
+  if (changed) await saveLibrary();
+}
+
+/* ==================================================================
+   HANDLINGER
+   ================================================================== */
+
+function findItem(id) {
+  if (!state.scenario) return null;
+  for (const sec of SECTIONS) {
+    const hit = (state.scenario[sec] || []).find((x) => x.id === id);
+    if (hit) return { section: sec, item: hit };
+  }
+  return null;
+}
+
+async function toggleFlag(id) {
+  const hit = findItem(id);
+  if (!hit) return;
+  const flag = FLAGS[hit.section];
+  if (!flag) return;
+  hit.item[flag] = !hit.item[flag];
+  if (hit.item[flag]) state.progress.flags[id] = true;
+  else delete state.progress.flags[id];
+  await saveProgress();
+  render();
+}
+
+async function setItemNote(id, text) {
+  const hit = findItem(id);
+  if (!hit) return;
+  hit.item.userNotes = text;
+  if (text.trim()) state.progress.itemNotes[id] = text;
+  else delete state.progress.itemNotes[id];
+  await saveProgress();
+}
+
+async function resetProgress() {
+  state.progress.flags = {};
+  await saveProgress();
+  await loadActive();
+  render();
+  toast("Fremdrift nullstilt");
+}
+
+/* ==================================================================
+   SMÅVERKTØY
+   ================================================================== */
+
+let toastTimer = null;
+function toast(message) {
+  const el = document.getElementById("toast");
+  el.textContent = message;
+  el.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.hidden = true; }, 2200);
+}
+
+function el(tag, props, children) {
+  const node = document.createElement(tag);
+  if (props) {
+    Object.keys(props).forEach((k) => {
+      if (k === "class") node.className = props[k];
+      else if (k === "text") node.textContent = props[k];
+      else if (k === "html") node.innerHTML = props[k];
+      else if (k.startsWith("on")) node.addEventListener(k.slice(2), props[k]);
+      else if (props[k] !== null && props[k] !== undefined && props[k] !== false) {
+        node.setAttribute(k, props[k]);
+      }
+    });
+  }
+  (children || []).forEach((c) => {
+    if (c === null || c === undefined || c === false) return;
+    node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  });
+  return node;
+}
+
+function matches(item, query) {
+  if (!query) return true;
+  const hay = [item.title, item.name, item.description, item.where,
+               item.day, item.when, item.act, item.deck, item.role,
+               item.category, item.roll, item.userNotes]
+    .filter(Boolean).join(" ").toLowerCase();
+  return hay.indexOf(query.toLowerCase()) !== -1;
+}
+
+function debounce(fn, ms) {
+  let t = null;
+  return function () {
+    const args = arguments;
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(null, args), ms);
+  };
+}
+
+/* ---------------------------- terning --------------------------- */
+
+function rollSkill(target) {
+  const roll = 1 + Math.floor(Math.random() * 100);
+  let label, cls;
+  if (roll === 1) { label = "KRITISK"; cls = "res-crit"; }
+  else if (roll <= Math.floor(target / 5)) { label = "Ekstrem"; cls = "res-extreme"; }
+  else if (roll <= Math.floor(target / 2)) { label = "Hard"; cls = "res-hard"; }
+  else if (roll <= target) { label = "Suksess"; cls = "res-reg"; }
+  else if (roll === 100 || (roll >= 96 && target < 50)) { label = "FUMLE"; cls = "res-fumble"; }
+  else { label = "Bom"; cls = "res-fail"; }
+  return { roll, label, cls };
+}
+
+function setupDice() {
+  const input = document.getElementById("dice-target");
+  const out = document.getElementById("dice-out");
+  function go() {
+    const target = Math.max(1, Math.min(99, parseInt(input.value, 10) || 50));
+    const r = rollSkill(target);
+    out.className = "dice-out " + r.cls;
+    out.innerHTML = "";
+    out.appendChild(el("b", { text: String(r.roll) }));
+    out.appendChild(document.createTextNode(" · " + r.label));
+  }
+  document.getElementById("dice-roll").addEventListener("click", go);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") go(); });
+}
+
+/* ==================================================================
+   MODAL
+   ================================================================== */
+
+let lastFocus = null;
+
+function closeModal() {
+  document.getElementById("scrim").hidden = true;
+  if (lastFocus && lastFocus.focus) lastFocus.focus();
+}
+
+function openModal(title, subtitle, buildBody, footButtons) {
+  lastFocus = document.activeElement;
+  const scrim = document.getElementById("scrim");
+  const head = document.getElementById("modal-title");
+  head.textContent = title;
+  const sub = el("span", { class: "modal-sub", id: "modal-sub",
+                           text: subtitle || "" });
+  head.appendChild(sub);
+
+  const body = document.getElementById("modal-body");
+  body.innerHTML = "";
+  buildBody(body);
+  body.scrollTop = 0;
+
+  const foot = document.getElementById("modal-foot");
+  foot.innerHTML = "";
+  (footButtons || []).forEach((b) => foot.appendChild(b));
+  foot.hidden = !(footButtons && footButtons.length);
+
+  scrim.hidden = false;
+  document.getElementById("modal-close").focus();
+}
+
+function noteEditor(item) {
+  const wrap = el("div");
+  wrap.appendChild(el("div", { class: "section-label", text: "Dine notater" }));
+  const status = el("div", { class: "savestate" });
+  const area = el("textarea", {
+    class: "field", rows: "4", id: "note-" + item.id,
+    placeholder: "Hva skjedde da spillerne kom hit?",
+  });
+  area.value = item.userNotes || "";
+  const save = debounce(async () => {
+    await setItemNote(item.id, area.value);
+    status.textContent = "Lagret " +
+      new Date().toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+    status.className = "savestate saved";
+  }, 700);
+  area.addEventListener("input", () => {
+    status.textContent = "Lagrer…";
+    status.className = "savestate";
+    save();
+  });
+  wrap.appendChild(status);
+  wrap.appendChild(area);
+  return wrap;
+}
+
+function crossRefs(item) {
+  const refs = item.connects_to || [];
+  if (!refs.length) return null;
+  const labels = { clues: "Spor", timeline: "Tidslinje", beats: "Scene",
+                   npcs: "NPC", handouts: "Handout", locations: "Sted",
+                   reference: "Oppslag" };
+  const wrap = el("div");
+  wrap.appendChild(el("div", { class: "section-label", text: "Se også" }));
+  const stack = el("div", { class: "stack" });
+  refs.forEach((ref) => {
+    const hit = findItem(ref);
+    if (!hit) return;
+    stack.appendChild(el("button", {
+      class: "entry", type: "button",
+      onclick: () => openItem(hit.item, hit.section),
+    }, [
+      el("span", { class: "entry-open", text: labels[hit.section] || hit.section }),
+      el("span", { class: "entry-body" }, [
+        el("span", { class: "entry-title",
+                     text: hit.item.title || hit.item.name || ref }),
+      ]),
+      el("span", { class: "entry-open", text: "ÅPNE" }),
+    ]));
+  });
+  if (!stack.children.length) return null;
+  wrap.appendChild(stack);
+  return wrap;
+}
+
+function openItem(item, section) {
+  if (section === "npcs") return openNpc(item);
+
+  const subtitle = ["act", "day", "when", "where", "deck"]
+    .map((k) => item[k]).filter(Boolean).join(" · ");
+
+  openModal(item.title || item.name || "?", subtitle, (body) => {
+    if (item.roll) {
+      body.appendChild(el("div", { class: "callout" }, [
+        el("p", { class: "eyebrow", text: "Slag" }),
+        el("p", { text: item.roll }),
+      ]));
+    }
+    if (section === "handouts" && /READ TO THE PLAYERS/.test(item.description || "")) {
+      // Handouts har en opplesningsdel — sett den i egen ramme.
+      const parts = item.description.split(/READ TO THE PLAYERS:\s*/);
+      if (parts[0].trim()) {
+        body.appendChild(el("p", { class: "prose", text: parts[0].trim() }));
+      }
+      const rest = parts[1] || "";
+      const split = rest.split(/\n\n(?=[A-ZÆØÅ][A-ZÆØÅ ]{3,}:)/);
+      body.appendChild(el("div", { class: "readaloud", text: split[0].trim() }));
+      if (split.length > 1) {
+        body.appendChild(el("p", { class: "prose",
+                                   text: split.slice(1).join("\n\n").trim() }));
+      }
+    } else if (item.description) {
+      body.appendChild(el("p", { class: "prose", text: item.description }));
+    }
+    if (item.body) body.appendChild(el("p", { class: "prose", text: item.body }));
+    const refs = crossRefs(item);
+    if (refs) body.appendChild(refs);
+    if (item.id) body.appendChild(noteEditor(item));
+  }, modalActions(item, section));
+}
+
+function modalActions(item, section) {
+  const buttons = [];
+  const flag = FLAGS[section];
+  if (flag && item.id) {
+    const on = !!item[flag];
+    buttons.push(el("button", {
+      class: on ? "btn" : "btn primary", type: "button",
+      text: on ? "Fjern kryss" : (section === "handouts" ? "Marker utdelt" : "Kryss av"),
+      onclick: async () => { await toggleFlag(item.id); closeModal(); },
+    }));
+  }
+  if (item.id && state.progress) {
+    buttons.push(el("button", {
+      class: "btn small", type: "button", text: "Til sesjonslogg",
+      onclick: () => { copyToSession(item); closeModal(); },
+    }));
+  }
+  return buttons;
+}
+
+function openNpc(npc) {
+  openModal(npc.name || "?", [npc.category, npc.role].filter(Boolean).join(" · "),
+    (body) => {
+      if (npc.description) {
+        body.appendChild(el("p", { class: "prose", text: npc.description }));
+      }
+      if (npc.traits) {
+        body.appendChild(el("div", { class: "section-label", text: "Trekk" }));
+        body.appendChild(el("p", { text: npc.traits }));
+      }
+      if (npc.quotes && npc.quotes.length) {
+        body.appendChild(el("div", { class: "section-label", text: "Replikker" }));
+        npc.quotes.forEach((q) => body.appendChild(el("p", { class: "quote", text: q })));
+      }
+      if (npc.forms) {
+        body.appendChild(el("div", { class: "section-label", text: "Skikkelser" }));
+        body.appendChild(el("p", { class: "prose", text: npc.forms }));
+      }
+      if (npc.stats && Object.keys(npc.stats).length) {
+        body.appendChild(el("div", { class: "section-label", text: "Karakteristikker" }));
+        const order = ["STR", "CON", "SIZ", "DEX", "INT", "APP", "POW", "EDU",
+                       "SAN", "HP", "MP", "Luck", "DB", "Build", "Move", "Armor"];
+        const keys = order.filter((k) => k in npc.stats)
+          .concat(Object.keys(npc.stats).filter((k) => order.indexOf(k) === -1));
+        const grid = el("dl", { class: "statgrid" });
+        keys.forEach((k) => {
+          grid.appendChild(el("div", { class: "stat" }, [
+            el("dt", { text: k }),
+            el("dd", { text: String(npc.stats[k]) }),
+          ]));
+        });
+        body.appendChild(grid);
+      }
+      [["combat", "Kamp"], ["pulp_talents", "Pulp-talenter"]].forEach((pair) => {
+        const list = npc[pair[0]];
+        if (!list || !list.length) return;
+        body.appendChild(el("div", { class: "section-label", text: pair[1] }));
+        const ul = el("ul", { class: "bullets" });
+        list.forEach((line) => ul.appendChild(el("li", { text: line })));
+        body.appendChild(ul);
+      });
+      [["skills", "Ferdigheter"], ["armor", "Rustning"], ["spells", "Formler"],
+       ["special", "Spesielt"], ["sanity_loss", "Sanity-tap"],
+       ["possessions", "Våpen og eiendeler"], ["notes", "Notater"]]
+        .forEach((pair) => {
+          const val = npc[pair[0]];
+          if (!val || val === "-") return;
+          body.appendChild(el("div", { class: "section-label", text: pair[1] }));
+          body.appendChild(el("p", { class: "prose", text: val }));
+        });
+      if (npc.stats_note) {
+        body.appendChild(el("p", { class: "caveat", text: npc.stats_note }));
+      }
+      const refs = crossRefs(npc);
+      if (refs) body.appendChild(refs);
+      if (npc.id) body.appendChild(noteEditor(npc));
+    }, modalActions(npc, "npcs"));
+}
+
+function openCharacter(pc) {
+  openModal(pc.name || "?", [pc.occ, pc.archetype].filter(Boolean).join(" · "),
+    (body) => {
+      const stats = { STR: pc.str, CON: pc.con, SIZ: pc.siz, DEX: pc.dex,
+                      INT: pc.int, APP: pc.app, POW: pc.pow, EDU: pc.edu,
+                      HP: pc.hp, MP: pc.mp, SAN: pc.san, Luck: pc.luck,
+                      DB: pc.db, Build: pc.build, Move: pc.move };
+      const grid = el("dl", { class: "statgrid" });
+      Object.keys(stats).forEach((k) => {
+        if (!stats[k]) return;
+        grid.appendChild(el("div", { class: "stat" }, [
+          el("dt", { text: k }), el("dd", { text: String(stats[k]) }),
+        ]));
+      });
+      if (grid.children.length) body.appendChild(grid);
+
+      if (pc.weapons) {
+        body.appendChild(el("div", { class: "section-label", text: "Våpen" }));
+        body.appendChild(el("p", { class: "prose", text: pc.weapons }));
+      }
+      if (pc.talents) {
+        body.appendChild(el("div", { class: "section-label", text: "Talenter" }));
+        body.appendChild(el("p", { class: "prose", text: pc.talents }));
+      }
+      if (pc.skills && Object.keys(pc.skills).length) {
+        body.appendChild(el("div", { class: "section-label", text: "Ferdigheter" }));
+        const wrap = el("div", { class: "tablewrap" });
+        const table = el("table", { class: "skills" });
+        Object.keys(pc.skills).sort().forEach((k) => {
+          table.appendChild(el("tr", null, [
+            el("td", { text: k }),
+            el("td", { text: String(pc.skills[k]) + "%" }),
+          ]));
+        });
+        wrap.appendChild(table);
+        body.appendChild(wrap);
+      }
+      [["backstory", "Bakgrunn"], ["notes", "Notater"]].forEach((pair) => {
+        if (!pc[pair[0]]) return;
+        body.appendChild(el("div", { class: "section-label", text: pair[1] }));
+        body.appendChild(el("p", { class: "prose", text: pc[pair[0]] }));
+      });
+    }, []);
+}
+
+/* ==================================================================
+   SESJONSLOGG
+   ================================================================== */
+
+function itemAsLine(item) {
+  const title = item.title || item.name || "(uten tittel)";
+  const sub = item.where || item.when || item.deck || "";
+  let line = "- " + title;
+  if (sub) line += " (" + sub + ")";
+  return line;
+}
+
+async function copyToSession(item) {
+  const sessions = state.progress.sessions;
+  if (!sessions.length) {
+    sessions.push({ title: "Sesjon 1", date: new Date().toISOString().slice(0, 10),
+                    summary: "" });
+  }
+  const s = sessions[sessions.length - 1];
+  s.summary = (s.summary ? s.summary + "\n" : "") + itemAsLine(item);
+  await saveProgress();
+  toast("Lagt i «" + (s.title || "sesjonen") + "»");
+}
+
+/* ==================================================================
+   VISNINGER
+   ================================================================== */
+
+const VIEWS = [
+  { key: "overview",   label: "Oversikt",   group: "Spill" },
+  { key: "timeline",   label: "Tidslinje",  group: "Spill" },
+  { key: "beats",      label: "Scener",     group: "Spill" },
+  { key: "clues",      label: "Spor",       group: "Spill" },
+  { key: "npcs",       label: "NPCer",      group: "Spill" },
+  { key: "locations",  label: "Steder",     group: "Oppslag" },
+  { key: "handouts",   label: "Handouts",   group: "Oppslag" },
+  { key: "reference",  label: "Regler",     group: "Oppslag" },
+  { key: "notes",      label: "Notater",    group: "Mitt" },
+  { key: "sessions",   label: "Sesjoner",   group: "Mitt" },
+  { key: "characters", label: "Karakterer", group: "Mitt" },
+  { key: "library",    label: "Bibliotek",  group: "Mitt" },
+];
+
+function navBadge(key) {
+  const d = state.scenario;
+  if (!d) return "";
+  if (FLAGS[key] && d[key]) {
+    const items = d[key];
+    if (!items.length) return "";
+    return items.filter((x) => x[FLAGS[key]]).length + "/" + items.length;
+  }
+  if (key === "npcs" || key === "reference") {
+    return (d[key] || []).length || "";
+  }
+  if (key === "sessions") return state.progress.sessions.length || "";
+  if (key === "characters") return state.characters.length || "";
+  if (key === "library") return state.library.items.length || "";
+  return "";
+}
+
+function renderRail() {
+  const rail = document.getElementById("rail");
+  rail.innerHTML = "";
+  let group = null;
+  VIEWS.forEach((v) => {
+    if (v.group !== group) {
+      group = v.group;
+      rail.appendChild(el("div", { class: "rail-group", text: group }));
+    }
+    const badge = navBadge(v.key);
+    rail.appendChild(el("button", {
+      class: "navlink", type: "button",
+      "aria-current": state.view === v.key ? "page" : null,
+      onclick: () => setView(v.key),
+    }, [
+      el("span", { text: v.label }),
+      badge ? el("span", { class: "count", text: String(badge) }) : null,
+    ]));
+  });
+}
+
+function setView(key) {
+  state.view = key;
+  state.query = "";
+  state.hideDone = false;
+  render();
+  // Til toppen av dokumentet, ikke til toppen av innholdet — ellers
+  // ruller terningkasteren og synk-merket i topplinja ut av syne.
+  window.scrollTo({ top: 0, behavior: "auto" });
+}
+
+function meter(label, done, total) {
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  return el("div", { class: "meter" }, [
+    el("div", { class: "meter-head" }, [
+      el("b", { text: label }),
+      el("span", { text: done + " / " + total }),
+    ]),
+    el("div", { class: "meter-track" }, [
+      el("div", {
+        class: "meter-fill" + (total && done >= total ? " full" : ""),
+        style: "width:" + pct + "%",
+      }),
+    ]),
+  ]);
+}
+
+function searchBar(placeholder) {
+  const input = el("input", {
+    class: "field", type: "search", id: "search-" + state.view,
+    placeholder: placeholder, value: state.query,
+  });
+  const run = debounce(() => {
+    state.query = input.value;
+    const pos = input.selectionStart;
+    render();
+    const next = document.getElementById("search-" + state.view);
+    if (next) { next.focus(); next.setSelectionRange(pos, pos); }
+  }, 220);
+  input.addEventListener("input", run);
+  return input;
+}
+
+function entryRow(item, section, tag) {
+  const flag = FLAGS[section];
+  const done = flag ? !!item[flag] : false;
+  const sub = [item.act, item.day, item.when, item.where, item.deck]
+    .filter(Boolean).join(" · ");
+
+  const children = [];
+  if (flag) {
+    children.push(el("button", {
+      class: "tick", type: "button", "aria-pressed": String(done),
+      "aria-label": (done ? "Fjern kryss for " : "Kryss av ") +
+                    (item.title || item.name),
+      onclick: (e) => { e.stopPropagation(); toggleFlag(item.id); },
+    }));
+  } else {
+    children.push(el("span", { class: "tick", style: "border-color:transparent" }));
+  }
+
+  const bodyBits = [el("span", { class: "entry-title",
+                                 text: item.title || item.name || "?" })];
+  if (sub) bodyBits.push(el("span", { class: "entry-sub", text: sub }));
+  if (item.roll) {
+    bodyBits.push(el("span", { class: "entry-sub", text: "Slag: " + item.roll }));
+  }
+  if (item.userNotes) {
+    bodyBits.push(el("span", { class: "entry-note", text: item.userNotes }));
+  }
+  children.push(el("span", { class: "entry-body" }, bodyBits));
+  children.push(el("span", { class: "entry-open", text: "ÅPNE" }));
+
+  return el("button", {
+    class: "entry" + (done ? " done" : ""), type: "button",
+    "data-tag": tag || item.tag || null,
+    onclick: () => openItem(item, section),
+  }, children);
+}
+
+function filterToolbar(section) {
+  const items = state.scenario[section] || [];
+  const flag = FLAGS[section];
+  const done = items.filter((x) => x[flag]).length;
+  const bar = el("div", { class: "row spread", style: "margin-bottom:14px" }, [
+    el("button", {
+      class: "btn small", type: "button",
+      "aria-pressed": String(state.hideDone),
+      text: state.hideDone ? "Viser bare gjenstående" : "Skjul avkryssede",
+      onclick: () => { state.hideDone = !state.hideDone; render(); },
+    }),
+    el("span", { class: "chip", text: done + " av " + items.length + " avkrysset" }),
+  ]);
+  return bar;
+}
+
+function visible(items, section) {
+  const flag = FLAGS[section];
+  return items.filter((it) => {
+    if (state.hideDone && flag && it[flag]) return false;
+    return matches(it, state.query);
+  });
+}
+
+/* --------------------------- oversikt --------------------------- */
+
+function viewOverview(root) {
+  const d = state.scenario;
+  root.appendChild(el("p", { class: "eyebrow", text: d.system || "Scenario" }));
+  root.appendChild(el("h1", { text: d.title }));
+  if (d.tagline) root.appendChild(el("p", { class: "lede", text: d.tagline }));
+
+  if (d.player_pitch) {
+    root.appendChild(el("div", { class: "panel accent" }, [
+      el("p", { class: "eyebrow", text: "Til spillerne" }),
+      el("p", { class: "prose", text: d.player_pitch }),
+    ]));
+  }
+
+  // Neste hendelse: den første på tidslinja som ikke er huket av.
+  const upcoming = (d.timeline || []).filter((e) => !e.triggered);
+  if (upcoming.length) {
+    const e = upcoming[0];
+    const card = el("div", { class: "panel" }, [
+      el("p", { class: "eyebrow", text: "Neste hendelse" }),
+      el("h3", { text: e.title }),
+      el("p", { class: "entry-sub",
+                text: [e.day, e.when].filter(Boolean).join(" · ") }),
+      el("p", { class: "prose tight",
+                text: (e.description || "").slice(0, 260) +
+                      ((e.description || "").length > 260 ? "…" : "") }),
+      el("div", { class: "row" }, [
+        el("button", { class: "btn primary", type: "button", text: "Åpne scenen",
+                       onclick: () => openItem(e, "timeline") }),
+        el("button", { class: "btn", type: "button", text: "Marker utløst",
+                       onclick: () => toggleFlag(e.id) }),
+      ]),
+    ]);
+    root.appendChild(card);
+    if (upcoming.length > 1) {
+      root.appendChild(el("p", { class: "entry-sub",
+        style: "margin:-8px 0 20px",
+        text: "Deretter: " + upcoming[1].title }));
+    }
+  } else {
+    root.appendChild(el("div", { class: "panel" }, [
+      el("p", { class: "eyebrow", text: "Tidslinje" }),
+      el("h3", { text: "Alle hendelser er huket av" }),
+    ]));
+  }
+
+  root.appendChild(el("h2", { text: "Fremdrift" }));
+  const labels = { timeline: "Tidslinje", beats: "Scener",
+                   clues: "Spor funnet", locations: "Steder besøkt",
+                   handouts: "Handouts utdelt" };
+  let allDone = 0, allTotal = 0;
+  Object.keys(labels).forEach((key) => {
+    const items = d[key] || [];
+    if (!items.length) return;
+    const done = items.filter((x) => x[FLAGS[key]]).length;
+    allDone += done; allTotal += items.length;
+    root.appendChild(meter(labels[key], done, items.length));
+  });
+  if (allTotal) {
+    root.appendChild(el("p", { class: "entry-sub",
+      text: Math.round((allDone / allTotal) * 100) + "% gjennomspilt — " +
+            allDone + " av " + allTotal + " punkter." }));
+  }
+
+  if (d.keeper_summary) {
+    root.appendChild(el("h2", { text: "Hva som egentlig foregår" }));
+    root.appendChild(el("p", { class: "prose", text: d.keeper_summary }));
+  }
+
+  if (d.keeper_brief && d.keeper_brief.length) {
+    root.appendChild(el("h2", { text: "Keeper-brief" }));
+    const stack = el("div", { class: "stack" });
+    d.keeper_brief.forEach((b) => {
+      stack.appendChild(el("button", {
+        class: "entry", type: "button",
+        onclick: () => openModal(b.title, "", (body) => {
+          body.appendChild(el("p", { class: "prose", text: b.body }));
+        }, []),
+      }, [
+        el("span", { class: "tick", style: "border-color:transparent" }),
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title", text: b.title }),
+          el("span", { class: "entry-sub",
+                       text: b.body.slice(0, 90) + "…" }),
+        ]),
+        el("span", { class: "entry-open", text: "ÅPNE" }),
+      ]));
+    });
+    root.appendChild(stack);
+  }
+
+  root.appendChild(el("div", { class: "row", style: "margin-top:28px" }, [
+    el("button", { class: "btn danger small", type: "button",
+                   text: "Nullstill all fremdrift",
+                   onclick: () => confirmThen(
+                     "Nullstill fremdrift?",
+                     "Alle avkryssinger i tidslinje, scener, spor, steder og " +
+                     "handouts fjernes. Notater og sesjoner beholdes.",
+                     resetProgress) }),
+  ]));
+}
+
+/* --------------------------- tidslinje -------------------------- */
+
+function viewTimeline(root) {
+  root.appendChild(el("h1", { text: "Tidslinje" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Reisen fra San Francisco til Shanghai, dag for dag. " +
+          "Fargen til venstre viser hva slags hendelse det er." }));
+  root.appendChild(searchBar("Søk i tidslinjen…"));
+  root.appendChild(el("div", { style: "height:12px" }));
+  root.appendChild(filterToolbar("timeline"));
+
+  const legend = el("div", { class: "row", style: "margin-bottom:18px" });
+  [["villain", "Skurkens trekk", "var(--signal)"],
+   ["event", "Hendelse", "var(--brass-dim)"],
+   ["voyage", "Reise og vær", "var(--tide)"],
+   ["social", "Selskapsliv", "var(--rule-soft)"]].forEach((t) => {
+    legend.appendChild(el("span", { class: "chip" }, [
+      el("span", { class: "swatch", style: "background:" + t[2] }),
+      t[1],
+    ]));
+  });
+  root.appendChild(legend);
+
+  const items = visible(state.scenario.timeline || [], "timeline");
+  if (!items.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+
+  const days = [];
+  const byDay = {};
+  items.forEach((it) => {
+    const key = it.day || "(udatert)";
+    if (!byDay[key]) { byDay[key] = []; days.push(key); }
+    byDay[key].push(it);
+  });
+
+  days.forEach((day) => {
+    const evs = byDay[day];
+    const done = evs.filter((e) => e.triggered).length;
+    const block = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: day }),
+        el("span", { text: done + "/" + evs.length }),
+      ]),
+    ]);
+    const stack = el("div", { class: "stack" });
+    evs.forEach((e) => stack.appendChild(entryRow(e, "timeline", e.tag)));
+    block.appendChild(stack);
+    root.appendChild(block);
+  });
+}
+
+/* ---------------------------- scener ---------------------------- */
+
+function viewBeats(root) {
+  root.appendChild(el("h1", { text: "Scener" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Hver scene i full lengde — nok til å kjøre den rett herfra." }));
+  root.appendChild(searchBar("Søk i scener…"));
+  root.appendChild(el("div", { style: "height:12px" }));
+  root.appendChild(filterToolbar("beats"));
+
+  const items = visible(state.scenario.beats || [], "beats");
+  if (!items.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+
+  const acts = [];
+  const byAct = {};
+  items.forEach((it) => {
+    const key = it.act || "Scener";
+    if (!byAct[key]) { byAct[key] = []; acts.push(key); }
+    byAct[key].push(it);
+  });
+  acts.forEach((act) => {
+    const scenes = byAct[act];
+    const done = scenes.filter((s) => s.done).length;
+    const block = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: act }),
+        el("span", { text: done + "/" + scenes.length }),
+      ]),
+    ]);
+    const stack = el("div", { class: "stack" });
+    scenes.forEach((s) => stack.appendChild(entryRow(s, "beats")));
+    block.appendChild(stack);
+    root.appendChild(block);
+  });
+}
+
+/* ----------------------- generisk liste ------------------------- */
+
+function viewList(root, section, title, lede, placeholder) {
+  root.appendChild(el("h1", { text: title }));
+  root.appendChild(el("p", { class: "lede", text: lede }));
+  root.appendChild(searchBar(placeholder));
+  root.appendChild(el("div", { style: "height:12px" }));
+  if (FLAGS[section]) root.appendChild(filterToolbar(section));
+
+  const items = visible(state.scenario[section] || [], section);
+  if (!items.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+  const stack = el("div", { class: "stack" });
+  items.forEach((it) => stack.appendChild(entryRow(it, section)));
+  root.appendChild(stack);
+}
+
+/* ----------------------------- NPCer ---------------------------- */
+
+function viewNpcs(root) {
+  root.appendChild(el("h1", { text: "NPCer" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Alle med navn ombord, med statblokk, trekk og replikker." }));
+  root.appendChild(searchBar("Søk i NPCer…"));
+  root.appendChild(el("div", { style: "height:16px" }));
+
+  const items = (state.scenario.npcs || []).filter((n) => matches(n, state.query));
+  if (!items.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+
+  const cats = [];
+  const byCat = {};
+  items.forEach((n) => {
+    const key = n.category || "Andre";
+    if (!byCat[key]) { byCat[key] = []; cats.push(key); }
+    byCat[key].push(n);
+  });
+  cats.forEach((cat) => {
+    const block = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: cat }),
+        el("span", { text: String(byCat[cat].length) }),
+      ]),
+    ]);
+    const stack = el("div", { class: "stack" });
+    byCat[cat].forEach((n) => {
+      const tag = /antagonist|monster|device/i.test(cat) ? "villain"
+        : (/ally|red herring/i.test(cat) ? "event" : null);
+      stack.appendChild(el("button", {
+        class: "entry", type: "button", "data-tag": tag,
+        onclick: () => openNpc(n),
+      }, [
+        el("span", { class: "tick", style: "border-color:transparent" }),
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title", text: n.name }),
+          n.role ? el("span", { class: "entry-sub", text: n.role }) : null,
+          n.userNotes ? el("span", { class: "entry-note", text: n.userNotes }) : null,
+        ]),
+        el("span", { class: "entry-open", text: "STATS" }),
+      ]));
+    });
+    block.appendChild(stack);
+    root.appendChild(block);
+  });
+}
+
+/* --------------------------- handouts --------------------------- */
+
+function viewHandouts(root) {
+  root.appendChild(el("h1", { text: "Handouts" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Til å vise fram over bordet. Kryss av når spillerne har fått dem." }));
+  const items = state.scenario.handouts || [];
+  if (!items.length) {
+    root.appendChild(emptyBox("Ingen handouts i dette scenarioet."));
+    return;
+  }
+  const grid = el("div", { class: "stack" });
+  items.forEach((h) => {
+    const given = !!h.found;
+    grid.appendChild(el("div", { class: "panel" + (given ? "" : " accent") }, [
+      el("p", { class: "eyebrow", text: given ? "Utdelt" : "Ikke utdelt ennå" }),
+      el("h3", { text: h.title }),
+      el("p", { class: "prose tight",
+                text: (h.description || "").slice(0, 200) + "…" }),
+      el("div", { class: "row" }, [
+        el("button", { class: "btn primary", type: "button", text: "Les hele",
+                       onclick: () => openItem(h, "handouts") }),
+        el("button", { class: "btn", type: "button",
+                       "aria-pressed": String(given),
+                       text: given ? "Fjern «utdelt»" : "Marker utdelt",
+                       onclick: () => toggleFlag(h.id) }),
+      ]),
+    ]));
+  });
+  root.appendChild(grid);
+}
+
+/* --------------------------- notater ---------------------------- */
+
+function viewNotes(root) {
+  root.appendChild(el("h1", { text: "Notater" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Lagres av seg selv mens du skriver." }));
+
+  const status = el("div", { class: "savestate", id: "notes-status",
+                             text: "Autolagres" });
+  root.appendChild(status);
+
+  const area = el("textarea", {
+    class: "field", rows: "18", id: "scenario-notes",
+    placeholder: "Navn spillerne fant på, hva de tror, hva du improviserte…",
+  });
+  area.value = state.progress.notes || "";
+
+  const save = debounce(async () => {
+    state.progress.notes = area.value;
+    state.scenario.notes = area.value;
+    await saveProgress();
+    status.textContent = "Lagret " +
+      new Date().toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+    status.className = "savestate saved";
+  }, 800);
+  area.addEventListener("input", () => {
+    status.textContent = "Lagrer…";
+    status.className = "savestate";
+    save();
+  });
+  root.appendChild(area);
+
+  root.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
+    el("button", { class: "btn small", type: "button", text: "Sett inn tidsstempel",
+      onclick: () => {
+        const stamp = "\n[" + new Date().toLocaleString("nb-NO",
+          { day: "2-digit", month: "2-digit", hour: "2-digit",
+            minute: "2-digit" }) + "] ";
+        const at = area.selectionStart;
+        area.value = area.value.slice(0, at) + stamp + area.value.slice(at);
+        area.focus();
+        area.setSelectionRange(at + stamp.length, at + stamp.length);
+        area.dispatchEvent(new Event("input"));
+      } }),
+  ]));
+}
+
+/* --------------------------- sesjoner --------------------------- */
+
+function viewSessions(root) {
+  root.appendChild(el("h1", { text: "Sesjoner" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Én oppsummering per spillkveld. Elementer du sender hit fra " +
+          "en scene havner i den nyeste." }));
+
+  root.appendChild(el("div", { class: "row", style: "margin-bottom:18px" }, [
+    el("button", {
+      class: "btn primary", type: "button", text: "Ny sesjon",
+      onclick: async () => {
+        state.progress.sessions.push({
+          title: "Sesjon " + (state.progress.sessions.length + 1),
+          date: new Date().toISOString().slice(0, 10),
+          summary: "",
+        });
+        await saveProgress();
+        render();
+      },
+    }),
+    state.progress.sessions.length ? el("button", {
+      class: "btn small", type: "button", text: "Kopier alt som tekst",
+      onclick: () => {
+        const text = state.progress.sessions.map((s) =>
+          (s.title || "") + " — " + (s.date || "") + "\n" + (s.summary || "")
+        ).join("\n\n");
+        navigator.clipboard.writeText(text)
+          .then(() => toast("Kopiert til utklippstavla"))
+          .catch(() => toast("Kunne ikke kopiere"));
+      },
+    }) : null,
+  ]));
+
+  if (!state.progress.sessions.length) {
+    root.appendChild(emptyBox("Ingen sesjoner logget ennå.",
+      "Trykk «Ny sesjon» etter første spillkveld."));
+    return;
+  }
+
+  state.progress.sessions.forEach((s, i) => {
+    const panel = el("div", { class: "panel" });
+    const title = el("input", { class: "field", id: "sess-title-" + i,
+                                value: s.title || "" });
+    const date = el("input", { class: "field", type: "date",
+                               id: "sess-date-" + i, value: s.date || "" });
+    const summary = el("textarea", { class: "field", rows: "6",
+                                     id: "sess-sum-" + i,
+                                     placeholder: "Hva skjedde?" });
+    summary.value = s.summary || "";
+
+    const save = debounce(async () => {
+      s.title = title.value; s.date = date.value; s.summary = summary.value;
+      await saveProgress();
+    }, 600);
+    [title, date, summary].forEach((f) => f.addEventListener("input", save));
+
+    panel.appendChild(el("div", { class: "grid-2" }, [title, date]));
+    panel.appendChild(el("div", { style: "height:10px" }));
+    panel.appendChild(summary);
+    panel.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
+      el("button", { class: "btn danger small", type: "button", text: "Slett",
+        onclick: () => confirmThen("Slett sesjon?",
+          "«" + (s.title || "Uten navn") + "» blir borte.", async () => {
+            state.progress.sessions.splice(i, 1);
+            await saveProgress();
+            render();
+          }) }),
+    ]));
+    root.appendChild(panel);
+  });
+}
+
+/* -------------------------- karakterer -------------------------- */
+
+function viewCharacters(root) {
+  root.appendChild(el("h1", { text: "Karakterer" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Spillerne dine. Importer characters.json fra appen, så ligger " +
+          "de lagret her." }));
+
+  const picker = el("input", { type: "file", accept: ".json,application/json",
+                               id: "char-file", style: "display:none" });
+  picker.addEventListener("change", async () => {
+    const file = picker.files && picker.files[0];
+    if (!file) return;
+    try {
+      const parsed = JSON.parse(await file.text());
+      const list = Array.isArray(parsed) ? parsed : [parsed];
+      state.characters = list;
+      await store.set("characters", list);
+      toast(list.length + " karakterer importert");
+      render();
+    } catch (e) {
+      toast("Kunne ikke lese fila: " + e.message);
+    }
+    picker.value = "";
+  });
+
+  root.appendChild(el("div", { class: "row", style: "margin-bottom:18px" }, [
+    el("button", { class: "btn primary", type: "button",
+                   text: "Importer characters.json",
+                   onclick: () => picker.click() }),
+    state.characters.length ? el("button", {
+      class: "btn small", type: "button", text: "Eksporter",
+      onclick: () => download("characters.json", state.characters),
+    }) : null,
+    picker,
+  ]));
+
+  if (!state.characters.length) {
+    root.appendChild(emptyBox("Ingen karakterer importert.",
+      "Fila heter characters.json og ligger i Eldritch Portal-mappa."));
+    return;
+  }
+
+  const stack = el("div", { class: "stack" });
+  state.characters.forEach((pc) => {
+    stack.appendChild(el("button", {
+      class: "entry", type: "button", onclick: () => openCharacter(pc),
+    }, [
+      el("span", { class: "tick", style: "border-color:transparent" }),
+      el("span", { class: "entry-body" }, [
+        el("span", { class: "entry-title", text: pc.name || "(uten navn)" }),
+        el("span", { class: "entry-sub",
+          text: [pc.occ, pc.archetype, pc.hp ? "HP " + pc.hp : null,
+                 pc.san ? "SAN " + pc.san : null].filter(Boolean).join(" · ") }),
+      ]),
+      el("span", { class: "entry-open", text: "ARK" }),
+    ]));
+  });
+  root.appendChild(stack);
+}
+
+/* -------------------------- bibliotek --------------------------- */
+
+function viewLibrary(root) {
+  root.appendChild(el("h1", { text: "Bibliotek" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Alt du importerer blir liggende. Fremdrift, notater og " +
+          "sesjoner lagres hver for seg per scenario — importerer du " +
+          "den samme fila på nytt, beholder du alt du har krysset av." }));
+
+  const picker = el("input", { type: "file", accept: ".json,application/json",
+                               id: "scen-file", style: "display:none" });
+  picker.addEventListener("change", async () => {
+    const file = picker.files && picker.files[0];
+    if (!file) return;
+    try {
+      const data = JSON.parse(await file.text());
+      if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("Fila inneholder ikke et scenario-objekt.");
+      }
+      await addScenario(data, true);
+      await loadActive();
+      toast("Importert: " + (data.title || "scenario"));
+      setView("overview");
+    } catch (e) {
+      toast("Import feilet: " + e.message);
+    }
+    picker.value = "";
+  });
+
+  root.appendChild(el("div", { class: "row", style: "margin-bottom:20px" }, [
+    el("button", { class: "btn primary", type: "button",
+                   text: "Importer scenario", onclick: () => picker.click() }),
+    picker,
+  ]));
+
+  if (!state.library.items.length) {
+    root.appendChild(emptyBox("Biblioteket er tomt.",
+      "Importer en scenario-JSON, så ligger den her for godt."));
+    return;
+  }
+
+  const stack = el("div", { class: "stack" });
+  state.library.items.forEach((it) => {
+    const isActive = it.id === state.library.active;
+    const parts = [];
+    Object.keys(it.counts || {}).forEach((k) => {
+      const names = { timeline: "hendelser", beats: "scener", clues: "spor",
+                      npcs: "NPCer", handouts: "handouts",
+                      locations: "steder", reference: "oppslag" };
+      if (it.counts[k]) parts.push(it.counts[k] + " " + names[k]);
+    });
+
+    const card = el("div", { class: "libcard" + (isActive ? " active" : "") }, [
+      el("p", { class: "eyebrow", text: isActive ? "Aktivt nå" : "I biblioteket" }),
+      el("h3", { text: it.title }),
+      el("p", { class: "meta",
+                text: [it.system, "importert " + it.imported]
+                  .filter(Boolean).join("  ·  ") }),
+      el("p", { class: "meta", text: parts.join(", ") }),
+      el("p", { class: "saved-bits", id: "bits-" + it.id, text: "" }),
+      el("div", { class: "row" }, [
+        isActive ? null : el("button", {
+          class: "btn primary", type: "button", text: "Bruk dette",
+          onclick: async () => {
+            state.library.active = it.id;
+            await saveLibrary();
+            await loadActive();
+            setView("overview");
+            toast("Byttet til " + it.title);
+          },
+        }),
+        el("button", { class: "btn small", type: "button", text: "Eksporter",
+          onclick: async () => {
+            const content = await store.get("content/" + it.id);
+            const prog = await store.get("progress/" + it.id);
+            const out = Object.assign({}, content, {
+              notes: (prog && prog.notes) || "",
+              sessions: (prog && prog.sessions) || [],
+            });
+            download(it.id + ".json", out);
+          } }),
+        el("button", { class: "btn danger small", type: "button", text: "Slett",
+          onclick: () => confirmThen("Slett scenario?",
+            "«" + it.title + "» blir borte, sammen med all fremdrift, " +
+            "notater og sesjoner som hører til.",
+            async () => { await deleteScenario(it.id); render();
+                          toast("Slettet"); }) }),
+      ]),
+    ]);
+    stack.appendChild(card);
+
+    // Fremdriftslinja hentes asynkront så kortet kan tegnes med én gang.
+    store.get("progress/" + it.id).then((p) => {
+      const target = document.getElementById("bits-" + it.id);
+      if (!target) return;
+      const prog = Object.assign(emptyProgress(), p || {});
+      const bits = [];
+      const n = Object.keys(prog.flags).length;
+      if (n) bits.push(n + " avkrysset");
+      if (prog.sessions.length) bits.push(prog.sessions.length + " sesjoner");
+      if ((prog.notes || "").trim()) bits.push("notater");
+      if (Object.keys(prog.itemNotes).length) {
+        bits.push(Object.keys(prog.itemNotes).length + " egne notater");
+      }
+      target.textContent = bits.length
+        ? "Lagret: " + bits.join(", ") : "Ingen fremdrift lagret ennå.";
+      target.className = "saved-bits" + (bits.length ? "" : " none");
+    });
+  });
+  root.appendChild(stack);
+}
+
+/* ------------------------------ felles -------------------------- */
+
+function emptyBox(title, sub) {
+  return el("div", { class: "empty" }, [
+    el("h3", { text: title }),
+    sub ? el("p", { text: sub }) : null,
+  ]);
+}
+
+function confirmThen(title, message, action) {
+  openModal(title, "", (body) => {
+    body.appendChild(el("p", { text: message }));
+  }, [
+    el("button", { class: "btn", type: "button", text: "Avbryt",
+                   onclick: closeModal }),
+    el("button", { class: "btn danger", type: "button", text: "Ja, gjør det",
+                   onclick: async () => { closeModal(); await action(); } }),
+  ]);
+}
+
+async function download(filename, data) {
+  const text = JSON.stringify(data, null, 2);
+
+  // Publisert som artifact går nedlasting gjennom verten — en vanlig
+  // lenke gjør ingenting der. Åpnet som lokal fil finnes ikke verten,
+  // og da er lenka det eneste som virker.
+  let saver = null;
+  try {
+    if (window.claude && typeof window.claude.use === "function") {
+      saver = await window.claude.use("downloads");
+    }
+  } catch (e) { saver = null; }
+
+  if (saver) {
+    try {
+      await saver.save({ filename: filename, data: text });
+      toast("Lagret " + filename);
+    } catch (e) {
+      toast(e && e.code === "cancelled"
+        ? "Avbrutt" : "Kunne ikke lagre fila");
+    }
+    return;
+  }
+
+  const url = URL.createObjectURL(
+    new Blob([text], { type: "application/json" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast("Lastet ned " + filename);
+}
+
+/* ==================================================================
+   RENDER
+   ================================================================== */
+
+function render() {
+  renderRail();
+
+  const mast = document.getElementById("mast-title");
+  const sub = document.getElementById("mast-sub");
+  if (state.scenario) {
+    mast.textContent = state.scenario.title;
+    sub.textContent = state.scenario.system || "";
+  } else {
+    mast.textContent = "Ingen scenario valgt";
+    sub.textContent = "Importer en fil i Biblioteket";
+  }
+
+  const main = document.getElementById("main");
+  main.innerHTML = "";
+  const root = el("div", { class: "view" +
+    (["npcs", "timeline", "beats", "library"].indexOf(state.view) !== -1
+      ? " wide" : "") });
+  main.appendChild(root);
+
+  if (state.view === "library") { viewLibrary(root); return; }
+  if (state.view === "characters") { viewCharacters(root); return; }
+
+  if (!state.scenario) {
+    root.appendChild(el("h1", { text: "Ingen scenario lastet" }));
+    root.appendChild(emptyBox("Biblioteket er tomt.",
+      "Gå til Bibliotek og importer en scenario-JSON."));
+    return;
+  }
+
+  switch (state.view) {
+    case "overview":  viewOverview(root); break;
+    case "timeline":  viewTimeline(root); break;
+    case "beats":     viewBeats(root); break;
+    case "clues":
+      viewList(root, "clues", "Spor",
+        "Alt spillerne kan finne, og hva som skal til for å finne det.",
+        "Søk i spor…");
+      break;
+    case "npcs":      viewNpcs(root); break;
+    case "locations":
+      viewList(root, "locations", "Steder",
+        "Skipet dekk for dekk, og hva som ligger i hvert lasterom.",
+        "Søk i steder…");
+      break;
+    case "handouts":  viewHandouts(root); break;
+    case "reference":
+      viewList(root, "reference", "Regler og oppslag",
+        "Skipsdata, terningslag, sanity-belønninger og valgfrie moduler.",
+        "Søk i oppslag…");
+      break;
+    case "notes":     viewNotes(root); break;
+    case "sessions":  viewSessions(root); break;
+    default:          viewOverview(root);
+  }
+}
+
+/* ==================================================================
+   OPPSTART
+   ================================================================== */
+
+async function boot() {
+  setupDice();
+  document.getElementById("modal-close").addEventListener("click", closeModal);
+  document.getElementById("scrim").addEventListener("mousedown", (e) => {
+    if (e.target.id === "scrim") closeModal();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !document.getElementById("scrim").hidden) {
+      closeModal();
+    }
+  });
+
+  // Tegn med lokale data først, slik at siden er brukbar med én gang.
+  await loadLibrary();
+  state.characters = (await store.get("characters")) || [];
+  await seedBundled();
+  await loadActive();
+  render();
+
+  // Koble på synk i bakgrunnen og tegn på nytt hvis den svarer.
+  await connectRemote();
+  if (remote) {
+    await loadLibrary();
+    state.characters = (await store.get("characters")) || [];
+    await seedBundled();
+    await loadActive();
+    render();
+  }
+}
+
+boot();
+</script>

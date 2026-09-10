@@ -1,11 +1,19 @@
 # Eldritch Portal
 
-**Keeper's Companion — en gratis, Kivy-basert Android-app for Call of Cthulhu og Pulp Cthulhu**
+**Keeper's Companion — en gratis, Kivy-basert app for Call of Cthulhu og Pulp Cthulhu. Android, PC og nettleser.**
 
 Eldritch Portal er et lite hobbyprosjekt laget for spillere og Keepere som liker Lovecraftiske rollespill. Målet er å være et praktisk støtteverktøy ved bordet — noe som kan hjelpe med oversikt, lyd, bilder, kamp og scenariohåndtering.
 
 Tema: **Abyssal Purple** — dyp lilla-svart, burgunder og dempet gull.
-Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
+Versjon: **0.5.0** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
+
+### Tre måter å kjøre den på
+
+| | Hva du får |
+|---|---|
+| **Android** | Full app: bilder, lyd, kamp, cast, karakterer, scenariobibliotek |
+| **PC** (`python3 main.py`) | Samme app, samme kode — se [På PC](#på-pc) |
+| **Nettleser** (`web/index.html`) | Keeper-konsollen: scenariobibliotek, tidslinje, scener, spor, NPC-statblokker, handouts, notater og sesjonslogg — se [I nettleseren](#i-nettleseren) |
 
 ---
 
@@ -15,6 +23,8 @@ Versjon: **0.3.3** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 - [Funksjoner](#funksjoner)
 - [Importer karakterer](#importer-karakterer)
 - [Scenario-import og lagring](#scenario-import-og-lagring)
+- [På PC](#på-pc)
+- [I nettleseren](#i-nettleseren)
 - [Kom i gang](#kom-i-gang)
 - [Mappestruktur på enheten](#mappestruktur-på-enheten)
 - [Scenario-format](#scenario-format)
@@ -287,13 +297,86 @@ Hvis appen har tilgang til alle filer, kan du også bruke **Importer fra Documen
 - Trykk **Importer fra Documents**
 - Scenarioet kopieres inn i appens private lagring
 
-Når et scenario er importert eller valgt, lagres det i appens private lagring (`user_data_dir`). Det gjør at scenarioet vanligvis er lettere å bruke videre på Android, også når direkte lesing fra Documents ikke er tilgjengelig.
+### Biblioteket — du importerer én gang
 
-Scenarioet støtter disse feltene:
-- `clues` for ledetråder
-- `timeline` for hendelser i rekkefølge
-- `beats` for plotpunkter
-- `notes` for keepernotater
+Fra og med 0.5.0 er scenarioer ikke lenger én enkelt `scenario.json`-slot. Alt du importerer legges i et **bibliotek** i appens private lagring, og blir liggende der. Under **Verktøy → Scenario → Bibliotek** bytter du fritt mellom dem.
+
+Innhold og fremdrift lagres i hver sin fil:
+
+```
+<user_data_dir>/
+├── library.json          ← hvilke scenarioer som finnes, og hvilket som er aktivt
+├── scenarios/<id>.json   ← det importerte innholdet, urørt
+└── progress/<id>.json    ← avkryssinger, notater, egne notater, sesjoner
+```
+
+Det er grunnen til at du kan importere den samme fila på nytt — for eksempel en oppdatert versjon av scenarioet — uten å miste noe av det du har krysset av eller skrevet. Fremdriften kobles til elementenes `id`, ikke til fila.
+
+Notater lagres av seg selv to sekunder etter siste tastetrykk, og flushes når appen legges i bakgrunnen.
+
+### Feltene et scenario kan ha
+
+| Felt | Innhold |
+|---|---|
+| `title`, `system`, `setting`, `tagline` | Metadata som vises på Oversikt |
+| `player_pitch`, `keeper_summary` | Åpningstekst til spillerne, og hva som egentlig foregår |
+| `keeper_brief` | `{title, body}` — korte kort med det viktigste å vite på forhånd |
+| `timeline` | `{id, day, when, title, description, tag}` — grupperes per dag |
+| `beats` | `{id, act, title, description}` — scener, grupperes per akt |
+| `clues` | `{id, title, where, roll, description}` |
+| `npcs` | `{id, name, category, role, description, traits, quotes, stats, combat, skills, spells, special, sanity_loss, possessions, notes}` |
+| `locations` | `{id, title, deck, description}` |
+| `handouts` | `{id, title, description}` — bruk `READ TO THE PLAYERS:` for opplesningsdelen |
+| `reference` | `{id, title, description}` — regler og skipsdata |
+
+Alle elementer kan ha `connects_to: [id, ...]`, som blir klikkbare kryssreferanser. Mangler et element `id`, lager appen en stabil en selv.
+
+`scenarios/slow-boat-to-china.json` i dette repoet er et komplett eksempel — hele Pulp Cthulhu-scenarioet *A Slow Boat to China*, med 29 hendelser, 17 scener, 18 spor, 26 NPCer, 14 steder, 3 handouts og 10 oppslagsartikler. Det følger med appen og ligger i biblioteket ved første oppstart. `scenarios/build_slow_boat.py` er skriptet som genererer det.
+
+---
+
+## På PC
+
+Appen kjører på Windows, macOS og Linux med samme kodebase:
+
+```bash
+pip install "kivy[base]"
+python3 main.py
+```
+
+Datafilene havner i plattformens vanlige brukermappe i stedet for `/sdcard`:
+
+| Plattform | Mappe |
+|---|---|
+| Windows | `%APPDATA%\EldritchPortal\` |
+| macOS | `~/Library/Application Support/EldritchPortal/` |
+| Linux | `~/.local/share/EldritchPortal/` |
+
+Sett `ELDRITCH_DATA_DIR` for å styre den selv. Filvelgeren bruker Kivys egen dialog på PC, så **Velg fil** virker der også.
+
+Røyktesten bygger hele grensesnittet uten skjerm:
+
+```bash
+xvfb-run -a python3 tests/smoke_test.py
+```
+
+---
+
+## I nettleseren
+
+`web/index.html` er en frittstående side — åpne den rett fra disk, eller legg den hvor som helst. Ingen server, ingen installasjon, virker offline.
+
+Den inneholder Keeper-delen av appen: scenariobibliotek, tidslinje gruppert per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts, regeloppslag, autolagrende notater, sesjonslogg, karakterark og en d100-kaster med suksessgrader.
+
+Alt lagres i nettleseren. Publisert som artifact på claude.ai synkes fremdrift, notater og karakterer også mellom enheter — merket øverst til høyre sier hvilken av delene som gjelder.
+
+Bygg den på nytt etter endringer i `web/template.html` eller i et scenario:
+
+```bash
+python3 web/build.py
+```
+
+Skriptet lager to filer fra samme kilde: `web/index.html` (komplett HTML-dokument) og `web/app.html` (samme side uten `<head>`/`<body>`, til publisering som artifact).
 
 ---
 
@@ -312,14 +395,15 @@ Scenarioet støtter disse feltene:
 Ved første oppstart oppretter appen denne mappestrukturen automatisk:
 
 ```
-Dokumenter/EldritchPortal/
+Dokumenter/EldritchPortal/     (delt mappe — legg egne filer her)
 ├── images/     ← bildebibliotek (undermapper støttes)
 ├── music/      ← lokale musikkspor
-├── characters.json  ← opprettes når du lager første karakter
-└── scenario.json    ← valgfri, kan importeres via Scenario-fanen
+└── crash.log   ← feillogg
 ```
 
-Våpendataene (`weapons.json`) er pakket med appen, så du trenger ikke legge til noen fil for å bruke Våpen-fanen.
+Karakterer, scenariobibliotek og fremdrift ligger i appens **private** lagring, ikke i den delte mappa. Det er med vilje: Android 13+ lar ikke apper skrive til `Documents`, så alt som lagres der ville gått tapt. Ligger det en `characters.json` i den delte mappa fra en eldre versjon, flyttes den inn automatisk ved første oppstart.
+
+Våpendataene (`weapons.json`) er pakket med appen, så du trenger ikke legge til noen fil for å bruke Våpen-fanen. Det samme gjelder scenarioet *A Slow Boat to China*.
 
 ---
 
@@ -400,18 +484,27 @@ Output rules:
 
 ## Mappestruktur på enheten
 
-Alle brukerdata ligger i `/sdcard/Documents/EldritchPortal/`:
+Appen bruker to mapper. Den **delte** er der du selv legger filer — `/sdcard/Documents/EldritchPortal/` på Android, plattformens brukermappe på PC (se [På PC](#på-pc)):
 
 | Sti | Innhold |
 |---|---|
 | `images/` | Bildegalleri (undermapper støttes) |
 | `music/` | Lokale musikkspor |
-| `characters.json` | Karakterer og NPCer |
-| `scenario.json` | Scenario-data (importeres inn i app-privat minne) |
 | `weapons.json` | *Valgfri* — overstyrer bundlet våpendata |
 | `crash.log` | Feillogg for debugging |
-|
-I tillegg lagrer appen aktiv scenario-state i app-privat minne (`user_data_dir`) for å unngå scoped storage-restriksjoner i Android 13+.
+
+Den **private** mappa (`user_data_dir`) er der appen selv lagrer. Alt som skal overleve en omstart ligger her, fordi Android 13+ ikke gir apper skrivetilgang til `Documents`:
+
+| Sti | Innhold |
+|---|---|
+| `characters.json` | Karakterer og NPCer |
+| `library.json` | Scenariobiblioteket, og hvilket scenario som er aktivt |
+| `scenarios/<id>.json` | Importert scenarioinnhold |
+| `progress/<id>.json` | Avkryssinger, notater og sesjoner per scenario |
+| `weapons_favorites.json` | Favorittmerkede våpen |
+| `session_draft.json` | Autolagret sesjonsutkast |
+
+> **Merk:** i versjoner før 0.5.0 pekte `CHAR_FILE` på den delte mappa, og fordi lagringsfeil bare ble logget, forsvant karakterer og scenarioer stille ved omstart. En eksisterende `characters.json` og en gammel `scenario.json` migreres inn i privat lagring ved første oppstart etter oppgraderingen.
 
 ---
 

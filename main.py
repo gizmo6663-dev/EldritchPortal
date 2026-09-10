@@ -1,13 +1,39 @@
-import os, sys, traceback, socket, threading, json, random
+import os, sys, time, re, shutil, traceback, socket, threading, json, random
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from functools import partial
 from kivy.clock import Clock
 
-LOG = "/sdcard/Documents/EldritchPortal/crash.log"
+def _shared_dir():
+    """Mappa brukeren selv kan legge filer i.
+
+    Android: den delte Documents-mappa, slik at man kan kopiere inn
+    scenarier og bilder utenfra. PC: vanlig per-bruker datamappe for
+    plattformen. Kan overstyres med ELDRITCH_DATA_DIR."""
+    override = os.environ.get("ELDRITCH_DATA_DIR")
+    if override:
+        return override
+    if os.path.isdir("/sdcard"):
+        return "/sdcard/Documents/EldritchPortal"
+    if sys.platform.startswith("win"):
+        base = os.environ.get("APPDATA") or os.path.expanduser("~")
+    elif sys.platform == "darwin":
+        base = os.path.expanduser("~/Library/Application Support")
+    else:
+        base = (os.environ.get("XDG_DATA_HOME")
+                or os.path.expanduser("~/.local/share"))
+    return os.path.join(base, "EldritchPortal")
+
+
+SHARED_DIR = _shared_dir()
+LOG = os.path.join(SHARED_DIR, "crash.log")
 LOG_HISTORY_LIMIT = 3
 MAX_NAME_LENGTH = 18
 MAX_OCCUPATION_LENGTH = 15
-os.makedirs(os.path.dirname(LOG), exist_ok=True)
+try:
+    os.makedirs(SHARED_DIR, exist_ok=True)
+except Exception:
+    # Uten skrivetilgang her faller log() tilbake til stderr.
+    pass
 
 def _first_last_name(name):
     """Return only the first and last word of a name (e.g. 'John Michael Doe' → 'John Doe').
@@ -34,10 +60,13 @@ except Exception:
     pass
 
 def log(msg):
-    with open(LOG, "a") as f:
-        f.write(msg + "\n")
+    try:
+        with open(LOG, "a", encoding="utf-8") as f:
+            f.write(msg + "\n")
+    except Exception:
+        sys.stderr.write(msg + "\n")
 
-log("=== APP START (v0.4.9 – Necronomicon, NPC-statblokker) ===")
+log("=== APP START (v0.5.0 – scenariobibliotek, PC-støtte) ===")
 
 try:
     from kivy.app import App
@@ -83,15 +112,17 @@ try:
         except:
             pass
 
-    BASE_DIR  = "/sdcard/Documents/EldritchPortal"
+    BASE_DIR  = SHARED_DIR
     IMG_DIR   = os.path.join(BASE_DIR, "images")
     MUSIC_DIR = os.path.join(BASE_DIR, "music")
     # Karakter-fil: primær lagring i user_data_dir (app-private,
     # alltid skrivbar). Ekstern sti brukes kun for migrering ved
     # første oppstart — unngår Android 13+ scoped storage-problem.
     EXTERNAL_CHAR_FILE = os.path.join(BASE_DIR, "characters.json")
-    # CHAR_FILE settes i build() når user_data_dir er tilgjengelig.
-    CHAR_FILE = EXTERNAL_CHAR_FILE  # midlertidig; overstyres i build()
+    # CHAR_FILE settes i build() via _init_storage(), når
+    # user_data_dir er tilgjengelig. Verdien her er kun en trygg
+    # reserve for kode som kjører før build().
+    CHAR_FILE = EXTERNAL_CHAR_FILE
     # Scenario-fil: primær lagring i user_data_dir (app-private,
     # alltid skrivbar). Ekstern import-sti forsøkes lest ved
     # "Importer" — unngår Android 13+ scoped storage-problem.
@@ -1711,6 +1742,39 @@ try:
     def mksep(h=6):
         return Widget(size_hint_y=None, height=dp(h))
 
+    def mkprogress(done, total, label, color=None):
+        """Én fremdriftsrad: etikett, teller og en fylt stolpe.
+
+        Stolpen tegnes som en RBox oppå en RBox, der den øverste får
+        size_hint_x satt til andelen. Ved 0 av 0 vises en tom stolpe i
+        stedet for å dele på null."""
+        frac = (float(done) / total) if total else 0.0
+        col = color or (GRN if total and done >= total else GOLD)
+        box = BoxLayout(orientation='vertical', spacing=dp(3),
+                        size_hint_y=None, height=dp(42))
+        head = BoxLayout(size_hint_y=None, height=dp(18))
+        lbl = Label(text=label, font_size=sp(11), color=TXT,
+                    halign='left', valign='middle')
+        lbl.bind(size=lambda w, v: setattr(w, 'text_size', (v[0], None)))
+        cnt = Label(text=f"{done}/{total}", font_size=sp(11), color=DIM,
+                    bold=True, size_hint_x=None, width=dp(56),
+                    halign='right', valign='middle')
+        cnt.bind(size=lambda w, v: setattr(w, 'text_size', (v[0], None)))
+        head.add_widget(lbl)
+        head.add_widget(cnt)
+        box.add_widget(head)
+
+        track = RBox(bg_color=INPUT, radius=dp(5),
+                     size_hint_y=None, height=dp(12),
+                     padding=[dp(2), dp(2)])
+        # Widget-en til høyre spiser resten av bredden når frac < 1.
+        fill = RBox(bg_color=col, radius=dp(4), size_hint_x=max(frac, 0.001))
+        track.add_widget(fill)
+        if frac < 1.0:
+            track.add_widget(Widget(size_hint_x=max(1.0 - frac, 0.001)))
+        box.add_widget(track)
+        return box
+
     def mkvol(callback, value=0.7):
         vr = BoxLayout(size_hint_y=None, height=dp(32), padding=[dp(10), 0])
         vr.add_widget(Label(text="Vol", color=DIM, size_hint_x=0.08, font_size=sp(10)))
@@ -1858,10 +1922,66 @@ try:
             self._return_mode = 'uri'
             self._pick(callback, mime_type)
 
+        # Filendelser å tilby per mime-type i skrivebordsvelgeren.
+        _DESKTOP_FILTERS = {
+            'application/json': ['*.json'],
+            'audio/*': ['*.mp3', '*.ogg', '*.wav', '*.m4a', '*.flac',
+                        '*.aac', '*.opus'],
+        }
+
+        def _pick_desktop(self, callback, mime_type):
+            """Filvelger for PC.
+
+            Android-versjonen går via Storage Access Framework, som ikke
+            finnes utenfor Android. Her åpner vi i stedet Kivys egen
+            filvelger i et vindu, slik at import fungerer likt på PC."""
+            from kivy.uix.popup import Popup
+
+            start = BASE_DIR if os.path.isdir(BASE_DIR) \
+                else os.path.expanduser("~")
+            filters = self._DESKTOP_FILTERS.get(mime_type, [])
+            chooser = FileChooserListView(
+                path=start, filters=filters, size_hint=(1, 1))
+
+            box = BoxLayout(orientation='vertical', spacing=dp(6),
+                            padding=dp(8))
+            box.add_widget(chooser)
+            row = BoxLayout(size_hint_y=None, height=dp(46), spacing=dp(8))
+            box.add_widget(row)
+            popup = Popup(title="Velg fil", content=box,
+                          size_hint=(0.9, 0.9))
+
+            def _cancel(*_a):
+                popup.dismiss()
+                callback(False, "Avbrutt")
+
+            def _accept(*_a):
+                sel = chooser.selection
+                if not sel:
+                    return
+                path = sel[0]
+                popup.dismiss()
+                if self._return_mode == 'uri':
+                    callback(True, {'uri': 'file://' + path,
+                                    'name': os.path.basename(path)})
+                    return
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        callback(True, f.read())
+                except Exception as e:
+                    callback(False,
+                             f"Lesing feilet: {type(e).__name__}: {e}")
+
+            row.add_widget(mkbtn("Avbryt", _cancel, size_hint_x=0.4))
+            row.add_widget(mkbtn("Velg", _accept, accent=True,
+                                 size_hint_x=0.6))
+            chooser.bind(on_submit=lambda *_a: _accept())
+            popup.open()
+
         def _pick(self, callback, mime_type):
-            """Intern åpning av Android filvelger."""
+            """Intern åpning av filvelger."""
             if platform != 'android':
-                callback(False, "Filvelger kun tilgjengelig på Android")
+                self._pick_desktop(callback, mime_type)
                 return
             self._ensure_bound()
             if not self._activity:
@@ -2106,10 +2226,17 @@ try:
     # ============================================================
     class EldritchApp(App):
         def build(self):
-            log("=== BUILD (v0.4.0 Necronomicon) ===")
+            log("=== BUILD (v0.5.0) ===")
             Window.clearcolor = (0, 0, 0, 1)
             # Skroll innholdet opp så tastaturet ikke dekker aktivt input
             Window.softinput_mode = 'below_target'
+            if platform not in ('android', 'ios'):
+                # På PC er det ingen som setter vindusstørrelsen for oss.
+                # Layouten er bygd for portrett, så vi ber om et vindu i
+                # samme format i stedet for Kivys 800x600-landskap.
+                Window.size = (480, 900)
+                Window.minimum_width = 380
+                Window.minimum_height = 620
             self.title = "Eldritch Portal"
             self.tracks = []
             self.ct = -1
@@ -2124,16 +2251,13 @@ try:
             self._ambient_source = None
             self._ambient_custom_uri = None
             self._ambient_custom_name = ""
+            self._init_storage()
             self.chars = load_json(CHAR_FILE, [])
             self.edit_idx = None
 
             # Våpen: favoritt-fil går i app-private storage (alltid skrivbar)
             self.WEAPONS_FAV_FILE = os.path.join(
                 self.user_data_dir, "weapons_favorites.json")
-            # Scenario: også app-private (unngår scoped storage-feil
-            # ved lesing av .json i /sdcard/Documents/ på Android 13+)
-            self.SCENARIO_FILE = os.path.join(
-                self.user_data_dir, "scenario.json")
             self.weapons_data = {
                 "weapons": [], "categories": {},
                 "subcategories": {}, "field_labels": {}
@@ -5038,12 +5162,264 @@ try:
             self._bm_render()
 
 
+        # ---------- LAGRING ----------
+        def _init_storage(self):
+            """Pek alle datafiler mot app-privat lagring, og migrer
+            eventuelle gamle filer dit én gang.
+
+            Dette er grunnen til at karakterer og scenarier tidligere
+            forsvant: CHAR_FILE pekte på /sdcard/Documents, som
+            Android 13+ ikke lar appen skrive til, og save_json()
+            svelger feilen. Alt havnet i tomme lufta."""
+            global CHAR_FILE
+            # Kivy lager user_data_dir med os.mkdir, som feiler hvis
+            # foreldremappa mangler. Får vi den ikke, er det bedre å
+            # lagre i den delte mappa enn å krasje under oppstart.
+            try:
+                udd = self.user_data_dir
+            except Exception as e:
+                log(f"user_data_dir utilgjengelig ({e}) – bruker {SHARED_DIR}")
+                udd = os.path.join(SHARED_DIR, "appdata")
+                self._user_data_dir = udd
+            try:
+                os.makedirs(udd, exist_ok=True)
+            except Exception as e:
+                log(f"Kunne ikke opprette datamappe: {e}")
+
+            CHAR_FILE = os.path.join(udd, "characters.json")
+            self.CHAR_FILE = CHAR_FILE
+            self.SCEN_DIR = os.path.join(udd, "scenarios")
+            self.PROG_DIR = os.path.join(udd, "progress")
+            self.LIBRARY_FILE = os.path.join(udd, "library.json")
+            # Beholdt for bakoverkompatibilitet: den gamle enkeltslot-fila.
+            self.SCENARIO_FILE = os.path.join(udd, "scenario.json")
+            for d in (self.SCEN_DIR, self.PROG_DIR):
+                try:
+                    os.makedirs(d, exist_ok=True)
+                except Exception as e:
+                    log(f"Kunne ikke opprette {d}: {e}")
+
+            # Migrer karakterer inn første gang.
+            if not os.path.exists(CHAR_FILE):
+                for src in (EXTERNAL_CHAR_FILE, BUNDLED_CHARS):
+                    if src and os.path.exists(src):
+                        try:
+                            shutil.copyfile(src, CHAR_FILE)
+                            log(f"Karakterer migrert fra {src}")
+                            break
+                        except Exception as e:
+                            log(f"Migrering av karakterer feilet: {e}")
+
+            self._lib_migrate_legacy()
+            self._lib_seed_bundled()
+
+        # ---------- SCENARIOBIBLIOTEK ----------
+        def _slugify(self, text, fallback="scenario"):
+            s = re.sub(r'[^a-z0-9]+', '-', (text or '').lower()).strip('-')
+            return s[:60] or fallback
+
+        def _lib_load(self):
+            """Les biblioteksindeksen: hvilke scenarier som er lagret,
+            og hvilket som er aktivt."""
+            lib = load_json(self.LIBRARY_FILE, {})
+            if not isinstance(lib, dict):
+                lib = {}
+            lib.setdefault('items', [])
+            lib.setdefault('active', None)
+            # Dropp oppføringer der innholdsfila er borte.
+            lib['items'] = [it for it in lib['items']
+                            if isinstance(it, dict) and it.get('id')
+                            and os.path.exists(self._lib_content_path(
+                                it['id']))]
+            ids = {it['id'] for it in lib['items']}
+            if lib['active'] not in ids:
+                lib['active'] = lib['items'][0]['id'] if lib['items'] else None
+            return lib
+
+        def _lib_save(self, lib):
+            save_json(self.LIBRARY_FILE, lib)
+
+        def _lib_content_path(self, sid):
+            return os.path.join(self.SCEN_DIR, f"{sid}.json")
+
+        def _lib_progress_path(self, sid):
+            return os.path.join(self.PROG_DIR, f"{sid}.json")
+
+        def _lib_entry(self, data, sid):
+            """Kortversjonen som vises i biblioteket."""
+            return {
+                'id': sid,
+                'title': data.get('title', '(uten tittel)'),
+                'system': data.get('system', ''),
+                'imported': time.strftime('%Y-%m-%d %H:%M'),
+                'counts': {k: len(data.get(k, []) or [])
+                           for k in ('clues', 'timeline', 'beats',
+                                     'npcs', 'handouts', 'locations')},
+            }
+
+        def _lib_add(self, data, make_active=True, sid=None):
+            """Legg et importert scenario inn i biblioteket.
+
+            Importerer man samme scenario på nytt, blir innholdet
+            oppdatert mens fremdriften i progress-fila står urørt."""
+            # En eksplisitt 'id' i fila vinner, slik at samme scenario får
+            # samme id her og i nettleserversjonen.
+            sid = sid or self._slugify(data.get('id') or data.get('title', ''))
+            content = {k: v for k, v in data.items()
+                       if k not in ('notes', 'sessions')}
+            save_json(self._lib_content_path(sid), content)
+
+            # Notater/sesjoner som ligger i importfila regnes som
+            # startinnhold, og skal ikke overskrive egne notater.
+            prog = self._prog_load(sid)
+            if data.get('notes') and not prog.get('notes'):
+                prog['notes'] = data['notes']
+            if data.get('sessions') and not prog.get('sessions'):
+                prog['sessions'] = data['sessions']
+            self._prog_save(sid, prog)
+
+            lib = self._lib_load()
+            lib['items'] = [it for it in lib['items'] if it.get('id') != sid]
+            lib['items'].append(self._lib_entry(data, sid))
+            lib['items'].sort(key=lambda it: it.get('title', '').lower())
+            if make_active or not lib.get('active'):
+                lib['active'] = sid
+            self._lib_save(lib)
+            return sid
+
+        def _lib_delete(self, sid):
+            """Fjern et scenario og fremdriften som hører til."""
+            for p in (self._lib_content_path(sid),
+                      self._lib_progress_path(sid)):
+                try:
+                    if os.path.exists(p):
+                        os.remove(p)
+                except Exception as e:
+                    log(f"Sletting feilet ({p}): {e}")
+            lib = self._lib_load()
+            lib['items'] = [it for it in lib['items'] if it.get('id') != sid]
+            if lib.get('active') == sid:
+                lib['active'] = (lib['items'][0]['id']
+                                 if lib['items'] else None)
+            self._lib_save(lib)
+
+        def _lib_set_active(self, sid):
+            lib = self._lib_load()
+            lib['active'] = sid
+            self._lib_save(lib)
+            self._scen_data = None
+            self._scen_load()
+
+        def _lib_migrate_legacy(self):
+            """Flytt en gammel enkeltslot-scenario.json inn i
+            biblioteket, slik at ingen mister det de allerede hadde."""
+            if not os.path.exists(self.SCENARIO_FILE):
+                return
+            if self._lib_load().get('items'):
+                return
+            data = load_json(self.SCENARIO_FILE, None)
+            if not isinstance(data, dict) or not data:
+                return
+            try:
+                sid = self._lib_add(data)
+                os.replace(self.SCENARIO_FILE,
+                           self.SCENARIO_FILE + ".migrated")
+                log(f"Gammelt scenario migrert til biblioteket: {sid}")
+            except Exception as e:
+                log(f"Migrering av gammelt scenario feilet: {e}")
+
+        def _lib_seed_bundled(self):
+            """Legg scenarier som følger med appen inn i biblioteket.
+
+            Hver fil legges inn bare én gang, slik at et scenario
+            brukeren har slettet ikke dukker opp igjen ved neste
+            oppstart."""
+            src_dir = os.path.join(_BUNDLE_DIR, "scenarios")
+            if not os.path.isdir(src_dir):
+                return
+            lib = self._lib_load()
+            seeded = set(lib.get('seeded', []))
+            changed = False
+            for fname in sorted(os.listdir(src_dir)):
+                if not fname.endswith('.json') or fname in seeded:
+                    continue
+                data = load_json(os.path.join(src_dir, fname), None)
+                seeded.add(fname)
+                changed = True
+                if not isinstance(data, dict) or not data:
+                    continue
+                try:
+                    self._lib_add(self._ensure_ids(data),
+                                  make_active=not lib.get('active'))
+                    log(f"Innebygd scenario lagt til: {fname}")
+                except Exception as e:
+                    log(f"Kunne ikke legge til {fname}: {e}")
+            if changed:
+                lib = self._lib_load()
+                lib['seeded'] = sorted(seeded)
+                self._lib_save(lib)
+
+        # ---------- FREMDRIFT ----------
+        def _prog_load(self, sid):
+            prog = load_json(self._lib_progress_path(sid), {})
+            if not isinstance(prog, dict):
+                prog = {}
+            prog.setdefault('flags', {})
+            prog.setdefault('notes', '')
+            prog.setdefault('sessions', [])
+            prog.setdefault('item_notes', {})
+            return prog
+
+        def _prog_save(self, sid, prog):
+            save_json(self._lib_progress_path(sid), prog)
+
+        def _ensure_ids(self, data):
+            """Gi hvert element en stabil id. Eldre scenariofiler har
+            ikke id-er, og uten dem har fremdriften ingenting å feste
+            seg i når fila importeres på nytt."""
+            for sec in ('clues', 'timeline', 'beats', 'npcs',
+                        'handouts', 'locations'):
+                for i, it in enumerate(data.get(sec, []) or []):
+                    if not isinstance(it, dict):
+                        continue
+                    if not it.get('id'):
+                        label = it.get('title') or it.get('name') or ''
+                        it['id'] = f"{sec}-{i}-{self._slugify(label, str(i))}"
+            return data
+
+        # Seksjon -> navnet på avkryssings-feltet i elementene.
+        # Alt som står her lagres i progress-fila og telles i
+        # fremdriftsvisningen; står en seksjon ikke her, blir kryssene
+        # borte ved neste innlasting.
+        FLAG_KEYS = {'clues': 'found', 'timeline': 'triggered',
+                     'beats': 'done', 'locations': 'visited',
+                     'handouts': 'found'}
+
+        def _apply_progress(self, data, prog):
+            """Legg lagrede avkryssinger tilbake på innholdet."""
+            flags = prog.get('flags', {})
+            notes = prog.get('item_notes', {})
+            for sec, fkey in self.FLAG_KEYS.items():
+                for it in data.get(sec, []) or []:
+                    it[fkey] = bool(flags.get(it.get('id'), False))
+            for sec in ('clues', 'timeline', 'beats', 'npcs',
+                        'handouts', 'locations'):
+                for it in data.get(sec, []) or []:
+                    saved = notes.get(it.get('id'))
+                    if saved:
+                        it['user_notes'] = saved
+            data['notes'] = prog.get('notes', '')
+            data['sessions'] = prog.get('sessions', [])
+            return data
+
         # ---------- SCENARIO-TRACKER ----------
         def _scen_init(self):
             """Initialiser scenario-state."""
             if not hasattr(self, '_scen_data'):
                 self._scen_data = None
-                self._scen_view = 'clues'  # clues | timeline | beats | notes | pcs | sessions
+                # overview | timeline | beats | clues | npcs | locations
+                # | handouts | reference | notes | sessions | library
+                self._scen_view = 'overview'
                 # Sesjons-modus: 'list' | 'view' | 'edit'
                 self._scen_sess_mode = 'list'
                 self._scen_sess_idx = None  # indeks i sessions-lista
@@ -5056,44 +5432,67 @@ try:
                 self._scen_hide_done = False
 
         def _scen_load(self):
-            """Les scenario.json fra app-private storage."""
-            path = self.SCENARIO_FILE
-            if not os.path.exists(path):
+            """Last det aktive scenarioet: innhold fra biblioteket,
+            fremdrift fra progress-fila, slått sammen."""
+            lib = self._lib_load()
+            sid = lib.get('active')
+            self._scen_id = sid
+            if not sid:
                 self._scen_data = None
                 return None
+            path = self._lib_content_path(sid)
             try:
                 with open(path, 'r', encoding='utf-8') as f:
                     text = f.read()
                 if not text.strip():
-                    log(f"Scenario-feil: tom fil – {path}")
                     self._scen_data = {'_error': 'Scenariofilen er tom.'}
                     return None
                 data = json.loads(text)
-                self._scen_data = data
-                log(f"Scenario lastet: {data.get('title', '?')}")
-                return data
             except json.JSONDecodeError as e:
-                err_msg = f"Ugyldig JSON i scenariofil: {e}"
                 log(f"Scenario-feil: {type(e).__name__}: {e}")
-                self._scen_data = {'_error': err_msg}
+                self._scen_data = {
+                    '_error': f"Ugyldig JSON i scenariofil: {e}"}
                 return None
             except Exception as e:
                 log(f"Scenario-feil: {e}")
                 self._scen_data = {'_error': str(e)}
                 return None
 
+            self._ensure_ids(data)
+            self._apply_progress(data, self._prog_load(sid))
+            self._scen_data = data
+            log(f"Scenario lastet: {data.get('title', '?')} ({sid})")
+            return data
+
         def _scen_save(self):
-            """Lagre scenario.json til app-private storage."""
+            """Lagre fremdrift for det aktive scenarioet.
+
+            Bare det brukeren selv har laget — avkryssinger, notater og
+            sesjoner — skrives. Det importerte innholdet ligger urørt i
+            en egen fil, så en ny import aldri sletter fremdriften."""
             if not self._scen_data or '_error' in self._scen_data:
                 return
-            try:
-                os.makedirs(os.path.dirname(self.SCENARIO_FILE),
-                            exist_ok=True)
-                with open(self.SCENARIO_FILE, 'w', encoding='utf-8') as f:
-                    json.dump(self._scen_data, f,
-                              ensure_ascii=False, indent=2)
-            except Exception as e:
-                log(f"Scenario-lagring feilet: {e}")
+            sid = getattr(self, '_scen_id', None)
+            if not sid:
+                return
+            prog = self._prog_load(sid)
+            flags = {}
+            for sec, fkey in self.FLAG_KEYS.items():
+                for it in self._scen_data.get(sec, []) or []:
+                    if it.get(fkey) and it.get('id'):
+                        flags[it['id']] = True
+            item_notes = {}
+            for sec in ('clues', 'timeline', 'beats', 'npcs',
+                        'handouts', 'locations'):
+                for it in self._scen_data.get(sec, []) or []:
+                    txt = (it.get('user_notes') or '').strip()
+                    if txt and it.get('id'):
+                        item_notes[it['id']] = txt
+            prog['flags'] = flags
+            prog['item_notes'] = item_notes
+            prog['notes'] = self._scen_data.get('notes', '')
+            prog['sessions'] = self._scen_data.get('sessions', [])
+            self._prog_save(sid, prog)
 
         def _session_draft_path(self):
             return os.path.join(self.user_data_dir, "session_draft.json")
@@ -5154,12 +5553,7 @@ try:
                 # Valider at det faktisk er et scenario
                 if not isinstance(data, dict):
                     return False, "Filen er ikke et JSON-objekt."
-                # Skriv til app-private
-                os.makedirs(os.path.dirname(self.SCENARIO_FILE),
-                            exist_ok=True)
-                with open(self.SCENARIO_FILE, 'w',
-                          encoding='utf-8') as f:
-                    json.dump(data, f, ensure_ascii=False, indent=2)
+                self._lib_add(self._ensure_ids(data))
                 log(f"Scenario importert: {data.get('title', '?')}")
                 return True, f"Importert: {data.get('title', '(uten tittel)')}"
             except PermissionError:
@@ -5184,17 +5578,14 @@ try:
                 self._scen_load()
 
             self._tool_action_bar.add_widget(
-                mkbtn("Velg fil", self._scen_do_pick_file,
-                      accent=True, small=True, size_hint_x=0.24))
-            self._tool_action_bar.add_widget(
-                mkbtn("Last inn", self._scen_reload,
-                      small=True, size_hint_x=0.2))
+                mkbtn("Bibliotek", self._scen_open_library,
+                      accent=True, small=True, size_hint_x=0.26))
             self._tool_action_bar.add_widget(
                 mkbtn("Status", self._scen_export_status,
                       small=True, size_hint_x=0.2))
             self._tool_action_bar.add_widget(
                 mkbtn("Nullstill", self._scen_confirm_reset,
-                      danger=True, small=True, size_hint_x=0.2))
+                      danger=True, small=True, size_hint_x=0.22))
             title_text = "Scenario"
             if self._scen_data and '_error' not in self._scen_data:
                 title_text = self._scen_data.get('title', 'Scenario')
@@ -5202,6 +5593,15 @@ try:
                 mklbl(title_text, color=GOLD, size=10, bold=True))
 
             self.tool_area.clear_widgets()
+
+            # Bibliotek-visningen står på egne ben – den skal kunne åpnes
+            # selv når ingen scenarier er importert ennå.
+            if self._scen_view == 'library':
+                box = BoxLayout(orientation='vertical',
+                                spacing=dp(4), padding=dp(4))
+                self._scen_build_library(box)
+                self.tool_area.add_widget(box)
+                return
 
             # Ingen data
             if self._scen_data is None:
@@ -5217,39 +5617,40 @@ try:
             p = BoxLayout(orientation='vertical',
                           spacing=dp(4), padding=dp(4))
 
-            # View-selector
-            sel = BoxLayout(size_hint_y=None, height=dp(40), spacing=dp(4))
-            for key, txt in [('clues', 'Ledetråder'),
-                             ('timeline', 'Tidslinje'),
-                             ('beats', 'Plot'),
-                             ('notes', 'Notater'),
-                             ('npcs', 'NPCer'),
-                             ('sessions', 'Sesjoner')]:
-                active = (key == self._scen_view)
-                b = RBtn(
-                    text=txt,
-                    bg_color=BTNH if active else BTN,
-                    color=GOLD if active else TXT,
-                    border_color=GOLD if active else GSOFT,
-                    border_width=3.2 if active else 2.4,
-                    accent_bar_alpha=0.48 if active else 0.0,
-                    font_size=sp(10), bold=active,
-                    size_hint_y=None, height=dp(36))
-                b.bind(on_release=lambda x, k=key:
-                       self._scen_switch_view(k))
-                sel.add_widget(b)
-            p.add_widget(sel)
-
-            # System-info
-            sys_txt = self._scen_data.get('system', '')
-            if sys_txt:
-                p.add_widget(mklbl(f"System: {sys_txt}",
-                                   color=DIM, size=10, h=16))
+            # View-selector i to rader: øverste rad er det man bruker
+            # mens man spiller, nederste er oppslag og loggføring.
+            nav_rows = [
+                [('overview', 'Oversikt'), ('timeline', 'Tidslinje'),
+                 ('beats', 'Scener'), ('clues', 'Spor'),
+                 ('npcs', 'NPCer')],
+                [('locations', 'Steder'), ('handouts', 'Handouts'),
+                 ('reference', 'Oppslag'), ('notes', 'Notater'),
+                 ('sessions', 'Sesjoner')],
+            ]
+            for row_spec in nav_rows:
+                sel = BoxLayout(size_hint_y=None, height=dp(34),
+                                spacing=dp(3))
+                for key, txt in row_spec:
+                    active = (key == self._scen_view)
+                    count = self._scen_nav_badge(key)
+                    b = RBtn(
+                        text=(f"{txt}\n{count}" if count else txt),
+                        bg_color=BTNH if active else BTN,
+                        color=GOLD if active else TXT,
+                        border_color=GOLD if active else GSOFT,
+                        border_width=3.2 if active else 2.4,
+                        accent_bar_alpha=0.48 if active else 0.0,
+                        font_size=sp(9), bold=active,
+                        halign='center',
+                        size_hint_y=None, height=dp(34))
+                    b.bind(on_release=lambda x, k=key:
+                           self._scen_switch_view(k))
+                    sel.add_widget(b)
+                p.add_widget(sel)
 
             # Skjul/vis oppdaget-bryter (kun for de avkryssbare listene)
             if self._scen_view in ('clues', 'timeline', 'beats'):
-                flag_key = {'clues': 'found', 'timeline': 'triggered',
-                            'beats': 'done'}[self._scen_view]
+                flag_key = self.FLAG_KEYS[self._scen_view]
                 items = self._scen_data.get(self._scen_view, [])
                 done_n = sum(1 for it in items
                              if bool(it.get(flag_key, False)))
@@ -5268,12 +5669,14 @@ try:
 
             # Innhold
             content = BoxLayout()
-            if self._scen_view == 'clues':
+            if self._scen_view == 'overview':
+                self._scen_build_overview(content)
+            elif self._scen_view == 'clues':
                 self._scen_build_list(
                     content,
                     self._scen_data.get('clues', []),
                     'where', 'found',
-                    "Ingen ledetråder i denne scenarioet.")
+                    "Ingen ledetråder i dette scenarioet.")
             elif self._scen_view == 'timeline':
                 self._scen_build_timeline(
                     content,
@@ -5282,8 +5685,18 @@ try:
                 self._scen_build_list(
                     content,
                     self._scen_data.get('beats', []),
-                    None, 'done',
-                    "Ingen plot-punkter.")
+                    'act', 'done',
+                    "Ingen scener.")
+            elif self._scen_view == 'locations':
+                self._scen_build_list(
+                    content,
+                    self._scen_data.get('locations', []),
+                    'deck', 'visited',
+                    "Ingen steder beskrevet i dette scenarioet.")
+            elif self._scen_view == 'handouts':
+                self._scen_build_handouts(content)
+            elif self._scen_view == 'reference':
+                self._scen_build_reference(content)
             elif self._scen_view == 'npcs':
                 self._scen_build_npcs(content)
             elif self._scen_view == 'sessions':
@@ -5294,6 +5707,22 @@ try:
 
             self.tool_area.add_widget(p)
 
+        def _scen_nav_badge(self, key):
+            """Liten teller under fane-navnet: 'gjort/totalt' for de
+            avkryssbare listene, ellers bare antall."""
+            d = self._scen_data or {}
+            if key in self.FLAG_KEYS:
+                items = d.get(key, []) or []
+                if not items:
+                    return ""
+                done = sum(1 for it in items
+                           if it.get(self.FLAG_KEYS[key]))
+                return f"{done}/{len(items)}"
+            if key in ('npcs', 'handouts', 'reference', 'sessions'):
+                n = len(d.get(key, []) or [])
+                return str(n) if n else ""
+            return ""
+
         def _scen_show_empty(self):
             """Vis melding når scenario.json ikke finnes."""
             scroll = ScrollView()
@@ -5303,8 +5732,14 @@ try:
             box.bind(minimum_height=box.setter('height'))
 
             box.add_widget(mklbl(
-                "Ingen scenario lastet.",
+                "Biblioteket er tomt.",
                 color=GOLD, size=14, bold=True, h=28))
+            box.add_widget(mklbl(
+                "Alt du importerer blir liggende lagret i appen — "
+                "avkryssinger, notater og sesjoner følger med hvert "
+                "enkelt scenario. Du skal aldri måtte importere den "
+                "samme fila to ganger.",
+                color=TXT, size=11, wrap=True))
 
             # PRIMÆR METODE: SAF-filvelger (ingen tillatelser kreves)
             box.add_widget(mksep(8))
@@ -5312,16 +5747,19 @@ try:
                 "ENKLEST — Velg fil",
                 color=GOLD, size=12, bold=True, h=22))
             box.add_widget(mklbl(
-                "Trykk 'Velg fil' for å åpne Android sin "
-                "filvelger. Bla til scenario.json hvor enn "
-                "du har den — Documents, Downloads, Google "
-                "Drive, minnekort. Krever ingen ekstra "
-                "tillatelser.",
+                "Trykk 'Velg fil' for å åpne filvelgeren. Bla til "
+                "scenario-JSON-fila hvor enn du har den — Documents, "
+                "Downloads, Google Drive, minnekort. Krever ingen "
+                "ekstra tillatelser.",
                 color=TXT, size=11, wrap=True))
             box.add_widget(mkbtn(
                 "Velg fil",
                 self._scen_do_pick_file, accent=True,
                 size_hint_y=None, height=dp(52)))
+            box.add_widget(mkbtn(
+                "Åpne biblioteket",
+                self._scen_open_library,
+                size_hint_y=None, height=dp(44)))
 
             # ALTERNATIV: All files access
             access = has_all_files_access()
@@ -5367,7 +5805,7 @@ try:
                 "MANUELT — Kopier hit",
                 color=GDIM, size=11, bold=True, h=20))
             box.add_widget(mklbl(
-                self.SCENARIO_FILE,
+                self.SCEN_DIR,
                 color=GDIM, size=10, wrap=True))
             box.add_widget(mklbl(
                 "Trykk 'Last inn' etterpå.",
@@ -5440,13 +5878,9 @@ try:
                     "(trenger { ... }).",
                     is_error=True)
                 return
-            # Skriv til app-private sti
+            # Legg inn i biblioteket (beholder fremdrift ved re-import)
             try:
-                os.makedirs(os.path.dirname(self.SCENARIO_FILE),
-                            exist_ok=True)
-                with open(self.SCENARIO_FILE, 'w',
-                          encoding='utf-8') as f:
-                    json.dump(data, f, ensure_ascii=False, indent=2)
+                self._lib_add(self._ensure_ids(data))
                 log(f"Scenario valgt og lagret: "
                     f"{data.get('title', '?')}")
             except Exception as e:
@@ -5461,7 +5895,10 @@ try:
             self._tool_render_sub()
             self._scen_show_message(
                 "Scenario lastet",
-                f"Valgt: {data.get('title', '(uten tittel)')}",
+                f"Lagt i biblioteket: "
+                f"{data.get('title', '(uten tittel)')}\n\n"
+                "Det ligger nå lagret i appen — du trenger ikke "
+                "importere det igjen.",
                 is_error=False)
 
         def _scen_do_import(self):
@@ -5554,7 +5991,7 @@ try:
                 "Filsti som brukes:",
                 color=GOLD, size=11, bold=True, h=20))
             box.add_widget(mklbl(
-                self.SCENARIO_FILE,
+                self._lib_content_path(getattr(self, '_scen_id', '') or '?'),
                 color=GDIM, size=10, wrap=True))
 
             box.add_widget(mksep(10))
@@ -5577,6 +6014,13 @@ try:
             self._tool_render_sub()
 
         def _scen_switch_view(self, view):
+            # Notatfeltet forsvinner når vi bygger om innholdet, så
+            # eventuell ventende autolagring må skje nå.
+            if getattr(self, '_scen_notes_dirty', False):
+                ev = getattr(self, '_scen_notes_ev', None)
+                if ev:
+                    ev.cancel()
+                self._scen_save_notes(quiet=True)
             self._scen_view = view
             # Nullstill søkefilter når vi bytter visning.
             self._scen_filter = ''
@@ -5919,17 +6363,34 @@ try:
             return row
 
         def _scen_index(self):
-            """Bygg (og hurtigbufre) et id->element-oppslag på tvers av
-            clues/timeline/beats/npcs/handouts for kryssreferanser."""
+            """Bygg et id->element-oppslag på tvers av alle seksjoner,
+            til bruk for kryssreferanser."""
             idx = {}
             if not self._scen_data or '_error' in self._scen_data:
                 return idx
-            for sec in ('clues', 'timeline', 'beats', 'npcs', 'handouts'):
-                for it in self._scen_data.get(sec, []):
+            for sec in ('clues', 'timeline', 'beats', 'npcs', 'handouts',
+                        'locations', 'reference'):
+                for it in self._scen_data.get(sec, []) or []:
                     iid = it.get('id')
                     if iid:
                         idx[iid] = (sec, it)
             return idx
+
+        def _scen_open_ref(self, item, sec):
+            """Åpne et kryssreferert element i riktig visning – NPCer
+            har sin egen statblokk-visning."""
+            if sec == 'npcs':
+                self._scen_show_npc(item)
+                return
+            self._scen_show_detail(
+                item.get('title', item.get('name', '?')),
+                item.get('description', ''), item)
+
+        def _scen_save_item_note(self, item, widget):
+            """Lagre notat knyttet til ett enkelt element."""
+            item['user_notes'] = widget.text
+            self._scen_save()
+            self._toast("Notat lagret")
 
         def _scen_toggle(self, item, flag_key):
             """Bytt flagg og lagre."""
@@ -6066,7 +6527,7 @@ try:
                 bg_color=BG, radius=dp(16),
                 orientation='vertical', spacing=dp(6),
                 padding=dp(12),
-                size_hint=(0.9, 0.7),
+                size_hint=(0.95, 0.86),
                 pos_hint={'center_x': 0.5, 'center_y': 0.5})
 
             hdr = BoxLayout(size_hint_y=None, height=dp(42),
@@ -6077,24 +6538,64 @@ try:
             hdr.add_widget(mklbl(title, color=GOLD, size=13, bold=True))
             overlay.add_widget(hdr)
 
+            # Undertittel av det som finnes av kontekst-felter.
+            it = item or {}
+            meta = " · ".join(str(it.get(k)) for k in
+                              ('act', 'day', 'when', 'where', 'deck')
+                              if it.get(k))
+            if meta:
+                overlay.add_widget(mklbl(meta, color=DIM, size=10, h=18))
+
             scroll = ScrollView()
             body_box = GridLayout(cols=1, spacing=dp(6), padding=dp(2),
                                   size_hint_y=None)
             body_box.bind(minimum_height=body_box.setter('height'))
+
+            # Terningslag først – det er det man trenger raskest.
+            if it.get('roll'):
+                rbx = RBox(orientation='vertical', bg_color=BG2,
+                           radius=dp(8), border_color=GSOFT,
+                           border_width=2.0, padding=dp(8),
+                           spacing=dp(2), size_hint_y=None)
+                rbx.bind(minimum_height=rbx.setter('height'))
+                rbx.add_widget(mklbl("SLAG", color=GOLD, size=10,
+                                     bold=True, h=16))
+                rbx.add_widget(mklbl(it['roll'], color=TXT, size=11,
+                                     wrap=True))
+                body_box.add_widget(rbx)
+
             if desc:
                 body_box.add_widget(mklbl(desc, color=TXT, size=12,
                                           wrap=True))
 
+            # Egne notater på elementet – lagres på samme sted som
+            # resten av fremdriften.
+            if item is not None and it.get('id'):
+                body_box.add_widget(mksep(6))
+                body_box.add_widget(mklbl(
+                    "DINE NOTATER", color=GOLD, size=11, bold=True, h=22))
+                note_inp = SmartTextInput(
+                    text=it.get('user_notes', ''), multiline=True,
+                    hint_text="Hva skjedde da spillerne kom hit?",
+                    font_size=sp(11), padding=[dp(8), dp(8)],
+                    size_hint_y=None, height=dp(90))
+                body_box.add_widget(note_inp)
+                body_box.add_widget(mkbtn(
+                    "Lagre notat",
+                    lambda i=it, w=note_inp: self._scen_save_item_note(i, w),
+                    small=True, size_hint_y=None, height=dp(38)))
+
             # Kryssreferanser: klikkbare rader til relaterte elementer.
-            refs = (item or {}).get('connects_to', []) if item else []
+            refs = it.get('connects_to', []) if item else []
             if refs:
                 idx = self._scen_index()
                 body_box.add_widget(mksep(6))
                 body_box.add_widget(mklbl(
                     "SER OGSÅ", color=GOLD, size=11, bold=True, h=22))
-                sec_label = {'clues': 'Ledetråd', 'timeline': 'Tidslinje',
-                             'beats': 'Plot', 'npcs': 'NPC',
-                             'handouts': 'Handout'}
+                sec_label = {'clues': 'Spor', 'timeline': 'Tidslinje',
+                             'beats': 'Scene', 'npcs': 'NPC',
+                             'handouts': 'Handout',
+                             'locations': 'Sted', 'reference': 'Oppslag'}
                 for ref in refs:
                     hit = idx.get(ref)
                     if not hit:
@@ -6104,22 +6605,32 @@ try:
                     rtitle = rit.get('title', rit.get('name', ref))
                     rb = mkbtn(
                         f"[{tag}] {rtitle}",
-                        lambda r=rit: self._scen_show_detail(
-                            r.get('title', r.get('name', '?')),
-                            r.get('description', ''), r),
+                        lambda r=rit, s=sec: self._scen_open_ref(r, s),
                         small=True, size_hint_y=None, height=dp(40))
                     body_box.add_widget(rb)
 
             scroll.add_widget(body_box)
             overlay.add_widget(scroll)
 
-            # Kopier hele elementet (tittel + beskrivelse) til oppsummering.
+            # Handlingsrad: kryss av og kopier til oppsummering.
             if item is not None:
-                overlay.add_widget(mkbtn(
-                    "Kopier til oppsummering",
+                actions = BoxLayout(size_hint_y=None, height=dp(44),
+                                    spacing=dp(6))
+                flag = next((f for f in ('found', 'triggered', 'done',
+                                         'visited') if f in it), None)
+                if flag:
+                    on = bool(it.get(flag))
+                    actions.add_widget(mkbtn(
+                        "Fjern kryss" if on else "Kryss av",
+                        lambda i=it, f=flag: (self._scen_close_overlay(),
+                                              self._scen_toggle(i, f)),
+                        accent=not on, size_hint_x=0.45))
+                actions.add_widget(mkbtn(
+                    "Til oppsummering",
                     lambda: (self._scen_close_overlay(),
                              self._scen_copy_to_summary(item)),
-                    accent=True, size_hint_y=None, height=dp(44)))
+                    small=True, size_hint_x=0.55))
+                overlay.add_widget(actions)
 
             # Legg på FloatLayout-roten
             root = self.tool_area
@@ -6154,9 +6665,10 @@ try:
             self._scen_overlay = None
             self._scen_dim = None
 
-        def _confirm_discard(self, on_confirm, msg=None):
-            """Vis 'ulagrede endringer'-advarsel. Kjør on_confirm() bare
-            hvis brukeren velger å forkaste. Gjenbruker scen-overlay-slot."""
+        def _confirm_discard(self, on_confirm, msg=None, title=None,
+                             cancel_text=None, confirm_text=None):
+            """Ja/nei-dialog. Kjør on_confirm() bare hvis brukeren
+            bekrefter. Gjenbruker scen-overlay-slot."""
             overlay = RBox(
                 bg_color=BG, radius=dp(16),
                 orientation='vertical', spacing=dp(8),
@@ -6164,7 +6676,7 @@ try:
                 size_hint=(0.82, 0.4),
                 pos_hint={'center_x': 0.5, 'center_y': 0.5})
             overlay.add_widget(mklbl(
-                "Ulagrede endringer",
+                title or "Ulagrede endringer",
                 color=GOLD, size=14, bold=True, h=28))
             overlay.add_widget(mklbl(
                 msg or ("Du har endringer som ikke er lagret. "
@@ -6173,14 +6685,14 @@ try:
             btns = BoxLayout(size_hint_y=None, height=dp(44),
                              spacing=dp(6))
             btns.add_widget(mkbtn(
-                "Bli værende", self._scen_close_overlay,
+                cancel_text or "Bli værende", self._scen_close_overlay,
                 small=True, size_hint_x=0.5))
 
             def _do():
                 self._scen_close_overlay()
                 on_confirm()
             btns.add_widget(mkbtn(
-                "Forkast", _do,
+                confirm_text or "Forkast", _do,
                 danger=True, size_hint_x=0.5))
             overlay.add_widget(btns)
 
@@ -6244,32 +6756,436 @@ try:
             # Vent 'duration', deretter fade ut.
             Clock.schedule_once(lambda dt: fade.start(toast), duration)
 
+        # ---------- OVERSIKT ----------
+        def _scen_build_overview(self, container):
+            """Forsiden for scenarioet: hvor langt man er kommet, hva
+            som skjer nå, og de raske inngangene."""
+            d = self._scen_data or {}
+            scroll = ScrollView()
+            col = GridLayout(cols=1, spacing=dp(8), padding=dp(6),
+                             size_hint_y=None)
+            col.bind(minimum_height=col.setter('height'))
+
+            def card(title, color=GOLD):
+                b = RBox(orientation='vertical', bg_color=BG2,
+                         radius=dp(12), border_color=GSOFT,
+                         border_width=2.4, padding=dp(10), spacing=dp(5),
+                         size_hint_y=None)
+                b.bind(minimum_height=b.setter('height'))
+                b.add_widget(mklbl(title, color=color, size=11,
+                                   bold=True, h=20))
+                col.add_widget(b)
+                return b
+
+            # --- Tittelkort
+            head = card(d.get('title', 'Scenario'), GOLD)
+            for key, prefix in (('system', 'System'),
+                                ('setting', 'Sted og tid'),
+                                ('run_time', 'Lengde'),
+                                ('player_count', 'Spillere')):
+                if d.get(key):
+                    head.add_widget(mklbl(f"{prefix}: {d[key]}",
+                                          color=DIM, size=10, wrap=True))
+            if d.get('tagline'):
+                head.add_widget(mksep(2))
+                head.add_widget(mklbl(d['tagline'], color=TXT, size=11,
+                                      wrap=True))
+
+            # --- Neste hendelse på tidslinja
+            upcoming = [e for e in d.get('timeline', []) or []
+                        if not e.get('triggered')]
+            nxt = card("NESTE HENDELSE" if upcoming
+                       else "TIDSLINJA ER GJENNOMSPILT")
+            if upcoming:
+                e = upcoming[0]
+                when = " · ".join(x for x in (e.get('day', ''),
+                                              e.get('when', '')) if x)
+                if when:
+                    nxt.add_widget(mklbl(when, color=DIM, size=10, h=16))
+                nxt.add_widget(mklbl(e.get('title', '?'), color=TXT,
+                                     size=13, bold=True, wrap=True))
+                desc = (e.get('description', '') or '')
+                if desc:
+                    short = desc if len(desc) <= 220 else desc[:217] + "..."
+                    nxt.add_widget(mklbl(short, color=DIM, size=10,
+                                         wrap=True))
+                row = BoxLayout(size_hint_y=None, height=dp(40),
+                                spacing=dp(6))
+                row.add_widget(mkbtn(
+                    "Åpne", lambda e=e: self._scen_show_detail(
+                        e.get('title', '?'), e.get('description', ''), e),
+                    accent=True, small=True, size_hint_x=0.5))
+                row.add_widget(mkbtn(
+                    "Marker utløst",
+                    lambda e=e: self._scen_toggle(e, 'triggered'),
+                    small=True, size_hint_x=0.5))
+                nxt.add_widget(row)
+                if len(upcoming) > 1:
+                    nxt.add_widget(mklbl(
+                        f"Deretter: {upcoming[1].get('title', '')}",
+                        color=DIM, size=9, wrap=True))
+            else:
+                nxt.add_widget(mklbl(
+                    "Alle hendelser er huket av.",
+                    color=DIM, size=10, wrap=True))
+
+            # --- Fremdrift
+            prog = card("FREMDRIFT")
+            labels = {'timeline': 'Tidslinje', 'beats': 'Scener',
+                      'clues': 'Spor funnet', 'locations': 'Steder besøkt',
+                      'handouts': 'Handouts utdelt'}
+            total_done = total_all = 0
+            for key in ('timeline', 'beats', 'clues', 'locations',
+                        'handouts'):
+                items = d.get(key, []) or []
+                if not items:
+                    continue
+                done = sum(1 for it in items
+                           if it.get(self.FLAG_KEYS[key]))
+                total_done += done
+                total_all += len(items)
+                prog.add_widget(mkprogress(done, len(items), labels[key]))
+            if total_all:
+                pct = int(round(100.0 * total_done / total_all))
+                prog.add_widget(mksep(2))
+                prog.add_widget(mklbl(
+                    f"Totalt {pct}% gjennomspilt ({total_done} av "
+                    f"{total_all} punkter)",
+                    color=GOLD if pct < 100 else GRN, size=10, bold=True,
+                    wrap=True))
+
+            # --- Keeper-brief
+            brief = d.get('keeper_brief', []) or []
+            if brief:
+                kb = card("KEEPER-BRIEF")
+                for b in brief:
+                    kb.add_widget(mkbtn(
+                        b.get('title', '?'),
+                        lambda b=b: self._scen_show_detail(
+                            b.get('title', '?'), b.get('body', '')),
+                        small=True, size_hint_y=None, height=dp(38)))
+
+            # --- Sesjonsstatus
+            sessions = d.get('sessions', []) or []
+            ses = card("SESJONER")
+            if sessions:
+                last = sessions[-1]
+                ses.add_widget(mklbl(
+                    f"{len(sessions)} logget. Sist: "
+                    f"{last.get('title') or last.get('date') or '(uten navn)'}",
+                    color=TXT, size=11, wrap=True))
+            else:
+                ses.add_widget(mklbl(
+                    "Ingen sesjoner logget ennå.",
+                    color=DIM, size=10, wrap=True))
+            ses.add_widget(mkbtn(
+                "Åpne sesjonsjournal",
+                lambda: self._scen_switch_view('sessions'),
+                accent=True, small=True, size_hint_y=None, height=dp(40)))
+
+            scroll.add_widget(col)
+            container.add_widget(scroll)
+
+        # ---------- HANDOUTS ----------
+        def _scen_build_handouts(self, container):
+            """Handouts som store, lesbare kort – de skal kunne vises
+            fram over bordet."""
+            items = (self._scen_data or {}).get('handouts', []) or []
+            if not items:
+                container.add_widget(mklbl(
+                    "Ingen handouts i dette scenarioet.",
+                    color=DIM, size=11, wrap=True))
+                return
+            scroll = ScrollView()
+            col = GridLayout(cols=1, spacing=dp(8), padding=dp(6),
+                             size_hint_y=None)
+            col.bind(minimum_height=col.setter('height'))
+            for h in items:
+                box = RBox(orientation='vertical', bg_color=BG2,
+                           radius=dp(12), border_color=GSOFT,
+                           border_width=2.4, padding=dp(10),
+                           spacing=dp(6), size_hint_y=None)
+                box.bind(minimum_height=box.setter('height'))
+                box.add_widget(mklbl(h.get('title', '?'), color=GOLD,
+                                     size=12, bold=True, wrap=True))
+                body = (h.get('description', '') or '')
+                short = body if len(body) <= 260 else body[:257] + "..."
+                box.add_widget(mklbl(short, color=TXT, size=11, wrap=True))
+                row = BoxLayout(size_hint_y=None, height=dp(40),
+                                spacing=dp(6))
+                row.add_widget(mkbtn(
+                    "Les hele", lambda h=h: self._scen_show_detail(
+                        h.get('title', '?'), h.get('description', ''), h),
+                    accent=True, small=True, size_hint_x=0.6))
+                given = bool(h.get('found'))
+                row.add_widget(mkbtn(
+                    "Utdelt" if given else "Marker utdelt",
+                    lambda h=h: self._scen_toggle(h, 'found'),
+                    accent=given, small=True, size_hint_x=0.4))
+                box.add_widget(row)
+                col.add_widget(box)
+            scroll.add_widget(col)
+            container.add_widget(scroll)
+
+        # ---------- OPPSLAG ----------
+        def _scen_build_reference(self, container):
+            """Regler, skipsdata og valgfrie moduler – ting man slår opp
+            midt i en scene og trenger raskt."""
+            items = (self._scen_data or {}).get('reference', []) or []
+            if not items:
+                container.add_widget(mklbl(
+                    "Ingen oppslagsverk i dette scenarioet.",
+                    color=DIM, size=11, wrap=True))
+                return
+            outer = BoxLayout(orientation='vertical', spacing=dp(4))
+            q = getattr(self, '_scen_filter', '') or ''
+            search_row = BoxLayout(size_hint_y=None, height=dp(40),
+                                   spacing=dp(6))
+            search_inp = SmartTextInput(
+                text=q, hint_text='Søk i oppslag…',
+                multiline=False, autocap=False, suggestions=False,
+                font_size=sp(12), size_hint_x=0.78,
+                padding=[dp(8), dp(8)])
+            search_inp.bind(text=self._scen_on_filter)
+            search_row.add_widget(search_inp)
+            if q:
+                search_row.add_widget(mkbtn(
+                    "Nullstill", self._scen_clear_filter,
+                    small=True, size_hint_x=0.22))
+            outer.add_widget(search_row)
+
+            ql = q.strip().lower()
+            shown = [r for r in items
+                     if not ql or ql in (r.get('title', '') + ' '
+                                         + r.get('description', '')).lower()]
+            scroll = ScrollView()
+            col = GridLayout(cols=1, spacing=dp(4), padding=dp(4),
+                             size_hint_y=None)
+            col.bind(minimum_height=col.setter('height'))
+            if not shown:
+                col.add_widget(mklbl("Ingen treff.", color=DIM, size=11,
+                                     wrap=True))
+            for r in shown:
+                col.add_widget(mkbtn(
+                    r.get('title', '?'),
+                    lambda r=r: self._scen_show_detail(
+                        r.get('title', '?'), r.get('description', ''), r),
+                    size_hint_y=None, height=dp(46)))
+            scroll.add_widget(col)
+            outer.add_widget(scroll)
+            container.add_widget(outer)
+
+        # ---------- BIBLIOTEK ----------
+        def _scen_open_library(self):
+            self._scen_view = 'library'
+            self._scen_filter = ''
+            self._tool_render_sub()
+
+        def _scen_build_library(self, container):
+            """Alle lagrede scenarier. Herfra bytter man mellom dem uten
+            å importere på nytt – fremdriften i hvert av dem ligger
+            lagret hver for seg."""
+            lib = self._lib_load()
+            items = lib.get('items', [])
+            active = lib.get('active')
+
+            outer = BoxLayout(orientation='vertical', spacing=dp(6))
+
+            top = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
+            top.add_widget(mkbtn(
+                "Importer fil", self._scen_do_pick_file,
+                accent=True, small=True, size_hint_x=0.4))
+            if items:
+                top.add_widget(mkbtn(
+                    "Tilbake", lambda: self._scen_switch_view('overview'),
+                    small=True, size_hint_x=0.3))
+            top.add_widget(mklbl(f"{len(items)} lagret",
+                                 color=DIM, size=10))
+            outer.add_widget(top)
+
+            if not items:
+                outer.add_widget(mklbl(
+                    "Biblioteket er tomt.\n\n"
+                    "Trykk 'Importer fil' og velg en scenario-JSON. Den "
+                    "blir liggende her etterpå — du skal aldri måtte "
+                    "importere den samme fila to ganger.",
+                    color=DIM, size=12, wrap=True))
+                container.add_widget(outer)
+                return
+
+            scroll = ScrollView()
+            col = GridLayout(cols=1, spacing=dp(8), padding=dp(4),
+                             size_hint_y=None)
+            col.bind(minimum_height=col.setter('height'))
+
+            for it in items:
+                sid = it.get('id')
+                is_active = (sid == active)
+                box = RBox(orientation='vertical', bg_color=BG2,
+                           radius=dp(12),
+                           border_color=GOLD if is_active else GSOFT,
+                           border_width=3.2 if is_active else 2.2,
+                           padding=dp(10), spacing=dp(4),
+                           size_hint_y=None)
+                box.bind(minimum_height=box.setter('height'))
+                box.add_widget(mklbl(
+                    it.get('title', '?'),
+                    color=GOLD if is_active else TXT,
+                    size=13, bold=True, wrap=True))
+                meta = [x for x in (it.get('system', ''),
+                                    f"importert {it.get('imported', '?')}")
+                        if x]
+                box.add_widget(mklbl(" · ".join(meta), color=DIM, size=9,
+                                     wrap=True))
+
+                counts = it.get('counts', {}) or {}
+                parts = []
+                for key, lbl in (('timeline', 'hendelser'),
+                                 ('beats', 'scener'), ('clues', 'spor'),
+                                 ('npcs', 'NPCer'),
+                                 ('handouts', 'handouts'),
+                                 ('locations', 'steder')):
+                    if counts.get(key):
+                        parts.append(f"{counts[key]} {lbl}")
+                if parts:
+                    box.add_widget(mklbl(", ".join(parts), color=DIM,
+                                         size=9, wrap=True))
+
+                # Lagret fremdrift for dette scenarioet
+                p = self._prog_load(sid)
+                n_flags = len(p.get('flags', {}))
+                n_sess = len(p.get('sessions', []))
+                has_notes = bool((p.get('notes') or '').strip())
+                bits = []
+                if n_flags:
+                    bits.append(f"{n_flags} avkrysset")
+                if n_sess:
+                    bits.append(f"{n_sess} sesjoner")
+                if has_notes:
+                    bits.append("notater")
+                box.add_widget(mklbl(
+                    ("Lagret fremdrift: " + ", ".join(bits)) if bits
+                    else "Ingen fremdrift lagret ennå.",
+                    color=GRN if bits else DIM, size=9, wrap=True))
+
+                row = BoxLayout(size_hint_y=None, height=dp(40),
+                                spacing=dp(6))
+                if is_active:
+                    row.add_widget(mklbl("AKTIVT", color=GOLD, size=10,
+                                         bold=True))
+                else:
+                    row.add_widget(mkbtn(
+                        "Bruk dette",
+                        lambda s=sid: self._scen_activate(s),
+                        accent=True, small=True, size_hint_x=0.6))
+                row.add_widget(mkbtn(
+                    "Slett", lambda s=sid, t=it.get('title', '?'):
+                    self._scen_confirm_delete(s, t),
+                    danger=True, small=True, size_hint_x=0.4))
+                box.add_widget(row)
+                col.add_widget(box)
+
+            scroll.add_widget(col)
+            outer.add_widget(scroll)
+            container.add_widget(outer)
+
+        def _scen_activate(self, sid):
+            self._lib_set_active(sid)
+            self._scen_view = 'overview'
+            self._tool_render_sub()
+            self._toast("Scenario byttet")
+
+        def _scen_confirm_delete(self, sid, title):
+            def _do():
+                self._lib_delete(sid)
+                self._scen_data = None
+                self._scen_load()
+                self._tool_render_sub()
+                self._toast("Scenario slettet")
+            self._confirm_discard(
+                _do,
+                title="Slett scenario?",
+                msg=(f"Slett «{title}» fra biblioteket?\n\n"
+                     "Både innholdet og all fremdrift, notater og "
+                     "sesjoner for dette scenarioet blir borte."),
+                cancel_text="Behold", confirm_text="Slett")
+
         def _scen_build_notes(self, container):
-            """Bygg notat-visning."""
+            """Notatblokk for scenarioet, med autolagring.
+
+            Notater man må huske å trykke Lagre på, er notater man mister.
+            Teksten skrives til disk to sekunder etter siste tastetrykk,
+            og statuslinja over feltet sier hva som faktisk er lagret."""
             box = BoxLayout(orientation='vertical', spacing=dp(4))
+
+            hdr = BoxLayout(size_hint_y=None, height=dp(26), spacing=dp(6))
+            self._scen_notes_status = Label(
+                text="Autolagres", font_size=sp(10), color=DIM,
+                halign='left', valign='middle')
+            self._scen_notes_status.bind(
+                size=lambda w, v: setattr(w, 'text_size', (v[0], None)))
+            hdr.add_widget(self._scen_notes_status)
+            box.add_widget(hdr)
+
             notes = self._scen_data.get('notes', '')
             self._scen_notes_input = SmartTextInput(
                 text=notes, multiline=True,
+                hint_text=("Notater for dette scenarioet — navn spillerne "
+                           "finner på, hva de tror, hva du improviserte."),
                 background_color=INPUT, foreground_color=TXT,
                 cursor_color=GOLD, font_size=sp(12),
                 padding=[dp(8), dp(8)])
             self._scen_notes_dirty = False
-            self._scen_notes_input.bind(
-                text=lambda *a: setattr(self, '_scen_notes_dirty', True))
+            self._scen_notes_input.bind(text=self._scen_notes_changed)
             box.add_widget(self._scen_notes_input)
-            box.add_widget(mkbtn(
-                "Lagre notater", self._scen_save_notes,
-                accent=True, size_hint_y=None, height=dp(44)))
+
+            row = BoxLayout(size_hint_y=None, height=dp(44), spacing=dp(6))
+            row.add_widget(mkbtn(
+                "Lagre nå", self._scen_save_notes,
+                accent=True, size_hint_x=0.5))
+            row.add_widget(mkbtn(
+                "Sett inn tidsstempel", self._scen_notes_timestamp,
+                small=True, size_hint_x=0.5))
+            box.add_widget(row)
             container.add_widget(box)
 
-        def _scen_save_notes(self):
+        def _scen_notes_changed(self, *_a):
+            """Merk som endret og planlegg en autolagring."""
+            self._scen_notes_dirty = True
+            lbl = getattr(self, '_scen_notes_status', None)
+            if lbl is not None:
+                lbl.text = "Ulagrede endringer…"
+                lbl.color = GDIM
+            ev = getattr(self, '_scen_notes_ev', None)
+            if ev:
+                ev.cancel()
+            self._scen_notes_ev = Clock.schedule_once(
+                lambda dt: self._scen_save_notes(quiet=True), 2.0)
+
+        def _scen_notes_timestamp(self):
+            """Legg inn dato og klokkeslett der markøren står – nyttig
+            når man logger fortløpende under spilling."""
+            inp = getattr(self, '_scen_notes_input', None)
+            if inp is None:
+                return
+            inp.insert_text(time.strftime("\n[%d.%m %H:%M] "))
+
+        def _scen_save_notes(self, quiet=False):
             """Lagre notat-tekst."""
             if not self._scen_data or '_error' in self._scen_data:
                 return
-            self._scen_data['notes'] = self._scen_notes_input.text
+            inp = getattr(self, '_scen_notes_input', None)
+            if inp is None:
+                return
+            self._scen_data['notes'] = inp.text
             self._scen_save()
             self._scen_notes_dirty = False
-            self._toast("Notater lagret")
+            lbl = getattr(self, '_scen_notes_status', None)
+            if lbl is not None:
+                lbl.text = time.strftime("Lagret %H:%M")
+                lbl.color = GRN
+            if not quiet:
+                self._toast("Notater lagret")
 
         def _scen_build_npcs(self, container):
             """Bygg liste over scenario-NPCer (karakterer, fiender,
@@ -6423,6 +7339,28 @@ try:
             if desc:
                 body.add_widget(mklbl(desc, color=TXT, size=12, wrap=True))
 
+            # Trekk – korte spillbare stikkord
+            traits = (npc.get('traits', '') or '').strip()
+            if traits:
+                _section("TREKK")
+                body.add_widget(mklbl(traits, color=TXT, size=11,
+                                      wrap=True))
+
+            # Replikker å kaste ut ved bordet
+            quotes = npc.get('quotes', [])
+            if quotes:
+                _section("REPLIKKER")
+                for q in quotes:
+                    body.add_widget(mklbl(f"• {q}", color=GOLD, size=11,
+                                          wrap=True))
+
+            # Skikkelser (for formskiftere)
+            forms = (npc.get('forms', '') or '').strip()
+            if forms:
+                _section("SKIKKELSER")
+                body.add_widget(mklbl(forms, color=TXT, size=11,
+                                      wrap=True))
+
             # Karakteristikker (rutenett)
             stats = npc.get('stats', {})
             if stats:
@@ -6508,7 +7446,47 @@ try:
             notes = (npc.get('notes', '') or '').strip()
             if notes:
                 _section("NOTATER")
-                body.add_widget(mklbl(notes, color=DIM, size=11, wrap=True))
+                body.add_widget(mklbl(notes, color=TXT, size=11, wrap=True))
+
+            # Forbehold om tallene
+            sn = (npc.get('stats_note', '') or '').strip()
+            if sn:
+                body.add_widget(mksep(6))
+                body.add_widget(mklbl(sn, color=GDIM, size=9, wrap=True))
+
+            # Kryssreferanser
+            refs = npc.get('connects_to', []) or []
+            if refs:
+                idx = self._scen_index()
+                _section("SER OGSÅ")
+                sec_label = {'clues': 'Spor', 'timeline': 'Tidslinje',
+                             'beats': 'Scene', 'npcs': 'NPC',
+                             'handouts': 'Handout',
+                             'locations': 'Sted', 'reference': 'Oppslag'}
+                for ref in refs:
+                    hit = idx.get(ref)
+                    if not hit:
+                        continue
+                    sec, rit = hit
+                    body.add_widget(mkbtn(
+                        f"[{sec_label.get(sec, sec)}] "
+                        f"{rit.get('title', rit.get('name', ref))}",
+                        lambda r=rit, s=sec: self._scen_open_ref(r, s),
+                        small=True, size_hint_y=None, height=dp(40)))
+
+            # Egne notater på NPC-en
+            if npc.get('id'):
+                _section("DINE NOTATER")
+                npc_note = SmartTextInput(
+                    text=npc.get('user_notes', ''), multiline=True,
+                    hint_text="Hva vet spillerne om denne alt?",
+                    font_size=sp(11), padding=[dp(8), dp(8)],
+                    size_hint_y=None, height=dp(90))
+                body.add_widget(npc_note)
+                body.add_widget(mkbtn(
+                    "Lagre notat",
+                    lambda n=npc, w=npc_note: self._scen_save_item_note(n, w),
+                    small=True, size_hint_y=None, height=dp(38)))
 
             scroll.add_widget(body)
             overlay.add_widget(scroll)
@@ -7748,11 +8726,34 @@ try:
             self._weap_dim = None
 
 
+        def _flush_pending(self):
+            """Skriv ventende notater til disk. Kalles når appen legges
+            i bakgrunnen eller avsluttes — Android dreper prosessen uten
+            forvarsel, og da er en autolagring 'om to sekunder' for
+            sent."""
+            try:
+                if getattr(self, '_scen_notes_dirty', False):
+                    ev = getattr(self, '_scen_notes_ev', None)
+                    if ev:
+                        ev.cancel()
+                    self._scen_save_notes(quiet=True)
+            except Exception as e:
+                log(f"Flush av notater feilet: {e}")
+
+        def on_pause(self):
+            self._flush_pending()
+            save_json(CHAR_FILE, self.chars)
+            return True
+
+        def on_resume(self):
+            return True
+
         def on_stop(self):
             self.player.stop()
             self.streamer.stop()
             self.server.stop()
             self.cast.disconnect()
+            self._flush_pending()
             save_json(CHAR_FILE, self.chars)
 
     log("Starting app...")
