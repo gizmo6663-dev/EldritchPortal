@@ -1,0 +1,3042 @@
+{
+  "id": "malleus-monstrorum",
+  "version": 1,
+  "title": "Malleus Monstrorum",
+  "system": "Call of Cthulhu",
+  "source": "Malleus Monstrorum (Chaosium)",
+  "note": "Statblokkene er hentet maskinelt ut av en OCR-konvertering av boka. Sjekk tall mot din egen utgave før du bruker dem i en viktig kamp — særlig angrepslinjer, som kan ha blitt delt feil.",
+  "creatures": [
+    {
+      "id": "mm-adumbrali",
+      "name": "Adumbrali",
+      "subtitle": "Other-Dimensional Shadow Vampires",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "CON": "14",
+        "SIZ": "28",
+        "INT": "14",
+        "POW": "14",
+        "DEX": "10",
+        "HP": "21",
+        "MP": "2",
+        "DB": "N/A",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "4D6",
+        "SIZ": "8D6",
+        "INT": "3D6+3",
+        "POW": "4D6",
+        "DEX": "2D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Filament",
+          "skill": "30%",
+          "damage": "1D6 STR & 1D6 CON drain"
+        }
+      ],
+      "armor": "none, but due to their shadowy nature the adumbrali are immune to all mundane weapons. Only enchanted weapons and spells which affect POW or INT can harm the adumbrate",
+      "skills": "",
+      "spells": "all know 1D3 spells, typically those which affect the mind",
+      "sanity_loss": "0/1D6 Sanity points to see the adumbrali",
+      "notes": ""
+    },
+    {
+      "id": "mm-aihais",
+      "name": "Aihais",
+      "subtitle": "Martian Servants of Vulthoom",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "18",
+        "CON": "20",
+        "SIZ": "22",
+        "INT": "15",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "21",
+        "MP": "2",
+        "DB": "+1D6",
+        "Move": "9"
+      },
+      "rolls": {
+        "STR": "5D6",
+        "CON": "3D6+10",
+        "SIZ": "3D6+12",
+        "INT": "2D6+8",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Fist",
+          "skill": "50%",
+          "damage": "1D3 + db"
+        },
+        {
+          "name": "Disintegrator Gun",
+          "skill": "20%",
+          "damage": "5D6 hit points, 1D3 CON & 1D6 APP"
+        }
+      ],
+      "armor": "none naturally, however some aihai clothes may afford 4point armor",
+      "skills": "Listen 25%, Sneak 25%, Spot Hidden 30%",
+      "spells": "typically only a priest of Vulthoom will know spells. Those spells always include Contact Vulthoom, Create Gate, plus 1D3 others of the keeper's choice",
+      "sanity_loss": "0/1D8 Sanity points to see an aihai",
+      "notes": ""
+    },
+    {
+      "id": "mm-alskali",
+      "name": "Alskali",
+      "subtitle": "Cyclopean Minions of the Nyarlathotep",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "32",
+        "CON": "20",
+        "SIZ": "20",
+        "INT": "8",
+        "POW": "20",
+        "DEX": "10",
+        "HP": "20",
+        "MP": "4",
+        "DB": "+2D6",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "2D6+25",
+        "CON": "4D6+6",
+        "SIZ": "2D6+13",
+        "INT": "2D6+1",
+        "POW": "4D6+6",
+        "DEX": "2D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Crush",
+          "skill": "60%",
+          "damage": "2D6"
+        }
+      ],
+      "armor": "none",
+      "skills": "Hide 25%, Listen 30%, Sneak 20%, Spot Hidden 30%",
+      "spells": "known are generally those dealing with Nyarlathotep and his servants",
+      "sanity_loss": "0/1D6 Sanity points to see an alskali",
+      "notes": ""
+    },
+    {
+      "id": "mm-beings-of-ib-ghost-beings-of-ib",
+      "name": "Beings of Ib & Ghost-beings of Ib",
+      "subtitle": "Servants of Bokrug Beings of Ib Ghost-Beings of Ib",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "1",
+        "CON": "3",
+        "SIZ": "4",
+        "INT": "2",
+        "POW": "2",
+        "DEX": "3",
+        "HP": "13",
+        "MP": "0",
+        "Move": "7 / 8 swimming 10"
+      },
+      "rolls": {
+        "STR": "1D6+6 / 9-10",
+        "CON": "3D6 / 10-11",
+        "SIZ": "4D6 / 14",
+        "INT": "2D6+6 / 13",
+        "POW": "3D6 / 10-11",
+        "DEX": "3D6 / 10-11"
+      },
+      "attacks": [
+        {
+          "name": "Paw",
+          "skill": "40%",
+          "damage": "/damage 1D4 N/A POW Drain N/A POW vs. POW/ damage 1D3 POW"
+        }
+      ],
+      "armor": "none for the beings of Ib. The ghost-beings of Ib cannot be harmed in any physical way: spells which attack or drain POW or INT work against them",
+      "skills": "",
+      "spells": "any being of Ib with a POW of 14 or more may know up to 1D6 spells, always including Contact Bokrug. The ghost-beings of Ib have any spells known while living",
+      "sanity_loss": "0/1D6 Sanity points to see either a being of Ib or a ghost-being of Ib",
+      "notes": ""
+    },
+    {
+      "id": "mm-broodlings-of-eihort",
+      "name": "Broodlings of Eihort",
+      "subtitle": "Gestalt Servants of the God of the Labyrinth",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "17",
+        "CON": "16",
+        "SIZ": "13",
+        "INT": "16",
+        "POW": "16",
+        "DEX": "13",
+        "APP": "6",
+        "HP": "14",
+        "MP": "3",
+        "DB": "+1D4",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "2D6+10",
+        "CON": "3D6+6",
+        "SIZ": "2D6+6",
+        "INT": "3D6+6",
+        "POW": "3D6+6",
+        "DEX": "2D6+6",
+        "APP": "2D6-1"
+      },
+      "attacks": [
+        {
+          "name": "Any at base%, damage as per weapon",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "none. All physical attacks do minimum damage. If a broodling escapes with even a single hit point left it may fully regenerate. Regeneration takes 10 minutes per hit point to maximum original hit points. If reduced to zero hit points a broodling melts into a mass of wriggling white spiders. Once reduced to zero hit points a broodling may not regenerate",
+      "skills": "most at a -10% penalty, due to their effort to pass as human",
+      "spells": "a broodling of Eihort generally knows 1D4 spells. Known spells will deal with Eihort and similar entities",
+      "sanity_loss": "no loss to see a broodling in perfect human form; once a broodling begins to melt down and reveal its true nature, 1/1D8 Sanity points",
+      "notes": ""
+    },
+    {
+      "id": "mm-byakhee",
+      "name": "Byakhee",
+      "subtitle": "the Star-Steeds",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "18",
+        "CON": "10",
+        "SIZ": "18",
+        "INT": "10",
+        "POW": "10",
+        "DEX": "14",
+        "HP": "14",
+        "MP": "2",
+        "DB": "+1D6",
+        "Move": "5 / 20 flying"
+      },
+      "rolls": {
+        "STR": "5D6",
+        "CON": "3D6",
+        "SIZ": "5D6",
+        "INT": "3D6",
+        "POW": "3D6",
+        "DEX": "3D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "35%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Bite",
+          "skill": "35%",
+          "damage": "1D6 + 1D6 STR drain"
+        }
+      ],
+      "armor": "2-point fur and tough hide",
+      "skills": "Listen 50%, Spot Hidden 50%",
+      "spells": "byakhees of POW 14 or more know at least 1D4 spells, normally spells relating to Hastur and associated beings",
+      "sanity_loss": "1/1D6 Sanity points to see a byakhee",
+      "notes": ""
+    },
+    {
+      "id": "mm-chakota",
+      "name": "Chakota",
+      "subtitle": "Spirit of Many Faces",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "35",
+        "CON": "35",
+        "SIZ": "35",
+        "INT": "2",
+        "POW": "35",
+        "DEX": "3",
+        "HP": "35",
+        "MP": "7",
+        "DB": "N/A",
+        "Move": "4"
+      },
+      "rolls": {
+        "STR": "10D6",
+        "CON": "10D6",
+        "SIZ": "10D6",
+        "INT": "1D3",
+        "POW": "10D6",
+        "DEX": "3"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "30%",
+          "damage": "1D3 per face Wail of the Chakota automatic, damage 1/1D8 Sanity points (see above)"
+        }
+      ],
+      "armor": "the chakota is immune to physical weapons, but fire, magic, and electricity can harm it. If the mouths are covered it can suffocate in earth or water",
+      "skills": "",
+      "spells": "none",
+      "sanity_loss": "1D3/1D20 Sanity points to see a chakota",
+      "notes": ""
+    },
+    {
+      "id": "mm-chaugnar-faugn",
+      "name": "Chaugnar Faugn",
+      "subtitle": "Vampiric Elephantine Horrors",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "3",
+        "CON": "3",
+        "SIZ": "3",
+        "INT": "7",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "17",
+        "MP": "2",
+        "Move": "10 (cannot fly)"
+      },
+      "rolls": {
+        "STR": "3D6+6 16-17",
+        "CON": "3D6+6 16-17",
+        "SIZ": "3D6+6 16-17",
+        "INT": "2D6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Grapple",
+          "skill": "35%",
+          "damage": "special"
+        },
+        {
+          "name": "Bite",
+          "skill": "40%",
+          "damage": "1D3"
+        },
+        {
+          "name": "Blood Sucker",
+          "skill": "100%",
+          "damage": "after Grapple & Bite, damage 1 hit point per round"
+        },
+        {
+          "name": "Crush",
+          "skill": "30%",
+          "damage": "1D4 + db"
+        }
+      ],
+      "armor": "2-point wrinkly elephantine skin",
+      "skills": "Listen 25%, Spot Hidden 25%",
+      "spells": "Lesser brothers know no spells",
+      "sanity_loss": "1/1D4 Sanity points to see a lesser brother of Chaugnar Faugn",
+      "notes": ""
+    },
+    {
+      "id": "mm-children-of-the-green-god",
+      "name": "Children of the Green God",
+      "subtitle": "Mutant Rabbit-Folk",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "14",
+        "CON": "16",
+        "SIZ": "13",
+        "INT": "13",
+        "POW": "13",
+        "DEX": "19",
+        "HP": "14",
+        "MP": "2",
+        "DB": "+1D4",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "3D6+3",
+        "CON": "3D6+6",
+        "SIZ": "2D6+6",
+        "INT": "2D6+6",
+        "POW": "2D6+6",
+        "DEX": "2D6+12"
+      },
+      "attacks": [
+        {
+          "name": "Claws",
+          "skill": "30%",
+          "damage": "1D4 + db"
+        },
+        {
+          "name": "Bite",
+          "skill": "30%",
+          "damage": "1D3"
+        }
+      ],
+      "armor": "none",
+      "skills": "Hide 25%, Listen 50%, Sneak 25%, Spot Hidden 50%",
+      "spells": "a child of the Green God with a POW of 16 or more knows Contact The Green God and 1D6 other spells",
+      "sanity_loss": "0/1D4 Sanity points to see a child of the Green God",
+      "notes": ""
+    },
+    {
+      "id": "mm-children-of-the-wind",
+      "name": "Children of the Wind",
+      "subtitle": "Savage Apparitions",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "13",
+        "CON": "10",
+        "SIZ": "13",
+        "INT": "10",
+        "POW": "12",
+        "DEX": "16",
+        "HP": "11",
+        "MP": "2",
+        "DB": "+1D4",
+        "Move": "8 flying"
+      },
+      "rolls": {
+        "STR": "2D6+6",
+        "CON": "1D6+6",
+        "SIZ": "2D6+6",
+        "INT": "1D6+6",
+        "POW": "1D10+6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Appendages",
+          "skill": "30%",
+          "damage": "1D6"
+        }
+      ],
+      "armor": "their blubbery texture affords the children of the wind some protection against impaling weapons, which inflict only half damage upon the creatures. Magic and non-magic weapons inflict normal damage",
+      "skills": "",
+      "spells": "none, usually",
+      "sanity_loss": "0/1D6 Sanity points to see a child of the wind",
+      "notes": ""
+    },
+    {
+      "id": "mm-chthonian-full-adults",
+      "name": "Chthonian Full Adults",
+      "subtitle": "Tentacled Burrowers",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "52",
+        "CON": "40",
+        "SIZ": "52",
+        "INT": "18",
+        "POW": "18",
+        "DEX": "7",
+        "HP": "46",
+        "MP": "3",
+        "DB": "+5D6 or 6D6",
+        "Move": "6 / 1 burrowing"
+      },
+      "rolls": {
+        "STR": "3D6 x5",
+        "CON": "3D6 + 30",
+        "SIZ": "3D6 x5",
+        "INT": "5D6",
+        "POW": "5D6",
+        "DEX": "2D6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "75%",
+          "damage": "2D6 or 3D6 + 1D6"
+        },
+        {
+          "name": "CON drain each round Crush",
+          "skill": "80%",
+          "damage": "5D6 or 6D6 + db"
+        }
+      ],
+      "armor": "5-point hide and muscle; regenerates 5 hit points per round after wounded, but dies immediately upon reaching zero hit points. Water is lethal to chthonians (see above)",
+      "skills": "",
+      "spells": "a full adult possess spells if an INT x3 roll on 1D100 succeeds; it then has 1D6 spells connected with Shudde M'ell and Great Old Ones tied to this earth, such as Cthulhu, Y'golonac, Yig, etc",
+      "sanity_loss": "1D3/1D20 Sanity points for a full adult; 1/1D10 Sanity points for the lesser instars; no Sanity points to see a hatchling",
+      "notes": ""
+    },
+    {
+      "id": "mm-cold-ones",
+      "name": "Cold Ones",
+      "subtitle": "Ylidheem",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "SIZ": "13",
+        "INT": "13",
+        "POW": "16",
+        "DEX": "21",
+        "HP": "16",
+        "MP": "3",
+        "DB": "N/A",
+        "Move": "50 flying"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "N/A",
+        "SIZ": "2D6+6",
+        "INT": "2D6+6",
+        "POW": "3D6+6",
+        "DEX": "2D10+10"
+      },
+      "attacks": [
+        {
+          "name": "Freezing Touch",
+          "skill": "30%",
+          "damage": "special (see above)"
+        }
+      ],
+      "armor": "none, however, cold ones are immune to all physical attacks. Fire harms them at a rate of 2D6 points of damage per successful strike with a torch, or as per fire-producing weapon/attack",
+      "skills": "Dodge DEX x 2% (average 42%); Hide in Snow 90%; Sneak in Snow 90%",
+      "spells": "a cold one with an INT of 16 or higher knows 1D3 spells, usually dealing with Aphoom Zhah, Rlim Shaikorth, cold, weather, etc",
+      "sanity_loss": "0/1D6 Sanity points to see a cold one; 0/1D3 Sanity points to hear the tortured shriek of a cold one",
+      "notes": ""
+    },
+    {
+      "id": "mm-colours-out-of-space",
+      "name": "Colours Out of Space",
+      "subtitle": "Life-Force Feeders",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "7",
+        "SIZ": "10",
+        "INT": "14",
+        "POW": "7",
+        "DEX": "19",
+        "MP": "1",
+        "DB": "N/A",
+        "Move": "12 pouring / 20 flying"
+      },
+      "rolls": {
+        "STR": "1D6 per 10 POW or fraction",
+        "CON": "N/A",
+        "SIZ": "equal to POW 10-11",
+        "INT": "4D6",
+        "POW": "2D6",
+        "DEX": "2D6+12"
+      },
+      "attacks": [
+        {
+          "name": "Feed",
+          "skill": "85%",
+          "damage": "1D6 + characteristics loss (see above)"
+        },
+        {
+          "name": "Mental Attack",
+          "skill": "100%",
+          "damage": "1D6 magic points + 1D6"
+        },
+        {
+          "name": "SAN Disintegrate",
+          "skill": "100%",
+          "damage": "physical disintegration"
+        },
+        {
+          "name": "Grasp",
+          "skill": "85%",
+          "damage": "no damage"
+        }
+      ],
+      "armor": "none. Invulnerable to physical attack except by strong magnetic fields, which can imprison it. Vulnerable to magic",
+      "skills": "",
+      "spells": "none",
+      "sanity_loss": "0/1D4 Sanity points to see a colour; 1/1D8 Sanity points to see a victim of a colour",
+      "notes": ""
+    },
+    {
+      "id": "mm-crawling-ones",
+      "name": "Crawling Ones",
+      "subtitle": "Wormy Things",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "6",
+        "CON": "14",
+        "SIZ": "13",
+        "INT": "13",
+        "POW": "20",
+        "DEX": "7",
+        "HP": "13",
+        "MP": "4",
+        "DB": "+0",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "1D8+2",
+        "CON": "4D6",
+        "SIZ": "2D6+6",
+        "INT": "2D6+6",
+        "POW": "4D6+6",
+        "DEX": "2D6"
+      },
+      "attacks": [
+        {
+          "name": "Various per base%, damage as per weapon",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "none; however due to the soft and resilient quality of the crawling ones' bodies normal weapons do minimum damage to the things",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-dark-ones",
+      "name": "Dark Ones",
+      "subtitle": "The Strange Dark Folk",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "1",
+        "CON": "10",
+        "SIZ": "1",
+        "INT": "7",
+        "POW": "0",
+        "DEX": "1",
+        "HP": "6",
+        "MP": "0",
+        "DB": "+ host's",
+        "Move": "host's + 1"
+      },
+      "rolls": {
+        "STR": "1",
+        "CON": "3D6",
+        "SIZ": "1",
+        "INT": "2D6",
+        "POW": "0",
+        "DEX": "1"
+      },
+      "attacks": [
+        {
+          "name": "any weapon 75%, damage as per weapon",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "none",
+      "skills": "Ride 75%, Sneak 90%, and any number of appropriate skills",
+      "spells": "none, but may possess strange artifacts to open Gates, to contact other Mythos beings, to invoke mist, winds, storms, etc., at the keeper's discretion. Humans generally cannot utilize the magic-like properties of the dark ones' artifacts",
+      "sanity_loss": "0/1D2 Sanity points to see a dark one, unless it has inhabited a body of someone the investigators know is dead, in which case he Sanity loss is 1/1D6+1 points. Host bodies in the later stages of decomposition may call for a Sanity loss of 1/1D8 or even 1/1D10 points",
+      "notes": ""
+    },
+    {
+      "id": "mm-dark-sargassum",
+      "name": "Dark Sargassum",
+      "subtitle": "Ocean-Dwelling Dark Young of Shub-Niggurath",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "44",
+        "CON": "39",
+        "SIZ": "85",
+        "INT": "14",
+        "POW": "18",
+        "DEX": "16",
+        "HP": "62",
+        "MP": "3",
+        "DB": "+7D6",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "4D6+30",
+        "CON": "6D6+18",
+        "SIZ": "10D6+50",
+        "INT": "4D6",
+        "POW": "5D6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "90%",
+          "damage": "= db or catch (Grapple) Bite automatic when Grappled, 1D3"
+        },
+        {
+          "name": "STR drain per round Crush Ship",
+          "skill": "80%",
+          "damage": "= db"
+        }
+      ],
+      "armor": "firearm attacks do only 1 point of damage. A firearms impale does 2 points of damage. Shotguns are exceptions, and do minimum possible damage, whatever that is. Hand-to-hand weapons do normal damage; attacks dependent on heat, blast, corrosion, electrical charge, or poisoning have no effect",
+      "skills": "Camouflage Self 90%",
+      "spells": "a dark sargassum knows a number of appropriate spells equal to half its INT; round fractions up",
+      "sanity_loss": "1D6/1D20 Sanity points to see a dark sargassum",
+      "notes": ""
+    },
+    {
+      "id": "mm-daughters-of-atlach-nacha",
+      "name": "Daughters of Atlach-nacha",
+      "subtitle": "Weavers of the Great Web",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "22",
+        "CON": "18",
+        "SIZ": "18",
+        "INT": "10",
+        "POW": "13",
+        "DEX": "13",
+        "HP": "18",
+        "MP": "2",
+        "DB": "+2D6",
+        "Move": "5"
+      },
+      "rolls": {
+        "STR": "3D6+12",
+        "CON": "3D6+8",
+        "SIZ": "3D6+8",
+        "INT": "3D6",
+        "POW": "2D6+6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "75%",
+          "damage": "1D10 + venom (see above) Feast automatic when paralyzed, damage 1 INT devoured each round"
+        }
+      ],
+      "armor": "5-points hard shell",
+      "skills": "Sneak 35%",
+      "spells": "all daughters of Atlach-Nacha know both Contact and Call Atlach-Nacha. Daughters with INT scores of 15 or higher know 1D3 additional spells",
+      "sanity_loss": "1/1D8 Sanity points to see a daughter of Atlach-Nacha. Seeing a human molt into a daughter costs an additional 1/1D8 points of Sanity",
+      "notes": ""
+    },
+    {
+      "id": "mm-deep-ones",
+      "name": "Deep Ones",
+      "subtitle": "Gilled Humanoids",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "14",
+        "CON": "10",
+        "SIZ": "16",
+        "INT": "13",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "13",
+        "MP": "2",
+        "DB": "+1D4",
+        "Move": "8 / 10 swimming"
+      },
+      "rolls": {
+        "STR": "4D6",
+        "CON": "3D6",
+        "SIZ": "3D6+6",
+        "INT": "2D6+6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "25%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Hunting Spear",
+          "skill": "25%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Fishing Net",
+          "skill": "15%",
+          "damage": "entangle"
+        }
+      ],
+      "armor": "l-point skin and scales",
+      "skills": "Hide in Water 25%, Listen 30%, Sneak in Water 25%, Spot Hidden 30%",
+      "spells": "at the discretion of the keeper, deep ones with POW 14 or more know at least 1D4 spells. Spells known always relate to Cthulhu, Dagon & Hydra, the star-spawn of Cthulhu, yuggs, and other horrors of the sea",
+      "sanity_loss": "0/1D6 Sanity points to see a deep one. D",
+      "notes": ""
+    },
+    {
+      "id": "mm-denizens-of-s-glhuo",
+      "name": "Denizens of S'GLHUO",
+      "subtitle": "Creatures of Living Sound Living Sound Form Reptilian Form",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "SIZ": "3",
+        "INT": "3",
+        "POW": "3",
+        "DEX": "2",
+        "HP": "26",
+        "MP": "0",
+        "Move": "40 18"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "N/A",
+        "SIZ": "N/A",
+        "INT": "3D6+10 (20-21)",
+        "POW": "3D10+10 (26-27)",
+        "DEX": "2D10+10 (21)"
+      },
+      "attacks": [
+        {
+          "name": "Sound Blast",
+          "skill": "25%",
+          "damage": "1D6"
+        }
+      ],
+      "armor": "none, however as living sound these creatures are immune to all physical damage. Certain spells which affect INT or POW harm them normally, as well as particularly discordant sounds, which are especially harmful to the denizens",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-desh",
+      "name": "Desh",
+      "subtitle": "Things from Another Dimension Lesser Desh Greater Desh",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "4",
+        "CON": "3",
+        "SIZ": "2",
+        "INT": "2",
+        "POW": "3",
+        "DEX": "6",
+        "HP": "3",
+        "MP": "0",
+        "Move": "6 30 Av. DB: N/A none Grab & Trip 35% / special N/A Grab & Hold N/A 45% / restrain for Bite Bite N/A 55% / 1D10"
+      },
+      "rolls": {
+        "STR": "2D6+1 / 8",
+        "CON": "1D6 / 3-4",
+        "SIZ": "1D6 / 3-4",
+        "INT": "1D4 / 2-3",
+        "POW": "1D3 / 2",
+        "DEX": "3D6+1 / 11-12"
+      },
+      "attacks": [],
+      "armor": "none none",
+      "skills": "",
+      "spells": "none keeper's choice (likely with very bizarre effects in this dimension)",
+      "sanity_loss": "0/1D3 1/1D4+1 D",
+      "notes": ""
+    },
+    {
+      "id": "mm-dholes-bholes",
+      "name": "Dholes & Bholes",
+      "subtitle": "Burrowing Horrors",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "505",
+        "CON": "150",
+        "SIZ": "555",
+        "INT": "7",
+        "POW": "35",
+        "DEX": "2",
+        "HP": "70",
+        "MP": "7",
+        "Move": "18 crawl / 10 burrow HP 353-354"
+      },
+      "rolls": {
+        "STR": "1D100x10",
+        "CON": "1D100+100",
+        "SIZ": "STR+1D100",
+        "INT": "2D6",
+        "POW": "10D6",
+        "DEX": "1D4"
+      },
+      "attacks": [
+        {
+          "name": "Spit Goo",
+          "skill": "50%",
+          "damage": "special (see above)"
+        },
+        {
+          "name": "Engulf",
+          "skill": "80%",
+          "damage": "swallow whole"
+        },
+        {
+          "name": "Crush",
+          "skill": "30%",
+          "damage": "death"
+        }
+      ],
+      "armor": "points = the dhole's POW",
+      "skills": "",
+      "spells": "none",
+      "sanity_loss": "1D6/2D20 Sanity points to see a dhole or a bhole",
+      "notes": ""
+    },
+    {
+      "id": "mm-dimensional-shamblers",
+      "name": "Dimensional Shamblers",
+      "subtitle": "the Murderously Malign",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "19",
+        "CON": "16",
+        "SIZ": "19",
+        "INT": "7",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "18",
+        "MP": "2",
+        "DB": "+1D6",
+        "Move": "7"
+      },
+      "rolls": {
+        "STR": "2D6+12",
+        "CON": "3D6+6",
+        "SIZ": "2D6+12",
+        "INT": "2D6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "30%",
+          "damage": "1D8 + db"
+        }
+      ],
+      "armor": "3-point thick hide",
+      "skills": "Listen 25%, Spot Hidden 25%",
+      "spells": "a shambler knows one spell per point of INT over 9",
+      "sanity_loss": "0/1D10 Sanity points to see a dimensional shambler",
+      "notes": ""
+    },
+    {
+      "id": "mm-dreams",
+      "name": "Dreams",
+      "subtitle": "",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "SIZ": "14",
+        "INT": "15",
+        "POW": "13",
+        "DEX": "15",
+        "HP": "13",
+        "MP": "2",
+        "Move": "10 floating in the air"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "N/A",
+        "SIZ": "3D6+3",
+        "INT": "2D6+8",
+        "POW": "2D6+6",
+        "DEX": "2D6+8"
+      },
+      "attacks": [
+        {
+          "name": "Entangle",
+          "skill": "35%",
+          "damage": "special (see above)"
+        }
+      ],
+      "armor": "none, but these creatures take damage only from enchanted weapons and magic which affects INT or POW",
+      "skills": "Move Silently 100%",
+      "spells": "if a guardian's INT is rolled on 1D100 or less, then it knows that many spells. These creatures have the unique ability of being able to cast Dreamlands spells in the waking world. If a guardian knows spells they are likely to be those of the Dreamlands",
+      "sanity_loss": "0/1D6 Sanity points to see a guardian",
+      "notes": ""
+    },
+    {
+      "id": "mm-dust-men",
+      "name": "Dust-men",
+      "subtitle": "SleepWalkers Dreamlands Waking World Dust-Man Dust-Man",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "2",
+        "CON": "3",
+        "SIZ": "2",
+        "INT": "2",
+        "POW": "2",
+        "DEX": "3",
+        "HP": "9",
+        "MP": "0",
+        "Move": "8 10 or varies (carried by wind or blown)"
+      },
+      "rolls": {
+        "STR": "2D6+2 / 9",
+        "CON": "3D6 / 10-11",
+        "SIZ": "2D6+2 / 9",
+        "INT": "2D6+6 / 13",
+        "POW": "2D6+2 / 9",
+        "DEX": "3D6+6 / 16-17"
+      },
+      "attacks": [
+        {
+          "name": "Whirl",
+          "skill": "100%",
+          "damage": "inhale & special (see above) Sleep-Walk POW vs. POW, damage special (see above)"
+        }
+      ],
+      "armor": "none",
+      "skills": "Hide 80%, Sneak 60%",
+      "spells": "Dust-men with a POW of 16 or more may know 1D4 Dreamlands spells. They may not cast any spells in the waking world",
+      "sanity_loss": "0/1D4 Sanity points to see a dust-man's humanoid Dreamlands form; no Sanity loss to encounter the swirling dust of a dust-man in the waking world",
+      "notes": ""
+    },
+    {
+      "id": "mm-dwellers-in-the-depths",
+      "name": "Dwellers In the Depths",
+      "subtitle": "Aquatic Horrors",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "20",
+        "CON": "20",
+        "SIZ": "23",
+        "INT": "13",
+        "POW": "16",
+        "DEX": "13",
+        "HP": "21",
+        "MP": "3",
+        "DB": "+2D6",
+        "Move": "7 / 12 swim"
+      },
+      "rolls": {
+        "STR": "4D6+6",
+        "CON": "4D6+6",
+        "SIZ": "2D6+16",
+        "INT": "2D6+6",
+        "POW": "3D6+6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "35%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "none, however these creatures are immune to most physical damage—the exception to this is the brain-organ. Any damage done to the creatures' brain-organs instantly kills them. A successful attack to one of these creatures has a 10% chance of striking the brain-organ, thereby instantly killing it. Fire, electricity, and magic can inflict normal damage upon these creatures",
+      "skills": "",
+      "spells": "all know 2D6 spells. Known spells always relate to Cthulhu, deep ones, and other related aquatic horrors",
+      "sanity_loss": "0/1D8 Sanity points to see a dweller in the depths",
+      "notes": ""
+    },
+    {
+      "id": "mm-elder-things",
+      "name": "Elder Things",
+      "subtitle": "The Old Ones, City-Builders Eons Old",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "38",
+        "CON": "22",
+        "SIZ": "28",
+        "INT": "16",
+        "POW": "10",
+        "DEX": "16",
+        "HP": "25",
+        "MP": "2",
+        "DB": "+3D6",
+        "Move": "8 / 10 flying"
+      },
+      "rolls": {
+        "STR": "4D6+24",
+        "CON": "3D6+12",
+        "SIZ": "8D6",
+        "INT": "1D6+12",
+        "POW": "3D6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "40%",
+          "damage": "1/2 db in constriction"
+        }
+      ],
+      "armor": "7-point skin",
+      "skills": "Sneak 30%, Track 25%",
+      "spells": "each has INT x3 chance to know 1D4 appropriate spells",
+      "sanity_loss": "0/1D6 Sanity points to see an elder thing",
+      "notes": ""
+    },
+    {
+      "id": "mm-fire-vampires",
+      "name": "Fire Vampires",
+      "subtitle": "the Flame Feeders",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "CON": "7",
+        "SIZ": "1",
+        "INT": "10",
+        "POW": "13",
+        "DEX": "16",
+        "HP": "4",
+        "MP": "2",
+        "Move": "11 / flying"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "2D6",
+        "SIZ": "1",
+        "INT": "3D6",
+        "POW": "2D6+6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Touch",
+          "skill": "85%",
+          "damage": "2D6 burn + magic point drain (see above)"
+        }
+      ],
+      "armor": "most material weapons cannot harm them, including bullets, etc. Water costs a fire vampire one hit point per halfgallon poured over it, a typical hand-held fire extinguisher does 1D6 hit points of damage to it, and a bucket of sand costs it 1D3 hit points",
+      "skills": "Track 25%",
+      "spells": "fire vampires with a POW of 17 or more have at least 1D3 spells. Spells always relate to Cthugha, Fthagghua, and similar entities",
+      "sanity_loss": "seeing a fire vampire costs no Sanity points",
+      "notes": ""
+    },
+    {
+      "id": "mm-fishers-from-outside",
+      "name": "Fishers from Outside",
+      "subtitle": "Servants of Groth-golka",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "26",
+        "CON": "13",
+        "SIZ": "30",
+        "INT": "10",
+        "POW": "10",
+        "DEX": "16",
+        "HP": "21",
+        "MP": "2",
+        "DB": "+2D6",
+        "Move": "3 / 35 flying"
+      },
+      "rolls": {
+        "STR": "3D6+15",
+        "CON": "2D6+6",
+        "SIZ": "3D6+20",
+        "INT": "3D6",
+        "POW": "3D6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "50%",
+          "damage": "2D6"
+        },
+        {
+          "name": "Talons",
+          "skill": "35%",
+          "damage": "scratch damage 1D6 or grasp and crush 1D6 + db"
+        }
+      ],
+      "armor": "9-point thick scales",
+      "skills": "Listen 25%, Spot Hidden 25%",
+      "spells": "none",
+      "sanity_loss": "0/1D6 Sanity points to see a fisher from outside",
+      "notes": ""
+    },
+    {
+      "id": "mm-flying-polyps",
+      "name": "Flying Polyps",
+      "subtitle": "Terrors from the Blackness Below",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "50",
+        "CON": "25",
+        "SIZ": "50",
+        "INT": "14",
+        "POW": "16",
+        "DEX": "13",
+        "HP": "38",
+        "MP": "3",
+        "DB": "+5D6 (used only for wind blast)",
+        "Move": "8 / 12 flying"
+      },
+      "rolls": {
+        "STR": "4D6+36",
+        "CON": "2D6+18",
+        "SIZ": "4D6+36",
+        "INT": "4D6",
+        "POW": "3D6+6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "85%",
+          "damage": "1D10"
+        },
+        {
+          "name": "Windblast",
+          "skill": "70%",
+          "damage": "db lowered by 1D6 per 20 yards distance"
+        }
+      ],
+      "armor": "4-point, plus invisibility. The extra-terrene flying polyp takes only minimum damage from physical weapons. Enchanted weapons do full normal damage, as do forces such as heat or electricity",
+      "skills": "Hide 30%, Track 35%",
+      "spells": "roll 1D20. If the roll is higher than the polyp's INT, it knows no spells. Otherwise, the polyp knows a number of spells equal to the die roll. The kindly keeper chooses those that seem appropriate",
+      "sanity_loss": "1D3/1D20 Sanity points to see a flying polyp",
+      "notes": ""
+    },
+    {
+      "id": "mm-fosterlings-of-the-old-ones",
+      "name": "Fosterlings of the Old Ones",
+      "subtitle": "Bastard Children of Alien Gods",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "27",
+        "CON": "27",
+        "SIZ": "29",
+        "INT": "2",
+        "POW": "16",
+        "DEX": "16",
+        "HP": "28",
+        "MP": "3",
+        "DB": "+3D6",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "3D6+3D10",
+        "CON": "3D6+3D10",
+        "SIZ": "2D6+3D10",
+        "INT": "2D6+6+1D10 18-19",
+        "POW": "3D6+1D10",
+        "DEX": "3D6+1D10"
+      },
+      "attacks": [
+        {
+          "name": "Crush",
+          "skill": "75%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "none, but the fosterlings of the Old Ones take minimal damage from non-enchanted weapons",
+      "skills": "some may retain skills had as normal humans, but many will be at severe penalties due to their size, body, etc",
+      "spells": "all fosterlings may Call their parent deity and Summon/Bind or Contact members of that deity's servant race, if any; those with INT know at least 1D6 other spells",
+      "sanity_loss": "1/1D10 Sanity points to see a fosterling of the Old Ones",
+      "notes": ""
+    },
+    {
+      "id": "mm-ghasts",
+      "name": "Ghasts",
+      "subtitle": "Unwholesome Scabrous Beasts",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "22",
+        "CON": "14",
+        "SIZ": "26",
+        "INT": "4",
+        "POW": "10",
+        "DEX": "13",
+        "HP": "20",
+        "MP": "2",
+        "DB": "+2D6",
+        "Move": "10"
+      },
+      "rolls": {
+        "STR": "3D6+12",
+        "CON": "4D6",
+        "SIZ": "4D6+12",
+        "INT": "1D6",
+        "POW": "3D6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "40%",
+          "damage": "1D10"
+        },
+        {
+          "name": "Kick",
+          "skill": "25%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "3-point thick skin",
+      "skills": "Sneak 70%",
+      "spells": "none",
+      "sanity_loss": "0/1D8 Sanity points to see a ghast",
+      "notes": ""
+    },
+    {
+      "id": "mm-ghouls",
+      "name": "Ghouls",
+      "subtitle": "Mocking Charnel Feeders",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "16",
+        "CON": "13",
+        "SIZ": "13",
+        "INT": "13",
+        "POW": "13",
+        "DEX": "13",
+        "HP": "13",
+        "MP": "2",
+        "DB": "+1D4",
+        "Move": "9"
+      },
+      "rolls": {
+        "STR": "3D6+6",
+        "CON": "2D6+6",
+        "SIZ": "2D6+6",
+        "INT": "2D6+6",
+        "POW": "2D6+6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Claws",
+          "skill": "30%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Bite",
+          "skill": "30%",
+          "damage": "1D6 + automatic worry"
+        }
+      ],
+      "armor": "firearms and projectiles do half of rolled damage; round up any fraction",
+      "skills": "Burrow 75%, Climb 85%, Hide 60%, Jump 75%, Listen 70%, Scent Decay 65%, Sneak 80%, Spot Hidden 50%",
+      "spells": "roll 1D100 — if the roll is higher than the ghoul's INT, it knows no spells; if equal to or lower than INT, it may know that many spells, as chosen by the keeper. Ghouls generally do not use spells or magic",
+      "sanity_loss": "0/1D6 Sanity points to see a ghoul",
+      "notes": ""
+    },
+    {
+      "id": "mm-glaaki",
+      "name": "Glaaki",
+      "subtitle": "Decaying Slaves",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "20",
+        "SIZ": "13",
+        "INT": "13",
+        "POW": "10",
+        "DEX": "4",
+        "HP": "17",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "5"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6x2",
+        "SIZ": "2D6+6",
+        "INT": "2D6+6",
+        "POW": "3D6",
+        "DEX": "1D6"
+      },
+      "attacks": [
+        {
+          "name": "Grapple",
+          "skill": "20%",
+          "damage": "special"
+        },
+        {
+          "name": "Sickle",
+          "skill": "40%",
+          "damage": "1D6 + 1 + db"
+        }
+      ],
+      "armor": "none",
+      "skills": "Sneak 35%",
+      "spells": "retains any known when alive, plus any new spells taught by Glaaki",
+      "sanity_loss": "no Sanity point loss if human-seeming; 1/1D8 Sanity points lost if in living-corpse aspect; if dead from Green Decay, 1/1D10 Sanity points to see",
+      "notes": ""
+    },
+    {
+      "id": "mm-gn-icht-tyaacht",
+      "name": "Gn'icht' Tyaacht",
+      "subtitle": "Tree-Dwelling Horrors",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "17",
+        "CON": "22",
+        "SIZ": "21",
+        "INT": "5",
+        "POW": "7",
+        "DEX": "16",
+        "HP": "22",
+        "MP": "1",
+        "DB": "+1D6",
+        "Move": "12"
+      },
+      "rolls": {
+        "STR": "2D6+10",
+        "CON": "3D6+12",
+        "SIZ": "2D6+14",
+        "INT": "2D6-2",
+        "POW": "2D6",
+        "DEX": "3D6+5"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "40%",
+          "damage": "2D6 + db"
+        }
+      ],
+      "armor": "the gn'icht' tyaacht are able to change the texture of their skins from almost intangible when entering their trees to a thick, woody form for fighting. This latter acts as 5-point armor. They always adopt their thick skinned form when out of concealment, and thus can only be caught without armor if surprised when leaving or entering their trees, or when hidden",
+      "skills": "Climb 80%, Hide 80%, Jump 40%, Sneak 75%, Track 50%",
+      "spells": "none individually. See above for grove spells",
+      "sanity_loss": "anyone seeing a single gn'icht' tyaacht must make a Sanity roll, losing 1D6 if the roll is failed. Seeing a gn'icht' tyaacht emerge from its tree has a greater penalty of 1/1D10 Sanity points",
+      "notes": ""
+    },
+    {
+      "id": "mm-gnoph-keh",
+      "name": "Gnoph-keh",
+      "subtitle": "Legends of the Ice",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "31",
+        "CON": "22",
+        "SIZ": "31",
+        "INT": "16",
+        "POW": "21",
+        "DEX": "14",
+        "HP": "27",
+        "MP": "4",
+        "DB": "+3D6",
+        "Move": "9"
+      },
+      "rolls": {
+        "STR": "2D6+24",
+        "CON": "3D6+12",
+        "SIZ": "2D6+24",
+        "INT": "1D6+12",
+        "POW": "6D6",
+        "DEX": "4D6"
+      },
+      "attacks": [
+        {
+          "name": "Horn Gore",
+          "skill": "65%",
+          "damage": "1D10 + db"
+        },
+        {
+          "name": "Claw",
+          "skill": "45%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "9-point gristle, fur, and hide",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-goatswood-gnomes",
+      "name": "Goatswood Gnomes",
+      "subtitle": "enchanted servants",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "7",
+        "CON": "18",
+        "SIZ": "4",
+        "INT": "10",
+        "POW": "13",
+        "DEX": "10",
+        "HP": "10",
+        "MP": "2",
+        "DB": "-1D6",
+        "Move": "9"
+      },
+      "rolls": {
+        "STR": "2D6",
+        "CON": "5D6",
+        "SIZ": "1D3+2",
+        "INT": "3D6",
+        "POW": "2D6+6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Claws",
+          "skill": "30%",
+          "damage": "1D3 + db"
+        },
+        {
+          "name": "Bite",
+          "skill": "40%",
+          "damage": "1D4"
+        }
+      ],
+      "armor": "9-point tough hide",
+      "skills": "Hide 75%, Sneak 50%",
+      "spells": "if the gnome's INT or less is rolled on 1D100 it knows 1D3 spells. Spells typical to these creatures are those dealing with Shub-Niggurath, the Outer God's spawn, and other powers and entities of nature and the elements",
+      "sanity_loss": "0/1D3 Sanity points to see a Goatswood gnome",
+      "notes": ""
+    },
+    {
+      "id": "mm-gof-nn-hupadgh-shub-niggurath",
+      "name": "Gof'nn Hupadgh Shub-niggurath",
+      "subtitle": "the blessed of Shub-Niggurath, goblins",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "16",
+        "SIZ": "13",
+        "INT": "10",
+        "POW": "16",
+        "DEX": "10",
+        "HP": "11",
+        "MP": "3",
+        "DB": "+0",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6+6",
+        "SIZ": "2D6+6",
+        "INT": "3D6",
+        "POW": "3D6+6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "30%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Bite",
+          "skill": "30%",
+          "damage": "1D4"
+        },
+        {
+          "name": "Gore",
+          "skill": "20%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Improvised Weapon",
+          "skill": "25%",
+          "damage": "as per weapon + db"
+        }
+      ],
+      "armor": "none. Regenerates 1D6 hit points each round until dead",
+      "skills": "they retain most of the skills they had as humans, plus Hide 90% and Sneak at 70%",
+      "spells": "all know Call Shub-Niggurath, Summon/Bind Dark Young of Shub-Niggurath, Body Warping, Become Spectral, Scarlet Circles, plus 1D3 other spells",
+      "sanity_loss": "0/1D4 Sanity points to see most gof'nn hupadgh ShubNiggurath—1/1D6 for really horrible mutations",
+      "notes": ""
+    },
+    {
+      "id": "mm-greater-brothers-of-chaugnar-faugn",
+      "name": "Greater Brothers of Chaugnar Faugn",
+      "subtitle": "Vampiric Elephantine Horrors",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "33",
+        "CON": "70",
+        "SIZ": "20",
+        "INT": "13",
+        "POW": "18",
+        "DEX": "15",
+        "HP": "45",
+        "MP": "3",
+        "Move": "8 / 12 flying"
+      },
+      "rolls": {
+        "STR": "33+/-1D6",
+        "CON": "70+/-1D6",
+        "SIZ": "20+/-1D6",
+        "INT": "13+/-1D6",
+        "POW": "18+/-1D6",
+        "DEX": "15+/-1D6"
+      },
+      "attacks": [
+        {
+          "name": "Grapple",
+          "skill": "40%",
+          "damage": "grapples first to hold immobile for blood drain"
+        },
+        {
+          "name": "Blood Drain",
+          "skill": "100%",
+          "damage": "when Grappled, damage 1D6"
+        },
+        {
+          "name": "CON drain each round Crush",
+          "skill": "35%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "none; however only magic or enchanted weapons can harm them",
+      "skills": "Listen 60%, Spot Hidden 60%",
+      "spells": "Contact Chaugnar Faugn, Summon/Bind Lesser Brothers of Chaugnar Faugn, plus at least 1D10 others",
+      "sanity_loss": "inert, a greater brother of Chaugnar Faugn costs 0/1D4 Sanity points to see; animated and active, it costs 1D3/1D8 Sanity points",
+      "notes": ""
+    },
+    {
+      "id": "mm-gugs",
+      "name": "Gugs",
+      "subtitle": "Unclean Giants of the Dreamlands",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "45",
+        "CON": "28",
+        "SIZ": "57",
+        "INT": "13",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "43",
+        "MP": "2",
+        "DB": "+5D6",
+        "Move": "10"
+      },
+      "rolls": {
+        "STR": "6D6+24",
+        "CON": "3D6+18",
+        "SIZ": "6D6+36",
+        "INT": "2D6+6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "60%",
+          "damage": "1D10"
+        },
+        {
+          "name": "Claws",
+          "skill": "40%",
+          "damage": "4D6 each (no db)"
+        },
+        {
+          "name": "Stomp",
+          "skill": "25%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "8-point skin, hair, and cartilage",
+      "skills": "",
+      "spells": "some gugs know a few spells. To simulate this, roll 1D100 for each random gug. Only if the die roll is equal to or lower than the gug's POW does it know magic, a number of magic spells equal to the die roll",
+      "sanity_loss": "0/1D8 Sanity points to see a gug",
+      "notes": ""
+    },
+    {
+      "id": "mm-gyaa-yothn",
+      "name": "Gyaa-yothn",
+      "subtitle": "Beasts of Burden",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "27",
+        "CON": "14",
+        "SIZ": "30",
+        "INT": "6",
+        "POW": "10",
+        "DEX": "13",
+        "HP": "21",
+        "MP": "2",
+        "DB": "+3D6",
+        "Move": "12"
+      },
+      "rolls": {
+        "STR": "6D6+6",
+        "CON": "4D6",
+        "SIZ": "5D6+12",
+        "INT": "1D6+3",
+        "POW": "3D6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "30%",
+          "damage": "2D8"
+        },
+        {
+          "name": "Claw",
+          "skill": "30%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Kick",
+          "skill": "40%",
+          "damage": "1D6 + db"
+        }
+      ],
+      "armor": "3-point skin",
+      "skills": "Sneak 50%",
+      "spells": "none",
+      "sanity_loss": "0/1D8 Sanity points to see a gyaa-yothn",
+      "notes": ""
+    },
+    {
+      "id": "mm-hunting-horrors",
+      "name": "Hunting Horrors",
+      "subtitle": "Great Viperine Flyers",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "30",
+        "CON": "10",
+        "SIZ": "42",
+        "INT": "16",
+        "POW": "21",
+        "DEX": "14",
+        "HP": "26",
+        "MP": "4",
+        "DB": "+3D6",
+        "Move": "7 / 11 flying"
+      },
+      "rolls": {
+        "STR": "5D6+12",
+        "CON": "3D6",
+        "SIZ": "5D6+24",
+        "INT": "1D6+12",
+        "POW": "6D6",
+        "DEX": "3D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "65%",
+          "damage": "1D6"
+        },
+        {
+          "name": "Tail",
+          "skill": "90%",
+          "damage": "Grapple"
+        }
+      ],
+      "armor": "9-point skin; cannot be impaled by bullets",
+      "skills": "Listen 35%, Spot Hidden 35%, Track 35%",
+      "spells": "roll 1D100. If the result is equal to or less than the monster's INT, it knows a number of spells equal to the 1D100 roll",
+      "sanity_loss": "0/1D10 Sanity points to see a hunting horror",
+      "notes": ""
+    },
+    {
+      "id": "mm-hyperboreans",
+      "name": "Hyperboreans",
+      "subtitle": "Builders of a Once-great Civilization",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "11",
+        "INT": "15",
+        "POW": "10",
+        "DEX": "10",
+        "APP": "10",
+        "EDU": "18",
+        "HP": "2",
+        "MP": "2"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "2D4+6",
+        "INT": "2D6+8",
+        "POW": "3D6",
+        "DEX": "3D6",
+        "APP": "3D6",
+        "EDU": "3D6+8"
+      },
+      "attacks": [],
+      "armor": "",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-inhabitants-of-l-gy-hx",
+      "name": "Inhabitants of L'GY'HX",
+      "subtitle": "Metal Cuboid Aliens",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "21",
+        "CON": "16",
+        "SIZ": "17",
+        "INT": "17",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "16",
+        "MP": "2",
+        "DB": "+1D6",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "6D6",
+        "CON": "3D6+6",
+        "SIZ": "2D6+10",
+        "INT": "2D6+10",
+        "POW": "3D6",
+        "DEX": "2D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Knife",
+          "skill": "25%",
+          "damage": "1D8 + db"
+        },
+        {
+          "name": "Whip",
+          "skill": "30%",
+          "damage": "1D4 + 2D10 electrical shock The knife can cut through metal as easily as through soft flesh. The whip emits an electrical charge upon contact which inflicts an additional 2D10 damage. If an impale is rolled when using the whip, it wraps around the victim, who suffers an automatic 2D10 electrical damage each round thereafter. A successful Dodge roll allows a victim to avoid the whip"
+        }
+      ],
+      "armor": "19-point metal skin",
+      "skills": "Electrical Repair 50%, Mechanical Repair 50%",
+      "spells": "if the L'gy'hxian's INT or less is rolled on 1D100 it knows that many spells. Contact Lrogg is always among spells known",
+      "sanity_loss": "0/1D8 Sanity points to see an inhabitant of L'gy'hx",
+      "notes": ""
+    },
+    {
+      "id": "mm-lumens",
+      "name": "Lumens",
+      "subtitle": "Pine Lights, Witch Lights, Corpse Lights, Jack O'Lanterns, Will-o'-The-Wisps",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "2",
+        "CON": "4",
+        "SIZ": "1",
+        "INT": "10",
+        "POW": "10",
+        "DEX": "22",
+        "HP": "2",
+        "MP": "2",
+        "DB": "N/A",
+        "Move": "10 flying"
+      },
+      "rolls": {
+        "STR": "1D4",
+        "CON": "1D6",
+        "SIZ": "1",
+        "INT": "3D6",
+        "POW": "3D6",
+        "DEX": "3D6+12"
+      },
+      "attacks": [
+        {
+          "name": "Cold Burn",
+          "skill": "50%",
+          "damage": "permanent loss of 1D6 CON"
+        }
+      ],
+      "armor": "none, but immune to all forms of non-magical attacks",
+      "skills": "Track 25%",
+      "spells": "a lumen with an INT of 15 or more knows 1D3 spells",
+      "sanity_loss": "0/1D4 Sanity points to see lumens",
+      "notes": ""
+    },
+    {
+      "id": "mm-martense-kin",
+      "name": "Martense Kin",
+      "subtitle": "Degenerate Ape-Things",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "7",
+        "CON": "10",
+        "SIZ": "6",
+        "INT": "7",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "8",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "2D6",
+        "CON": "3D6",
+        "SIZ": "1D4+4",
+        "INT": "2D6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "25%",
+          "damage": "1D3"
+        },
+        {
+          "name": "Bite",
+          "skill": "25%",
+          "damage": "1D2"
+        }
+      ],
+      "armor": "",
+      "skills": "Hide 30%, Listen 30%, Sneak 25%, Spot Hidden 25%",
+      "spells": "none",
+      "sanity_loss": "0/1D3 Sanity points to see the Martense kin. 1/1D6 Sanity points to see a large swarm of these creatures",
+      "notes": ""
+    },
+    {
+      "id": "mm-martians",
+      "name": "Martians",
+      "subtitle": "Invaders from the Red Planet",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "16",
+        "CON": "7",
+        "SIZ": "26",
+        "INT": "16",
+        "POW": "10",
+        "DEX": "16",
+        "HP": "16",
+        "MP": "2",
+        "DB": "+2D6",
+        "Move": "1"
+      },
+      "rolls": {
+        "STR": "3D6+6",
+        "CON": "2D6",
+        "SIZ": "4D6+12",
+        "INT": "3D6+6",
+        "POW": "3D6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Grapple",
+          "skill": "50%",
+          "damage": "special"
+        }
+      ],
+      "armor": "none, however, all physical weapons do only half damage",
+      "skills": "+15% to all sciences",
+      "spells": "none",
+      "sanity_loss": "1/1D8 Sanity points for seeing a Martian",
+      "notes": ""
+    },
+    {
+      "id": "mm-men-of-leng",
+      "name": "Men of Leng",
+      "subtitle": "Almost-Human Slaves of the Moon-Beasts",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "13",
+        "POW": "10",
+        "DEX": "10",
+        "APP": "7",
+        "HP": "2",
+        "MP": "2"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "2D6+6",
+        "POW": "3D6",
+        "DEX": "3D6",
+        "APP": "2D6",
+        "EDU": "N/A"
+      },
+      "attacks": [],
+      "armor": "",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-mi-go",
+      "name": "Mi-go",
+      "subtitle": "the Fungi From Yuggoth",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "10",
+        "INT": "13",
+        "POW": "13",
+        "DEX": "14",
+        "HP": "10",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "7 / 9 flying"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "3D6",
+        "INT": "2D6+6",
+        "POW": "2D6+6",
+        "DEX": "4D6"
+      },
+      "attacks": [
+        {
+          "name": "Nippers",
+          "skill": "30%",
+          "damage": "1D6 +"
+        },
+        {
+          "name": "Grapple Electric Gun",
+          "skill": "15%",
+          "damage": "1D10 + special (see above)"
+        }
+      ],
+      "armor": "none, but the extra-terrene body causes all impaling weapons to do minimum possible damage. The mi-go also have a bio-armor which the may wear, and which affords them 8point protection against blows, flame, electricity, etc., but do not protect against impaling attacks",
+      "skills": "Hide 15%, Sneak 15%, +20% to all sciences",
+      "spells": "each has an INT x2 chance to know 1D3 spells",
+      "sanity_loss": "0/1D6 Sanity points to see a mi-go, from Yuggoth or elsewhere",
+      "notes": ""
+    },
+    {
+      "id": "mm-mind-parasites",
+      "name": "Mind Parasites",
+      "subtitle": "Mental Vampires",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "INT": "15",
+        "POW": "1",
+        "MP": "0",
+        "DB": "N/A",
+        "Move": "N/A"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "N/A",
+        "SIZ": "N/A",
+        "INT": "2D6+8",
+        "POW": "1",
+        "DEX": "N/A"
+      },
+      "attacks": [
+        {
+          "name": "Magic Point Drain automatic, damage 3D6 magic points + 1D4 SAN per 5 MP lost",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "N/A",
+      "skills": "N/A",
+      "spells": "N/A",
+      "sanity_loss": "1/1D10 Sanity points upon becoming aware of the mind parasites",
+      "notes": ""
+    },
+    {
+      "id": "mm-miri-nigri",
+      "name": "Miri Nigri",
+      "subtitle": "Dark Dwarves",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "7",
+        "CON": "10",
+        "SIZ": "6",
+        "INT": "7",
+        "POW": "10",
+        "DEX": "16",
+        "APP": "4",
+        "HP": "8",
+        "MP": "2",
+        "DB": "none",
+        "Move": "8 / 8 swimming"
+      },
+      "rolls": {
+        "STR": "2D6",
+        "CON": "3D6",
+        "SIZ": "1D4+4",
+        "INT": "2D6",
+        "POW": "3D6",
+        "DEX": "3D6+6",
+        "APP": "1D6"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "35%",
+          "damage": "1D3"
+        }
+      ],
+      "armor": "none",
+      "skills": "Sneak 90%, Swim 75%",
+      "spells": "none",
+      "sanity_loss": "0/1D2 Sanity points to see the min nigri",
+      "notes": ""
+    },
+    {
+      "id": "mm-moon-beasts",
+      "name": "Moon-beasts",
+      "subtitle": "Lunar Tyrants",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "16",
+        "CON": "13",
+        "SIZ": "20",
+        "INT": "16",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "17",
+        "MP": "2",
+        "DB": "+1D6",
+        "Move": "7"
+      },
+      "rolls": {
+        "STR": "3D6+6",
+        "CON": "2D6+6",
+        "SIZ": "3D6+10",
+        "INT": "2D6+9",
+        "POW": "3D6",
+        "DEX": "2D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Spear",
+          "skill": "25%",
+          "damage": "1D10 + 1 + db"
+        }
+      ],
+      "armor": "none, but their peculiar body substance and arrangement causes them to lose minimum possible hit points from successful firearms attacks",
+      "skills": "",
+      "spells": "moon-beasts know at least 1D3 spells",
+      "sanity_loss": "0/1D8 Sanity points to see a moon-beast",
+      "notes": ""
+    },
+    {
+      "id": "mm-nightgaunts",
+      "name": "Nightgaunts",
+      "subtitle": "the Faceless Silent Fliers",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "14",
+        "INT": "4",
+        "POW": "10",
+        "DEX": "13",
+        "HP": "12",
+        "MP": "2",
+        "Move": "6 / 12 flying"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "4D6",
+        "INT": "1D6",
+        "POW": "3D6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Grapple",
+          "skill": "30%",
+          "damage": "held for tickling"
+        },
+        {
+          "name": "Tickle",
+          "skill": "30%",
+          "damage": "immobilized 1D6 + 1 rounds"
+        }
+      ],
+      "armor": "2-point skin",
+      "skills": "Hide 90%, Sneak 90%",
+      "spells": "none",
+      "sanity_loss": "0/1D6 Sanity points to see a nightgaunt",
+      "notes": ""
+    },
+    {
+      "id": "mm-nioth-korghai",
+      "name": "Nioth-korghai",
+      "subtitle": "Space Vampires",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "28",
+        "CON": "28",
+        "SIZ": "28",
+        "INT": "16",
+        "POW": "16",
+        "DEX": "13",
+        "HP": "28",
+        "MP": "3",
+        "DB": "+3D6",
+        "Move": "6 / 10 swim"
+      },
+      "rolls": {
+        "STR": "3D6+18",
+        "CON": "3D6+18",
+        "SIZ": "8D6",
+        "INT": "1D6+12",
+        "POW": "3D6+6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "40%",
+          "damage": "1D6 + db or Grapple Life Force Drain automatic when Grappled, damage 1D6 POW, 1D3 CON, & 1D3 APP drained per round"
+        }
+      ],
+      "armor": "none, but the nioth-korghai cannot be wounded anywhere but in the solar plexus region. A hit to this area with a lead weapon causes instant death. To strike the solar plexus an investigator must roll 10% or less of his or her attack skill",
+      "skills": "",
+      "spells": "none, normally",
+      "sanity_loss": "1/1D8 Sanity points to see the true form of the niothkorghai",
+      "notes": ""
+    },
+    {
+      "id": "mm-ny-ghan-grii",
+      "name": "Ny'ghan Grii",
+      "subtitle": "ExtraDimensional Invaders",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "20",
+        "CON": "16",
+        "SIZ": "18",
+        "INT": "10",
+        "POW": "13",
+        "DEX": "7",
+        "HP": "17",
+        "MP": "2",
+        "DB": "+1D6",
+        "Move": "2 crawl / 8 fly"
+      },
+      "rolls": {
+        "STR": "3D6+10",
+        "CON": "3D6+6",
+        "SIZ": "5D6",
+        "INT": "3D6",
+        "POW": "2D6+6",
+        "DEX": "2D6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacles",
+          "skill": "35%",
+          "damage": "= db"
+        },
+        {
+          "name": "Chilling Blast",
+          "skill": "65%",
+          "damage": "1D6 to all in a five-foot diameter"
+        }
+      ],
+      "armor": "4-point tough, fleshy hide. Cold does not affect them",
+      "skills": "",
+      "spells": "on a roll of its INT x5 or less on 1D00, a ny'ghan grii knows 1D6 spells",
+      "sanity_loss": "0/1D6 Sanity points to see a ny'ghan grii",
+      "notes": ""
+    },
+    {
+      "id": "mm-othuum",
+      "name": "Othuum",
+      "subtitle": "SERVANTS OF, Greater Servitor Race",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "28",
+        "CON": "27",
+        "SIZ": "28",
+        "INT": "14",
+        "POW": "18",
+        "DEX": "19",
+        "HP": "27",
+        "MP": "3",
+        "DB": "+3D6",
+        "Move": "10 squirm / 14 swim"
+      },
+      "rolls": {
+        "STR": "8D6",
+        "CON": "6D6+6",
+        "SIZ": "3D6+18",
+        "INT": "4D6",
+        "POW": "5D6",
+        "DEX": "2D6+12"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "75%",
+          "damage": "3D6 or Grapple Bite automatic when Grappled, damage 2D4 per round"
+        }
+      ],
+      "armor": "7-point slimy hide",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-people-of-k-n-yan",
+      "name": "People of K'N-YAN",
+      "subtitle": "Psychic Subterranean Dwellers",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "13",
+        "INT": "19",
+        "POW": "13",
+        "DEX": "10",
+        "APP": "10",
+        "EDU": "20",
+        "HP": "2",
+        "MP": "2"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "2D6+6",
+        "INT": "2D6+12",
+        "POW": "3D6+1D4",
+        "DEX": "3D6",
+        "APP": "3D6",
+        "EDU": "3D6+9"
+      },
+      "attacks": [],
+      "armor": "",
+      "skills": "",
+      "spells": "",
+      "sanity_loss": "",
+      "notes": ""
+    },
+    {
+      "id": "mm-petesouchi",
+      "name": "Petesouchi",
+      "subtitle": "Crocodile Men",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "30",
+        "CON": "22",
+        "SIZ": "29",
+        "INT": "13",
+        "POW": "10",
+        "DEX": "7",
+        "HP": "25",
+        "MP": "2",
+        "DB": "+3D6",
+        "Move": "7 / 10 swimming"
+      },
+      "rolls": {
+        "STR": "5D6+12",
+        "CON": "4D6+8",
+        "SIZ": "4D6+15",
+        "INT": "2D6+6",
+        "POW": "3D6",
+        "DEX": "2D6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "60%",
+          "damage": "1D10 + db"
+        },
+        {
+          "name": "Roll",
+          "skill": "60%",
+          "damage": "1D10 + 4 + db"
+        }
+      ],
+      "armor": "6-point hide",
+      "skills": "Glide Stealthily Through Water 80%, Hide 70%, Overturn Boat 70%, Sneak 40%",
+      "spells": "petesouchi with POW of 14 or more know 1D4 spells",
+      "sanity_loss": "0/1D4 Sanity points to see adult petesouchi; 0/1D6 Sanity points to see transforming or partially changed petesouchi",
+      "notes": ""
+    },
+    {
+      "id": "mm-rat-people",
+      "name": "Rat People",
+      "subtitle": "Scampering Creatures from Warrens",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "7",
+        "CON": "7",
+        "SIZ": "7",
+        "INT": "7",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "7",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "10"
+      },
+      "rolls": {
+        "STR": "2D6",
+        "CON": "2D6",
+        "SIZ": "2D6",
+        "INT": "2D6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "40%",
+          "damage": "1D3 + possible disease (see above)"
+        },
+        {
+          "name": "Claw",
+          "skill": "25%",
+          "damage": "1D3"
+        }
+      ],
+      "armor": "none",
+      "skills": "Hide 60%, Listen 50%, Sneak 40%, Track by Scent 35%",
+      "spells": "none",
+      "sanity_loss": "0/1D6 Sanity points to see the rat folk",
+      "notes": ""
+    },
+    {
+      "id": "mm-rat-things",
+      "name": "Rat-things",
+      "subtitle": "Malevolent Mockers and Scuttling Spies",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "2",
+        "CON": "7",
+        "SIZ": "1",
+        "INT": "10",
+        "POW": "7",
+        "DEX": "18",
+        "HP": "4",
+        "MP": "1",
+        "Move": "9"
+      },
+      "rolls": {
+        "STR": "1D3",
+        "CON": "2D6",
+        "SIZ": "1",
+        "INT": "3D6",
+        "POW": "2D6",
+        "DEX": "4D6+4"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "35%",
+          "damage": "1D3 + possible disease (see above)"
+        }
+      ],
+      "armor": "none, but subtract 40 percentiles from the chance to hit a running rat-thing, and subtract 20 percentiles from the chance to hit one attached to somebody",
+      "skills": "Dodge 95%, Hide 80%, Sneak 65%",
+      "spells": "those of INT 14 or more know 1D3 spells of the keeper's choice; those who knew spells in life retain that knowledge as rat-things",
+      "sanity_loss": "0/1D6 Sanity points to see a rat thing; if the rat-thing was known to the observer in life, however, it costs 1/1D8 Sanity points to see it",
+      "notes": ""
+    },
+    {
+      "id": "mm-reptile-people",
+      "name": "Reptile People",
+      "subtitle": "Reptilian Enemies of Man",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "14",
+        "CON": "10",
+        "SIZ": "14",
+        "INT": "10",
+        "POW": "10",
+        "DEX": "10",
+        "HP": "12",
+        "MP": "2",
+        "DB": "+1D4",
+        "Move": "6"
+      },
+      "rolls": {
+        "STR": "4D6",
+        "CON": "3D6",
+        "SIZ": "4D6",
+        "INT": "3D6",
+        "POW": "3D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "50%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Mace",
+          "skill": "40%",
+          "damage": "1D8 + db"
+        }
+      ],
+      "armor": "2-point hide",
+      "skills": "Hide 35%, Listen 35%, Scent 50%, Sneak 50%, Spot Hidden 50%",
+      "spells": "none, normally",
+      "sanity_loss": "0/1D6 Sanity points to see the reptile people",
+      "notes": ""
+    },
+    {
+      "id": "mm-sand-dwellers",
+      "name": "Sand-dwellers",
+      "subtitle": "Stalkers of the Wastes",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "13",
+        "SIZ": "9",
+        "INT": "10",
+        "POW": "10",
+        "DEX": "13",
+        "HP": "11",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "2D6+6",
+        "SIZ": "2D6+2",
+        "INT": "3D6",
+        "POW": "3D6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "30%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Club",
+          "skill": "25%",
+          "damage": "1D6 + db"
+        },
+        {
+          "name": "Thrown Rock",
+          "skill": "25%",
+          "damage": "1D4"
+        },
+        {
+          "name": "Spear",
+          "skill": "25%",
+          "damage": "1D8 + db"
+        },
+        {
+          "name": "Thrown Spear",
+          "skill": "25%",
+          "damage": "1D8 + 1"
+        }
+      ],
+      "armor": "3-point rough hide",
+      "skills": "Hide 60%, Listen 50%, Sneak 50%, Spot Hidden 50%, Track 45%. All sight-related skills are performed at 1/4 in bright sunlight",
+      "spells": "those of POW 14 or more know 1D2 spells if their INT or less is rolled on 1D100",
+      "sanity_loss": "0/1D6 Sanity points to see a sand-dweller",
+      "notes": ""
+    },
+    {
+      "id": "mm-seekers",
+      "name": "Seekers",
+      "subtitle": "Adumbrali Hunters in Human Form",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "13",
+        "INT": "14",
+        "POW": "14",
+        "DEX": "10",
+        "APP": "16",
+        "HP": "11",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "2D6+6",
+        "INT": "3D6+3",
+        "POW": "4D6",
+        "DEX": "3D6",
+        "APP": "1D4+14"
+      },
+      "attacks": [
+        {
+          "name": "Any at base %, damage as per weapon",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "none",
+      "skills": "Blend in with Society 75%",
+      "spells": "none",
+      "sanity_loss": "seeing a seeker in human form costs no Sanity points",
+      "notes": ""
+    },
+    {
+      "id": "mm-serpent-people",
+      "name": "Serpent People",
+      "subtitle": "Full Atavism",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "10",
+        "SIZ": "10",
+        "INT": "16",
+        "POW": "13",
+        "DEX": "13",
+        "HP": "10",
+        "MP": "2",
+        "DB": "+0",
+        "Move": "8"
+      },
+      "rolls": {
+        "STR": "3D6",
+        "CON": "3D6",
+        "SIZ": "3D6",
+        "INT": "3D6+6",
+        "POW": "2D6+6",
+        "DEX": "2D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Bite",
+          "skill": "35%",
+          "damage": "1D8 + poison (see above)"
+        }
+      ],
+      "armor": "l-point scales",
+      "skills": "Listen 35%, Spot Hidden 35%, +10% to all sciences",
+      "spells": "full serpent folk know at least 2D6 appropriate spells; degenerate forms are not likely to know magic",
+      "sanity_loss": "0/1D6 Sanity points to see a serpent person",
+      "notes": ""
+    },
+    {
+      "id": "mm-servitors-of-the-outer-gods",
+      "name": "SERVITORS of the Outer Gods",
+      "subtitle": "",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "14",
+        "CON": "16",
+        "SIZ": "20",
+        "INT": "18",
+        "POW": "19",
+        "DEX": "16",
+        "HP": "18",
+        "MP": "3",
+        "DB": "+1D6",
+        "Move": "7"
+      },
+      "rolls": {
+        "STR": "4D6",
+        "CON": "3D6+6",
+        "SIZ": "4D6+6",
+        "INT": "5D6",
+        "POW": "2D6+12",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacles",
+          "skill": "45%",
+          "damage": "= db x2"
+        }
+      ],
+      "armor": "none, but no physical weapon can harm one; magical weapons do normal damage; regenerates 3 hit points per round until dead",
+      "skills": "",
+      "spells": "each knows at least 1D10 spells. Additionally, each may Summon/Bind and Call 1D10 Mythos gods and monsters of the keeper's choosing. Servitors may Summon or Call entities for which no Summon or Call spell is otherwise known",
+      "sanity_loss": "l/1D10 Sanity points to see a servitor",
+      "notes": ""
+    },
+    {
+      "id": "mm-spawn-of-abhoth",
+      "name": "Spawn of Abhoth",
+      "subtitle": "Spoor of an Outer God",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "10",
+        "CON": "9",
+        "SIZ": "10",
+        "INT": "6",
+        "POW": "9",
+        "DEX": "6",
+        "HP": "10",
+        "MP": "1",
+        "DB": "+1D6",
+        "Move": "1-3D6-2 4-6"
+      },
+      "rolls": {
+        "STR": "1-4D10",
+        "CON": "1-6D6",
+        "SIZ": "1-3D10",
+        "INT": "1D10",
+        "POW": "1-6D6",
+        "DEX": "1-3D6"
+      },
+      "attacks": [
+        {
+          "name": "Various 1D100%, as per mode of attack",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "none; regenerates 1D20 hit points per round",
+      "skills": "Sneak 50%",
+      "spells": "none",
+      "sanity_loss": "varies from 0/1D2 Sanity points to 1/1D10 Sanity points to see very horrible spawn of Abhoth",
+      "notes": ""
+    },
+    {
+      "id": "mm-spawn-of-hastur",
+      "name": "Spawn of Hastur",
+      "subtitle": "Star-Born Progeny of the Unspeakable One",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "41",
+        "CON": "16",
+        "SIZ": "31",
+        "INT": "13",
+        "POW": "18",
+        "DEX": "10",
+        "HP": "25",
+        "MP": "3",
+        "DB": "+3D6",
+        "Move": "4 / 12 swim / 8 fly"
+      },
+      "rolls": {
+        "STR": "6D6+20",
+        "CON": "3D6+6",
+        "SIZ": "6D6+10",
+        "INT": "2D6+6",
+        "POW": "5D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "75%",
+          "damage": "1D6 + db or Grapple Engulf automatic when Grappled, damage death"
+        }
+      ],
+      "armor": "10-point thick and rubbery hide",
+      "skills": "Sneak in Water 35%",
+      "spells": "all know Call Hastur and at least 2D6 spells. Typical spells include all dealing with Hastur and its various forms and servants",
+      "sanity_loss": "1D6/1D20 Sanity points to see a spawn of Hastur",
+      "notes": ""
+    },
+    {
+      "id": "mm-spawn-of-nyogtha",
+      "name": "Spawn of Nyogtha",
+      "subtitle": "Blasphemous Children of the Dark Monstrous Form Human Form",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "2",
+        "CON": "3",
+        "SIZ": "2",
+        "INT": "2",
+        "POW": "3",
+        "DEX": "3",
+        "APP": "2",
+        "MP": "0",
+        "Move": "6 8 Av. DB: +2D6 +1D4"
+      },
+      "rolls": {
+        "STR": "4D6+12 / 26",
+        "CON": "3D6+6 / 16-17",
+        "SIZ": "4D6+6 / 20",
+        "INT": "2D6+6 / 13",
+        "POW": "3D6+6 / 16-17",
+        "DEX": "3D6 / 10-11",
+        "APP": "N/A"
+      },
+      "attacks": [
+        {
+          "name": "as per normal human in human form Claw (monstrous form) 65%, damage 1D6 + db Bite (monstrous form) 65%, damage 1D8 + db Grapple (monstrous form) 50%, damage special",
+          "skill": "",
+          "damage": ""
+        }
+      ],
+      "armor": "all spawn of Nyogtha, whether in human or monstrous form, are immune to bullets and weapons that impale, and take minimum possible damage from all other attacks. They are also immune to fire, acid, radioactivity, and electricity",
+      "skills": "",
+      "spells": "all spawn are given the Contact Nyogtha spell at puberty, and learn other spells easily. Once fully grown into their final monstrous forms the spawn know 2D6 spells related to Nyogtha and the other Great Old Ones",
+      "sanity_loss": "none for a spawn still in human form. 0/1D3 Sanity points for seeing a human spawn ooze black ichor instead of blood. 1/1D10 Sanity points to see a spawn that has mutated into its final monstrous form",
+      "notes": ""
+    },
+    {
+      "id": "mm-spawn-of-othuyeg",
+      "name": "Spawn of Othuyeg",
+      "subtitle": "Children of the Doom-Walker",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "40",
+        "CON": "16",
+        "SIZ": "44",
+        "INT": "17",
+        "POW": "18",
+        "DEX": "16",
+        "HP": "30",
+        "MP": "3",
+        "DB": "+4D6",
+        "Move": "10 / 8 burrowing /"
+      },
+      "rolls": {
+        "STR": "3D6+30",
+        "CON": "3D6+6",
+        "SIZ": "4D6+30",
+        "INT": "2D6+10",
+        "POW": "5D6",
+        "DEX": "3D6+6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacle",
+          "skill": "75%",
+          "damage": "grasp or 1D6 + db"
+        }
+      ],
+      "armor": "they suffer only minimal damage from impaling weapons",
+      "skills": "",
+      "spells": "Call Othuyeg. If a spawn's INT or less is rolled on 1D100 then it knows a number of other spells equal to 1/2 its INT",
+      "sanity_loss": "1D6/2D8 Sanity points to see the spawn of Othuyeg",
+      "notes": ""
+    },
+    {
+      "id": "mm-spawn-of-the-green-abyss",
+      "name": "Spawn of the Green Abyss",
+      "subtitle": "Entrancing Entities of the Deep",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "35",
+        "CON": "24",
+        "SIZ": "49",
+        "INT": "17",
+        "POW": "18",
+        "DEX": "4",
+        "HP": "36",
+        "MP": "3",
+        "DB": "+4D6",
+        "Move": "10 rolling"
+      },
+      "rolls": {
+        "STR": "l0D6",
+        "CON": "7D6",
+        "SIZ": "14D6",
+        "INT": "2D6+10",
+        "POW": "5D6",
+        "DEX": "1D6"
+      },
+      "attacks": [
+        {
+          "name": "Crush",
+          "skill": "80%",
+          "damage": "= db"
+        },
+        {
+          "name": "Pseudopod",
+          "skill": "60%",
+          "damage": "= 1/2 db or Grapple"
+        }
+      ],
+      "armor": "none, but the spawn of the Green Abyss are immune to normal weapons. Spells, enchanted weapons, fire, electricity, and chemicals harm them. The spawn of the Green Abyss regenerates 1D3 hit points per round until dead",
+      "skills": "",
+      "spells": "all have a chance equal to their INT or less on 1D100 to know 1D6 spells",
+      "sanity_loss": "1D6/1D20 Sanity points to see a spawn of the Green Abyss",
+      "notes": ""
+    },
+    {
+      "id": "mm-star-spawn-of-cthulhu",
+      "name": "Star-spawn of Cthulhu",
+      "subtitle": "Xothans, Satraps of The Sleeper",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "70",
+        "CON": "52",
+        "SIZ": "105",
+        "INT": "21",
+        "POW": "21",
+        "DEX": "10",
+        "HP": "79",
+        "MP": "4",
+        "DB": "+11D6",
+        "Move": "20 / 20 swim / 10 fly"
+      },
+      "rolls": {
+        "STR": "2D6x10",
+        "CON": "3D6x5",
+        "SIZ": "3D6x10",
+        "INT": "6D6",
+        "POW": "6D6",
+        "DEX": "3D6"
+      },
+      "attacks": [
+        {
+          "name": "Tentacles",
+          "skill": "80%",
+          "damage": "= 1/2 db"
+        },
+        {
+          "name": "Claw",
+          "skill": "80%",
+          "damage": "= db"
+        }
+      ],
+      "armor": "10-point hide & blubber; regenerates 3 hit points per round",
+      "skills": "",
+      "spells": "each knows 3D6 spells",
+      "sanity_loss": "1D6/1D20 Sanity points to see a star-spawn",
+      "notes": ""
+    },
+    {
+      "id": "mm-the-nagaae",
+      "name": "The Nagaae",
+      "subtitle": "Servants of Cyaegha",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "26",
+        "CON": "24",
+        "SIZ": "22",
+        "INT": "13",
+        "POW": "13",
+        "DEX": "6",
+        "HP": "23",
+        "MP": "2",
+        "DB": "+2D6",
+        "Move": "6"
+      },
+      "rolls": {
+        "STR": "4D6+12",
+        "CON": "4D6+10",
+        "SIZ": "3D6+12",
+        "INT": "2D6+6",
+        "POW": "2D6+6",
+        "DEX": "1D6+3"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "60%",
+          "damage": "(x4), damage 1D6 + db"
+        },
+        {
+          "name": "Bite",
+          "skill": "40%",
+          "damage": "1D8 + poison POT 1/2 creature's CON"
+        }
+      ],
+      "armor": "2-point tough, leathery, translucent skin",
+      "skills": "Hear Noise 60%, Slither Quietly 70%, Smell Victims 80%",
+      "spells": "few nagaae know spells. Roll 4D10 for each random nagaae. If the result is higher than the creature's POW, it knows no magic. If the die roll is equal or lower than its POW, it knows 1D6 spells",
+      "sanity_loss": "1/1D8 Sanity points to see a nagaae",
+      "notes": ""
+    },
+    {
+      "id": "mm-thralls-of-cthulhu",
+      "name": "Thralls of Cthulhu",
+      "subtitle": "Servants of Cthulhu",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "STR": "14",
+        "CON": "14",
+        "SIZ": "17",
+        "INT": "13",
+        "POW": "10",
+        "DEX": "6",
+        "HP": "15",
+        "MP": "2",
+        "DB": "+1D4",
+        "Move": "6 / 10 swim"
+      },
+      "rolls": {
+        "STR": "former + 4",
+        "CON": "former + 4",
+        "SIZ": "former + 4",
+        "INT": "former",
+        "POW": "former",
+        "DEX": "former - 4"
+      },
+      "attacks": [
+        {
+          "name": "Claw",
+          "skill": "30%",
+          "damage": "1D6 + 2 + db"
+        }
+      ],
+      "armor": "none; regenerates1D6 hit points per round. Thralls reduced to zero hit points through physical attack reform completely healed in 1D8+1 rounds. Thralls are most vulnerable to magical attack",
+      "skills": "thralls retain most skills they had as humans, although skills cannot ever improve once they make the final transformation from human to thrall. Certain skills, such as Bargain, Climb, Credit Rating, Fast Talk, First Aid, Persuade, and Ride cannot ever be used again. Also: Listen Under Water 65%, Swim 65% (unless the thrall had a higher Swim as a human, in which case it retains the skill at that percentile)",
+      "spells": "any known as human",
+      "sanity_loss": "1/1D8 Sanity points to see a thrall of Cthulhu",
+      "notes": ""
+    },
+    {
+      "id": "mm-vile-fungus",
+      "name": "Vile Fungus",
+      "subtitle": "alien parasite",
+      "kind": "enemy",
+      "category": "Mythos",
+      "stats": {
+        "SIZ": "10",
+        "INT": "7",
+        "POW": "14",
+        "HP": "10",
+        "MP": "2",
+        "DB": "N/A",
+        "Move": "0"
+      },
+      "rolls": {
+        "STR": "N/A",
+        "CON": "N/A",
+        "SIZ": "3D6",
+        "INT": "2D6",
+        "POW": "4D6",
+        "DEX": "N/A"
+      },
+      "attacks": [],
+      "armor": "none, however firearms and other weapons inflict no damage on the fungus. Attacking the parasite with firearms or weapons only shreds and scatters the material, making accidental infection to anyone in the immediate area a dangerous possibility. Fire, chemicals and similar attacks are most effective on the alien fungus",
+      "skills": "",
+      "spells": "none",
+      "sanity_loss": "0/1D4 Sanity points to see vile fungus. Viewing a body that has been transformed by a fungus costs 1D3/1D8 Sanity points—1D4/1D10 if it is the body of someone known to the investigator",
+      "notes": ""
+    }
+  ]
+}

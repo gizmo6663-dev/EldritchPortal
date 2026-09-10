@@ -1,6 +1,6 @@
 {
   "id": "slow-boat-to-china",
-  "version": 2,
+  "version": 3,
   "title": "A Slow Boat to China",
   "system": "Pulp Cthulhu / Call of Cthulhu 7e",
   "source": "Pulp Cthulhu, kapittel 13 (Chaosium)",
@@ -801,21 +801,20 @@
       "role": "Luis Fernando de la Montoyo — skurken",
       "description": "En menneskeformet masse av levende mark, kakerlakker, skorpioner og gravutøy, i kappe og hette. I live var han mester for en kult viet Azathoth, magisk forlenget inn i den spanske erobringen, og hengt av guvernøren i Sonora — hvorpå bevisstheten hans gikk over i utøyet som fortærte liket. Den er ikke udød: tingene som utgjør kroppen, lever. Sår som dreper enkelte kakerlakker er bare til bry, mens svermen avler nye.",
       "stats": {
-        "STR": "65",
-        "CON": "80",
-        "SIZ": "60",
-        "DEX": "50",
-        "INT": "90",
+        "STR": "6",
+        "CON": "14",
+        "SIZ": "13",
+        "DEX": "7",
+        "INT": "13",
         "POW": "100",
-        "HP": "14",
+        "HP": "13",
         "MP": "20",
-        "DB": "0",
-        "Build": "0",
-        "Move": "6",
+        "DB": "+0",
+        "Move": "8",
         "Armor": "se Spesielt"
       },
       "combat": [
-        "Bite or grasp 30 %, skade 1D4 pluss vrimlende utøy",
+        "Angriper med det den har for hånden — treffsjanse og skade som våpenet tilsier",
         "Svak i nærkamp — den foretrekker formler og lar håndlangerne ta det jordnære",
         "Kan bytte mellom alle sine menneskeskikkelser i løpet av én kamprunde"
       ],
@@ -823,7 +822,7 @@
       "spells": "Consume Likeness, Dominate, Mindblast (brukt i Den stjålne boka), Mental Suggestion, Gate, Graveyard Kiss (pulp-variant), Summon/Bind Hunting Horror, Pipes of Madness (via innretningen)",
       "special": "OPPLØSNING: blir den alvorlig truet, faller den fra hverandre til enkeltinsekter som spreller vekk mellom gulvplankene — i praksis umulig å drepe med vanlige midler, med mindre den trenges opp et sted den ikke kan renne ut av.\n\nCONSUME LIKENESS: den kan ta form av ethvert menneske den dreper og spiser. En ny skikkelse bruker 48 TIMER på å utvikle stemmebånd — grunnen til at den måtte forlate Petersons skikkelse da Virginia ventet at han skulle snakke.\n\nEGENTLIG SKIKKELSE: kan ikke snakke eller lage lyd i det hele tatt, og må kommunisere skriftlig. Telegrammer er typisk.\n\nSPISING: etterlater bare skinn, hår og knokkelbiter — derav det hule rotteskinnet.",
       "sanity_loss": "1D3/2D6 for å se den forvandle seg, eller se dens egentlige skikkelse",
-      "stats_note": "Spillklart forslag — det trykte scenarioet har disse i Appendix A. Juster fritt. POW 100 er fastsatt i teksten (den opposed rollen for Mindblast).",
+      "stats_note": "Karakteristikker fra Malleus Monstrorum (crawling ones). POW 100 er fastsatt av selve scenarioteksten — den opposed rollen for Mindblast — og overstyrer bokas 4D6+6.",
       "forms": "Señor Diego Guiterrez de Almacan (hoveddekke) | Chad Peterson | Martin Dungass, overproviantforvalter | Haseye Adikai, en navaho-jente i tenårene | Du Zeming, en arret eldre kinesisk kvinne | hvem som helst annen den dreper om bord",
       "notes": "Å finne den skal være katt og mus. Planen dens: prøvekjøre Pipes of Leng langt fra nysgjerrige øyne, og deretter sende seg selv og innretningen gjennom en Gate til Shanghai for å slutte seg til Eight Fortunes Mutual Aid Society."
     },
@@ -883,28 +882,27 @@
       "role": "Det maskinen kaller opp",
       "description": "Et halvsynlig uhyre av umulig geometri, som beveger seg på vinder det lager selv. Tilkalt fra havbunnen av Pipes of Leng, og gjort rasende — ikke kontrollert — av dem. Når den stiger, åpner det seg en veldig malstrøm som får skipet til å krenge.",
       "stats": {
-        "STR": "180",
-        "CON": "125",
-        "SIZ": "180",
-        "DEX": "90",
-        "INT": "80",
+        "STR": "50",
+        "CON": "25",
+        "SIZ": "50",
+        "DEX": "13",
+        "INT": "14",
         "POW": "80",
-        "HP": "30",
+        "HP": "38",
         "MP": "16",
-        "DB": "+4D6",
-        "Build": "5",
-        "Move": "12 flygende",
+        "DB": "+5D6 (bare for vindstøtet)",
+        "Move": "8 / 12 flygende",
         "Armor": "4"
       },
       "combat": [
-        "Tentakelstrøk — skade som ligner uttørking eller ekstrem vindbrenning",
-        "Vindstøt 5D6 — knuser glass og slynger møbler tvers over rom",
+        "Tentacle 85 %, skade 1D10 — som uttørking eller ekstrem vindbrenning",
+        "Windblast 70 %, skade db, redusert med 1D6 per 18 meter avstand — knuser glass og slynger møbler",
         "Bruker 10 runder på å rive seg gjennom skroget til lasterom 7"
       ],
       "armor": "4 poeng. Tar bare MINIMUM skade fra fysiske våpen. Fortryllede våpen, ild og elektriske angrep gjør full skade.",
       "special": "På grunn av det fullstendige raseriet forblir den SYNLIG — som betyr at alle om bord ser den.\n\nStanser pipene, snur den og drar tilbake dit den kom fra, og etterlater seg en stripe av ødeleggelse. Fortsetter de å spille, legger den skipet i grus.",
       "sanity_loss": "1D3/1D20 — slås av alle om bord",
-      "stats_note": "POW 80 og Armor 4 er fastsatt i teksten (den opposed rollen for Bind Flying Polyp og skadereglene). De øvrige karakteristikkene er standardverdier for vesenet.",
+      "stats_note": "Karakteristikker fra Malleus Monstrorum. POW 80 og Armor 4 stemmer med scenarioteksten (den opposed rollen for Bind Flying Polyp og skadereglene). Skills: Hide 30 %, Track 35 %.",
       "notes": "Se Regler: Å håndtere polyppen for de tre utveiene — ødelegg pipene, bind den, eller slåss."
     },
     {
@@ -914,26 +912,25 @@
       "role": "Valgfritt — tilkalt for å drepe heltene",
       "description": "En repaktig, svart ting som pisker gjennom lufta, og som gjør vondt å se på. Tilkalt av skapningen når den vil ha helter eller tcho-tcho døde, og er villig til å ta oppmerksomheten det koster.",
       "stats": {
-        "STR": "85",
-        "CON": "70",
-        "SIZ": "90",
-        "DEX": "85",
-        "INT": "50",
-        "POW": "70",
-        "HP": "16",
-        "MP": "14",
-        "DB": "+1D6",
-        "Build": "2",
-        "Move": "8 / 18 flygende",
-        "Armor": "2"
+        "STR": "30",
+        "CON": "10",
+        "SIZ": "42",
+        "DEX": "14",
+        "INT": "16",
+        "POW": "21",
+        "HP": "26",
+        "MP": "4",
+        "DB": "+3D6",
+        "Move": "7 / 11 flygende",
+        "Armor": "9"
       },
       "combat": [
-        "Bite 65 %, skade 1D8",
-        "Crush 40 %, skade 2D6 — et sammensnørende angrep mot et fastholdt mål"
+        "Bite 65 %, skade 1D6",
+        "Tail 90 %, grapple — halen snører seg om målet"
       ],
       "special": "Ødelegges av direkte sollys. Om bord betyr det at den må håndteres før daggry, eller drives ut på åpent dekk.",
       "sanity_loss": "1D3/1D20",
-      "stats_note": "Standardverdier for vesenet — sjekk mot Malleus Monstrorum hvis du har den.",
+      "stats_note": "Karakteristikker fra Malleus Monstrorum. Rustning: 9 poeng hud, og den kan ikke impales av kuler. Sanity-tap 0/1D10.",
       "notes": "En tung slegge. Scenarioet foreslår den for Keepere som vil gi heltene virkelig hard medfart, eller for å utslette tcho-tcho-ene hvis de avslår skapningens tilbud."
     },
     {

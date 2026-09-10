@@ -600,6 +600,111 @@ table.skills { border-collapse: collapse; width: 100%; font-size: 13px; }
 table.skills td { padding: 3px 10px 3px 0; border-bottom: 1px solid var(--rule-soft); }
 table.skills td:last-child { font-family: var(--mono); text-align: right; color: var(--brass); }
 
+/* --------------------- roller og editor ------------------------ */
+
+/* Navnet i en rad er en knapp, men skal se ut som ren tekst. */
+.linkish {
+  padding: 0; text-align: left; background: none; border: none;
+  color: inherit; font: inherit;
+}
+.linkish:hover .entry-title { color: var(--brass); }
+
+.rowtools { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.btn.small.danger { color: var(--signal); border-color: rgba(198,80,74,0.35); }
+
+.formrow { display: block; margin-bottom: 10px; }
+.formlabel {
+  display: block; font-family: var(--ui); font-size: 11px;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 3px;
+}
+
+.editgrid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr));
+  gap: 6px; margin-bottom: 6px;
+}
+.statedit { display: flex; flex-direction: column; gap: 2px; }
+.statedit span {
+  font-family: var(--ui); font-size: 9px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--faint);
+}
+.statedit .field { padding: 5px 7px; font-family: var(--mono); font-size: 13px; }
+
+.attackrow { display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 5px; }
+.skillrow  { display: grid; grid-template-columns: 2fr 1fr auto; gap: 5px; }
+.attackrow .field, .skillrow .field { padding: 6px 8px; font-size: 13px; }
+
+/* ---------------------- kamptracker ---------------------------- */
+
+.roundbar { display: flex; gap: 28px; align-items: center; }
+.roundbar p { margin: 0; }
+.roundnum {
+  font-family: var(--mono); font-size: 30px; font-weight: 600;
+  color: var(--brass); line-height: 1;
+}
+.turnname {
+  font-family: var(--ui); font-size: 20px; font-weight: 600;
+  color: var(--parchment); line-height: 1.2;
+}
+
+.combatant {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--rule-soft);
+  border-left: 3px solid var(--rule-soft);
+  border-radius: 6px;
+  background: var(--ink-2);
+}
+.combatant[data-tag="villain"] { border-left-color: var(--signal); }
+.combatant[data-tag="event"]   { border-left-color: var(--brass-dim); }
+.combatant[data-tag="voyage"]  { border-left-color: var(--tide); }
+.combatant.active {
+  background: linear-gradient(180deg, var(--ink-3), var(--ink-2));
+  border-color: var(--brass-dim);
+  box-shadow: inset 0 0 0 1px var(--brass-glow);
+}
+.combatant.down { opacity: 0.55; }
+
+.cb-head { display: flex; align-items: center; gap: 12px; }
+.cb-init {
+  font-family: var(--mono); font-size: 15px; font-weight: 600;
+  color: var(--brass); min-width: 32px; text-align: right;
+  font-variant-numeric: tabular-nums; flex: none;
+}
+.cb-name { flex: 1; min-width: 0; display: block; }
+.cb-name b {
+  display: block; font-family: var(--ui); font-size: 15px;
+  color: var(--parchment);
+}
+.cb-hp {
+  font-family: var(--mono); font-size: 19px; color: var(--parchment);
+  font-variant-numeric: tabular-nums; flex: none;
+}
+.cb-hp small { font-size: 12px; color: var(--faint); }
+.cb-hp.out { color: var(--signal); }
+
+.cb-tools { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+.cb-num { width: 74px; text-align: center; font-family: var(--mono); }
+
+.cb-attacks, .cb-conds { display: flex; gap: 5px; flex-wrap: wrap; }
+.chip.atk {
+  cursor: pointer; font-family: var(--mono); color: var(--parchment);
+  border-color: var(--rule);
+}
+.chip.atk:hover { border-color: var(--brass-dim); color: var(--brass); }
+.chip.cond { cursor: pointer; font-family: var(--ui); letter-spacing: 0.02em; }
+.chip.cond.on {
+  background: rgba(198,80,74,0.16); border-color: var(--signal);
+  color: var(--signal);
+}
+
+.logline {
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  margin: 0 0 4px; padding-bottom: 4px;
+  border-bottom: 1px solid var(--rule-soft);
+}
+.logline:last-child { border-bottom: none; }
+
 /* ----------------------- smale skjermer ------------------------ */
 
 @media (max-width: 860px) {
@@ -670,6 +775,7 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 <div class="toast" id="toast" hidden></div>
 
 <script type="application/json" id="bundled-scenarios">/*__SCENARIOS__*/</script>
+<script type="application/json" id="bundled-bestiary">/*__BESTIARY__*/</script>
 
 <script>
 "use strict";
@@ -769,10 +875,78 @@ const state = {
   scenarioId: null,
   progress: null,     // { flags, notes, itemNotes, sessions }
   characters: [],
+  bestiary: null,     // innebygd fiendebank, skrivebeskyttet
+  combat: null,       // { active, round, turn, combatants, log }
   view: "overview",
   query: "",
   hideDone: false,
+  charFilter: "all",  // all | pc | npc | enemy
 };
+
+/* ------------------------- rollelisten -------------------------- */
+
+// Tre typer roller. Rekkefølgen her styrer også filterknappene.
+const KINDS = [
+  { key: "pc",    label: "Spiller",  plural: "Spillere", tone: "verdigris" },
+  { key: "npc",   label: "NPC",      plural: "NPCer",    tone: "brass" },
+  { key: "enemy", label: "Fiende",   plural: "Fiender",  tone: "signal" },
+];
+const KIND_LABEL = {};
+KINDS.forEach((k) => { KIND_LABEL[k.key] = k.label; });
+
+const CHAR_STATS = ["STR", "CON", "SIZ", "DEX", "INT", "APP", "POW", "EDU",
+                    "HP", "MP", "SAN", "Luck", "DB", "Build", "Move",
+                    "Armor"];
+
+let charSeq = 0;
+function newId(prefix) {
+  charSeq += 1;
+  return prefix + "-" + Date.now().toString(36) + "-" + charSeq;
+}
+
+function normalizeChar(raw) {
+  // Eldre filer fra Android-appen har feltene i småbokstaver på rot og
+  // et «type»-felt med PC/NPC. Nyere fiender har «kind» og «stats».
+  const c = Object.assign({}, raw);
+  if (!c.id) c.id = newId("ch");
+
+  if (!c.kind) {
+    const t = String(c.type || "").toLowerCase();
+    c.kind = (t === "npc") ? "npc" : (t === "enemy" ? "enemy" : "pc");
+  }
+  if (!KIND_LABEL[c.kind]) c.kind = "pc";
+
+  if (!c.stats || typeof c.stats !== "object") c.stats = {};
+  // Flate felter (str, con, hp …) løftes inn i stats-objektet.
+  CHAR_STATS.forEach((k) => {
+    const flat = c[k.toLowerCase()];
+    if (c.stats[k] === undefined && flat !== undefined && flat !== "") {
+      c.stats[k] = String(flat);
+    }
+  });
+
+  if (!Array.isArray(c.attacks)) c.attacks = [];
+  if (!c.skills || typeof c.skills !== "object" ||
+      Array.isArray(c.skills)) c.skills = {};
+  ["name", "occ", "archetype", "player", "notes", "backstory", "weapons",
+   "talents", "armor", "spells", "sanity_loss", "subtitle"].forEach((k) => {
+    if (c[k] === undefined || c[k] === null) c[k] = "";
+  });
+  return c;
+}
+
+function charMaxHp(c) {
+  const v = parseInt(c.stats && c.stats.HP, 10);
+  if (!isNaN(v) && v > 0) return v;
+  const con = parseInt(c.stats && c.stats.CON, 10);
+  const siz = parseInt(c.stats && c.stats.SIZ, 10);
+  if (!isNaN(con) && !isNaN(siz)) return Math.floor((con + siz) / 10);
+  return 10;
+}
+
+async function saveCharacters() {
+  await store.set("characters", state.characters);
+}
 
 function slugify(text, fallback) {
   const s = String(text || "").toLowerCase()
@@ -1252,49 +1426,80 @@ function openNpc(npc) {
     }, modalActions(npc, "npcs"));
 }
 
-function openCharacter(pc) {
-  openModal(pc.name || "?", [pc.occ, pc.archetype].filter(Boolean).join(" · "),
-    (body) => {
-      const stats = { STR: pc.str, CON: pc.con, SIZ: pc.siz, DEX: pc.dex,
-                      INT: pc.int, APP: pc.app, POW: pc.pow, EDU: pc.edu,
-                      HP: pc.hp, MP: pc.mp, SAN: pc.san, Luck: pc.luck,
-                      DB: pc.db, Build: pc.build, Move: pc.move };
-      const grid = el("dl", { class: "statgrid" });
-      Object.keys(stats).forEach((k) => {
-        if (!stats[k]) return;
-        grid.appendChild(el("div", { class: "stat" }, [
-          el("dt", { text: k }), el("dd", { text: String(stats[k]) }),
-        ]));
-      });
-      if (grid.children.length) body.appendChild(grid);
+function statGrid(stats) {
+  const grid = el("dl", { class: "statgrid" });
+  const order = CHAR_STATS.concat(
+    Object.keys(stats).filter((k) => CHAR_STATS.indexOf(k) === -1));
+  order.forEach((k) => {
+    if (!stats[k]) return;
+    grid.appendChild(el("div", { class: "stat" }, [
+      el("dt", { text: k }), el("dd", { text: String(stats[k]) }),
+    ]));
+  });
+  return grid.children.length ? grid : null;
+}
 
-      if (pc.weapons) {
-        body.appendChild(el("div", { class: "section-label", text: "Våpen" }));
-        body.appendChild(el("p", { class: "prose", text: pc.weapons }));
+function attackTable(attacks) {
+  if (!attacks || !attacks.length) return null;
+  const wrap = el("div", { class: "tablewrap" });
+  const table = el("table", { class: "skills" });
+  attacks.forEach((a) => {
+    table.appendChild(el("tr", null, [
+      el("td", { text: a.name || "—" }),
+      el("td", { text: [a.skill, a.damage].filter(Boolean).join("  ") }),
+    ]));
+  });
+  wrap.appendChild(table);
+  return wrap;
+}
+
+function openCharacter(pc) {
+  const c = normalizeChar(pc);
+  openModal(c.name || "?",
+    [KIND_LABEL[c.kind], c.occ, c.archetype || c.subtitle,
+     c.player ? "spilles av " + c.player : null]
+      .filter(Boolean).join(" · "),
+    (body) => {
+      const grid = statGrid(c.stats);
+      if (grid) body.appendChild(grid);
+
+      const atk = attackTable(c.attacks);
+      if (atk) {
+        body.appendChild(el("div", { class: "section-label", text: "Angrep" }));
+        body.appendChild(atk);
       }
-      if (pc.talents) {
-        body.appendChild(el("div", { class: "section-label", text: "Talenter" }));
-        body.appendChild(el("p", { class: "prose", text: pc.talents }));
-      }
-      if (pc.skills && Object.keys(pc.skills).length) {
-        body.appendChild(el("div", { class: "section-label", text: "Ferdigheter" }));
+
+      if (c.skills && Object.keys(c.skills).length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Ferdigheter" }));
         const wrap = el("div", { class: "tablewrap" });
         const table = el("table", { class: "skills" });
-        Object.keys(pc.skills).sort().forEach((k) => {
+        Object.keys(c.skills).sort().forEach((k) => {
+          const v = String(c.skills[k]);
           table.appendChild(el("tr", null, [
             el("td", { text: k }),
-            el("td", { text: String(pc.skills[k]) + "%" }),
+            el("td", { text: /%$/.test(v) ? v : v + "%" }),
           ]));
         });
         wrap.appendChild(table);
         body.appendChild(wrap);
       }
-      [["backstory", "Bakgrunn"], ["notes", "Notater"]].forEach((pair) => {
-        if (!pc[pair[0]]) return;
+
+      [["weapons", "Våpen og utstyr"], ["talents", "Talenter"],
+       ["armor", "Rustning"], ["spells", "Formler"],
+       ["sanity_loss", "Sanity-tap"], ["backstory", "Bakgrunn"],
+       ["notes", "Notater"]].forEach((pair) => {
+        if (!c[pair[0]]) return;
         body.appendChild(el("div", { class: "section-label", text: pair[1] }));
-        body.appendChild(el("p", { class: "prose", text: pc[pair[0]] }));
+        body.appendChild(el("p", { class: "prose", text: c[pair[0]] }));
       });
-    }, []);
+    },
+    [
+      el("button", { class: "btn primary", type: "button", text: "Til kamp",
+                     onclick: () => { closeModal(); addToCombat(c); } }),
+      el("button", { class: "btn", type: "button", text: "Rediger",
+                     onclick: () => { closeModal(); editCharacter(c); } }),
+    ]);
 }
 
 /* ==================================================================
@@ -1334,13 +1539,26 @@ const VIEWS = [
   { key: "locations",  label: "Steder",     group: "Oppslag" },
   { key: "handouts",   label: "Handouts",   group: "Oppslag" },
   { key: "reference",  label: "Regler",     group: "Oppslag" },
+  { key: "combat",     label: "Kamp",       group: "Bordet" },
+  { key: "characters", label: "Roller",     group: "Bordet" },
+  { key: "bestiary",   label: "Fiendebank", group: "Bordet" },
   { key: "notes",      label: "Notater",    group: "Mitt" },
   { key: "sessions",   label: "Sesjoner",   group: "Mitt" },
-  { key: "characters", label: "Karakterer", group: "Mitt" },
   { key: "library",    label: "Bibliotek",  group: "Mitt" },
 ];
 
 function navBadge(key) {
+  // Disse er uavhengige av hvilket scenario som er aktivt.
+  if (key === "characters") return state.characters.length || "";
+  if (key === "bestiary") {
+    return (state.bestiary && state.bestiary.creatures.length) || "";
+  }
+  if (key === "combat") {
+    const cb = state.combat;
+    if (!cb || !cb.combatants.length) return "";
+    return cb.active ? "R" + cb.round : String(cb.combatants.length);
+  }
+
   const d = state.scenario;
   if (!d) return "";
   if (FLAGS[key] && d[key]) {
@@ -1352,7 +1570,6 @@ function navBadge(key) {
     return (d[key] || []).length || "";
   }
   if (key === "sessions") return state.progress.sessions.length || "";
-  if (key === "characters") return state.characters.length || "";
   if (key === "library") return state.library.items.length || "";
   return "";
 }
@@ -1889,10 +2106,10 @@ function viewSessions(root) {
 /* -------------------------- karakterer -------------------------- */
 
 function viewCharacters(root) {
-  root.appendChild(el("h1", { text: "Karakterer" }));
+  root.appendChild(el("h1", { text: "Roller" }));
   root.appendChild(el("p", { class: "lede",
-    text: "Spillerne dine. Importer characters.json fra appen, så ligger " +
-          "de lagret her." }));
+    text: "Spillere, NPCer og fiender i én liste. Alt kan redigeres, og " +
+          "alt kan sendes rett inn i en kamp." }));
 
   const picker = el("input", { type: "file", accept: ".json,application/json",
                                id: "char-file", style: "display:none" });
@@ -1901,10 +2118,25 @@ function viewCharacters(root) {
     if (!file) return;
     try {
       const parsed = JSON.parse(await file.text());
-      const list = Array.isArray(parsed) ? parsed : [parsed];
-      state.characters = list;
-      await store.set("characters", list);
-      toast(list.length + " karakterer importert");
+      const list = (Array.isArray(parsed) ? parsed : [parsed])
+        .map(normalizeChar);
+      // Slå sammen på navn, slik at en ny import ikke lager duplikater
+      // av folk du allerede har redigert.
+      const byName = {};
+      state.characters.forEach((c) => { byName[c.name.toLowerCase()] = c; });
+      let added = 0, updated = 0;
+      list.forEach((incoming) => {
+        const hit = byName[incoming.name.toLowerCase()];
+        if (hit) {
+          Object.assign(hit, incoming, { id: hit.id });
+          updated += 1;
+        } else {
+          state.characters.push(incoming);
+          added += 1;
+        }
+      });
+      await saveCharacters();
+      toast(added + " lagt til, " + updated + " oppdatert");
       render();
     } catch (e) {
       toast("Kunne ikke lese fila: " + e.message);
@@ -1912,39 +2144,795 @@ function viewCharacters(root) {
     picker.value = "";
   });
 
-  root.appendChild(el("div", { class: "row", style: "margin-bottom:18px" }, [
-    el("button", { class: "btn primary", type: "button",
-                   text: "Importer characters.json",
-                   onclick: () => picker.click() }),
-    state.characters.length ? el("button", {
+  // --- knapperad
+  const actions = el("div", { class: "row", style: "margin-bottom:14px" });
+  KINDS.forEach((k) => {
+    actions.appendChild(el("button", {
+      class: "btn", type: "button", text: "+ " + k.label,
+      onclick: () => editCharacter(null, k.key),
+    }));
+  });
+  actions.appendChild(el("button", {
+    class: "btn small", type: "button", text: "Importer",
+    onclick: () => picker.click(),
+  }));
+  if (state.characters.length) {
+    actions.appendChild(el("button", {
       class: "btn small", type: "button", text: "Eksporter",
       onclick: () => download("characters.json", state.characters),
-    }) : null,
-    picker,
-  ]));
+    }));
+  }
+  actions.appendChild(picker);
+  root.appendChild(actions);
+
+  // --- filter etter type
+  const counts = { all: state.characters.length };
+  KINDS.forEach((k) => {
+    counts[k.key] = state.characters.filter((c) => c.kind === k.key).length;
+  });
+  const filters = el("div", { class: "row", style: "margin-bottom:12px" });
+  const chips = [{ key: "all", label: "Alle" }].concat(
+    KINDS.map((k) => ({ key: k.key, label: k.plural })));
+  chips.forEach((c) => {
+    filters.appendChild(el("button", {
+      class: "btn small", type: "button",
+      "aria-pressed": String(state.charFilter === c.key),
+      text: c.label + " (" + (counts[c.key] || 0) + ")",
+      onclick: () => { state.charFilter = c.key; render(); },
+    }));
+  });
+  root.appendChild(filters);
+
+  root.appendChild(searchBar("Søk i roller…"));
+  root.appendChild(el("div", { style: "height:14px" }));
 
   if (!state.characters.length) {
-    root.appendChild(emptyBox("Ingen karakterer importert.",
-      "Fila heter characters.json og ligger i Eldritch Portal-mappa."));
+    root.appendChild(emptyBox("Ingen roller ennå.",
+      "Lag en ny, eller importer characters.json fra Android-appen."));
+    return;
+  }
+
+  const q = state.query.toLowerCase();
+  const shown = state.characters.filter((c) => {
+    if (state.charFilter !== "all" && c.kind !== state.charFilter) return false;
+    if (!q) return true;
+    return [c.name, c.occ, c.archetype, c.player, c.subtitle, c.notes]
+      .filter(Boolean).join(" ").toLowerCase().indexOf(q) !== -1;
+  });
+
+  if (!shown.length) {
+    root.appendChild(emptyBox("Ingen treff."));
+    return;
+  }
+
+  // Grupper etter type, i den rekkefølgen KINDS definerer.
+  KINDS.forEach((k) => {
+    const members = shown.filter((c) => c.kind === k.key);
+    if (!members.length) return;
+    const block = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: k.plural }),
+        el("span", { text: String(members.length) }),
+      ]),
+    ]);
+    const stack = el("div", { class: "stack" });
+    members.forEach((c) => stack.appendChild(characterRow(c)));
+    block.appendChild(stack);
+    root.appendChild(block);
+  });
+}
+
+function characterRow(c) {
+  const tag = c.kind === "enemy" ? "villain"
+    : (c.kind === "npc" ? "event" : null);
+  const bits = [c.occ, c.archetype, c.subtitle].filter(Boolean);
+  const hp = c.stats.HP ? "HP " + c.stats.HP : null;
+  const san = c.stats.SAN ? "SAN " + c.stats.SAN : null;
+  const sub = bits.concat([hp, san].filter(Boolean)).join(" · ");
+
+  return el("div", { class: "entry", "data-tag": tag }, [
+    el("span", { class: "tick", style: "border-color:transparent" }),
+    el("span", { class: "entry-body" }, [
+      el("button", {
+        class: "linkish", type: "button",
+        onclick: () => openCharacter(c),
+      }, [el("span", { class: "entry-title", text: c.name || "(uten navn)" })]),
+      sub ? el("span", { class: "entry-sub", text: sub }) : null,
+    ]),
+    el("span", { class: "rowtools" }, [
+      el("button", { class: "btn small", type: "button", text: "Til kamp",
+                     onclick: () => { addToCombat(c); } }),
+      el("button", { class: "btn small", type: "button", text: "Rediger",
+                     onclick: () => editCharacter(c) }),
+      el("button", { class: "btn small", type: "button", text: "Dupliser",
+                     onclick: () => duplicateCharacter(c) }),
+      el("button", { class: "btn small danger", type: "button", text: "Slett",
+                     onclick: () => confirmThen("Slett rolle?",
+                       "«" + (c.name || "uten navn") + "» blir borte.",
+                       async () => {
+                         state.characters = state.characters
+                           .filter((x) => x.id !== c.id);
+                         await saveCharacters();
+                         render();
+                         toast("Slettet");
+                       }) }),
+    ]),
+  ]);
+}
+
+async function duplicateCharacter(c) {
+  const copy = normalizeChar(JSON.parse(JSON.stringify(c)));
+  copy.id = newId("ch");
+  copy.name = uniqueName(c.name || "Uten navn");
+  state.characters.push(copy);
+  await saveCharacters();
+  render();
+  toast("Duplisert som «" + copy.name + "»");
+}
+
+function uniqueName(base) {
+  // «Ghoul» -> «Ghoul 2» -> «Ghoul 3». Nyttig når du legger fire like
+  // fiender inn i samme kamp.
+  const stem = base.replace(/\s+\d+$/, "");
+  const taken = new Set(state.characters.map((c) => c.name));
+  if (!taken.has(stem)) return stem;
+  let n = 2;
+  while (taken.has(stem + " " + n)) n += 1;
+  return stem + " " + n;
+}
+
+/* ---------------------- karaktereditor -------------------------- */
+
+function editCharacter(existing, kindHint) {
+  const isNew = !existing;
+  const c = normalizeChar(existing
+    ? JSON.parse(JSON.stringify(existing))
+    : { kind: kindHint || "pc", name: "" });
+
+  const fields = {};
+  function textRow(label, key, value, placeholder) {
+    const input = el("input", { class: "field", id: "ed-" + key,
+                                value: value || "",
+                                placeholder: placeholder || "" });
+    fields[key] = input;
+    return el("label", { class: "formrow" }, [
+      el("span", { class: "formlabel", text: label }), input,
+    ]);
+  }
+
+  openModal(isNew ? "Ny rolle" : "Rediger " + (c.name || "rolle"), "",
+    (body) => {
+      // --- type
+      body.appendChild(el("div", { class: "section-label", text: "Type" }));
+      const kindRow = el("div", { class: "row" });
+      KINDS.forEach((k) => {
+        kindRow.appendChild(el("button", {
+          class: "btn small", type: "button",
+          "aria-pressed": String(c.kind === k.key),
+          text: k.label,
+          onclick: (e) => {
+            c.kind = k.key;
+            Array.from(kindRow.children).forEach((b) => {
+              b.setAttribute("aria-pressed",
+                String(b.textContent === KIND_LABEL[c.kind]));
+            });
+            e.preventDefault();
+          },
+        }));
+      });
+      body.appendChild(kindRow);
+
+      // --- grunnfelter
+      body.appendChild(el("div", { class: "section-label", text: "Navn og rolle" }));
+      body.appendChild(textRow("Navn", "name", c.name, "Hva heter den?"));
+      body.appendChild(textRow("Yrke / type", "occ", c.occ,
+                               "Dr. of Medicine, Mythos-skapning …"));
+      body.appendChild(textRow("Arketyp / undertittel", "archetype",
+                               c.archetype || c.subtitle, ""));
+      body.appendChild(textRow("Spiller", "player", c.player,
+                               "Hvem spiller den? (bare for spillere)"));
+
+      // --- karakteristikker
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Karakteristikker" }));
+      const grid = el("div", { class: "editgrid" });
+      CHAR_STATS.forEach((k) => {
+        const input = el("input", { class: "field", id: "ed-stat-" + k,
+                                    value: c.stats[k] || "" });
+        fields["stat:" + k] = input;
+        grid.appendChild(el("label", { class: "statedit" }, [
+          el("span", { text: k }), input,
+        ]));
+      });
+      body.appendChild(grid);
+
+      // --- angrep
+      body.appendChild(el("div", { class: "section-label", text: "Angrep" }));
+      const attackList = el("div", { class: "stack" });
+      function attackRow(a) {
+        const name = el("input", { class: "field", value: a.name || "",
+                                   placeholder: "Klo" });
+        const skill = el("input", { class: "field", value: a.skill || "",
+                                    placeholder: "45%" });
+        const dmg = el("input", { class: "field", value: a.damage || "",
+                                  placeholder: "1D6 + db" });
+        const row = el("div", { class: "attackrow" }, [
+          name, skill, dmg,
+          el("button", { class: "btn small danger", type: "button", text: "×",
+                         onclick: () => row.remove() }),
+        ]);
+        row._read = () => ({ name: name.value.trim(),
+                             skill: skill.value.trim(),
+                             damage: dmg.value.trim() });
+        return row;
+      }
+      c.attacks.forEach((a) => attackList.appendChild(attackRow(a)));
+      body.appendChild(attackList);
+      body.appendChild(el("button", {
+        class: "btn small", type: "button", text: "+ Legg til angrep",
+        onclick: () => attackList.appendChild(attackRow({})),
+      }));
+      fields._attacks = attackList;
+
+      // --- ferdigheter
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Ferdigheter" }));
+      const skillList = el("div", { class: "stack" });
+      function skillRow(k, v) {
+        const name = el("input", { class: "field", value: k || "",
+                                   placeholder: "Spot Hidden" });
+        const val = el("input", { class: "field", value: v || "",
+                                  placeholder: "50" });
+        const row = el("div", { class: "skillrow" }, [
+          name, val,
+          el("button", { class: "btn small danger", type: "button", text: "×",
+                         onclick: () => row.remove() }),
+        ]);
+        row._read = () => [name.value.trim(), val.value.trim()];
+        return row;
+      }
+      Object.keys(c.skills).sort().forEach((k) => {
+        skillList.appendChild(skillRow(k, c.skills[k]));
+      });
+      body.appendChild(skillList);
+      body.appendChild(el("button", {
+        class: "btn small", type: "button", text: "+ Legg til ferdighet",
+        onclick: () => skillList.appendChild(skillRow("", "")),
+      }));
+      fields._skills = skillList;
+
+      // --- fritekst
+      body.appendChild(el("div", { class: "section-label", text: "Tekst" }));
+      [["weapons", "Våpen og utstyr"], ["talents", "Talenter"],
+       ["armor", "Rustning"], ["spells", "Formler"],
+       ["sanity_loss", "Sanity-tap"], ["backstory", "Bakgrunn"],
+       ["notes", "Notater"]].forEach((pair) => {
+        const ta = el("textarea", { class: "field", rows: "2",
+                                    id: "ed-" + pair[0] });
+        ta.value = c[pair[0]] || "";
+        fields[pair[0]] = ta;
+        body.appendChild(el("label", { class: "formrow" }, [
+          el("span", { class: "formlabel", text: pair[1] }), ta,
+        ]));
+      });
+    },
+    [
+      el("button", { class: "btn", type: "button", text: "Avbryt",
+                     onclick: closeModal }),
+      el("button", {
+        class: "btn primary", type: "button",
+        text: isNew ? "Opprett" : "Lagre",
+        onclick: async () => {
+          ["name", "occ", "archetype", "player", "weapons", "talents",
+           "armor", "spells", "sanity_loss", "backstory", "notes"]
+            .forEach((k) => { if (fields[k]) c[k] = fields[k].value.trim(); });
+
+          c.stats = {};
+          CHAR_STATS.forEach((k) => {
+            const v = fields["stat:" + k].value.trim();
+            if (v) c.stats[k] = v;
+          });
+
+          c.attacks = Array.from(fields._attacks.children)
+            .map((r) => r._read())
+            .filter((a) => a.name || a.skill || a.damage);
+
+          c.skills = {};
+          Array.from(fields._skills.children).forEach((r) => {
+            const pair = r._read();
+            if (pair[0]) c.skills[pair[0]] = pair[1];
+          });
+
+          if (!c.name) { toast("Rollen trenger et navn"); return; }
+
+          if (isNew) {
+            state.characters.push(c);
+          } else {
+            const i = state.characters.findIndex((x) => x.id === c.id);
+            if (i === -1) state.characters.push(c);
+            else state.characters[i] = c;
+          }
+          await saveCharacters();
+          closeModal();
+          render();
+          toast(isNew ? "Opprettet" : "Lagret");
+        },
+      }),
+    ]);
+}
+
+/* ------------------------- fiendebank --------------------------- */
+
+function viewBestiary(root) {
+  root.appendChild(el("h1", { text: "Fiendebank" }));
+  const bank = state.bestiary;
+  if (!bank || !bank.creatures || !bank.creatures.length) {
+    root.appendChild(emptyBox("Ingen fiendebank innebygd."));
+    return;
+  }
+  root.appendChild(el("p", { class: "lede",
+    text: bank.creatures.length + " skapninger fra " + bank.source +
+          ". Legg dem i rollelisten for å redigere dem, eller send dem " +
+          "rett inn i en kamp." }));
+
+  root.appendChild(el("div", { class: "callout" }, [
+    el("p", { class: "eyebrow", text: "Om tallene" }),
+    el("p", { text: bank.note }),
+  ]));
+
+  root.appendChild(searchBar("Søk i fiendebanken…"));
+  root.appendChild(el("div", { style: "height:14px" }));
+
+  const q = state.query.toLowerCase();
+  const shown = bank.creatures.filter((c) => !q ||
+    (c.name + " " + c.subtitle).toLowerCase().indexOf(q) !== -1);
+  if (!shown.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+
+  const stack = el("div", { class: "stack" });
+  shown.forEach((c) => {
+    const sub = [c.subtitle, c.stats.HP ? "HP " + c.stats.HP : null,
+                 c.stats.DB ? "DB " + c.stats.DB : null]
+      .filter(Boolean).join(" · ");
+    stack.appendChild(el("div", { class: "entry", "data-tag": "villain" }, [
+      el("span", { class: "tick", style: "border-color:transparent" }),
+      el("span", { class: "entry-body" }, [
+        el("button", { class: "linkish", type: "button",
+                       onclick: () => openBeast(c) },
+           [el("span", { class: "entry-title", text: c.name })]),
+        sub ? el("span", { class: "entry-sub", text: sub }) : null,
+      ]),
+      el("span", { class: "rowtools" }, [
+        el("button", { class: "btn small", type: "button", text: "Til kamp",
+                       onclick: () => addToCombat(beastToChar(c)) }),
+        el("button", { class: "btn small", type: "button",
+                       text: "Til rollelisten",
+                       onclick: () => addBeastToRoster(c) }),
+      ]),
+    ]));
+  });
+  root.appendChild(stack);
+}
+
+function beastToChar(beast) {
+  // En kopi som kan redigeres uten å røre banken.
+  return normalizeChar({
+    id: newId("ch"),
+    name: beast.name,
+    kind: "enemy",
+    subtitle: beast.subtitle,
+    occ: beast.category || "Mythos",
+    stats: Object.assign({}, beast.stats),
+    attacks: (beast.attacks || []).map((a) => Object.assign({}, a)),
+    armor: beast.armor,
+    spells: beast.spells,
+    sanity_loss: beast.sanity_loss,
+    notes: [beast.skills ? "Ferdigheter: " + beast.skills : "",
+            beast.notes].filter(Boolean).join("\n\n"),
+    source: beast.id,
+  });
+}
+
+async function addBeastToRoster(beast) {
+  const c = beastToChar(beast);
+  c.name = uniqueName(c.name);
+  state.characters.push(c);
+  await saveCharacters();
+  render();
+  toast("«" + c.name + "» lagt i rollelisten");
+}
+
+function openBeast(beast) {
+  openModal(beast.name, beast.subtitle, (body) => {
+    const grid = statGrid(beast.stats);
+    if (grid) body.appendChild(grid);
+
+    if (beast.rolls && Object.keys(beast.rolls).length) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Terningformler" }));
+      body.appendChild(el("p", { class: "prose tight",
+        text: Object.keys(beast.rolls)
+          .map((k) => k + " " + beast.rolls[k]).join("   ") }));
+      body.appendChild(el("p", { class: "caveat",
+        text: "Tallene over er gjennomsnitt av disse formlene. Slå selv " +
+              "hvis du vil ha variasjon mellom flere av samme skapning." }));
+    }
+
+    const atk = attackTable(beast.attacks);
+    if (atk) {
+      body.appendChild(el("div", { class: "section-label", text: "Angrep" }));
+      body.appendChild(atk);
+    }
+    [["armor", "Rustning"], ["skills", "Ferdigheter"], ["spells", "Formler"],
+     ["sanity_loss", "Sanity-tap"], ["notes", "Notater"]].forEach((pair) => {
+      if (!beast[pair[0]]) return;
+      body.appendChild(el("div", { class: "section-label", text: pair[1] }));
+      body.appendChild(el("p", { class: "prose", text: beast[pair[0]] }));
+    });
+  }, [
+    el("button", { class: "btn primary", type: "button", text: "Til kamp",
+                   onclick: () => { closeModal(); addToCombat(beastToChar(beast)); } }),
+    el("button", { class: "btn", type: "button", text: "Til rollelisten",
+                   onclick: () => { closeModal(); addBeastToRoster(beast); } }),
+  ]);
+}
+
+/* ------------------------- kamptracker -------------------------- */
+
+function emptyCombat() {
+  return { active: false, round: 0, turn: 0, combatants: [], log: [] };
+}
+
+async function saveCombat() { await store.set("combat", state.combat); }
+
+function initiativeOf(c) {
+  // Call of Cthulhu 7e: de med skytevåpen klare handler først, deretter
+  // faller alle i DEX-rekkefølge. Vi legger 100 på for å holde dem
+  // øverst uten å endre den innbyrdes DEX-rekkefølgen.
+  const dex = parseInt(c.dex, 10) || 0;
+  const bonus = parseInt(c.initBonus, 10) || 0;
+  return dex + bonus + (c.firearm ? 100 : 0);
+}
+
+function sortCombat() {
+  state.combat.combatants.sort((a, b) => initiativeOf(b) - initiativeOf(a));
+}
+
+async function addToCombat(charLike) {
+  const c = normalizeChar(charLike);
+  const maxHp = charMaxHp(c);
+  const name = (function () {
+    const taken = new Set(state.combat.combatants.map((x) => x.name));
+    const stem = (c.name || "Deltaker").replace(/\s+\d+$/, "");
+    if (!taken.has(stem)) return stem;
+    let n = 2;
+    while (taken.has(stem + " " + n)) n += 1;
+    return stem + " " + n;
+  })();
+
+  state.combat.combatants.push({
+    id: newId("cb"),
+    charId: c.id,
+    name: name,
+    kind: c.kind,
+    dex: c.stats.DEX || "",
+    initBonus: 0,
+    firearm: false,
+    hp: maxHp,
+    hpMax: maxHp,
+    armor: c.stats.Armor || c.armor || "",
+    db: c.stats.DB || "",
+    attacks: (c.attacks || []).map((a) => Object.assign({}, a)),
+    conditions: [],
+    majorWound: false,
+    note: "",
+  });
+  sortCombat();
+  await saveCombat();
+  render();
+  toast("«" + name + "» lagt i kampen");
+}
+
+function viewCombat(root) {
+  const cb = state.combat;
+  root.appendChild(el("h1", { text: "Kamp" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Initiativ etter DEX, med skytevåpen først. HP, tilstander og " +
+          "runde lagres, så du kan lukke sida midt i en kamp." }));
+
+  // --- kontrollrad
+  const controls = el("div", { class: "row", style: "margin-bottom:14px" });
+  if (!cb.active) {
+    controls.appendChild(el("button", {
+      class: "btn primary", type: "button", text: "Start kamp",
+      onclick: async () => {
+        if (!cb.combatants.length) { toast("Legg til deltakere først"); return; }
+        cb.active = true; cb.round = 1; cb.turn = 0;
+        cb.log = ["Runde 1 begynner."];
+        sortCombat();
+        await saveCombat(); render();
+      },
+    }));
+  } else {
+    controls.appendChild(el("button", {
+      class: "btn primary", type: "button", text: "Neste tur",
+      onclick: () => advanceTurn(),
+    }));
+    controls.appendChild(el("button", {
+      class: "btn", type: "button", text: "Avslutt kamp",
+      onclick: () => confirmThen("Avslutt kampen?",
+        "Deltakerlista blir liggende, men runde og tur nullstilles.",
+        async () => {
+          cb.active = false; cb.round = 0; cb.turn = 0;
+          await saveCombat(); render();
+        }),
+    }));
+  }
+  controls.appendChild(el("button", {
+    class: "btn small", type: "button", text: "+ Deltaker",
+    onclick: () => addCombatantDialog(),
+  }));
+  if (cb.combatants.length) {
+    controls.appendChild(el("button", {
+      class: "btn small danger", type: "button", text: "Tøm",
+      onclick: () => confirmThen("Tøm kampen?",
+        "Alle deltakere fjernes.", async () => {
+          state.combat = emptyCombat();
+          await saveCombat(); render();
+        }),
+    }));
+  }
+  root.appendChild(controls);
+
+  if (cb.active) {
+    const current = cb.combatants[cb.turn];
+    root.appendChild(el("div", { class: "panel accent roundbar" }, [
+      el("div", null, [
+        el("p", { class: "eyebrow", text: "Runde" }),
+        el("p", { class: "roundnum", text: String(cb.round) }),
+      ]),
+      el("div", null, [
+        el("p", { class: "eyebrow", text: "Sin tur" }),
+        el("p", { class: "turnname",
+                  text: current ? current.name : "—" }),
+      ]),
+    ]));
+  }
+
+  if (!cb.combatants.length) {
+    root.appendChild(emptyBox("Ingen deltakere.",
+      "Legg til fra Roller, fra Fiendebanken, eller manuelt med " +
+      "«+ Deltaker»."));
     return;
   }
 
   const stack = el("div", { class: "stack" });
-  state.characters.forEach((pc) => {
-    stack.appendChild(el("button", {
-      class: "entry", type: "button", onclick: () => openCharacter(pc),
-    }, [
-      el("span", { class: "tick", style: "border-color:transparent" }),
-      el("span", { class: "entry-body" }, [
-        el("span", { class: "entry-title", text: pc.name || "(uten navn)" }),
-        el("span", { class: "entry-sub",
-          text: [pc.occ, pc.archetype, pc.hp ? "HP " + pc.hp : null,
-                 pc.san ? "SAN " + pc.san : null].filter(Boolean).join(" · ") }),
-      ]),
-      el("span", { class: "entry-open", text: "ARK" }),
-    ]));
+  cb.combatants.forEach((c, i) => {
+    stack.appendChild(combatantCard(c, i));
   });
   root.appendChild(stack);
+
+  if (cb.log && cb.log.length) {
+    root.appendChild(el("h2", { text: "Logg" }));
+    const logbox = el("div", { class: "panel" });
+    cb.log.slice(-14).reverse().forEach((line) => {
+      logbox.appendChild(el("p", { class: "logline", text: line }));
+    });
+    root.appendChild(logbox);
+  }
+}
+
+const CONDITIONS = ["Bevisstløs", "Døende", "Major wound", "Grepet",
+                    "Gal", "Skadet", "Flykter"];
+
+function combatantCard(c, index) {
+  const cb = state.combat;
+  const isTurn = cb.active && index === cb.turn;
+  const dead = c.hp <= 0;
+  const pct = c.hpMax ? Math.max(0, Math.min(100,
+    Math.round((c.hp / c.hpMax) * 100))) : 0;
+  const tone = c.kind === "enemy" ? "villain"
+    : (c.kind === "npc" ? "event" : "voyage");
+
+  const card = el("div", {
+    class: "combatant" + (isTurn ? " active" : "") + (dead ? " down" : ""),
+    "data-tag": tone,
+  });
+
+  // --- topplinje
+  card.appendChild(el("div", { class: "cb-head" }, [
+    el("span", { class: "cb-init", title: "Initiativ",
+                 text: String(initiativeOf(c)) }),
+    el("span", { class: "cb-name" }, [
+      el("b", { text: c.name }),
+      el("span", { class: "entry-sub",
+        text: [KIND_LABEL[c.kind], c.dex ? "DEX " + c.dex : null,
+               c.firearm ? "skytevåpen" : null,
+               c.armor ? "rustning " + c.armor : null,
+               c.db ? "DB " + c.db : null].filter(Boolean).join(" · ") }),
+    ]),
+    el("span", { class: "cb-hp" + (dead ? " out" : "") },
+       [String(c.hp), el("small", { text: " / " + c.hpMax })]),
+  ]));
+
+  // --- HP-stolpe
+  card.appendChild(el("div", { class: "meter-track" }, [
+    el("div", {
+      class: "meter-fill" + (pct > 50 ? " full" : ""),
+      style: "width:" + pct + "%;" +
+             (pct <= 25 ? "background:var(--signal);" : ""),
+    }),
+  ]));
+
+  // --- skade og helbred
+  const dmg = el("input", { class: "field cb-num", type: "number",
+                            placeholder: "0", inputmode: "numeric" });
+  function applyHp(sign) {
+    const n = parseInt(dmg.value, 10);
+    if (!n || n <= 0) { dmg.focus(); return; }
+    const before = c.hp;
+    c.hp = Math.max(0, Math.min(c.hpMax, c.hp + sign * n));
+    // Call of Cthulhu: én enkelt skade på halve maks-HP eller mer er
+    // et major wound.
+    if (sign < 0 && n >= Math.ceil(c.hpMax / 2) && !c.majorWound) {
+      c.majorWound = true;
+      if (c.conditions.indexOf("Major wound") === -1) {
+        c.conditions.push("Major wound");
+      }
+      cb.log.push(c.name + " tar " + n + " skade — MAJOR WOUND " +
+                  "(CON roll eller bevisstløs).");
+    } else {
+      cb.log.push(c.name + (sign < 0 ? " tar " + n + " skade"
+                                     : " leges " + n) +
+                  " (" + before + " → " + c.hp + ").");
+    }
+    if (c.hp === 0 && c.conditions.indexOf("Døende") === -1) {
+      c.conditions.push("Døende");
+      cb.log.push(c.name + " er nede på 0 HP.");
+    }
+    dmg.value = "";
+    saveCombat().then(render);
+  }
+  card.appendChild(el("div", { class: "cb-tools" }, [
+    dmg,
+    el("button", { class: "btn small danger", type: "button", text: "Skade",
+                   onclick: () => applyHp(-1) }),
+    el("button", { class: "btn small", type: "button", text: "Leg",
+                   onclick: () => applyHp(+1) }),
+    el("button", { class: "btn small", type: "button",
+                   "aria-pressed": String(!!c.firearm),
+                   text: "Skytevåpen",
+                   onclick: async () => {
+                     c.firearm = !c.firearm; sortCombat();
+                     await saveCombat(); render();
+                   } }),
+    el("button", { class: "btn small", type: "button", text: "Fjern",
+                   onclick: async () => {
+                     cb.combatants = cb.combatants.filter((x) => x.id !== c.id);
+                     if (cb.turn >= cb.combatants.length) cb.turn = 0;
+                     await saveCombat(); render();
+                   } }),
+  ]));
+
+  // --- angrep, til å lese av mens det står på
+  if (c.attacks && c.attacks.length) {
+    const atk = el("div", { class: "cb-attacks" });
+    c.attacks.forEach((a) => {
+      atk.appendChild(el("button", {
+        class: "chip atk", type: "button",
+        title: "Slå mot " + (a.skill || "?"),
+        text: a.name + (a.skill ? " " + a.skill : "") +
+              (a.damage ? " · " + a.damage : ""),
+        onclick: () => {
+          const target = parseInt(a.skill, 10);
+          if (!target) { toast("Ingen treffsjanse på dette angrepet"); return; }
+          const r = rollSkill(target);
+          cb.log.push(c.name + " – " + a.name + " (" + target + "%): " +
+                      r.roll + " " + r.label +
+                      (a.damage ? "  skade " + a.damage : ""));
+          saveCombat().then(render);
+        },
+      }));
+    });
+    card.appendChild(atk);
+  }
+
+  // --- tilstander
+  const conds = el("div", { class: "cb-conds" });
+  CONDITIONS.forEach((name) => {
+    const on = c.conditions.indexOf(name) !== -1;
+    conds.appendChild(el("button", {
+      class: "chip cond" + (on ? " on" : ""), type: "button",
+      "aria-pressed": String(on), text: name,
+      onclick: async () => {
+        if (on) c.conditions = c.conditions.filter((x) => x !== name);
+        else c.conditions.push(name);
+        await saveCombat(); render();
+      },
+    }));
+  });
+  card.appendChild(conds);
+
+  const note = el("input", { class: "field", placeholder: "Notat…",
+                             value: c.note || "" });
+  note.addEventListener("input", debounce(async () => {
+    c.note = note.value; await saveCombat();
+  }, 500));
+  card.appendChild(note);
+
+  return card;
+}
+
+async function advanceTurn() {
+  const cb = state.combat;
+  if (!cb.combatants.length) return;
+  cb.turn += 1;
+  if (cb.turn >= cb.combatants.length) {
+    cb.turn = 0;
+    cb.round += 1;
+    cb.log.push("— Runde " + cb.round + " —");
+  }
+  await saveCombat();
+  render();
+}
+
+function addCombatantDialog() {
+  openModal("Legg til i kampen", "", (body) => {
+    // --- fra rollelisten
+    if (state.characters.length) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Fra rollelisten" }));
+      const stack = el("div", { class: "stack" });
+      state.characters.forEach((c) => {
+        stack.appendChild(el("button", {
+          class: "entry", type: "button",
+          "data-tag": c.kind === "enemy" ? "villain"
+            : (c.kind === "npc" ? "event" : null),
+          onclick: () => { closeModal(); addToCombat(c); },
+        }, [
+          el("span", { class: "tick", style: "border-color:transparent" }),
+          el("span", { class: "entry-body" }, [
+            el("span", { class: "entry-title", text: c.name }),
+            el("span", { class: "entry-sub",
+              text: [KIND_LABEL[c.kind], c.stats.DEX ? "DEX " + c.stats.DEX : null,
+                     c.stats.HP ? "HP " + c.stats.HP : null]
+                .filter(Boolean).join(" · ") }),
+          ]),
+          el("span", { class: "entry-open", text: "LEGG TIL" }),
+        ]));
+      });
+      body.appendChild(stack);
+    }
+
+    // --- manuelt
+    body.appendChild(el("div", { class: "section-label", text: "Manuelt" }));
+    const name = el("input", { class: "field", placeholder: "Navn" });
+    const dex = el("input", { class: "field", placeholder: "DEX",
+                              type: "number" });
+    const hp = el("input", { class: "field", placeholder: "HP",
+                             type: "number" });
+    body.appendChild(el("div", { class: "grid-2" }, [name, dex]));
+    body.appendChild(el("div", { style: "height:8px" }));
+    body.appendChild(hp);
+    body.appendChild(el("div", { style: "height:10px" }));
+    body.appendChild(el("button", {
+      class: "btn primary", type: "button", text: "Legg til",
+      onclick: () => {
+        if (!name.value.trim()) { toast("Deltakeren trenger et navn"); return; }
+        closeModal();
+        addToCombat({
+          name: name.value.trim(), kind: "npc",
+          stats: { DEX: dex.value || "", HP: hp.value || "10" },
+        });
+      },
+    }));
+  }, [
+    el("button", { class: "btn", type: "button", text: "Lukk",
+                   onclick: closeModal }),
+    state.bestiary && state.bestiary.creatures.length ? el("button", {
+      class: "btn small", type: "button", text: "Åpne fiendebanken",
+      onclick: () => { closeModal(); setView("bestiary"); },
+    }) : null,
+  ].filter(Boolean));
 }
 
 /* -------------------------- bibliotek --------------------------- */
@@ -2137,7 +3125,11 @@ function render() {
   main.appendChild(root);
 
   if (state.view === "library") { viewLibrary(root); return; }
+  // Disse tre virker uten et aktivt scenario — man kan kjøre en kamp
+  // eller bygge rollelisten før man har importert noe.
   if (state.view === "characters") { viewCharacters(root); return; }
+  if (state.view === "bestiary") { viewBestiary(root); return; }
+  if (state.view === "combat") { viewCombat(root); return; }
 
   if (!state.scenario) {
     root.appendChild(el("h1", { text: "Ingen scenario lastet" }));
@@ -2189,9 +3181,11 @@ async function boot() {
     }
   });
 
+  loadBestiary();
+
   // Tegn med lokale data først, slik at siden er brukbar med én gang.
   await loadLibrary();
-  state.characters = (await store.get("characters")) || [];
+  await loadRoster();
   await seedBundled();
   await loadActive();
   render();
@@ -2200,11 +3194,33 @@ async function boot() {
   await connectRemote();
   if (remote) {
     await loadLibrary();
-    state.characters = (await store.get("characters")) || [];
+    await loadRoster();
     await seedBundled();
     await loadActive();
     render();
   }
+}
+
+function loadBestiary() {
+  const node = document.getElementById("bundled-bestiary");
+  if (!node) return;
+  try {
+    const bank = JSON.parse(node.textContent);
+    if (bank && Array.isArray(bank.creatures)) state.bestiary = bank;
+  } catch (e) { state.bestiary = null; }
+}
+
+async function loadRoster() {
+  // Alle roller normaliseres ved innlasting, slik at gamle filer fra
+  // Android-appen (med «type» og flate stat-felter) blir like de nye.
+  const raw = (await store.get("characters")) || [];
+  const before = JSON.stringify(raw);
+  state.characters = (Array.isArray(raw) ? raw : []).map(normalizeChar);
+  if (JSON.stringify(state.characters) !== before) await saveCharacters();
+
+  const cb = (await store.get("combat")) || null;
+  state.combat = (cb && Array.isArray(cb.combatants))
+    ? Object.assign(emptyCombat(), cb) : emptyCombat();
 }
 
 boot();

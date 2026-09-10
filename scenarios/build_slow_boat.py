@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 2
+VERSION = 3
 
 # --------------------------------------------------------------- meta
 
@@ -1036,11 +1036,11 @@ data["npcs"] = [
         "i utøyet som fortærte liket. Den er ikke udød: tingene som utgjør "
         "kroppen, lever. Sår som dreper enkelte kakerlakker er bare til "
         "bry, mens svermen avler nye.",
-        stats={"STR": "65", "CON": "80", "SIZ": "60", "DEX": "50",
-               "INT": "90", "POW": "100", "HP": "14", "MP": "20",
-               "DB": "0", "Build": "0", "Move": "6",
-               "Armor": "se Spesielt"},
-        combat=["Bite or grasp 30 %, skade 1D4 pluss vrimlende utøy",
+        stats={"STR": "6", "CON": "14", "SIZ": "13", "DEX": "7",
+               "INT": "13", "POW": "100", "HP": "13", "MP": "20",
+               "DB": "+0", "Move": "8", "Armor": "se Spesielt"},
+        combat=["Angriper med det den har for hånden — treffsjanse og "
+                "skade som våpenet tilsier",
                 "Svak i nærkamp — den foretrekker formler og lar "
                 "håndlangerne ta det jordnære",
                 "Kan bytte mellom alle sine menneskeskikkelser i løpet "
@@ -1070,8 +1070,10 @@ data["npcs"] = [
                 "derav det hule rotteskinnet.",
         sanity_loss="1D3/2D6 for å se den forvandle seg, eller se dens "
                     "egentlige skikkelse",
-        stats_note=STANDIN + " POW 100 er fastsatt i teksten (den "
-                             "opposed rollen for Mindblast).",
+        stats_note="Karakteristikker fra Malleus Monstrorum "
+                   "(crawling ones). POW 100 er fastsatt av selve "
+                   "scenarioteksten — den opposed rollen for "
+                   "Mindblast — og overstyrer bokas 4D6+6.",
         forms="Señor Diego Guiterrez de Almacan (hoveddekke) | Chad "
               "Peterson | Martin Dungass, overproviantforvalter | Haseye "
               "Adikai, en navaho-jente i tenårene | Du Zeming, en arret "
@@ -1144,14 +1146,14 @@ data["npcs"] = [
         "vinder det lager selv. Tilkalt fra havbunnen av Pipes of Leng, "
         "og gjort rasende — ikke kontrollert — av dem. Når den stiger, "
         "åpner det seg en veldig malstrøm som får skipet til å krenge.",
-        stats={"STR": "180", "CON": "125", "SIZ": "180", "DEX": "90",
-               "INT": "80", "POW": "80", "HP": "30", "MP": "16",
-               "DB": "+4D6", "Build": "5", "Move": "12 flygende",
-               "Armor": "4"},
-        combat=["Tentakelstrøk — skade som ligner uttørking eller "
+        stats={"STR": "50", "CON": "25", "SIZ": "50", "DEX": "13",
+               "INT": "14", "POW": "80", "HP": "38", "MP": "16",
+               "DB": "+5D6 (bare for vindstøtet)",
+               "Move": "8 / 12 flygende", "Armor": "4"},
+        combat=["Tentacle 85 %, skade 1D10 — som uttørking eller "
                 "ekstrem vindbrenning",
-                "Vindstøt 5D6 — knuser glass og slynger møbler tvers "
-                "over rom",
+                "Windblast 70 %, skade db, redusert med 1D6 per 18 "
+                "meter avstand — knuser glass og slynger møbler",
                 "Bruker 10 runder på å rive seg gjennom skroget til "
                 "lasterom 7"],
         armor="4 poeng. Tar bare MINIMUM skade fra fysiske våpen. "
@@ -1163,10 +1165,10 @@ data["npcs"] = [
                 "fra, og etterlater seg en stripe av ødeleggelse. "
                 "Fortsetter de å spille, legger den skipet i grus.",
         sanity_loss="1D3/1D20 — slås av alle om bord",
-        stats_note="POW 80 og Armor 4 er fastsatt i teksten (den "
+        stats_note="Karakteristikker fra Malleus Monstrorum. POW 80 "
+                   "og Armor 4 stemmer med scenarioteksten (den "
                    "opposed rollen for Bind Flying Polyp og "
-                   "skadereglene). De øvrige karakteristikkene er "
-                   "standardverdier for vesenet.",
+                   "skadereglene). Skills: Hide 30 %, Track 35 %.",
         notes="Se Regler: Å håndtere polyppen for de tre utveiene — "
               "ødelegg pipene, bind den, eller slåss."),
 
@@ -1176,18 +1178,18 @@ data["npcs"] = [
         "vondt å se på. Tilkalt av skapningen når den vil ha helter "
         "eller tcho-tcho døde, og er villig til å ta oppmerksomheten det "
         "koster.",
-        stats={"STR": "85", "CON": "70", "SIZ": "90", "DEX": "85",
-               "INT": "50", "POW": "70", "HP": "16", "MP": "14",
-               "DB": "+1D6", "Build": "2", "Move": "8 / 18 flygende",
-               "Armor": "2"},
-        combat=["Bite 65 %, skade 1D8",
-                "Crush 40 %, skade 2D6 — et sammensnørende angrep mot "
-                "et fastholdt mål"],
+        stats={"STR": "30", "CON": "10", "SIZ": "42", "DEX": "14",
+               "INT": "16", "POW": "21", "HP": "26", "MP": "4",
+               "DB": "+3D6", "Move": "7 / 11 flygende",
+               "Armor": "9"},
+        combat=["Bite 65 %, skade 1D6",
+                "Tail 90 %, grapple — halen snører seg om målet"],
         special="Ødelegges av direkte sollys. Om bord betyr det at den "
                 "må håndteres før daggry, eller drives ut på åpent dekk.",
         sanity_loss="1D3/1D20",
-        stats_note="Standardverdier for vesenet — sjekk mot Malleus "
-                   "Monstrorum hvis du har den.",
+        stats_note="Karakteristikker fra Malleus Monstrorum. Rustning: "
+                   "9 poeng hud, og den kan ikke impales av kuler. "
+                   "Sanity-tap 0/1D10.",
         notes="En tung slegge. Scenarioet foreslår den for Keepere som "
               "vil gi heltene virkelig hard medfart, eller for å utslette "
               "tcho-tcho-ene hvis de avslår skapningens tilbud."),

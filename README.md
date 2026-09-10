@@ -13,7 +13,7 @@ Versjon: **0.5.0** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 |---|---|
 | **Android** | Full app: bilder, lyd, kamp, cast, karakterer, scenariobibliotek |
 | **PC** (`python3 main.py`) | Samme app, samme kode — se [På PC](#på-pc) |
-| **Nettleser** (`web/index.html`) | Keeper-konsollen: scenariobibliotek, tidslinje, scener, spor, NPC-statblokker, handouts, notater og sesjonslogg — se [I nettleseren](#i-nettleseren) |
+| **Nettleser** (`web/index.html`) | Keeper-konsollen: scenario, roller, fiendebank og kamptracker — se [I nettleseren](#i-nettleseren) |
 
 ---
 
@@ -24,6 +24,8 @@ Versjon: **0.5.0** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 - [Importer karakterer](#importer-karakterer)
 - [Scenario-import og lagring](#scenario-import-og-lagring)
 - [På PC](#på-pc)
+- [Fiendebank](#fiendebank)
+- [Roller og kamp](#roller-og-kamp)
 - [I nettleseren](#i-nettleseren)
 - [Kom i gang](#kom-i-gang)
 - [Mappestruktur på enheten](#mappestruktur-på-enheten)
@@ -376,7 +378,14 @@ xvfb-run -a python3 tests/smoke_test.py
 
 `web/index.html` er en frittstående side — åpne den rett fra disk, eller legg den hvor som helst. Ingen server, ingen installasjon, virker offline.
 
-Den inneholder Keeper-delen av appen: scenariobibliotek, tidslinje gruppert per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts, regeloppslag, autolagrende notater, sesjonslogg, karakterark og en d100-kaster med suksessgrader.
+Den inneholder Keeper-delen av appen:
+
+- **Scenario** — bibliotek, tidslinje per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts og regeloppslag
+- **Roller** — spillere, NPCer og fiender i én liste, med filtrering per type. Alt kan opprettes, redigeres, dupliseres og slettes: karakteristikker, angrep, ferdigheter og fritekst
+- **Fiendebank** — 73 skapninger med statblokker, som kan legges i rollelisten eller sendes rett i en kamp
+- **Kamp** — initiativ etter DEX med skytevåpen først, rundeteller, HP-sporing med automatisk major wound, tilstander, angrepsslag og logg
+- **Mitt** — autolagrende notater og sesjonslogg
+- En d100-kaster med suksessgrader oppe i topplinja
 
 Alt lagres i nettleseren. Publisert som artifact på claude.ai synkes fremdrift, notater og karakterer også mellom enheter — merket øverst til høyre sier hvilken av delene som gjelder.
 
@@ -387,6 +396,45 @@ python3 web/build.py
 ```
 
 Skriptet lager to filer fra samme kilde: `web/index.html` (komplett HTML-dokument) og `web/app.html` (samme side uten `<head>`/`<body>`, til publisering som artifact).
+
+
+---
+
+## Fiendebank
+
+`bestiary/malleus-monstrorum.json` inneholder 73 skapninger med karakteristikker, angrep, rustning, ferdigheter, formler og Sanity-tap. Den bygges inn i nettleserversjonen og vises under **Fiendebank**.
+
+Derfra kan en skapning enten legges i rollelisten — som en redigerbar kopi du kan gi eget navn og egne tall — eller sendes rett inn i en kamp.
+
+### Hvordan den er laget
+
+Statblokkene er hentet maskinelt ut av en tekstkonvertering av Malleus Monstrorum:
+
+```bash
+python3 scenarios/parse_malleus.py        # mm.txt  -> mm_blocks.json
+python3 scenarios/build_bestiary.py mm_blocks.json
+python3 web/build.py
+```
+
+Karakteristikkene i banken er **gjennomsnittet** av bokas terningformler, siden kamptrackeren trenger konkrete tall. De opprinnelige formlene ligger i `rolls`-feltet og vises i skapningens kort, så du kan slå selv hvis du vil ha variasjon mellom flere av samme sort.
+
+> **Forbehold:** kilden er en OCR-konvertering. Tallene stemmer i de tilfellene som er kontrollert, men enkelte angrepslinjer kan ha blitt delt feil. Sjekk mot din egen utgave før en viktig kamp.
+
+---
+
+## Roller og kamp
+
+Rollelisten skiller mellom tre typer, og typen styrer både gruppering, filter og fargekoding:
+
+| Type | Brukes til |
+|---|---|
+| `pc` | Spillerkarakterer |
+| `npc` | Navngitte biroller |
+| `enemy` | Fiender og skapninger |
+
+Eldre `characters.json` fra Android-appen leses uendret: feltet `type` (PC/NPC) leses som `kind`, og flate felter som `str`, `con` og `hp` løftes inn i et `stats`-objekt ved innlasting. Import slår sammen på navn, så den samme fila kan importeres flere ganger uten å lage duplikater.
+
+**Kamptrackeren** sorterer etter DEX, med de som har skytevåpen klare øverst — slik Call of Cthulhu 7e gjør det. Skade på halve maks-HP eller mer i ett slag flagges automatisk som major wound. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
 
 ---
 

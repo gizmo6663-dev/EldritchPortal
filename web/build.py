@@ -18,6 +18,7 @@ import os
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SCENARIO_DIR = os.path.join(ROOT, "scenarios")
+BESTIARY_DIR = os.path.join(ROOT, "bestiary")
 
 SKELETON = """<!doctype html>
 <html lang="nb">
@@ -50,10 +51,26 @@ def main():
         with open(os.path.join(SCENARIO_DIR, name), encoding="utf-8") as fh:
             scenarios.append(json.load(fh))
 
-    # </script> inne i JSON-en ville avsluttet script-taggen for tidlig.
-    payload = json.dumps(scenarios, ensure_ascii=False,
-                         separators=(",", ":")).replace("</", "<\\/")
-    page = template.replace("/*__SCENARIOS__*/", payload)
+    # Fiendebanken: slå sammen alle filer under bestiary/ til én bank.
+    bestiary = {"creatures": []}
+    if os.path.isdir(BESTIARY_DIR):
+        for name in sorted(os.listdir(BESTIARY_DIR)):
+            if not name.endswith(".json"):
+                continue
+            with open(os.path.join(BESTIARY_DIR, name),
+                      encoding="utf-8") as fh:
+                bank = json.load(fh)
+            creatures = bestiary["creatures"] + bank.get("creatures", [])
+            bestiary = dict(bank)
+            bestiary["creatures"] = creatures
+
+    def embed(obj):
+        # </script> inne i JSON-en ville avsluttet script-taggen for tidlig.
+        return json.dumps(obj, ensure_ascii=False,
+                          separators=(",", ":")).replace("</", "<\\/")
+
+    page = template.replace("/*__SCENARIOS__*/", embed(scenarios))
+    page = page.replace("/*__BESTIARY__*/", embed(bestiary))
 
     app_path = os.path.join(HERE, "app.html")
     with open(app_path, "w", encoding="utf-8") as fh:
@@ -69,7 +86,8 @@ def main():
     for path in (app_path, index_path):
         print(f"{os.path.relpath(path, ROOT):20} "
               f"{os.path.getsize(path) / 1024:8.1f} kB")
-    print(f"{len(scenarios)} scenario(er) bygget inn")
+    print(f"{len(scenarios)} scenario(er) og "
+          f"{len(bestiary['creatures'])} skapninger bygget inn")
 
 
 if __name__ == "__main__":
