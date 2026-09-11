@@ -451,6 +451,8 @@ Eldre `characters.json` fra Android-appen leses uendret: feltet `type` (PC/NPC) 
 
 Nettleserversjonen bygger inn `weapons.json` (28 våpen) og et talentoppslag hentet fra Pulp Cthulhu (60 talenter).
 
+Alle rollene i `characters.json` har fått våpnene sine lagt inn som angrep, hentet fra arkene deres. Damage bonus står ikke i skadefeltet — et slåsskampangrep er `1D3` med `uses_db`, ikke `1D3+1D4`, siden regelmotoren legger på bonusen selv.
+
 **Våpen** legges på en rolle i karaktereditoren under *Angrep → + Fra våpenlista*. Da følger hele statblokka med: skade, om våpenet bruker damage bonus (helt eller halvt), om det kan spidde, feilingsverdi, rekkevidde, angrep per runde og magasin. Treffsjansen fylles automatisk fra rollens egen ferdighet når den finnes — våpenlista er norsk og karakterarkene ofte engelske, så `Håndvåpen` finner `Firearms (Handgun)`, `Nærkamp` finner `Fighting (Brawl)` og så videre.
 
 Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
@@ -470,7 +472,7 @@ Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
 
 **Angrepsflyten** kjører ett angrep fra ende til annen. Terningene slås ved bordet — appen tar imot tallet og gjør resten:
 
-1. **Angrip** på en deltaker viser angrepene hens, pluss *Manøver*, *Fra våpenlista* (alle 28 våpnene, med treffsjansen hentet fra rollens ferdigheter) og *Improvisert*, der du skriver inn navn, treffsjanse og skade selv. Hvert våpen kan også klikkes direkte i kortet.
+1. **Angrip** på en deltaker viser **bare det hen faktisk har**: våpnene som står på arket, under *Våpen og angrep*. Har deltakeren ikke noe nærkampangrep i det hele tatt, legges knyttneve, spark og hodestøt til som en sikkerhetsventil. Under *Annet* ligger *Manøver*, *Improvisert* (skriv inn navn, treffsjanse og skade selv) og *Plukk opp et annet våpen*, som åpner hele våpenlista — den er til når noen griper noe som ligger der, ikke noe man blar i hver gang. Hvert våpen kan også klikkes direkte i kampkortet.
 2. **Mot hvem** lister de andre i kampen med HP, rustning, unnvikelse og tilstander.
 3. **Oppgjøret** viser treffsjansen med grensene ved siden av (`kritisk 01 · ekstrem ≤10 · hard ≤25 · vanlig ≤50 · fumle ≥100`), og et felt du skriver slaget i. En «Slå»-knapp står ved siden av for NPCer og fiender du ikke gidder å slå for.
 4. **Den som blir angrepet** velger selv: *Ingenting*, *Unnvik* eller *Slå tilbake* i nærkamp; *Dykk i dekning* mot skytevåpen — som stopper skuddet, men koster neste handling. Velger du *Slå tilbake*, plukker du hvilket våpen det slås tilbake med, og vinner forsvareren, er det angriperen som tar skaden.

@@ -4401,84 +4401,106 @@ function attackSummary(a) {
 }
 
 /* --- steg 1: hvilket angrep --- */
+// Ubevæpnet nærkamp er alltid mulig, uansett hva som står på arket.
+// Treffsjansen tas fra rollens egen Slåsskamp/Fighting der den finnes.
+const UNARMED_IDS = ["fist", "kick", "headbutt"];
+
+function unarmedOptions(attacker) {
+  const bank = state.weapons;
+  if (!bank) return [];
+  // Har deltakeren alt et nærkampangrep — slåsskamp på arket, klør på
+  // en ghoul — er det det som gjelder. Da skal ikke banken legge på
+  // knyttnever oppå.
+  const hasMelee = attacksOf(attacker).some((a) => !isRangedAttack(a));
+  if (hasMelee) return [];
+  const own = charBehind(attacker);
+  return UNARMED_IDS.map((id) => {
+    const w = bank.weapons.find((x) => x.id === id);
+    return w ? weaponToAttack(w, own) : null;
+  }).filter(Boolean);
+}
+
+function attackRow(attacker, a, openLabel) {
+  const t = thresholds(skillNumber(a.skill));
+  const left = attackBudget(attacker, a);
+  const spent = left === 0;
+  return el("button", {
+    class: "entry pickrow" + (spent ? " dimmed" : ""), type: "button",
+    onclick: () => {
+      if (spent) { toast("Ingen igjen av dette angrepet denne runden"); return; }
+      pickTarget(attacker, a);
+    },
+  }, [
+    el("span", { class: "entry-body" }, [
+      el("span", { class: "entry-title",
+        text: a.name + (left !== null ? "  —  " + left + " igjen" : "") }),
+      el("span", { class: "entry-sub", text: attackSummary(a) }),
+      el("span", { class: "entry-sub",
+        text: skillNumber(a.skill)
+          ? "ekstrem ≤" + t.extreme + " · hard ≤" + t.hard +
+            " · vanlig ≤" + t.regular + " · fumle ≥" + t.fumble
+          : "Ingen treffsjanse lagt inn — skriv den inn i neste steg." }),
+    ]),
+    el("span", { class: "entry-open",
+      text: openLabel || (isRangedAttack(a) ? "AVSTAND" : "NÆRKAMP") }),
+  ]);
+}
+
+function plainRow(title, sub, openLabel, onclick) {
+  return el("button", { class: "entry pickrow", type: "button",
+                        onclick: onclick }, [
+    el("span", { class: "entry-body" }, [
+      el("span", { class: "entry-title", text: title }),
+      el("span", { class: "entry-sub", text: sub }),
+    ]),
+    el("span", { class: "entry-open", text: openLabel }),
+  ]);
+}
+
+/* --- steg 1: hvilket angrep ---
+
+   Bare det deltakeren faktisk har: våpnene som står på arket, pluss
+   ubevæpnet nærkamp. Hele våpenlista ligger bak et eget valg — den
+   skal ikke være det første man ser når noen slår til.            */
 function openAttackFlow(attacker) {
   const list = attacksOf(attacker);
   openModal("Angrep — " + attacker.name,
     "Velg angrepet som brukes", (body) => {
-      if (!list.length) {
-        body.appendChild(emptyBox("Ingen angrep på denne deltakeren.",
-          "Legg inn våpen på rollen under Roller, eller bruk en manøver."));
-      }
       const stack = el("div", { class: "stack" });
-      list.forEach((a) => {
-        const t = thresholds(skillNumber(a.skill));
-        const left = attackBudget(attacker, a);
-        const spent = left === 0;
-        stack.appendChild(el("button", {
-          class: "entry pickrow" + (spent ? " dimmed" : ""), type: "button",
-          onclick: () => {
-            if (spent) {
-              toast("Ingen igjen av dette angrepet denne runden");
-              return;
-            }
-            pickTarget(attacker, a);
-          },
-        }, [
-          el("span", { class: "entry-body" }, [
-            el("span", { class: "entry-title",
-              text: a.name + (left !== null ? "  —  " + left + " igjen" : "") }),
-            el("span", { class: "entry-sub", text: attackSummary(a) }),
-            el("span", { class: "entry-sub",
-              text: skillNumber(a.skill)
-                ? "ekstrem ≤" + t.extreme + " · hard ≤" + t.hard +
-                  " · vanlig ≤" + t.regular + " · fumle ≥" + t.fumble
-                : "Ingen treffsjanse lagt inn — skriv den inn i neste steg." }),
-          ]),
-          el("span", { class: "entry-open",
-                       text: isRangedAttack(a) ? "AVSTAND" : "NÆRKAMP" }),
-        ]));
-      });
-      stack.appendChild(el("button", {
-        class: "entry pickrow", type: "button",
-        onclick: () => pickTarget(attacker, manoeuvreOption()),
-      }, [
-        el("span", { class: "entry-body" }, [
-          el("span", { class: "entry-title", text: "Manøver" }),
-          el("span", { class: "entry-sub", text: manoeuvreOption().note }),
-        ]),
-        el("span", { class: "entry-open", text: "NÆRKAMP" }),
-      ]));
 
-      // Har ikke deltakeren våpen lagt inn — eller griper den noe som
-      // ligger der — kan et hvilket som helst våpen fra lista brukes
-      // med én gang. Treffsjansen hentes fra rollens ferdigheter.
-      stack.appendChild(el("button", {
-        class: "entry pickrow", type: "button",
-        onclick: () => pickWeaponForAttack(attacker),
-      }, [
-        el("span", { class: "entry-body" }, [
-          el("span", { class: "entry-title", text: "Fra våpenlista" }),
-          el("span", { class: "entry-sub",
-            text: "Alle våpnene i appen, med skade, rekkevidde og " +
-                  "feilgrense. Treffsjansen fylles inn fra rollens " +
-                  "ferdigheter der den finnes." }),
-        ]),
-        el("span", { class: "entry-open", text: "VELG" }),
-      ]));
+      if (list.length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Våpen og angrep" }));
+        list.forEach((a) => stack.appendChild(attackRow(attacker, a)));
+        body.appendChild(stack);
+      } else {
+        body.appendChild(emptyBox("Ingen våpen lagt inn på denne.",
+          "Legg dem inn under Roller, så står de her neste gang. " +
+          "Inntil videre kan du bruke nærkamp, en manøver, eller " +
+          "hente et våpen fra lista under."));
+      }
 
-      stack.appendChild(el("button", {
-        class: "entry pickrow", type: "button",
-        onclick: () => improvisedAttack(attacker),
-      }, [
-        el("span", { class: "entry-body" }, [
-          el("span", { class: "entry-title", text: "Improvisert" }),
-          el("span", { class: "entry-sub",
-            text: "Skriv inn navn, treffsjanse og skade selv — stol, " +
-                  "kokende vann, en åre." }),
-        ]),
-        el("span", { class: "entry-open", text: "SKRIV INN" }),
-      ]));
-      body.appendChild(stack);
+      const bare = unarmedOptions(attacker);
+      if (bare.length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Ubevæpnet" }));
+        const ustack = el("div", { class: "stack" });
+        bare.forEach((a) => ustack.appendChild(attackRow(attacker, a)));
+        body.appendChild(ustack);
+      }
+
+      body.appendChild(el("div", { class: "section-label", text: "Annet" }));
+      const other = el("div", { class: "stack" });
+      other.appendChild(plainRow("Manøver", manoeuvreOption().note,
+        "NÆRKAMP", () => pickTarget(attacker, manoeuvreOption())));
+      other.appendChild(plainRow("Improvisert",
+        "Skriv inn navn, treffsjanse og skade selv — stol, kokende " +
+        "vann, en åre.", "SKRIV INN", () => improvisedAttack(attacker)));
+      other.appendChild(plainRow("Plukk opp et annet våpen",
+        "Hele våpenlista i appen. Bruk den når noen griper noe som " +
+        "ligger der — ellers holder du deg til det som står på arket.",
+        "VELG", () => pickWeaponForAttack(attacker)));
+      body.appendChild(other);
     }, []);
 }
 

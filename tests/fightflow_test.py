@@ -131,9 +131,36 @@ async def main():
                 .find((r) => r.textContent.indexOf(t) !== -1).click()""", pick)
             await pg.wait_for_timeout(300)
 
-        # Walther har våpnene sine som fritekst, ikke som angrep. Da skal
-        # våpenlista i appen kunne brukes rett fra angrepsflyten.
-        await open_flow("Fra våpenlista")
+        print("\n== angrepsmenyen viser rollens egne våpen ==")
+        await pg.evaluate("""() => {
+            const i = state.combat.combatants.findIndex((c) => c.kind === 'pc');
+            [...document.querySelectorAll('#main .combatant')][i]
+              .querySelector('.cb-attacks .btn').click();
+        }""")
+        await pg.wait_for_timeout(400)
+        menu = await pg.evaluate("""() => ({
+            labels: [...document.querySelectorAll('#modal-body .section-label')]
+                      .map((x) => x.textContent),
+            rows: [...document.querySelectorAll('#modal-body .pickrow .entry-title')]
+                    .map((x) => x.textContent.trim()),
+        })""")
+        check("menyen er delt i rollens egne og resten", menu["labels"],
+              ["Våpen og angrep", "Annet"])
+        check("hele våpenlista står ikke oppe",
+              len(menu["rows"]) < 12, True)
+        check("men kan hentes fram",
+              "Plukk opp et annet våpen" in menu["rows"], True)
+        own = await pg.evaluate("""() => {
+            const pc = state.combat.combatants.find((c) => c.kind === 'pc');
+            return attacksOf(pc).map((a) => a.name);
+        }""")
+        check("radene er rollens egne angrep",
+              menu["rows"][0:len(own)], own)
+        await pg.evaluate("closeAllModals()")
+
+        # «Plukk opp et annet våpen» skal gi hele våpenlista, til bruk
+        # når noen griper noe som ligger der.
+        await open_flow("Plukk opp et annet våpen")
         await pg.evaluate("""() => [...document.querySelectorAll('#modal-body .pickrow')]
             .find((r) => /Kniv/.test(r.textContent)).click()""")
         await pg.wait_for_timeout(300)
@@ -199,7 +226,7 @@ async def main():
         check("og skrives i loggen", after["log"] > 0, True)
 
         print("\n== skytevåpen kan bare møtes med dekning ==")
-        await open_flow("Fra våpenlista")
+        await open_flow("Plukk opp et annet våpen")
         await pg.evaluate("""() => [...document.querySelectorAll('#modal-body .pickrow')]
             .find((r) => /Colt M1911/.test(r.textContent)).click()""")
         await pg.wait_for_timeout(300)
@@ -228,7 +255,7 @@ async def main():
               "Mister neste handling" in conds, True)
 
         print("\n== fumle og improvisert angrep ==")
-        await open_flow("Fra våpenlista")
+        await open_flow("Plukk opp et annet våpen")
         await pg.evaluate("""() => [...document.querySelectorAll('#modal-body .pickrow')]
             .find((r) => /Kniv/.test(r.textContent)).click()""")
         await pg.wait_for_timeout(300)

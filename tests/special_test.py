@@ -177,7 +177,7 @@ async def main():
         }""")
         await pg.wait_for_timeout(300)
         await pg.evaluate("""() => [...document.querySelectorAll('#modal-body .pickrow')]
-            .find((r) => /Fra våpenlista/.test(r.textContent)).click()""")
+            .find((r) => /Plukk opp et annet våpen/.test(r.textContent)).click()""")
         await pg.wait_for_timeout(300)
         await pg.evaluate("""() => [...document.querySelectorAll('#modal-body .pickrow')]
             .find((r) => /Colt M1911/.test(r.textContent)).click()""")

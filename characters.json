@@ -41,7 +41,37 @@
       "Science (Pharmacy)": "41",
       "Stealth": "45",
       "Survival": "35"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "50%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Håndvåpen",
+        "skill": "60%",
+        "damage": "1D6",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "1",
+        "ammo": 6,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Skjoldvår",
@@ -90,7 +120,23 @@
       "Sleight of Hand": "70",
       "Spot Hidden": "35",
       "Stealth": "70"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "65%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Dagrun",
@@ -149,7 +195,51 @@
       "Survival (Sea)": "20",
       "Swim": "30",
       "Track": "67"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "33%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Colt Detective Special .38",
+        "skill": "60%",
+        "damage": "1D10",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "3",
+        "ammo": 6,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": "colt_detective"
+      },
+      {
+        "name": "Dobbeltløpet hagle 12ga",
+        "skill": "65%",
+        "damage": "4D6 / 2D6 / 1D6",
+        "uses_db": false,
+        "can_impale": false,
+        "malfunction": 100,
+        "attacks": "1 (eller 2 løp)",
+        "ammo": 2,
+        "range": "10 / 20 / 50 meter",
+        "category": "firearms",
+        "subcategory": "shotgun",
+        "weaponId": "shotgun_double"
+      }
+    ]
   },
   {
     "name": "Beefcake",
@@ -199,7 +289,122 @@
       "Stealth": "40",
       "Swim": "25",
       "Throw": "55"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "99%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
+  },
+  {
+    "name": "Franz",
+    "type": "PC",
+    "player": "Magne",
+    "occ": "Hitman",
+    "archetype": "Thrill Seeker",
+    "age": "33",
+    "residence": "",
+    "birthplace": "",
+    "str": "65",
+    "con": "30",
+    "siz": "60",
+    "dex": "55",
+    "int": "45",
+    "app": "60",
+    "pow": "90",
+    "edu": "80",
+    "hp": "18",
+    "mp": "18",
+    "san": "90",
+    "luck": "75",
+    "db": "+1D4",
+    "build": "1",
+    "move": "8",
+    "dodge": "27%",
+    "weapons": "Knyttneve 65 %, skade 1D3 + db. Kniv 65 %, skade 1D4 + db (spidder). Avsaget hagle 12ga 70 %, skade 4D6/1D6 på 5/10 meter, 2 skudd, feiler på 100.",
+    "talents": "Night Vision, Beady Eye, Mythos Knowledge, Linguist",
+    "insane_talents": "",
+    "backstory": "Lat og prangende. Risikotaker. Tror det ikke finnes noen høyere makt enn sannheten. Viktig person: en venn han gjorde urett, og som han søker forsoning med.",
+    "notes": "Utstyr: tau og dirkesett. Spending level 50, $300 i kontanter, $30 000 i verdier.",
+    "skills": {
+      "Art/Craft (Origami)": "20",
+      "Charm": "22",
+      "Climb": "25",
+      "Credit Rating": "60",
+      "Disguise": "50",
+      "Dodge": "27",
+      "Drive Auto": "30",
+      "Elec. Repair": "25",
+      "Fast Talk": "20",
+      "Fighting (Brawl)": "65",
+      "Firearms (Rifle/Shotgun)": "70",
+      "Firearms (SMG)": "20",
+      "Jump": "35",
+      "Listen": "28",
+      "Locksmith": "46",
+      "Mech. Repair": "35",
+      "Navigate": "14",
+      "Pilot": "5",
+      "Psychology": "40",
+      "Stealth": "60",
+      "Survival": "25",
+      "Throw": "30"
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "65%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Kniv (liten)",
+        "skill": "65%",
+        "damage": "1D4",
+        "uses_db": true,
+        "can_impale": true,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": "berøring",
+        "category": "melee",
+        "subcategory": "edged",
+        "weaponId": "knife_small"
+      },
+      {
+        "name": "Avsaget hagle 12ga",
+        "skill": "70%",
+        "damage": "4D6 / 1D6",
+        "uses_db": false,
+        "can_impale": false,
+        "malfunction": 100,
+        "attacks": "1 (eller 2 løp)",
+        "ammo": 2,
+        "range": "5 / 10 meter",
+        "category": "firearms",
+        "subcategory": "shotgun",
+        "weaponId": "shotgun_sawed_off"
+      }
+    ]
   },
   {
     "name": "Henry Nelson",
@@ -244,7 +449,37 @@
       "Psychology": "70",
       "Spot Hidden": "65",
       "Swim": "60"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "60%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Colt Detective Special .38",
+        "skill": "40%",
+        "damage": "1D10",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "3",
+        "ammo": 6,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": "colt_detective"
+      }
+    ]
   },
   {
     "name": "Hugo Schramm",
@@ -286,7 +521,37 @@
       "Psychology": "50",
       "Spot Hidden": "65",
       "Swim": "70"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "75%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Colt Detective Special .38",
+        "skill": "60%",
+        "damage": "1D10",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "3",
+        "ammo": 6,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": "colt_detective"
+      }
+    ]
   },
   {
     "name": "Dr. Erik Hartmann",
@@ -330,7 +595,23 @@
       "Science (Chemistry)": "30",
       "Sleight of Hand": "60",
       "Spot Hidden": "50"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "35%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Martin Aimesworthy",
@@ -374,7 +655,23 @@
       "Spot Hidden": "35",
       "Stealth": "45",
       "Swim": "40"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "50%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Albert Hallander",
@@ -414,7 +711,37 @@
       "Spot Hidden": "35",
       "Stealth": "40",
       "Throw": "45"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "60%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Batong",
+        "skill": "60%",
+        "damage": "1D6",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": "berøring",
+        "category": "melee",
+        "subcategory": "blunt",
+        "weaponId": "club_small"
+      }
+    ]
   },
   {
     "name": "Martin Dungass",
@@ -443,7 +770,23 @@
     "talents": "",
     "backstory": "Skipets chief purser. Drept og konsumert av Crawling One helt i begynnelsen av scenariet.",
     "notes": "Gikk for å konfrontere den uregistrerte passasjeren (Almacan) og ble drept. Hans forsvinning er den første ledetråden. Ryktes å ha hatt ekteskapsproblemer.",
-    "skills": {}
+    "skills": {},
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "45%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Virginia Ridley",
@@ -485,7 +828,37 @@
       "Stealth": "40",
       "Spot Hidden": "45",
       "Swim": "70"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "25%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Winchester 1897 pumpehagle 12ga",
+        "skill": "75%",
+        "damage": "4D6 / 2D6 / 1D6",
+        "uses_db": false,
+        "can_impale": false,
+        "malfunction": 100,
+        "attacks": "1",
+        "ammo": 5,
+        "range": "10 / 20 / 50 meter",
+        "category": "firearms",
+        "subcategory": "shotgun",
+        "weaponId": "shotgun_pump"
+      }
+    ]
   },
   {
     "name": "Charles Winston Astor",
@@ -528,7 +901,37 @@
       "Ride": "35",
       "Spot Hidden": "40",
       "Swim": "45"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "60%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Rifle .303",
+        "skill": "60%",
+        "damage": "2D6+4",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "1",
+        "ammo": 10,
+        "range": "110 meter",
+        "category": "firearms",
+        "subcategory": "rifle",
+        "weaponId": "lee_enfield"
+      }
+    ]
   },
   {
     "name": "Alex Hubbard",
@@ -571,7 +974,65 @@
       "Spot Hidden": "75",
       "Swim": "50",
       "Track": "55"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "70%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Kniv (stor) / Bowie",
+        "skill": "70%",
+        "damage": "1D8",
+        "uses_db": "half",
+        "can_impale": true,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": "berøring",
+        "category": "melee",
+        "subcategory": "edged",
+        "weaponId": "knife_large"
+      },
+      {
+        "name": "Rifle .45",
+        "skill": "80%",
+        "damage": "4D6 / 2D6 / 1D6",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "1",
+        "ammo": 5,
+        "range": "50 / 100 / 150 meter",
+        "category": "firearms",
+        "subcategory": "rifle",
+        "weaponId": null
+      },
+      {
+        "name": ".44 revolver",
+        "skill": "65%",
+        "damage": "1D10+2",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "1",
+        "ammo": 6,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Dr. Yung Yao Soong",
@@ -615,7 +1076,37 @@
       "Sleight of Hand": "60",
       "Stealth": "50",
       "Spot Hidden": "45"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "55%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Nunchaku",
+        "skill": "55%",
+        "damage": "1D8-1",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Chad Peterson",
@@ -644,7 +1135,23 @@
     "talents": "",
     "backstory": "Ung og velkledd, men full ved innsjekking. Virginia Ridleys forlovede. Utadvendt, livlig.",
     "notes": "Konsumert av Crawling One umiddelbart etter avreise. Crawling One forlater hans form dagen etter (kan ikke snakke). Et falskt selvmordsbrev plasseres i kabinen. Hans 'empty suit' finnes av Virginia den 6. des. Ingen stats - Crawling One bruker sine egne når den tar hans form.",
-    "skills": {}
+    "skills": {},
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "25%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Phyllis Barnes",
@@ -683,7 +1190,23 @@
       "Science (Mathematics)": "45",
       "Other Language (German)": "60",
       "Spot Hidden": "55"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "25%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Takishi Suroda",
@@ -725,7 +1248,23 @@
       "Spot Hidden": "40",
       "Stealth": "45",
       "Swim": "50"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "35%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Father Raphael Alvarez",
@@ -772,7 +1311,23 @@
       "Spot Hidden": "55",
       "Stealth": "45",
       "Swim": "30"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "35%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Miles Hardaway",
@@ -810,7 +1365,23 @@
       "Spot Hidden": "60",
       "Stealth": "45",
       "Swim": "35"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "40%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Wang Ma",
@@ -849,7 +1420,51 @@
       "Swim": "45",
       "Track": "50",
       "Throw": "35"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "50%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Kniv (stor) / Bowie",
+        "skill": "50%",
+        "damage": "1D8",
+        "uses_db": "half",
+        "can_impale": true,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": "berøring",
+        "category": "melee",
+        "subcategory": "edged",
+        "weaponId": "knife_large"
+      },
+      {
+        "name": "Blåserør",
+        "skill": "45%",
+        "damage": "1D2",
+        "uses_db": false,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": 1,
+        "range": "10 meter",
+        "category": "archaic",
+        "subcategory": "blowgun",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Stuart 'Bunny' Bates",
@@ -886,7 +1501,65 @@
       "Locksmith": "70",
       "Stealth": "80",
       "Spot Hidden": "55"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "80%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Kniv (liten)",
+        "skill": "80%",
+        "damage": "1D4+1",
+        "uses_db": true,
+        "can_impale": true,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": "berøring",
+        "category": "melee",
+        "subcategory": "edged",
+        "weaponId": "knife_small"
+      },
+      {
+        "name": ".32 automatpistol",
+        "skill": "45%",
+        "damage": "1D8",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 99,
+        "attacks": "1",
+        "ammo": 8,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": null
+      },
+      {
+        "name": "Thompson M1921 .45 («Tommy Gun»)",
+        "skill": "65%",
+        "damage": "1D10+2",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 96,
+        "attacks": "1 eller burst (3 skudd)",
+        "ammo": "20 / 30 / 50 / 100 (tromme)",
+        "range": "20 meter",
+        "category": "firearms",
+        "subcategory": "smg",
+        "weaponId": "thompson_smg"
+      }
+    ]
   },
   {
     "name": "Crawling One (Señor Diego Guiterrez de Almacan)",
@@ -923,7 +1596,51 @@
       "Science (Physics)": "90",
       "Spot Hidden": "60",
       "Stealth": "80"
-    }
+    },
+    "attacks": [
+      {
+        "name": "Fighting",
+        "skill": "80%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Kniv (stor) / Bowie",
+        "skill": "80%",
+        "damage": "1D8",
+        "uses_db": "half",
+        "can_impale": true,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": "berøring",
+        "category": "melee",
+        "subcategory": "edged",
+        "weaponId": "knife_large"
+      },
+      {
+        "name": ".45 automatpistol",
+        "skill": "40%",
+        "damage": "1D10+2",
+        "uses_db": false,
+        "can_impale": true,
+        "malfunction": 100,
+        "attacks": "3",
+        "ammo": 7,
+        "range": "15 meter",
+        "category": "firearms",
+        "subcategory": "handgun",
+        "weaponId": "colt_1911"
+      }
+    ]
   },
   {
     "name": "Hunting Horror",
@@ -952,7 +1669,37 @@
     "talents": "",
     "backstory": "Enorm slangelignende flygende skapning fra utenfor stjernene. 9-punkt hud.",
     "notes": "25% sjanse for spells. SAN-loss: 0/1D10. Crawling One kan tilkalle en hvis heltene blir for brysomme.",
-    "skills": {}
+    "skills": {},
+    "attacks": [
+      {
+        "name": "Bitt",
+        "skill": "65%",
+        "damage": "1D6",
+        "uses_db": false,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      },
+      {
+        "name": "Hale — grep",
+        "skill": "90%",
+        "damage": "0",
+        "uses_db": false,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Zombie",
@@ -981,7 +1728,23 @@
     "talents": "",
     "backstory": "Vandrende lik reanimert av Crawling Ones 'Graveyard Kiss'-variant. Ignorerer skade unntatt mot hodet (penalty).",
     "notes": "SAN-loss: 0/1D8. Crawling One har 5 zombier fra ofrene.",
-    "skills": {}
+    "skills": {},
+    "attacks": [
+      {
+        "name": "Klør",
+        "skill": "40%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   },
   {
     "name": "Flying Polyp",
@@ -1010,7 +1773,8 @@
     "talents": "",
     "backstory": "Gruvekkende skapning fra mørket under havbunnen. Tilkalles av Pipes of Leng, og blir rasende — ikke styrt — av dem. Bare halvveis materiell, og glir hele tiden inn og ut av syne.",
     "notes": "Rustning 4, og bare MINSTE mulige skade fra fysiske våpen — fortryllede våpen, ild og elektrisitet gjør full skade. Usynlighet for 1 magic point per runde; usynlig bruker den ikke tentakler. SAN-tap 1D3/1D20. Kan stoppes ved å ødelegge Pipes of Leng (50 HP, 3 rustning). Se Spesialregler på kortet for hele mekanikken.",
-    "skills": {}
+    "skills": {},
+    "attacks": []
   },
   {
     "name": "Generisk besetningsmedlem",
@@ -1039,6 +1803,22 @@
     "talents": "",
     "backstory": "Gjennomsnittlig besetningsmedlem.",
     "notes": "",
-    "skills": {}
+    "skills": {},
+    "attacks": [
+      {
+        "name": "Slåsskamp",
+        "skill": "50%",
+        "damage": "1D3",
+        "uses_db": true,
+        "can_impale": false,
+        "malfunction": null,
+        "attacks": "1",
+        "ammo": null,
+        "range": null,
+        "category": "melee",
+        "subcategory": "",
+        "weaponId": null
+      }
+    ]
   }
 ]
