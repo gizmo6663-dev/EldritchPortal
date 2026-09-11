@@ -184,6 +184,19 @@ assert app._scen_data["handouts"][0].get("read_aloud"), \
 print("  ok    act =", first_beat["act"])
 print("  ok    handout 1 has read_aloud")
 
+print("\n== halv og femtedel ==")
+assert main.steps_of(65) == "32/13", main.steps_of(65)
+assert main.steps_of("75%") == "37/15", main.steps_of("75%")
+assert main.steps_of(25) == "12/5", main.steps_of(25)
+assert main.steps_of(0) == "" and main.steps_of("—") == ""
+assert main.steps_text("Hide 30%, Track 35%") == \
+    "Hide 30% (15/6), Track 35% (17/7)"
+# Statblokkene i boka har tallene fra før — de skal stå urørt.
+assert main.steps_text("Brawl 60% (30/12) skade 1D3") == \
+    "Brawl 60% (30/12) skade 1D3"
+print("  ok    65 ->", main.steps_of(65), " 75 ->", main.steps_of("75%"))
+print("  ok    fritekst:", main.steps_text("Hide 30%, Track 35%"))
+
 print("\n== detail overlays ==")
 step("clue detail", lambda: app._scen_show_detail(
     data["clues"][0]["title"], data["clues"][0]["description"],

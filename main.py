@@ -965,6 +965,39 @@ try:
         ("weapons","Våpen"), ("talents","Pulp Talents"),
         ("backstory","Bakgrunn"), ("notes","Notater"),
     ]
+    def steps_of(value):
+        """«65» -> «32/13»: halv og femtedel, som på karakterarket.
+
+        Call of Cthulhu krever halve ferdigheten for et Hard-slag og en
+        femtedel for et Extreme, begge rundet ned — samme avrunding som
+        appen selv bruker når den bedømmer et kast. Uten tallene må man
+        regne i hodet hver gang Keeperen ber om et hardt slag.
+        """
+        m = re.search(r'\d+', str(value or ''))
+        if not m:
+            return ''
+        n = int(m.group(0))
+        if not n:
+            return ''
+        return f"{n // 2}/{n // 5}"
+
+    def steps_text(text):
+        """Sett inn halv/femtedel etter hver prosent i en fritekstlinje.
+
+        Står tallene der fra før — statblokkene i boka skriver ofte
+        «Brawl 60% (30/12)» — lar vi dem være.
+        """
+        def _sub(m):
+            if m.group(2):
+                return m.group(0)
+            n = int(m.group(1))
+            if not n:
+                return m.group(0)
+            return f"{n}% ({n // 2}/{n // 5})"
+
+        return re.sub(r'(\d{1,3})\s*%(\s*\(\s*\d+\s*/\s*\d+\s*\))?',
+                      _sub, str(text or ''))
+
     SKILLS = [
         ("Accounting","05"), ("Appraise","05"), ("Archaeology","01"),
         ("Art/Craft:","05"), ("Art/Craft 2:","05"),
@@ -3638,16 +3671,20 @@ try:
                 # Spec-skills hoppes over hvis brukeren ikke har spesifisert
                 if is_spec and not user_val:
                     continue
+                def _with_steps(val):
+                    st = steps_of(val)
+                    return f"{val}  [{st}]" if st else str(val)
+
                 if is_spec:
-                    sk_txt = f"{sname} {user_val}"
+                    sk_txt = f"{sname} {_with_steps(user_val)}"
                     color = TXT
                 elif user_val:
-                    sk_txt = f"{sname}: {user_val}"
+                    sk_txt = f"{sname}: {_with_steps(user_val)}"
                     color = TXT
                 else:
                     # Default-verdi (ikke endret av brukeren)
                     display_val = sdefault if sdefault else '—'
-                    sk_txt = f"{sname}: {display_val}"
+                    sk_txt = f"{sname}: {_with_steps(display_val)}"
                     color = DIM
                 framed = FramedBox(orientation='horizontal',
                                    size_hint_y=None, height=dp(40),
@@ -3843,6 +3880,19 @@ try:
                                   input_filter='int', input_type='number',
                                   size_hint_y=None, height=dp(30))
                     cell.add_widget(w)
+
+                    # Under feltet står halv og femtedel av verdien, så
+                    # man ser med én gang hva et hardt slag vil kreve.
+                    # Er feltet tomt, står standardverdien der i stedet.
+                    def _mk_steps(lbl, default):
+                        def _upd(inst, val):
+                            st = steps_of(val)
+                            lbl.text = st if st else f"({default})"
+                        return _upd
+                    upd = _mk_steps(def_lbl, sdefault)
+                    w.bind(text=upd)
+                    upd(w, w.text)
+
                     self._sk_inputs[sname] = w
                     sk_grid.add_widget(cell)
 
@@ -7422,7 +7472,14 @@ try:
                                halign='left', valign='middle')
                     kl.bind(size=lambda w, v: setattr(
                         w, 'text_size', (v[0], None)))
-                    vl = Label(text=str(stats[k]), font_size=sp(11),
+                    # Det slås mot karakteristikkene også — CON for å
+                    # holde seg våken, POW mot en formel. HP, MP, DB og
+                    # Build slås det ikke mot.
+                    rolled = k in ('STR', 'CON', 'SIZ', 'DEX', 'INT',
+                                   'APP', 'POW', 'EDU', 'SAN', 'Luck')
+                    st = steps_of(stats[k]) if rolled else ''
+                    vtxt = f"{stats[k]}  [{st}]" if st else str(stats[k])
+                    vl = Label(text=vtxt, font_size=sp(11),
                                color=TXT, bold=True,
                                halign='right', valign='middle')
                     vl.bind(size=lambda w, v: setattr(
@@ -7438,13 +7495,18 @@ try:
                 _section("KAMP")
                 for line in combat:
                     body.add_widget(mklbl(
-                        f"• {line}", color=TXT, size=11, wrap=True))
+                        f"• {steps_text(line)}", color=TXT,
+                        size=11, wrap=True))
 
             # Ferdigheter
             skills = npc.get('skills', '')
             if skills and skills != '-':
                 _section("FERDIGHETER")
-                body.add_widget(mklbl(skills, color=TXT, size=11, wrap=True))
+                body.add_widget(mklbl(steps_text(skills),
+                                      color=TXT, size=11, wrap=True))
+                body.add_widget(mklbl(
+                    "Tallene i parentes er hard (halv) og extreme "
+                    "(femtedel).", color=DIM, size=9, wrap=True))
 
             # Rustning
             armor = (npc.get('armor', '') or '').strip()

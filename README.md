@@ -481,6 +481,24 @@ Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
 
 Manøver (grep, avvæpning, kast) og knockout-forsøk ligger i samme flyt, med Build-forskjellen vist som veiledning.
 
+### Halv og femtedel overalt
+
+Et Hard-slag krever halve ferdigheten, et Extreme en femtedel. Begge står nå ved siden av verdien overalt der en rolles ferdigheter vises, akkurat som på karakterarket — så man slipper å regne i hodet når Keeperen ber om et hardt slag.
+
+| Hvor | Hvordan |
+|---|---|
+| Karakterkortet | `Fighting (Brawl)  65%  32/13`, og det samme i karakteristikk-rutene: `STR 65 / 32/13` |
+| Angrepstabellen | `Tentacle  85%  1D10  42/17` |
+| NPC-kort og fiendebank | Ferdighetslinjene er fritekst, så tallene settes inn etter hver prosent: `Hide 30% (15/6), Track 35% (17/7)` |
+| Editoren | Oppdateres mens du skriver, både for ferdigheter og for angrep |
+| Android-appen | Samme steder: karakterkortet, ferdighetseditoren og NPC-statblokka |
+
+Avrundingen er nedover, slik boka gjør det — statblokkene der skriver `Brawl 75% (37/15)`. Det er også nøyaktig den avrundingen appens egen regelmotor bruker når den bedømmer et kast, så det som står på kortet stemmer alltid med utfallet i kamptrackeren.
+
+To detaljer: verdier det ikke slås mot — HP, MP, DB, Build, Move, Armor — får ingen tallpar, siden de bare ville vært støy. Og står tallene der fra før, slik statblokkene fra boka ofte har dem (`Brawl 60% (30/12)`), lar appen dem være i fred i stedet for å legge på et par til.
+
+---
+
 ### Spesialregler for skapninger
 
 Statblokkene i fiendebanken er hentet maskinelt ut av Malleus Monstrorum, og en tabell kan ikke si at en flying polyp danner nye tentakler hver runde, at en chthonian leger seg mellom rundene, eller at kuler ikke biter på en crawling one. Det står i `bestiary/abilities.json`, er skrevet for hånd, og kobles på skapninger og NPCer på id eller navn — også på en redigerbar kopi lagt i rollelisten.
