@@ -26,6 +26,7 @@ Versjon: **0.5.0** · Språk: Norsk · System: Call of Cthulhu / Pulp Cthulhu
 - [På PC](#på-pc)
 - [Fiendebank](#fiendebank)
 - [Roller og kamp](#roller-og-kamp)
+- [Trusler og taktikk](#trusler-og-taktikk)
 - [I nettleseren](#i-nettleseren)
 - [Kom i gang](#kom-i-gang)
 - [Mappestruktur på enheten](#mappestruktur-på-enheten)
@@ -434,13 +435,57 @@ Rollelisten skiller mellom tre typer, og typen styrer både gruppering, filter o
 
 Eldre `characters.json` fra Android-appen leses uendret: feltet `type` (PC/NPC) leses som `kind`, og flate felter som `str`, `con` og `hp` løftes inn i et `stats`-objekt ved innlasting. Import slår sammen på navn, så den samme fila kan importeres flere ganger uten å lage duplikater.
 
+### Våpen, talenter og regler
+
+Nettleserversjonen bygger inn `weapons.json` (28 våpen) og et talentoppslag hentet fra Pulp Cthulhu (60 talenter).
+
+**Våpen** legges på en rolle i karaktereditoren under *Angrep → + Fra våpenlista*. Da følger hele statblokka med: skade, om våpenet bruker damage bonus (helt eller halvt), om det kan spidde, feilingsverdi, rekkevidde, angrep per runde og magasin. Treffsjansen fylles automatisk fra rollens egen ferdighet når den finnes — våpenlista er norsk og karakterarkene ofte engelske, så `Håndvåpen` finner `Firearms (Handgun)`, `Nærkamp` finner `Fighting (Brawl)` og så videre.
+
+I kampen er hvert angrep en knapp. Den slår etter reglene i Call of Cthulhu 7e:
+
+| Regel | Slik det er implementert |
+|---|---|
+| Suksessgrader | 01 kritisk · ≤ verdi/5 Extreme · ≤ verdi/2 Hard · ≤ verdi vanlig |
+| Fumle | 100 alltid; 96–99 når ferdigheten er under 50 |
+| Spidding | Extreme eller kritisk med et spiddevåpen gir **maks** våpenskade **pluss** et nytt kast |
+| Damage bonus | Legges bare til der våpenet bruker den; `uses_db: "half"` gir halv bonus rundet ned |
+| Feiling | Er kastet ≥ våpenets feilingsverdi, svikter våpenet og angrepet går ikke gjennom |
+| Haglegevær | Skade oppgitt som `4D6/2D6/1D6` regnes på nærmeste avstand |
+
+Resultatet havner i kamploggen, og en knapp ved siden av skadefeltet setter skaden rett inn på den som ble truffet.
+
+**Talenter** i et karakterkort er klikkbare. Feltet er fritekst, så det deles på komma og hvert navn slås opp i talentboka. Talenter som finnes der er uthevet i gull; ukjente vises stiplet, med forslag til hva du kanskje mente. Oppslaget dekker fysiske, mentale, kamp- og diverse pulp-talenter samt insane talents.
+
+Talentboka bygges slik:
+
+```bash
+python3 scenarios/build_talents.py pulp.txt
+python3 web/build.py
+```
+
+---
+
+## Trusler og taktikk
+
+Et scenario kan ha en `tactics`-seksjon: kort med **forslag** til hvordan en kamp kan gjøres vanskeligere. Det er bevisst ikke en hendelsesrekke — rekkefølge og bruk er Keeperens.
+
+Hvert kort har `mechanic` (hva som skjer), `tactic` (hvordan det spilles) og `pressure` (én linje om hvorfor det biter på akkurat denne gruppa). Kortene grupperes i **Motstander**, **Konflikt** og **Miljø**, kan krysses av som brukt, og kan noteres i kamploggen.
+
+I kampvisningen finnes **Trekk taktikk**, som henter et tilfeldig kort blant dem du ikke har brukt ennå. Det er ment for øyeblikket der en kamp går for lett.
+
+`A Slow Boat to China` har 14 slike kort, laget for en gruppe som er sterk i nærkamp: de angriper lav POW og Sanity, smale ferdigheter, dårlig Swim, og situasjoner der rå styrke er feil verktøy.
+
+---
+
 **Kamptrackeren** følger denne flyten:
 
 1. **+ Legg til** åpner en liste over roller og fiendebank der du huker av alle du vil ha med. Hver rad har et antall, så «Ghoul × 4» blir fire deltakere med hvert sitt navn og hver sin HP.
 2. Hver deltaker får et **initiativfelt** du skriver inn det som ble slått i. Feltet er forhåndsutfylt med DEX, så lista er brukbar med én gang hvis dere ikke slår for initiativ.
 3. **Start kamp** setter rekkefølgen. Lista sorteres bevisst *ikke* mens du skriver — da ville radene hoppet rundt mens du gikk nedover dem. Er kampen alt i gang og du retter et tall, bruker du **Sorter på nytt**.
 
-Ved lik verdi går den med skytevåpen klart først, deretter høyest DEX. Skade på halve maks-HP eller mer i ett slag flagges automatisk som major wound. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
+Når du trykker **Neste tur**, flyttes den som er ferdig nederst i lista og resten rykker opp. Den som har tur ligger dermed alltid øverst, merket «NÅ» og med en egen «Ferdig — neste tur»-knapp, så du slipper å lete deg nedover midt i en kamp. Rundetelleren viser hvor mange av deltakerne som har hatt tur.
+
+Ved lik initiativverdi går den med skytevåpen klart først, deretter høyest DEX. Skade på halve maks-HP eller mer i ett slag flagges automatisk som major wound. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
 
 ---
 

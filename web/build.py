@@ -19,6 +19,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 SCENARIO_DIR = os.path.join(ROOT, "scenarios")
 BESTIARY_DIR = os.path.join(ROOT, "bestiary")
+WEAPONS_FILE = os.path.join(ROOT, "weapons.json")
+TALENTS_FILE = os.path.join(BESTIARY_DIR, "talents.json")
 
 SKELETON = """<!doctype html>
 <html lang="nb">
@@ -52,10 +54,11 @@ def main():
             scenarios.append(json.load(fh))
 
     # Fiendebanken: slå sammen alle filer under bestiary/ til én bank.
+    # talents.json er et eget oppslagsverk og hører ikke hjemme der.
     bestiary = {"creatures": []}
     if os.path.isdir(BESTIARY_DIR):
         for name in sorted(os.listdir(BESTIARY_DIR)):
-            if not name.endswith(".json"):
+            if not name.endswith(".json") or name == "talents.json":
                 continue
             with open(os.path.join(BESTIARY_DIR, name),
                       encoding="utf-8") as fh:
@@ -69,8 +72,17 @@ def main():
         return json.dumps(obj, ensure_ascii=False,
                           separators=(",", ":")).replace("</", "<\\/")
 
+    with open(WEAPONS_FILE, encoding="utf-8") as fh:
+        weapons = json.load(fh)
+    talents = {"talents": []}
+    if os.path.exists(TALENTS_FILE):
+        with open(TALENTS_FILE, encoding="utf-8") as fh:
+            talents = json.load(fh)
+
     page = template.replace("/*__SCENARIOS__*/", embed(scenarios))
     page = page.replace("/*__BESTIARY__*/", embed(bestiary))
+    page = page.replace("/*__WEAPONS__*/", embed(weapons))
+    page = page.replace("/*__TALENTS__*/", embed(talents))
 
     app_path = os.path.join(HERE, "app.html")
     with open(app_path, "w", encoding="utf-8") as fh:
@@ -86,8 +98,10 @@ def main():
     for path in (app_path, index_path):
         print(f"{os.path.relpath(path, ROOT):20} "
               f"{os.path.getsize(path) / 1024:8.1f} kB")
-    print(f"{len(scenarios)} scenario(er) og "
-          f"{len(bestiary['creatures'])} skapninger bygget inn")
+    print(f"{len(scenarios)} scenario(er), "
+          f"{len(bestiary['creatures'])} skapninger, "
+          f"{len(weapons.get('weapons', []))} våpen og "
+          f"{len(talents.get('talents', []))} talenter bygget inn")
 
 
 if __name__ == "__main__":

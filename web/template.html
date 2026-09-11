@@ -636,7 +636,23 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 
 /* ---------------------- kamptracker ---------------------------- */
 
-.roundbar { display: flex; gap: 28px; align-items: center; }
+.roundbar { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+.roundbar-now { flex: 1; min-width: 160px; }
+.roundbar-count { text-align: right; }
+.roundcount {
+  font-family: var(--mono); font-size: 17px; color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+/* Merket på kortet som har tur — den ligger alltid øverst i lista. */
+.cb-turnflag {
+  display: flex; align-items: center; gap: 10px;
+  margin: -2px 0 2px;
+}
+.cb-turnflag > span {
+  font-family: var(--ui); font-size: 10px; letter-spacing: 0.22em;
+  color: var(--brass); font-weight: 700;
+}
+.cb-turnflag .btn { margin-left: auto; }
 .roundbar p { margin: 0; }
 .roundnum {
   font-family: var(--mono); font-size: 30px; font-weight: 600;
@@ -711,6 +727,29 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
   border: 1px solid var(--rule-soft); border-radius: 4px;
 }
 .manualrow { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; }
+
+/* Våpenegenskaper under en angrepsrad i editoren. */
+.weappanel {
+  border: 1px solid var(--rule); border-radius: 6px;
+  background: var(--ink); padding: 10px; margin-top: 8px;
+}
+.picklist.short { max-height: 34vh; }
+
+.attackflags {
+  grid-column: 1 / -1;
+  font-family: var(--mono); font-size: 10px; color: var(--faint);
+  padding-left: 2px;
+}
+
+/* Talenter er klikkbare — de som finnes i talentboka er uthevet. */
+.talentchips { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 4px; }
+.chip.talent {
+  cursor: pointer; font-family: var(--ui); letter-spacing: 0.02em;
+  color: var(--muted);
+}
+.chip.talent.known { color: var(--brass); border-color: var(--brass-dim); }
+.chip.talent.known:hover { background: var(--brass-glow); }
+.chip.talent:not(.known) { border-style: dashed; }
 .btn.primary[disabled] { opacity: 0.4; cursor: not-allowed; }
 .cb-name { flex: 1; min-width: 0; display: block; }
 .cb-name b {
@@ -817,6 +856,8 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 
 <script type="application/json" id="bundled-scenarios">/*__SCENARIOS__*/</script>
 <script type="application/json" id="bundled-bestiary">/*__BESTIARY__*/</script>
+<script type="application/json" id="bundled-weapons">/*__WEAPONS__*/</script>
+<script type="application/json" id="bundled-talents">/*__TALENTS__*/</script>
 
 <script>
 "use strict";
@@ -905,10 +946,10 @@ async function connectRemote() {
    ================================================================== */
 
 const SECTIONS = ["clues", "timeline", "beats", "npcs", "handouts",
-                  "locations", "reference"];
+                  "locations", "reference", "tactics"];
 const FLAGS = { clues: "found", timeline: "triggered",
                 beats: "done", locations: "visited",
-                handouts: "found" };
+                handouts: "found", tactics: "used" };
 
 const state = {
   library: { items: [], active: null, seeded: {} },
@@ -917,6 +958,8 @@ const state = {
   progress: null,     // { flags, notes, itemNotes, sessions }
   characters: [],
   bestiary: null,     // innebygd fiendebank, skrivebeskyttet
+  weapons: null,      // innebygd våpenliste, skrivebeskyttet
+  talents: null,      // innebygd talentoppslag, skrivebeskyttet
   combat: null,       // { active, round, turn, combatants, log }
   view: "overview",
   query: "",
@@ -1270,6 +1313,118 @@ function setupDice() {
 }
 
 /* ==================================================================
+   TERNINGER OG KAMPREGLER  (Call of Cthulhu 7e)
+   ================================================================== */
+
+// «2D6+4», «1D10», «4D6/2D6/1D6» (haglegevær på tre avstander).
+const DICE_TERM = /([+-]?)\s*(\d*)\s*[dD]\s*(\d+)|([+-]?)\s*(\d+)(?![dD\d])/g;
+
+function parseDiceExpr(expr) {
+  const s = String(expr || "").split("/")[0].trim();   // nærmeste rekkevidde
+  const terms = [];
+  let m;
+  DICE_TERM.lastIndex = 0;
+  while ((m = DICE_TERM.exec(s)) !== null) {
+    if (m[3] !== undefined) {
+      terms.push({ n: parseInt(m[2] || "1", 10), sides: parseInt(m[3], 10),
+                   sign: m[1] === "-" ? -1 : 1 });
+    } else if (m[5] !== undefined) {
+      terms.push({ flat: parseInt(m[5], 10), sign: m[4] === "-" ? -1 : 1 });
+    }
+  }
+  return terms;
+}
+
+function rollDiceExpr(expr) {
+  const terms = parseDiceExpr(expr);
+  let total = 0;
+  const parts = [];
+  terms.forEach((t) => {
+    if (t.flat !== undefined) {
+      total += t.sign * t.flat;
+      parts.push((t.sign < 0 ? "-" : "+") + t.flat);
+      return;
+    }
+    const rolls = [];
+    for (let i = 0; i < t.n; i += 1) {
+      rolls.push(1 + Math.floor(Math.random() * t.sides));
+    }
+    const sum = rolls.reduce((a, b) => a + b, 0);
+    total += t.sign * sum;
+    parts.push(t.n + "D" + t.sides + "[" + rolls.join(",") + "]");
+  });
+  return { total: total, detail: parts.join(" ") };
+}
+
+function maxDiceExpr(expr) {
+  return parseDiceExpr(expr).reduce((sum, t) => sum +
+    t.sign * (t.flat !== undefined ? t.flat : t.n * t.sides), 0);
+}
+
+// Damage bonus står som «+1D4», «+2D6», «0», «-1», «N/A».
+function rollDamageBonus(db, mode) {
+  const s = String(db || "").trim();
+  if (!s || /^(0|n\/?a|ingen)$/i.test(s)) return { total: 0, detail: "" };
+  const r = rollDiceExpr(s);
+  if (mode === "half") {
+    // Enkelte våpen bruker halv damage bonus, rundet ned.
+    const half = r.total < 0 ? Math.ceil(r.total / 2) : Math.floor(r.total / 2);
+    return { total: half, detail: r.detail + " halvert" };
+  }
+  return r;
+}
+
+/* Slå et angrep etter reglene:
+   - 01 er kritisk, <=verdi/5 Extreme, <=verdi/2 Hard, <=verdi vanlig
+   - 100 fumler alltid; 96-99 fumler når ferdigheten er under 50
+   - spiddevåpen på Extreme eller kritisk gir maks skade + nytt kast
+   - damage bonus legges bare til der våpenet bruker den            */
+function resolveAttack(combatant, attack) {
+  const target = parseInt(attack.skill, 10);
+  if (!target) return null;
+
+  const r = rollSkill(target);
+  const out = {
+    name: attack.name, target: target, roll: r.roll, label: r.label,
+    cls: r.cls, hit: false, damage: 0, damageDetail: "",
+    impaled: false, malfunction: false,
+  };
+
+  const mal = parseInt(attack.malfunction, 10);
+  if (mal && r.roll >= mal) out.malfunction = true;
+
+  out.hit = !/^(Bom|FUMLE)$/.test(r.label);
+  if (!out.hit || out.malfunction) return out;
+
+  const crit = r.label === "KRITISK" || r.label === "Ekstrem";
+  let total = 0;
+  const bits = [];
+
+  if (attack.can_impale && crit) {
+    // Spidding: maks skade fra våpenterningene, pluss et nytt kast.
+    const max = maxDiceExpr(attack.damage);
+    const extra = rollDiceExpr(attack.damage);
+    total = max + extra.total;
+    bits.push("maks " + max, extra.detail);
+    out.impaled = true;
+  } else {
+    const dmg = rollDiceExpr(attack.damage);
+    total = dmg.total;
+    bits.push(dmg.detail);
+  }
+
+  if (attack.uses_db && combatant && combatant.db) {
+    const db = rollDamageBonus(combatant.db,
+                               attack.uses_db === "half" ? "half" : "full");
+    if (db.total) { total += db.total; bits.push("db " + db.detail); }
+  }
+
+  out.damage = Math.max(0, total);
+  out.damageDetail = bits.filter(Boolean).join(" + ");
+  return out;
+}
+
+/* ==================================================================
    MODAL
    ================================================================== */
 
@@ -1441,7 +1596,14 @@ function openNpc(npc) {
         });
         body.appendChild(grid);
       }
-      [["combat", "Kamp"], ["pulp_talents", "Pulp-talenter"]].forEach((pair) => {
+      if (npc.pulp_talents && npc.pulp_talents.length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Pulp-talenter" }));
+        const chips = talentChips(npc.pulp_talents.join(", "));
+        if (chips) body.appendChild(chips);
+      }
+
+      [["combat", "Kamp"]].forEach((pair) => {
         const list = npc[pair[0]];
         if (!list || !list.length) return;
         body.appendChild(el("div", { class: "section-label", text: pair[1] }));
@@ -1526,7 +1688,16 @@ function openCharacter(pc) {
         body.appendChild(wrap);
       }
 
-      [["weapons", "Våpen og utstyr"], ["talents", "Talenter"],
+      if (c.talents) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Talenter" }));
+        const chips = talentChips(c.talents);
+        if (chips) body.appendChild(chips);
+        body.appendChild(el("p", { class: "caveat",
+          text: "Trykk på et talent for å se hva det gjør." }));
+      }
+
+      [["weapons", "Våpen og utstyr"],
        ["armor", "Rustning"], ["spells", "Formler"],
        ["sanity_loss", "Sanity-tap"], ["backstory", "Bakgrunn"],
        ["notes", "Notater"]].forEach((pair) => {
@@ -1581,6 +1752,7 @@ const VIEWS = [
   { key: "handouts",   label: "Handouts",   group: "Oppslag" },
   { key: "reference",  label: "Regler",     group: "Oppslag" },
   { key: "combat",     label: "Kamp",       group: "Bordet" },
+  { key: "tactics",    label: "Taktikk",    group: "Bordet" },
   { key: "characters", label: "Roller",     group: "Bordet" },
   { key: "bestiary",   label: "Fiendebank", group: "Bordet" },
   { key: "notes",      label: "Notater",    group: "Mitt" },
@@ -1593,6 +1765,11 @@ function navBadge(key) {
   if (key === "characters") return state.characters.length || "";
   if (key === "bestiary") {
     return (state.bestiary && state.bestiary.creatures.length) || "";
+  }
+  if (key === "tactics") {
+    const t = (state.scenario && state.scenario.tactics) || [];
+    if (!t.length) return "";
+    return t.filter((x) => x.used).length + "/" + t.length;
   }
   if (key === "combat") {
     const cb = state.combat;
@@ -2397,22 +2574,60 @@ function editCharacter(existing, kindHint) {
                                     placeholder: "45%" });
         const dmg = el("input", { class: "field", value: a.damage || "",
                                   placeholder: "1D6 + db" });
+        // Våpenegenskapene redigeres ikke for hånd, men må følge med
+        // videre — det er de som gjør at kampen regner riktig.
+        const extra = {
+          uses_db: a.uses_db, can_impale: a.can_impale,
+          malfunction: a.malfunction, attacks: a.attacks,
+          ammo: a.ammo, range: a.range, weaponId: a.weaponId,
+        };
+        const flags = [
+          extra.can_impale ? "spidder" : null,
+          extra.uses_db === "half" ? "halv db"
+            : (extra.uses_db ? "db" : null),
+          extra.malfunction ? "feiler " + extra.malfunction : null,
+          extra.range ? extra.range : null,
+        ].filter(Boolean).join(" · ");
+
         const row = el("div", { class: "attackrow" }, [
           name, skill, dmg,
           el("button", { class: "btn small danger", type: "button", text: "×",
                          onclick: () => row.remove() }),
         ]);
-        row._read = () => ({ name: name.value.trim(),
-                             skill: skill.value.trim(),
-                             damage: dmg.value.trim() });
+        if (flags) {
+          row.appendChild(el("span", { class: "attackflags", text: flags }));
+        }
+        row._read = () => Object.assign({}, extra, {
+          name: name.value.trim(),
+          skill: skill.value.trim(),
+          damage: dmg.value.trim(),
+        });
         return row;
       }
       c.attacks.forEach((a) => attackList.appendChild(attackRow(a)));
       body.appendChild(attackList);
-      body.appendChild(el("button", {
-        class: "btn small", type: "button", text: "+ Legg til angrep",
-        onclick: () => attackList.appendChild(attackRow({})),
-      }));
+      body.appendChild(el("div", { class: "row" }, [
+        el("button", {
+          class: "btn small", type: "button", text: "+ Tomt angrep",
+          onclick: () => attackList.appendChild(attackRow({})),
+        }),
+        (state.weapons && state.weapons.weapons.length) ? el("button", {
+          class: "btn small primary", type: "button", text: "+ Fra våpenlista",
+          id: "toggle-weapons",
+          onclick: (e) => {
+            e.preventDefault();
+            weapPanel.hidden = !weapPanel.hidden;
+            if (!weapPanel.hidden) {
+              const f = document.getElementById("weap-search");
+              if (f) f.focus();
+            }
+          },
+        }) : null,
+      ]));
+      const weapPanel = weaponPickerPanel((w) => {
+        attackList.appendChild(attackRow(weaponToAttack(w, c)));
+      });
+      body.appendChild(weapPanel);
       fields._attacks = attackList;
 
       // --- ferdigheter
@@ -2499,6 +2714,230 @@ function editCharacter(existing, kindHint) {
           toast(isNew ? "Opprettet" : "Lagret");
         },
       }),
+    ]);
+}
+
+/* ------------------------- våpenlista ---------------------------- */
+
+// Ferdighetsnavnet i weapons.json er norsk («Skytevåpen (Håndvåpen)»).
+// Har karakteren en ferdighet som ligner, bruker vi verdien derfra som
+// treffsjanse — ellers står feltet tomt til Keeperen fyller det ut.
+// Våpenlista er på norsk, mens karakterarkene ofte har engelske
+// ferdighetsnavn. Uten denne broa ville ingen treffsjanse funnet seg
+// selv.
+const SKILL_SYNONYMS = {
+  "håndvåpen": ["handgun", "pistol", "revolver"],
+  "rifle": ["rifle", "rifle/shotgun"],
+  "hagle": ["shotgun", "rifle/shotgun"],
+  "maskinpistol": ["submachine gun", "smg"],
+  "maskingevær": ["machine gun"],
+  "nærkamp": ["brawl", "fighting"],
+  "slagvåpen": ["brawl", "fighting"],
+  "kniv": ["knife", "fighting"],
+  "sverd": ["sword", "fighting"],
+  "øks": ["axe", "fighting"],
+  "pisk": ["whip"],
+  "bue": ["bow"],
+  "kast": ["throw"],
+  "sprengstoff": ["demolitions"],
+};
+
+function skillCandidates(weaponSkill) {
+  const want = String(weaponSkill || "").toLowerCase();
+  const out = [want];
+  const inner = (want.match(/\(([^)]+)\)/) || [])[1];
+  if (inner) out.push(inner.trim());
+  const head = want.split("(")[0].trim();
+  if (head) out.push(head);
+  Object.keys(SKILL_SYNONYMS).forEach((k) => {
+    if (want.indexOf(k) !== -1) {
+      SKILL_SYNONYMS[k].forEach((alt) => out.push(alt));
+    }
+  });
+  return out.filter(Boolean);
+}
+
+function skillValueFor(character, weapon) {
+  if (!character || !character.skills) return "";
+  const want = String(weapon.skill || "").toLowerCase();
+  const keys = Object.keys(character.skills);
+
+  // Prøv synonymene før den løsere delstreng-matchinga under.
+  for (const cand of skillCandidates(weapon.skill)) {
+    const exact = keys.find((k) => k.toLowerCase() === cand);
+    if (exact) {
+      const v = String(character.skills[exact]).replace("%", "").trim();
+      if (v) return v + "%";
+    }
+    const loose = keys.find((k) => k.toLowerCase().indexOf(cand) !== -1);
+    if (loose) {
+      const v = String(character.skills[loose]).replace("%", "").trim();
+      if (v) return v + "%";
+    }
+  }
+  // Eksakt treff først, deretter på ordet i parentes (Håndvåpen, Rifle).
+  let hit = keys.find((k) => k.toLowerCase() === want);
+  if (!hit) {
+    const inner = (want.match(/\(([^)]+)\)/) || [])[1];
+    if (inner) {
+      hit = keys.find((k) => k.toLowerCase().indexOf(inner) !== -1);
+    }
+  }
+  if (!hit) {
+    const head = want.split("(")[0].trim();
+    if (head) hit = keys.find((k) => k.toLowerCase().indexOf(head) !== -1);
+  }
+  if (!hit) return "";
+  const v = String(character.skills[hit]).replace("%", "").trim();
+  return v ? v + "%" : "";
+}
+
+function weaponToAttack(w, character) {
+  return {
+    name: w.name,
+    skill: skillValueFor(character, w),
+    damage: w.damage || "",
+    uses_db: w.uses_db,
+    can_impale: !!w.can_impale,
+    malfunction: w.malfunction || null,
+    attacks: w.attacks || null,
+    ammo: w.ammo || null,
+    range: w.range || null,
+    weaponId: w.id,
+  };
+}
+
+// Våpenvelgeren er et panel inne i editoren, ikke en egen modal:
+// modalene her kan ikke stables, så en modal oppå editoren ville bare
+// lukket den og kastet endringene.
+function weaponPickerPanel(onPick) {
+  const bank = state.weapons;
+  const panel = el("div", { class: "weappanel", hidden: true });
+  if (!bank) return panel;
+
+  const cats = bank.categories || {};
+  const listBox = el("div", { class: "picklist short" });
+  let query = "";
+
+  function refresh() {
+    listBox.innerHTML = "";
+    const q = query.trim().toLowerCase();
+    const shown = bank.weapons.filter((w) => !q ||
+      (w.name + " " + (w.skill || "") + " " + (w.damage || ""))
+        .toLowerCase().indexOf(q) !== -1);
+    if (!shown.length) { listBox.appendChild(emptyBox("Ingen treff.")); return; }
+
+    const order = [];
+    const byCat = {};
+    shown.forEach((w) => {
+      const c = w.category || "annet";
+      if (!byCat[c]) { byCat[c] = []; order.push(c); }
+      byCat[c].push(w);
+    });
+    order.forEach((cat) => {
+      listBox.appendChild(el("div", { class: "section-label",
+                                      text: cats[cat] || cat }));
+      byCat[cat].forEach((w) => {
+        const sub = [w.skill, w.damage, w.range,
+                     w.attacks ? w.attacks + "/runde" : null,
+                     w.ammo ? "mag " + w.ammo : null,
+                     w.malfunction ? "feiler " + w.malfunction : null,
+                     w.can_impale ? "spidder" : null]
+          .filter(Boolean).join(" · ");
+        listBox.appendChild(el("button", {
+          class: "entry pickrow", type: "button",
+          onclick: (e) => {
+            e.preventDefault();
+            onPick(w);
+            toast(w.name + " lagt til");
+          },
+        }, [
+          el("span", { class: "tick", style: "border-color:transparent" }),
+          el("span", { class: "entry-body" }, [
+            el("span", { class: "entry-title", text: w.name }),
+            el("span", { class: "entry-sub", text: sub }),
+          ]),
+          el("span", { class: "entry-open", text: "LEGG TIL" }),
+        ]));
+      });
+    });
+  }
+
+  const search = el("input", { class: "field", type: "search",
+                               id: "weap-search",
+                               placeholder: "Søk i " + bank.weapons.length +
+                                            " våpen…" });
+  search.addEventListener("input", debounce(() => {
+    query = search.value; refresh();
+  }, 180));
+  panel.appendChild(search);
+  panel.appendChild(el("div", { style: "height:8px" }));
+  panel.appendChild(listBox);
+  refresh();
+  return panel;
+}
+
+/* --------------------------- talenter ---------------------------- */
+
+// Talentfeltet er fritekst («Weird Science, Rapid Fire, Hardened»).
+// Del det opp og slå hvert navn opp i talentboka.
+function splitTalents(text) {
+  return String(text || "")
+    .split(/[,;\n]/).map((t) => t.trim()).filter(Boolean);
+}
+
+function lookupTalent(name) {
+  const key = name.toLowerCase().replace(/\s*\(.*\)\s*$/, "").trim();
+  return talentIndex[key] || talentIndex[name.toLowerCase()] || null;
+}
+
+function talentChips(text) {
+  const names = splitTalents(text);
+  if (!names.length) return null;
+  const wrap = el("div", { class: "talentchips" });
+  names.forEach((n) => {
+    const t = lookupTalent(n);
+    wrap.appendChild(el("button", {
+      class: "chip talent" + (t ? " known" : ""), type: "button",
+      title: t ? "Trykk for forklaring" : "Ikke funnet i talentboka",
+      text: n,
+      onclick: () => openTalent(n, t),
+    }));
+  });
+  return wrap;
+}
+
+function openTalent(name, talent) {
+  openModal(talent ? talent.name : name,
+    talent ? talent.group : "Ukjent talent", (body) => {
+      if (!talent) {
+        body.appendChild(el("p", {
+          text: "Dette talentet står ikke i Pulp Cthulhu-tabellene som " +
+                "er lest inn. Det kan være fra en annen kilde, eller " +
+                "skrevet litt annerledes enn i boka." }));
+        const all = (state.talents && state.talents.talents) || [];
+        const near = all.filter((t) =>
+          t.name.toLowerCase().indexOf(name.toLowerCase().slice(0, 4)) !== -1);
+        if (near.length) {
+          body.appendChild(el("div", { class: "section-label",
+                                       text: "Mente du" }));
+          near.slice(0, 6).forEach((t) => {
+            body.appendChild(el("button", {
+              class: "btn small", type: "button", text: t.name,
+              onclick: () => openTalent(t.name, t),
+            }));
+          });
+        }
+        return;
+      }
+      body.appendChild(el("p", { class: "prose", text: talent.description }));
+      if (state.talents && state.talents.note) {
+        body.appendChild(el("p", { class: "caveat",
+                                   text: state.talents.note }));
+      }
+    }, [
+      el("button", { class: "btn", type: "button", text: "Lukk",
+                     onclick: closeModal }),
     ]);
 }
 
@@ -2620,7 +3059,8 @@ function openBeast(beast) {
 /* ------------------------- kamptracker -------------------------- */
 
 function emptyCombat() {
-  return { active: false, round: 0, turn: 0, combatants: [], log: [] };
+  return { active: false, round: 0, turn: 0, taken: 0,
+           combatants: [], log: [] };
 }
 
 async function saveCombat() { await store.set("combat", state.combat); }
@@ -2714,7 +3154,7 @@ function viewCombat(root) {
       onclick: async () => {
         if (!cb.combatants.length) { toast("Legg til deltakere først"); return; }
         sortCombat();
-        cb.active = true; cb.round = 1; cb.turn = 0;
+        cb.active = true; cb.round = 1; cb.turn = 0; cb.taken = 0;
         cb.log = ["Runde 1 begynner. Rekkefølge: " +
                   cb.combatants.map((x) => x.name + " " + initiativeOf(x))
                     .join(", ") + "."];
@@ -2731,7 +3171,7 @@ function viewCombat(root) {
       onclick: () => confirmThen("Avslutt kampen?",
         "Deltakerlista blir liggende, men runde og tur nullstilles.",
         async () => {
-          cb.active = false; cb.round = 0; cb.turn = 0;
+          cb.active = false; cb.round = 0; cb.turn = 0; cb.taken = 0;
           await saveCombat(); render();
         }),
     }));
@@ -2740,6 +3180,13 @@ function viewCombat(root) {
     class: "btn small", type: "button", text: "+ Legg til",
     onclick: () => addCombatantDialog(),
   }));
+  if (state.scenario && (state.scenario.tactics || []).length) {
+    controls.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Trekk taktikk",
+      title: "Et forslag til noe som gjør kampen vanskeligere",
+      onclick: () => drawTactic(),
+    }));
+  }
   if (cb.combatants.length > 1) {
     controls.appendChild(el("button", {
       class: "btn small", type: "button", text: "Sorter på nytt",
@@ -2764,16 +3211,24 @@ function viewCombat(root) {
   root.appendChild(controls);
 
   if (cb.active) {
-    const current = cb.combatants[cb.turn];
+    const current = cb.combatants[0];
+    const next = cb.combatants[1];
+    const taken = cb.taken || 0;
     root.appendChild(el("div", { class: "panel accent roundbar" }, [
       el("div", null, [
         el("p", { class: "eyebrow", text: "Runde" }),
         el("p", { class: "roundnum", text: String(cb.round) }),
       ]),
-      el("div", null, [
+      el("div", { class: "roundbar-now" }, [
         el("p", { class: "eyebrow", text: "Sin tur" }),
-        el("p", { class: "turnname",
-                  text: current ? current.name : "—" }),
+        el("p", { class: "turnname", text: current ? current.name : "—" }),
+        next ? el("p", { class: "entry-sub", text: "Nestemann: " + next.name })
+             : null,
+      ]),
+      el("div", { class: "roundbar-count" }, [
+        el("p", { class: "eyebrow", text: "Turer tatt" }),
+        el("p", { class: "roundcount",
+                  text: taken + " / " + cb.combatants.length }),
       ]),
     ]));
   }
@@ -2804,6 +3259,10 @@ function viewCombat(root) {
 const CONDITIONS = ["Bevisstløs", "Døende", "Major wound", "Grepet",
                     "Gal", "Skadet", "Flykter"];
 
+// Siste angrepsresultat, slik at skaden kan settes rett inn i
+// skadefeltet på den som ble truffet.
+let lastAttack = null;
+
 // Rustningsfeltet fra fiendebanken er ofte en hel setning («none, but
 // due to their shadowy nature …»). I kampkortets ettlinjes undertittel
 // er det bare selve tallet som er til nytte.
@@ -2818,7 +3277,7 @@ function shortArmor(armor) {
 
 function combatantCard(c, index) {
   const cb = state.combat;
-  const isTurn = cb.active && index === cb.turn;
+  const isTurn = cb.active && index === 0;
   const dead = c.hp <= 0;
   const pct = c.hpMax ? Math.max(0, Math.min(100,
     Math.round((c.hp / c.hpMax) * 100))) : 0;
@@ -2829,6 +3288,16 @@ function combatantCard(c, index) {
     class: "combatant" + (isTurn ? " active" : "") + (dead ? " down" : ""),
     "data-tag": tone,
   });
+
+  if (isTurn) {
+    card.appendChild(el("div", { class: "cb-turnflag" }, [
+      el("span", { text: "NÅ" }),
+      el("button", {
+        class: "btn small primary", type: "button", text: "Ferdig — neste tur",
+        onclick: () => advanceTurn(),
+      }),
+    ]));
+  }
 
   // --- topplinje
   // Initiativet skrives inn for hånd. Lista sorteres ikke mens du
@@ -2902,7 +3371,7 @@ function combatantCard(c, index) {
     dmg.value = "";
     saveCombat().then(render);
   }
-  card.appendChild(el("div", { class: "cb-tools" }, [
+  const tools = el("div", { class: "cb-tools" }, [
     dmg,
     el("button", { class: "btn small danger", type: "button", text: "Skade",
                    onclick: () => applyHp(-1) }),
@@ -2918,10 +3387,20 @@ function combatantCard(c, index) {
     el("button", { class: "btn small", type: "button", text: "Fjern",
                    onclick: async () => {
                      cb.combatants = cb.combatants.filter((x) => x.id !== c.id);
-                     if (cb.turn >= cb.combatants.length) cb.turn = 0;
+                     cb.turn = 0;
+                     if (cb.taken > cb.combatants.length) cb.taken = 0;
                      await saveCombat(); render();
                    } }),
-  ]));
+  ]);
+  if (lastAttack && lastAttack.hit && lastAttack.damage) {
+    tools.insertBefore(el("button", {
+      class: "btn small", type: "button",
+      title: "Sett inn skaden fra siste angrepsslag",
+      text: "← " + lastAttack.damage,
+      onclick: () => { dmg.value = String(lastAttack.damage); applyHp(-1); },
+    }), tools.children[1]);
+  }
+  card.appendChild(tools);
 
   // --- angrep, til å lese av mens det står på
   if (c.attacks && c.attacks.length) {
@@ -2933,12 +3412,19 @@ function combatantCard(c, index) {
         text: a.name + (a.skill ? " " + a.skill : "") +
               (a.damage ? " · " + a.damage : ""),
         onclick: () => {
-          const target = parseInt(a.skill, 10);
-          if (!target) { toast("Ingen treffsjanse på dette angrepet"); return; }
-          const r = rollSkill(target);
-          cb.log.push(c.name + " – " + a.name + " (" + target + "%): " +
-                      r.roll + " " + r.label +
-                      (a.damage ? "  skade " + a.damage : ""));
+          const res = resolveAttack(c, a);
+          if (!res) { toast("Ingen treffsjanse på dette angrepet"); return; }
+          let line = c.name + " – " + a.name + " (" + res.target + "%): " +
+                     res.roll + " " + res.label;
+          if (res.malfunction) {
+            line += " — VÅPENET SVIKTER";
+          } else if (res.hit) {
+            line += " → " + res.damage + " skade" +
+                    (res.impaled ? " (SPIDDET!)" : "") +
+                    (res.damageDetail ? "  [" + res.damageDetail + "]" : "");
+          }
+          cb.log.push(line);
+          lastAttack = res;
           saveCombat().then(render);
         },
       }));
@@ -2975,9 +3461,18 @@ function combatantCard(c, index) {
 async function advanceTurn() {
   const cb = state.combat;
   if (!cb.combatants.length) return;
-  cb.turn += 1;
-  if (cb.turn >= cb.combatants.length) {
-    cb.turn = 0;
+
+  // Den som er ferdig flyttes nederst, og resten rykker opp. Da ligger
+  // den som har tur alltid øverst, og man slipper å lete seg nedover
+  // lista midt i en kamp.
+  const done = cb.combatants.shift();
+  cb.combatants.push(done);
+  cb.turn = 0;
+
+  // En runde er omme når alle har hatt tur én gang.
+  cb.taken = (cb.taken || 0) + 1;
+  if (cb.taken >= cb.combatants.length) {
+    cb.taken = 0;
     cb.round += 1;
     cb.log.push("— Runde " + cb.round + " —");
   }
@@ -3164,6 +3659,151 @@ function addCombatantDialog() {
     })),
   ]);
   refreshButton();
+}
+
+/* --------------------- trusler og taktikk ------------------------ */
+
+const TACTIC_TONE = {
+  "Motstander": "villain",
+  "Konflikt": "event",
+  "Miljø": "voyage",
+  "Keeper-notat": null,
+};
+
+function viewTactics(root) {
+  const d = state.scenario;
+  const cards = (d && d.tactics) || [];
+  root.appendChild(el("h1", { text: "Trusler og taktikk" }));
+  if (!cards.length) {
+    root.appendChild(emptyBox("Ingen taktikkort i dette scenarioet."));
+    return;
+  }
+  root.appendChild(el("p", { class: "lede",
+    text: "Forslag, ikke en hendelsesrekke. Trekk et kort når en kamp " +
+          "går for lett, eller når gruppa trenger et problem som ikke " +
+          "lar seg løse med det de er best på." }));
+
+  if (d.tactics_note) {
+    root.appendChild(el("div", { class: "callout" }, [
+      el("p", { class: "eyebrow", text: "Hvorfor" }),
+      el("p", { text: d.tactics_note }),
+    ]));
+  }
+
+  root.appendChild(el("div", { class: "row", style: "margin-bottom:14px" }, [
+    el("button", { class: "btn primary", type: "button",
+                   text: "Trekk et tilfeldig kort",
+                   onclick: () => drawTactic() }),
+  ]));
+
+  root.appendChild(searchBar("Søk i taktikk…"));
+  root.appendChild(el("div", { style: "height:14px" }));
+
+  const q = state.query.toLowerCase();
+  const shown = cards.filter((t) => !q ||
+    [t.title, t.category, t.mechanic, t.tactic, t.pressure]
+      .filter(Boolean).join(" ").toLowerCase().indexOf(q) !== -1);
+  if (!shown.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+
+  const order = [];
+  const byCat = {};
+  shown.forEach((t) => {
+    const c = t.category || "Annet";
+    if (!byCat[c]) { byCat[c] = []; order.push(c); }
+    byCat[c].push(t);
+  });
+
+  order.forEach((cat) => {
+    const block = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: cat }),
+        el("span", { text: String(byCat[cat].length) }),
+      ]),
+    ]);
+    const stack = el("div", { class: "stack" });
+    byCat[cat].forEach((t) => {
+      stack.appendChild(el("div", {
+        class: "entry" + (t.used ? " done" : ""),
+        "data-tag": TACTIC_TONE[cat] || null,
+      }, [
+        el("button", {
+          class: "tick", type: "button", "aria-pressed": String(!!t.used),
+          title: t.used ? "Merk som ubrukt" : "Merk som brukt",
+          onclick: () => toggleTacticUsed(t),
+        }),
+        el("span", { class: "entry-body" }, [
+          el("button", { class: "linkish", type: "button",
+                         onclick: () => openTactic(t) },
+             [el("span", { class: "entry-title", text: t.title })]),
+          t.pressure ? el("span", { class: "entry-sub", text: t.pressure })
+                     : null,
+        ]),
+        el("span", { class: "entry-open", text: "ÅPNE" }),
+      ]));
+    });
+    block.appendChild(stack);
+    root.appendChild(block);
+  });
+}
+
+async function toggleTacticUsed(t) {
+  t.used = !t.used;
+  if (t.used) state.progress.flags[t.id] = true;
+  else delete state.progress.flags[t.id];
+  await saveProgress();
+  render();
+}
+
+function openTactic(t) {
+  openModal(t.title, t.category, (body) => {
+    if (t.pressure) {
+      body.appendChild(el("div", { class: "callout" }, [
+        el("p", { class: "eyebrow", text: "Hvorfor det biter" }),
+        el("p", { text: t.pressure }),
+      ]));
+    }
+    if (t.mechanic) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Mekanikk" }));
+      body.appendChild(el("p", { class: "prose", text: t.mechanic }));
+    }
+    if (t.tactic) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Taktikk" }));
+      body.appendChild(el("p", { class: "prose", text: t.tactic }));
+    }
+    const refs = crossRefs(t);
+    if (refs) body.appendChild(refs);
+  }, [
+    el("button", {
+      class: t.used ? "btn" : "btn primary", type: "button",
+      text: t.used ? "Merk som ubrukt" : "Merk som brukt",
+      onclick: async () => { closeModal(); await toggleTacticUsed(t); },
+    }),
+    el("button", {
+      class: "btn small", type: "button", text: "Noter i kamploggen",
+      onclick: async () => {
+        closeModal();
+        state.combat.log.push("Taktikk: " + t.title +
+                              (t.pressure ? " — " + t.pressure : ""));
+        await saveCombat();
+        toast("Lagt i kamploggen");
+        render();
+      },
+    }),
+  ]);
+}
+
+// Trekker et kort som ikke er brukt ennå. Er alle brukt, trekkes det
+// fra hele bunken igjen.
+function drawTactic() {
+  const cards = (state.scenario && state.scenario.tactics) || [];
+  const combatish = cards.filter((t) => t.category !== "Keeper-notat");
+  if (!combatish.length) { toast("Ingen taktikkort i dette scenarioet"); return; }
+  let pool = combatish.filter((t) => !t.used);
+  if (!pool.length) pool = combatish;
+  const pick = pool[Math.floor(Math.random() * pool.length)];
+  openTactic(pick);
 }
 
 /* -------------------------- bibliotek --------------------------- */
@@ -3390,6 +4030,7 @@ function render() {
         "Skipsdata, terningslag, sanity-belønninger og valgfrie moduler.",
         "Søk i oppslag…");
       break;
+    case "tactics":   viewTactics(root); break;
     case "notes":     viewNotes(root); break;
     case "sessions":  viewSessions(root); break;
     default:          viewOverview(root);
@@ -3432,14 +4073,31 @@ async function boot() {
   }
 }
 
-function loadBestiary() {
-  const node = document.getElementById("bundled-bestiary");
-  if (!node) return;
-  try {
-    const bank = JSON.parse(node.textContent);
-    if (bank && Array.isArray(bank.creatures)) state.bestiary = bank;
-  } catch (e) { state.bestiary = null; }
+function loadBundled(id) {
+  const node = document.getElementById(id);
+  if (!node) return null;
+  try { return JSON.parse(node.textContent); } catch (e) { return null; }
 }
+
+function loadBestiary() {
+  const bank = loadBundled("bundled-bestiary");
+  state.bestiary = (bank && Array.isArray(bank.creatures)) ? bank : null;
+
+  const w = loadBundled("bundled-weapons");
+  state.weapons = (w && Array.isArray(w.weapons)) ? w : null;
+
+  const t = loadBundled("bundled-talents");
+  state.talents = (t && Array.isArray(t.talents)) ? t : null;
+  // Oppslag på små bokstaver, så «rapid fire» finner «Rapid Fire».
+  talentIndex = {};
+  if (state.talents) {
+    state.talents.talents.forEach((x) => {
+      talentIndex[x.name.toLowerCase()] = x;
+    });
+  }
+}
+
+let talentIndex = {};
 
 async function loadRoster() {
   // Alle roller normaliseres ved innlasting, slik at gamle filer fra

@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 3
+VERSION = 4
 
 # --------------------------------------------------------------- meta
 
@@ -2299,6 +2299,188 @@ data["reference"] = [
             "holde spillet i gang. Tidslinja er vennen din her — når du "
             "er i tvil, hopp til neste daterte hendelse.",
     },
+]
+
+# ------------------------------------------------- trusler og taktikk
+#
+# Dette er FORSLAG, ikke en hendelsesrekke. Kortene er ment å trekkes
+# når en kamp går for lett, eller når gruppa trenger et problem som
+# ikke lar seg løse med det de er best på. Rekkefølge og bruk er
+# Keeperens.
+
+
+def tac(tid, title, category, mechanic, tactic, pressure, refs=None):
+    t = {"id": tid, "title": title, "category": category,
+         "mechanic": mechanic, "tactic": tactic, "pressure": pressure,
+         "used": False}
+    if refs:
+        t["connects_to"] = refs
+    return t
+
+
+data["tactics_note"] = (
+    "Gruppa er svært kompetent, og rene nærkampmonstre blir knust — "
+    "særlig av Beefcake. Kortene under angriper andre akser av "
+    "karakterarkene: lav POW og Sanity, smale ferdigheter, dårlig "
+    "Swim, og situasjoner der rå styrke er feil verktøy. Trekk ett når "
+    "en kamp går for lett."
+)
+
+data["tactics"] = [
+    # ---------------------------------------------------- motstandere
+    tac("tac-formless-spawn", "Formless Spawn", "Motstander",
+        "Som en flytende, seig masse er de immune mot vanlige fysiske "
+        "angrep. Beefcakes Fighting (Brawl) på 99 % og våpen gjør ingen "
+        "skade i det hele tatt.",
+        "De beveger seg umerkelig gjennom ventilasjonsanlegg og rør "
+        "under skipsdekkene. Walther må bruke Weird Science sammen med "
+        "Science (Pharmacy) for å koke sammen en kjemisk blanding — "
+        "syre eller ekstrem kulde — som endrer skapningens molekylære "
+        "struktur.",
+        "Slår ut gruppas beste våpen: nærkamp.",
+        ["npc-crawling-one"]),
+
+    tac("tac-cultists", "Kultister med magi og tankekontroll",
+        "Motstander",
+        "Unngår direkte konfrontasjon og skjuler seg blant "
+        "passasjerene.",
+        "Sikt på Beefcake og Walthers svake punkt: lav POW (45) og lav "
+        "Sanity (45). Med Mental Suggestion eller Dominate kan Beefcake "
+        "snus mot sine egne. Da må Skjoldvår bruke Telekinesis for å "
+        "binde ham fast midlertidig, mens Dagrun setter Animal "
+        "Companion — hunden — på kultisten for å bryte konsentrasjonen.",
+        "Gjør gruppas hardeste slagkraft til et problem for dem selv.",
+        None),
+
+    tac("tac-deep-ones", "Deep Ones og hybrider", "Motstander",
+        "Kjemper alltid i flokk og trives i vann. Amfibiske angrep fra "
+        "flere kanter.",
+        "De forsøker å trekke karakterene over bord. Dagruns Swim på "
+        "30 % og Walthers lave SIZ (55) gjør dem til lette bytter i "
+        "vannet. Flokkene sirkler rundt skipet, slik at spillerne må "
+        "forsvare flere dekk samtidig og splitte ressursene sine.",
+        "Tvinger gruppa til å dele seg, og flytter kampen dit de er "
+        "dårligst.",
+        None),
+
+    tac("tac-star-vampires", "Star Vampires", "Motstander",
+        "Usynlige helt til de mater på et offer og fylles med blod. "
+        "Det gir massive straffeterninger for å treffe dem tidlig i "
+        "kampen.",
+        "Krever at gruppa bruker omgivelsene for å finne dem. Walther "
+        "kan bruke Keen Hearing til å lytte etter snikelydene, eller "
+        "Dagrun kan nøytralisere usynligheten ved å kaste mel, regnvann "
+        "eller maling fra lasten over dem — så Beefcake endelig kan "
+        "lande slagene sine.",
+        "Treffsjansen, ikke skaden, er flaskehalsen.",
+        None),
+
+    tac("tac-shamblers", "Dimensional Shamblers", "Motstander",
+        "Teleporterer inn og ut av vår dimensjon. De slår hardt og er "
+        "borte igjen neste runde.",
+        "Målet deres er ikke å drepe, men å kidnappe. De griper etter "
+        "dr. Soongs bok eller en nøkkelperson og feller over i en annen "
+        "dimensjon. Skjoldvår må være klar med Sleight of Hand (70 %) "
+        "for å nappe boka tilbake før skapningen forsvinner helt.",
+        "Kan ikke vinnes ved å stå og slåss — det handler om timing.",
+        ["handout-book-of-red-jade"]),
+
+    # ------------------------------------------------------ konflikter
+    tac("tac-blackout", "Total mørklegging", "Konflikt",
+        "Skipets strømforsyning kuttes under tyveriet. Synsbaserte "
+        "angrep får straffeterninger.",
+        "Skjoldvårs Stealth (70 %) og Walthers Keen Hearing gir dem et "
+        "massivt overtak til å navigere i mørket og felle fiender som "
+        "famler.",
+        "Snur kampen på hodet: den stille og den lyttende blir "
+        "hovedpersonene.",
+        None),
+
+    tac("tac-hostages", "Gisselsituasjon", "Konflikt",
+        "Kultister bruker uskyldige passasjerer som levende skjold for "
+        "å sikre rømningsveien.",
+        "Walthers Rapid Fire og Beefcakes knusende styrke er for "
+        "farlige å bruke. Skjoldvår må infiltrere med Master of "
+        "Disguise i stedet.",
+        "Gjør gruppas to sterkeste angrep ubrukelige.",
+        ["beat-bunny-takes-a-hostage"]),
+
+    tac("tac-bomb", "Tikkende bombe", "Konflikt",
+        "En sprengladning truer med å senke skipet midt på havet og "
+        "ødelegge alle spor.",
+        "Walther desarmerer bomben med Demolitions (41 %) og Mech. "
+        "Repair, mens Beefcake holder ståldørene inn til maskinrommet "
+        "mot det som presser på utenfra.",
+        "Klokka, ikke fienden, er motstanderen — og 41 % er tynt.",
+        None),
+
+    tac("tac-decoy-book", "Falsk bok", "Konflikt",
+        "Tyven legger igjen en nesten identisk bok under flukten, "
+        "preparert med en farlig magisk felle — for eksempel en glyf.",
+        "Karakterene må bruke Spot Hidden, eller Walthers Psychology "
+        "(50 %), for å innse at kultisten ga fra seg boka mistenkelig "
+        "lett — før noen åpner den.",
+        "Straffer gruppa for å vinne for lett.",
+        ["handout-book-of-red-jade", "beat-the-stolen-book"]),
+
+    tac("tac-paranoia", "Paranoia blant mannskapet", "Konflikt",
+        "Kultistene har hjernevasket kapteinen og nøkkelmannskap. "
+        "Gruppa nektes adgang til broa og lasterommet.",
+        "Dagrun må bruke Persuade (50 %) for å overtale lojale sjømenn "
+        "til mytteri, mens Skjoldvår bruker Read Lips (57 %) for å "
+        "fange opp hva de hjernevaskede planlegger.",
+        "Volden er stengt av — det må løses sosialt.",
+        ["npc-captain-nelson"]),
+
+    # --------------------------------------------------- miljøet ombord
+    tac("tac-storm", "Krengende skip og orkan", "Miljø",
+        "Skipet treffes av en voldsom storm under jakten på tyven. "
+        "Skroget kastes fra side til side av enorme bølger.",
+        "BALANSE: alle fysiske handlinger krever DEX-slag for å ikke "
+        "falle eller skli. Dagrun, med DEX 99 og talentet Nimble, "
+        "ignorerer det glatt og kan løpe langs vegger og rekkverk for å "
+        "kutte av rømningsveien.\n\n"
+        "LØST GODS: tunge maskindeler og kasser glir tvers over dekket "
+        "og truer med å knuse folk mot skottene. Skjoldvår kan fryse "
+        "dem i lufta med Telekinesis.",
+        "Gjør selve gulvet til en motstander.",
+        None),
+
+    tac("tac-fire", "Røyk og brann i trange korridorer", "Miljø",
+        "En feilslått eksplosjon eller magisk feiltenning antenner det "
+        "tørre treverket i førsteklassekorridorene.",
+        "KVELNING: fast skade hver runde i den tette røyken uten "
+        "surstoff, og sikten for våpenbruk faller drastisk.\n\n"
+        "REDNINGSARBEID: Beefcake må bruke Power Lifter for å bryte opp "
+        "fastklemte dører. Walther vil helst jage boka, og gruppa må "
+        "bruke tid på å overtale ham til å bruke Medicine (61 %) på "
+        "alvorlig brannskadde passasjerer.",
+        "Skade som ikke kan slås tilbake, og et moralsk valg på toppen.",
+        None),
+
+    tac("tac-flooding", "Oversvømt lasterom og strømfare", "Miljø",
+        "Fienden saboterer skroget under vannlinjen for å stoppe "
+        "forfølgerne. Lasterommet fylles raskt med mørkt, iskaldt "
+        "sjøvann.",
+        "DRUKNING: enormt press på Dagruns Swim (30 %) og Beefcakes "
+        "Swim (25 %) mens de leter etter boka blant flytende vrakgods i "
+        "bekmørket.\n\n"
+        "STRØM: knekte høyspentkabler slår gnister over vannflata. "
+        "Spillerne må kortslutte skipets strømtilførsel fra et tørt "
+        "punkt før hele rommet blir en dødelig felle.",
+        "Treffer to ferdigheter gruppa nesten ikke har.",
+        ["loc-hold-7", "loc-bilges"]),
+
+    tac("tac-synergy", "Hvorfor dette virker", "Keeper-notat",
+        "Gruppa er vant til at én person løser problemet.",
+        "Ved å kombinere ukonvensjonelle monstre, taktiske "
+        "begrensninger og miljøfarer tvinger du spillerne til å rotere "
+        "på hvem som er helten. Beefcake kan ikke slå i stykker en "
+        "oversvømmelse, og Walther kan ikke skyte seg gjennom "
+        "bekmørke. De må stole på hverandres pulp-talenter og smale "
+        "ferdigheter for å komme fram til Kina.",
+        "Prinsippet bak alle kortene over.",
+        None),
 ]
 
 with open(OUT, "w", encoding="utf-8") as fh:
