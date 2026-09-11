@@ -644,6 +644,9 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 .attackrow { display: grid; grid-template-columns: 2fr 1fr 2fr auto; gap: 5px; }
 .skillrow  { display: grid; grid-template-columns: 2fr 1fr auto; gap: 5px; }
 .attackrow .field, .skillrow .field { padding: 6px 8px; font-size: 13px; }
+/* Et angrep uten treffsjanse kan ikke brukes i kamp. */
+.field.needs { border-color: var(--signal); }
+.field.needs::placeholder { color: var(--signal); }
 
 /* ---------------------- kamptracker ---------------------------- */
 
@@ -2848,12 +2851,26 @@ function editCharacter(existing, kindHint) {
 
       // --- angrep
       body.appendChild(el("div", { class: "section-label", text: "Angrep" }));
+      body.appendChild(el("p", { class: "entry-sub",
+        text: "Våpnene som står her er de rollen kan bruke i kamp. " +
+              "«+ Legg til våpen» henter hele statblokka — skade, " +
+              "rekkevidde, magasin og feilgrense. Treffsjansen fylles " +
+              "inn fra rollens egen ferdighet, eller fra et våpen av " +
+              "samme sort den alt har; står feltet tomt, må du skrive " +
+              "den inn selv." }));
       const attackList = el("div", { class: "stack" });
       function attackRow(a) {
         const name = el("input", { class: "field", value: a.name || "",
                                    placeholder: "Klo" });
         const skill = el("input", { class: "field", value: a.skill || "",
                                     placeholder: "45%" });
+        // Et angrep uten treffsjanse er ubrukelig i kamp. Feltet får
+        // en markering til det er fylt ut.
+        function markSkill() {
+          skill.classList.toggle("needs", !skill.value.trim());
+        }
+        skill.addEventListener("input", markSkill);
+        markSkill();
         const dmg = el("input", { class: "field", value: a.damage || "",
                                   placeholder: "1D6 + db" });
         // Våpenegenskapene redigeres ikke for hånd, men må følge med
@@ -2862,6 +2879,11 @@ function editCharacter(existing, kindHint) {
           uses_db: a.uses_db, can_impale: a.can_impale,
           malfunction: a.malfunction, attacks: a.attacks,
           ammo: a.ammo, range: a.range, weaponId: a.weaponId,
+          // Kategorien avgjør om angrepet er nærkamp eller avstand, og
+          // hvilke skaderegler som gjelder mot skapninger som bare
+          // biter på visse våpen. Den må følge med ut av editoren.
+          category: a.category, subcategory: a.subcategory,
+          ignores_armor: a.ignores_armor, abilityId: a.abilityId,
         };
         const flags = [
           extra.can_impale ? "spidder" : null,
@@ -2894,7 +2916,7 @@ function editCharacter(existing, kindHint) {
           onclick: () => attackList.appendChild(attackRow({})),
         }),
         (state.weapons && state.weapons.weapons.length) ? el("button", {
-          class: "btn small primary", type: "button", text: "+ Fra våpenlista",
+          class: "btn small primary", type: "button", text: "+ Legg til våpen",
           id: "toggle-weapons",
           onclick: (e) => {
             e.preventDefault();
@@ -3118,10 +3140,34 @@ function skillValueFor(character, weapon) {
   return v ? v + "%" : "";
 }
 
+/* Treffsjansen for et våpen som legges på en rolle.
+
+   Først rollens egen ferdighet. Finner vi ikke den — mange NPCer har
+   bare et knippe ferdigheter skrevet ned — bruker vi treffsjansen fra
+   et våpen av samme sort som rollen alt har. Gir vi den en hagle til,
+   skyter den like godt med den som med den første. Uten dette blir
+   feltet stående tomt, og våpenet er ubrukelig i kamp.            */
+function attackSkillFor(character, w) {
+  const direct = skillValueFor(character, w);
+  if (direct) return direct;
+  if (!character) return "";
+
+  const own = (character.attacks || []).filter((a) => a.skill);
+  const sub = String(w.subcategory || "").toLowerCase();
+  const cat = String(w.category || "").toLowerCase();
+
+  const same = (key, val) => own.find(
+    (a) => val && String(a[key] || "").toLowerCase() === val);
+
+  const hit = same("subcategory", sub) || same("category", cat) ||
+    (cat === "melee" ? own.find((a) => !isRangedAttack(a)) : null);
+  return hit ? hit.skill : "";
+}
+
 function weaponToAttack(w, character) {
   return {
     name: w.name,
-    skill: skillValueFor(character, w),
+    skill: attackSkillFor(character, w),
     damage: w.damage || "",
     uses_db: w.uses_db,
     can_impale: !!w.can_impale,
