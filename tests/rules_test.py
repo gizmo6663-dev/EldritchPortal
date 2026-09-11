@@ -129,7 +129,7 @@ async def main():
         tmodal=await pg.evaluate("() => ({t:document.getElementById('modal-title').textContent, b:document.getElementById('modal-body').textContent.slice(0,120)})")
         print("talentforklaring:", tmodal)
         await pg.screenshot(path=f"{OUT}/talent.png")
-        await pg.evaluate("closeModal()")
+        await pg.evaluate("closeAllModals()")
 
         # --- 4. TAKTIKK
         await pg.evaluate("setView('tactics')"); await pg.wait_for_timeout(500)
@@ -139,7 +139,7 @@ async def main():
         await pg.evaluate("() => drawTactic()"); await pg.wait_for_timeout(400)
         drawn=await pg.evaluate("() => document.getElementById('modal-title').textContent")
         print("trukket kort:", drawn)
-        await pg.evaluate("closeModal()")
+        await pg.evaluate("closeAllModals()")
 
         # --- 5. ROTERING AV INITIATIV
         await pg.evaluate("""async () => {

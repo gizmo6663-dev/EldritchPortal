@@ -745,6 +745,8 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
   background: var(--ink); padding: 10px; margin-top: 8px;
 }
 .picklist.short { max-height: 34vh; }
+/* Talentbeskrivelsen er en hel setning og må få bryte. */
+.picklist .entry-sub { white-space: normal; }
 
 .attackflags {
   grid-column: 1 / -1;
@@ -1025,7 +1027,8 @@ function normalizeChar(raw) {
   if (!c.skills || typeof c.skills !== "object" ||
       Array.isArray(c.skills)) c.skills = {};
   ["name", "occ", "archetype", "player", "notes", "backstory", "weapons",
-   "talents", "armor", "spells", "sanity_loss", "subtitle"].forEach((k) => {
+   "talents", "insane_talents", "armor", "spells", "sanity_loss",
+   "subtitle"].forEach((k) => {
     if (c[k] === undefined || c[k] === null) c[k] = "";
   });
   return c;
@@ -1442,32 +1445,71 @@ function resolveAttack(combatant, attack) {
 
 let lastFocus = null;
 
-function closeModal() {
-  document.getElementById("scrim").hidden = true;
-  if (lastFocus && lastFocus.focus) lastFocus.focus();
-}
+// Modalene ligger i en stabel. Åpner du et talent fra et karakterkort,
+// skal «Tilbake» føre deg til kortet igjen — ikke helt ut til lista.
+// Det samme gjelder kryssreferanser mellom spor, scener og NPCer.
+let modalStack = [];
 
-function openModal(title, subtitle, buildBody, footButtons) {
-  lastFocus = document.activeElement;
+function renderModal() {
   const scrim = document.getElementById("scrim");
+  const top = modalStack[modalStack.length - 1];
+  if (!top) {
+    scrim.hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+    return;
+  }
+
+  // Tittel og undertittel kan være funksjoner. Da hentes de på nytt
+  // hver gang nivået vises, slik at et kort man kommer tilbake til
+  // viser gjeldende verdier og ikke et øyeblikksbilde.
   const head = document.getElementById("modal-title");
-  head.textContent = title;
-  const sub = el("span", { class: "modal-sub", id: "modal-sub",
-                           text: subtitle || "" });
-  head.appendChild(sub);
+  head.textContent = (typeof top.title === "function")
+    ? top.title() : top.title;
+  const sub = (typeof top.subtitle === "function")
+    ? top.subtitle() : top.subtitle;
+  head.appendChild(el("span", { class: "modal-sub", id: "modal-sub",
+                                text: sub || "" }));
 
   const body = document.getElementById("modal-body");
   body.innerHTML = "";
-  buildBody(body);
-  body.scrollTop = 0;
+  top.build(body);
 
   const foot = document.getElementById("modal-foot");
   foot.innerHTML = "";
-  (footButtons || []).forEach((b) => foot.appendChild(b));
-  foot.hidden = !(footButtons && footButtons.length);
+  top.foot.forEach((b) => foot.appendChild(b));
+  foot.hidden = !top.foot.length;
+
+  // Knappen sier hva den faktisk gjør: ett steg tilbake, eller lukk.
+  const closeBtn = document.getElementById("modal-close");
+  closeBtn.textContent = modalStack.length > 1 ? "Tilbake" : "Lukk";
 
   scrim.hidden = false;
-  document.getElementById("modal-close").focus();
+  // Gjenopprett hvor langt ned man hadde bladd da man forlot nivået.
+  body.scrollTop = top.scrollTop || 0;
+  closeBtn.focus();
+}
+
+function openModal(title, subtitle, buildBody, footButtons) {
+  if (!modalStack.length) lastFocus = document.activeElement;
+  const cur = modalStack[modalStack.length - 1];
+  if (cur) cur.scrollTop = document.getElementById("modal-body").scrollTop;
+  modalStack.push({
+    title: title, subtitle: subtitle,
+    build: buildBody, foot: footButtons || [], scrollTop: 0,
+  });
+  renderModal();
+}
+
+// Ett steg tilbake i stabelen.
+function closeModal() {
+  modalStack.pop();
+  renderModal();
+}
+
+// Lukk alt — brukes når man forlater modalene helt.
+function closeAllModals() {
+  modalStack = [];
+  renderModal();
 }
 
 function noteEditor(item) {
@@ -1669,12 +1711,23 @@ function attackTable(attacks) {
 }
 
 function openCharacter(pc) {
-  const c = normalizeChar(pc);
-  openModal(c.name || "?",
-    [KIND_LABEL[c.kind], c.occ, c.archetype || c.subtitle,
-     c.player ? "spilles av " + c.player : null]
-      .filter(Boolean).join(" · "),
+  // Slå opp rollen på nytt hver gang kortet tegnes. Redigerer man den
+  // i et nivå over, skal «Tilbake» vise de nye verdiene — ikke den
+  // kopien kortet ble åpnet med.
+  const id = pc.id;
+  const live = () => normalizeChar(
+    state.characters.find((x) => x.id === id) || pc);
+
+  openModal(
+    () => live().name || "?",
+    () => {
+      const c = live();
+      return [KIND_LABEL[c.kind], c.occ, c.archetype || c.subtitle,
+              c.player ? "spilles av " + c.player : null]
+        .filter(Boolean).join(" · ");
+    },
     (body) => {
+      const c = live();
       const grid = statGrid(c.stats);
       if (grid) body.appendChild(grid);
 
@@ -1700,11 +1753,15 @@ function openCharacter(pc) {
         body.appendChild(wrap);
       }
 
-      if (c.talents) {
-        body.appendChild(el("div", { class: "section-label",
-                                     text: "Talenter" }));
-        const chips = talentChips(c.talents);
-        if (chips) body.appendChild(chips);
+      if (c.talents || c.insane_talents) {
+        [["talents", "Talenter"],
+         ["insane_talents", "Insane talents"]].forEach((pair) => {
+          if (!c[pair[0]]) return;
+          body.appendChild(el("div", { class: "section-label",
+                                       text: pair[1] }));
+          const chips = talentChips(c[pair[0]]);
+          if (chips) body.appendChild(chips);
+        });
         body.appendChild(el("p", { class: "caveat",
           text: "Trykk på et talent for å se hva det gjør." }));
       }
@@ -1720,9 +1777,11 @@ function openCharacter(pc) {
     },
     [
       el("button", { class: "btn primary", type: "button", text: "Til kamp",
-                     onclick: () => { closeModal(); addToCombat(c); } }),
+                     onclick: () => { closeModal(); addToCombat(live()); } }),
+      // Ikke lukk kortet først — da legger editoren seg oppå, og
+      // «Tilbake» etter lagring viser kortet med de nye verdiene.
       el("button", { class: "btn", type: "button", text: "Rediger",
-                     onclick: () => { closeModal(); editCharacter(c); } }),
+                     onclick: () => editCharacter(live()) }),
     ]);
 }
 
@@ -2671,7 +2730,46 @@ function editCharacter(existing, kindHint) {
 
       // --- fritekst
       body.appendChild(el("div", { class: "section-label", text: "Tekst" }));
-      [["weapons", "Våpen og utstyr"], ["talents", "Talenter"],
+      // --- talenter, med velger
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Talenter" }));
+      const talField = el("textarea", { class: "field", rows: "2",
+                                        id: "ed-talents",
+                                        placeholder: "Keen Hearing, Hardened…" });
+      talField.value = c.talents || "";
+      fields.talents = talField;
+      body.appendChild(talField);
+      const talPanel = talentPickerPanel("pulp", talField);
+      body.appendChild(el("button", {
+        class: "btn small primary", type: "button", id: "toggle-talents",
+        text: "+ Fra talentlista",
+        onclick: (e) => {
+          e.preventDefault();
+          talPanel.hidden = !talPanel.hidden;
+        },
+      }));
+      body.appendChild(talPanel);
+
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Insane talents" }));
+      const insField = el("textarea", { class: "field", rows: "2",
+                                        id: "ed-insane_talents",
+                                        placeholder: "Insane strength…" });
+      insField.value = c.insane_talents || "";
+      fields.insane_talents = insField;
+      body.appendChild(insField);
+      const insPanel = talentPickerPanel("insane", insField);
+      body.appendChild(el("button", {
+        class: "btn small primary", type: "button", id: "toggle-insane",
+        text: "+ Fra insane-lista",
+        onclick: (e) => {
+          e.preventDefault();
+          insPanel.hidden = !insPanel.hidden;
+        },
+      }));
+      body.appendChild(insPanel);
+
+      [["weapons", "Våpen og utstyr"],
        ["armor", "Rustning"], ["spells", "Formler"],
        ["sanity_loss", "Sanity-tap"], ["backstory", "Bakgrunn"],
        ["notes", "Notater"]].forEach((pair) => {
@@ -2692,7 +2790,8 @@ function editCharacter(existing, kindHint) {
         text: isNew ? "Opprett" : "Lagre",
         onclick: async () => {
           ["name", "occ", "archetype", "player", "weapons", "talents",
-           "armor", "spells", "sanity_loss", "backstory", "notes"]
+           "insane_talents", "armor", "spells", "sanity_loss",
+           "backstory", "notes"]
             .forEach((k) => { if (fields[k]) c[k] = fields[k].value.trim(); });
 
           c.stats = {};
@@ -2716,9 +2815,13 @@ function editCharacter(existing, kindHint) {
           if (isNew) {
             state.characters.push(c);
           } else {
-            const i = state.characters.findIndex((x) => x.id === c.id);
-            if (i === -1) state.characters.push(c);
-            else state.characters[i] = c;
+            // Skriv tilbake PÅ det eksisterende objektet i stedet for å
+            // bytte det ut. Kortet som ligger under i modalstabelen
+            // holder på en referanse hit, og ville ellers vist de gamle
+            // verdiene når man kommer tilbake til det.
+            const existing = state.characters.find((x) => x.id === c.id);
+            if (existing) Object.assign(existing, c);
+            else state.characters.push(c);
           }
           await saveCharacters();
           closeModal();
@@ -2917,6 +3020,88 @@ function talentChips(text) {
     }));
   });
   return wrap;
+}
+
+// Talentvelger som panel inne i editoren, av samme grunn som
+// våpenvelgeren: modalene kan ikke stables oppå editoren uten å bygge
+// den opp på nytt, og da ville alt du hadde skrevet gått tapt.
+// «kind» er «pulp» eller «insane»; valgte talenter legges til i
+// tekstfeltet, kommaseparert.
+function talentPickerPanel(kind, targetField) {
+  const panel = el("div", { class: "weappanel", hidden: true });
+  const all = (state.talents && state.talents.talents) || [];
+  const pool = all.filter((t) => t.kind === kind);
+  if (!pool.length) {
+    panel.appendChild(el("p", { class: "caveat",
+      text: "Ingen talenter av denne typen er bygget inn." }));
+    return panel;
+  }
+
+  const listBox = el("div", { class: "picklist short" });
+  let query = "";
+
+  function chosen() {
+    return splitTalents(targetField.value).map((x) => x.toLowerCase());
+  }
+
+  function toggle(t) {
+    const have = chosen();
+    const i = have.indexOf(t.name.toLowerCase());
+    let list = splitTalents(targetField.value);
+    if (i === -1) list.push(t.name);
+    else list.splice(i, 1);
+    targetField.value = list.join(", ");
+    refresh();
+  }
+
+  function refresh() {
+    listBox.innerHTML = "";
+    const q = query.trim().toLowerCase();
+    const shown = pool.filter((t) => !q ||
+      (t.name + " " + t.description).toLowerCase().indexOf(q) !== -1);
+    if (!shown.length) { listBox.appendChild(emptyBox("Ingen treff.")); return; }
+
+    const order = [];
+    const byGroup = {};
+    shown.forEach((t) => {
+      const g = t.group || "Talent";
+      if (!byGroup[g]) { byGroup[g] = []; order.push(g); }
+      byGroup[g].push(t);
+    });
+
+    const have = chosen();
+    order.forEach((g) => {
+      listBox.appendChild(el("div", { class: "section-label", text: g }));
+      byGroup[g].forEach((t) => {
+        const on = have.indexOf(t.name.toLowerCase()) !== -1;
+        listBox.appendChild(el("button", {
+          class: "entry pickrow" + (on ? " picked" : ""), type: "button",
+          "aria-pressed": String(on),
+          onclick: (e) => { e.preventDefault(); toggle(t); },
+        }, [
+          el("span", { class: "pickbox" + (on ? " on" : "") }),
+          el("span", { class: "entry-body" }, [
+            el("span", { class: "entry-title", text: t.name }),
+            el("span", { class: "entry-sub", text: t.description }),
+          ]),
+        ]));
+      });
+    });
+  }
+
+  const search = el("input", {
+    class: "field", type: "search",
+    id: "talent-search-" + kind,
+    placeholder: "Søk i " + pool.length + " talenter…",
+  });
+  search.addEventListener("input", debounce(() => {
+    query = search.value; refresh();
+  }, 180));
+  panel.appendChild(search);
+  panel.appendChild(el("div", { style: "height:8px" }));
+  panel.appendChild(listBox);
+  refresh();
+  return panel;
 }
 
 function openTalent(name, talent) {
