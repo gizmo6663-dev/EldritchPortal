@@ -779,6 +779,81 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
   background: rgba(198,80,74,0.16); border-color: var(--signal);
   color: var(--signal);
 }
+.chip.cond.add { color: var(--faint); }
+.chip.cond.add:hover { color: var(--brass); border-color: var(--brass-dim); }
+.condpick { padding: 2px 0 2px 2px; }
+
+/* ------------------- angrepsflyten i kamp ---------------------- */
+
+.flowcard {
+  border: 1px solid var(--rule-soft); border-radius: 6px;
+  padding: 12px 14px; margin-bottom: 12px; background: var(--ink-2);
+}
+.flowname {
+  font-family: var(--ui); font-size: 17px; font-weight: 600;
+  color: var(--parchment); margin: 2px 0 4px; line-height: 1.25;
+}
+.flowcard p { margin: 0 0 4px; }
+.rollrow, .defroll {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  margin: 10px 0 6px;
+}
+.minilabel {
+  font-family: var(--ui); font-size: 10px; letter-spacing: 0.18em;
+  text-transform: uppercase; color: var(--faint);
+}
+.threshline {
+  font-family: var(--mono); font-size: 11.5px; color: var(--faint);
+  margin: 0 0 2px;
+}
+.lvlholder { display: inline-flex; }
+.lvlchip {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  padding: 5px 10px; border-radius: 4px;
+  border: 1px solid var(--rule); color: var(--muted);
+  white-space: nowrap;
+}
+.lvlchip.res-crit    { color: var(--brass); border-color: var(--brass-dim); }
+.lvlchip.res-extreme { color: var(--brass); border-color: var(--brass-dim); }
+.lvlchip.res-hard    { color: var(--tide); border-color: var(--tide); }
+.lvlchip.res-reg     { color: var(--verdigris); border-color: var(--verdigris); }
+.lvlchip.res-fail    { color: var(--muted); }
+.lvlchip.res-fumble  { color: var(--signal); border-color: var(--signal); }
+
+.respchips { display: flex; gap: 6px; flex-wrap: wrap; margin: 10px 0 6px; }
+.chip.resp { cursor: pointer; font-family: var(--ui); }
+.chip.resp.on {
+  background: var(--brass-glow); border-color: var(--brass-dim);
+  color: var(--brass);
+}
+.fbpick { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+.chip.atk.on {
+  background: var(--brass-glow); border-color: var(--brass-dim);
+  color: var(--brass);
+}
+
+.verdict {
+  border: 1px solid var(--rule); border-left: 3px solid var(--rule);
+  border-radius: 6px; padding: 12px 14px; margin-bottom: 10px;
+  background: var(--ink-3);
+}
+.verdict.hit  { border-left-color: var(--signal); }
+.verdict.miss { border-left-color: var(--tide); }
+.verdict.bad  { border-left-color: var(--brass-dim); }
+.verdict p { margin: 0 0 4px; }
+.verdict-head {
+  font-family: var(--ui); font-size: 16px; font-weight: 600;
+  color: var(--parchment);
+}
+.dmgbox {
+  border: 1px solid var(--rule-soft); border-radius: 6px;
+  padding: 12px 14px; background: var(--ink-2);
+}
+.dmgbox:empty { display: none; }
+.dmgbox p { margin: 0 0 4px; }
+.dmgnum { font-family: var(--mono); font-size: 15px; color: var(--parchment); }
+.dmgnum b { font-size: 26px; color: var(--signal); margin-right: 6px; }
+.pickrow.dimmed { opacity: 0.5; }
 
 .logline {
   font-family: var(--mono); font-size: 12px; color: var(--muted);
@@ -1288,16 +1363,39 @@ function debounce(fn, ms) {
 
 /* ---------------------------- terning --------------------------- */
 
-function rollSkill(target) {
-  const roll = 1 + Math.floor(Math.random() * 100);
+// Suksessnivåene i Call of Cthulhu 7e, rangert. Rangen brukes til å
+// avgjøre motsatte slag (angrep mot unnvikelse eller mot-angrep).
+const LEVEL_RANK = { "FUMLE": -1, "Bom": 0, "Suksess": 1, "Hard": 2,
+                     "Ekstrem": 3, "KRITISK": 4 };
+
+// Fumlegrensa: 100 fumler alltid, 96-99 fumler når ferdigheten er
+// under 50.
+function fumbleFrom(target) { return target < 50 ? 96 : 100; }
+
+// Regn om et terningkast til suksessnivå. Selve kastet gjør vi ved
+// bordet — denne tar imot tallet og sier hva det ble.
+function gradeRoll(roll, target) {
+  const t = Math.max(0, parseInt(target, 10) || 0);
   let label, cls;
   if (roll === 1) { label = "KRITISK"; cls = "res-crit"; }
-  else if (roll <= Math.floor(target / 5)) { label = "Ekstrem"; cls = "res-extreme"; }
-  else if (roll <= Math.floor(target / 2)) { label = "Hard"; cls = "res-hard"; }
-  else if (roll <= target) { label = "Suksess"; cls = "res-reg"; }
-  else if (roll === 100 || (roll >= 96 && target < 50)) { label = "FUMLE"; cls = "res-fumble"; }
+  else if (t && roll <= Math.floor(t / 5)) { label = "Ekstrem"; cls = "res-extreme"; }
+  else if (t && roll <= Math.floor(t / 2)) { label = "Hard"; cls = "res-hard"; }
+  else if (t && roll <= t) { label = "Suksess"; cls = "res-reg"; }
+  else if (roll >= fumbleFrom(t)) { label = "FUMLE"; cls = "res-fumble"; }
   else { label = "Bom"; cls = "res-fail"; }
-  return { roll, label, cls };
+  return { roll: roll, target: t, label: label, cls: cls,
+           rank: LEVEL_RANK[label] };
+}
+
+// Grensene, slik de kan vises ved siden av feltet man skriver kastet i.
+function thresholds(target) {
+  const t = Math.max(0, parseInt(target, 10) || 0);
+  return { extreme: Math.floor(t / 5), hard: Math.floor(t / 2),
+           regular: t, fumble: fumbleFrom(t) };
+}
+
+function rollSkill(target) {
+  return gradeRoll(1 + Math.floor(Math.random() * 100), target);
 }
 
 function setupDice() {
@@ -1356,7 +1454,8 @@ function rollDiceExpr(expr) {
     total += t.sign * sum;
     parts.push(t.n + "D" + t.sides + "[" + rolls.join(",") + "]");
   });
-  return { total: total, detail: parts.join(" ") };
+  // «+20» alene i en logglinje ser ut som en skrivefeil.
+  return { total: total, detail: parts.join(" ").replace(/^\+\s*/, "") };
 }
 
 function maxDiceExpr(expr) {
@@ -1377,43 +1476,25 @@ function rollDamageBonus(db, mode) {
   return r;
 }
 
-/* Slå et angrep etter reglene:
-   - 01 er kritisk, <=verdi/5 Extreme, <=verdi/2 Hard, <=verdi vanlig
-   - 100 fumler alltid; 96-99 fumler når ferdigheten er under 50
-   - spiddevåpen på Extreme eller kritisk gir maks skade + nytt kast
-   - damage bonus legges bare til der våpenet bruker den            */
-function resolveAttack(combatant, attack) {
-  const target = parseInt(attack.skill, 10);
-  if (!target) return null;
-
-  const r = rollSkill(target);
-  const out = {
-    name: attack.name, target: target, roll: r.roll, label: r.label,
-    cls: r.cls, hit: false, damage: 0, damageDetail: "",
-    impaled: false, malfunction: false,
-  };
-
-  const mal = parseInt(attack.malfunction, 10);
-  if (mal && r.roll >= mal) out.malfunction = true;
-
-  out.hit = !/^(Bom|FUMLE)$/.test(r.label);
-  if (!out.hit || out.malfunction) return out;
-
-  const crit = r.label === "KRITISK" || r.label === "Ekstrem";
+/* Skaden fra ett treff. Nivået avgjør om et spiddevåpen spidder:
+   maks skade fra våpenterningene pluss et nytt kast. Damage bonus
+   kastes normalt og legges til der våpenet bruker den.            */
+function rollAttackDamage(combatant, attack, label) {
+  const crit = label === "KRITISK" || label === "Ekstrem";
   let total = 0;
   const bits = [];
+  let impaled = false;
 
   if (attack.can_impale && crit) {
-    // Spidding: maks skade fra våpenterningene, pluss et nytt kast.
     const max = maxDiceExpr(attack.damage);
     const extra = rollDiceExpr(attack.damage);
     total = max + extra.total;
     bits.push("maks " + max, extra.detail);
-    out.impaled = true;
+    impaled = true;
   } else {
-    const dmg = rollDiceExpr(attack.damage);
-    total = dmg.total;
-    bits.push(dmg.detail);
+    const d = rollDiceExpr(attack.damage);
+    total = d.total;
+    bits.push(d.detail);
   }
 
   if (attack.uses_db && combatant && combatant.db) {
@@ -1422,8 +1503,101 @@ function resolveAttack(combatant, attack) {
     if (db.total) { total += db.total; bits.push("db " + db.detail); }
   }
 
-  out.damage = Math.max(0, total);
-  out.damageDetail = bits.filter(Boolean).join(" + ");
+  return { total: Math.max(0, total), impaled: impaled,
+           detail: bits.filter(Boolean).join(" + ") };
+}
+
+/* ------------------- motsatte slag i nærkamp ---------------------
+
+   Call of Cthulhu 7e: et nærkampangrep er et motsatt slag. Den som
+   blir angrepet velger å unnvike (Dodge) eller slå tilbake (Fighting).
+   Høyeste suksessnivå vinner; står det likt, vinner den med høyest
+   ferdighetsverdi. Er også den lik, skjer ingenting.
+
+   Skytevåpen slås ikke motsatt. Målet kan bare dykke i dekning, og
+   mister da neste handling.                                       */
+
+function opposedOutcome(att, def) {
+  // att og def er resultater fra gradeRoll. def kan være null når den
+  // angrepne ikke gjør noe.
+  if (!att || att.rank <= 0) {
+    return { winner: "attacker-failed", why: att && att.rank < 0
+      ? "Angriperen fumler." : "Angriperen bommer." };
+  }
+  if (!def) return { winner: "attacker", why: "Ingen forsvarshandling." };
+  if (att.rank > def.rank) {
+    return { winner: "attacker", why: "Angriperen har høyest nivå." };
+  }
+  if (def.rank > att.rank) {
+    return { winner: "defender", why: "Forsvareren har høyest nivå." };
+  }
+  // Likt nivå: høyest ferdighetsverdi vinner.
+  if (att.target > def.target) {
+    return { winner: "attacker", why: "Likt nivå — høyest ferdighet vinner." };
+  }
+  if (def.target > att.target) {
+    return { winner: "defender", why: "Likt nivå — høyest ferdighet vinner." };
+  }
+  return { winner: "draw", why: "Likt nivå og lik ferdighet — uavgjort." };
+}
+
+/* Rustning trekkes fra skaden. Feltet er ofte en hel setning fra
+   Malleus Monstrorum, så vi plukker ut første tall.               */
+function armorValue(c) {
+  const m = String((c && c.armor) || "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+
+/* Følgene av en skade, etter Call of Cthulhu og Pulp Cthulhu.
+
+   Pulp-helter bruker ikke major wound-regelen: de dør av ett slag som
+   er lik eller større enn maks HP, ligger for døden om et slag på
+   halve maks HP eller mer også tar dem til null, og besvimer ellers
+   på null. Et slag på halve maks HP eller mer krever CON-slag for å
+   holde seg våken.
+
+   Alle andre bruker vanlige regler: halve maks HP i ett slag er et
+   major wound (CON-slag eller bevisstløs), null HP med major wound er
+   døende.                                                          */
+function woundOutcome(target, net) {
+  const half = Math.ceil(target.hpMax / 2);
+  const left = Math.max(0, target.hp - net);
+  const out = { hpAfter: left, conditions: [], notes: [], major: false };
+
+  if (net >= target.hpMax) {
+    out.conditions.push("Død");
+    out.notes.push("Ett slag på " + net + " er lik eller over maks HP (" +
+                   target.hpMax + ") — død på stedet.");
+    out.hpAfter = 0;
+    return out;
+  }
+  if (net >= half) {
+    if (target.pulp) {
+      if (left === 0) {
+        out.conditions.push("Døende");
+        out.notes.push("Halve maks HP eller mer, og nede på null — " +
+                       "døende. CON-slag hver runde, First Aid " +
+                       "stabiliserer.");
+        return out;
+      }
+      out.notes.push("Over halve maks HP i ett slag — CON-slag for å " +
+                     "holde seg våken. (Pulp-helter tar ikke major wound.)");
+    } else {
+      out.major = true;
+      out.conditions.push("Major wound");
+      out.notes.push("Major wound: CON-slag eller bevisstløs, og " +
+                     "figuren går i bakken.");
+      if (left === 0) {
+        out.conditions.push("Døende");
+        out.notes.push("Null HP med major wound — døende.");
+        return out;
+      }
+    }
+  }
+  if (left === 0) {
+    out.conditions.push("Bevisstløs");
+    out.notes.push("Null HP — bevisstløs.");
+  }
   return out;
 }
 
@@ -2906,8 +3080,25 @@ function weaponToAttack(w, character) {
     attacks: w.attacks || null,
     ammo: w.ammo || null,
     range: w.range || null,
+    category: w.category || "",
     weaponId: w.id,
   };
+}
+
+// Skytevåpen og kastevåpen kan ikke møtes med å slå tilbake, og
+// unnvikes bare ved å dykke i dekning. Statblokker fra Malleus har
+// verken kategori eller rekkevidde — klør og bitt er nærkamp.
+function isRangedAttack(a) {
+  if (!a) return false;
+  if (a.manoeuvre) return false;
+  const cat = String(a.category || "").toLowerCase();
+  if (cat === "melee") return false;
+  if (cat === "firearms" || cat === "heavy") return true;
+  const skill = String(a.skill_name || a.skill || "").toLowerCase();
+  if (/skytev|kaste|bue|armbrøst/.test(skill)) return true;
+  const rng = String(a.range || "").toLowerCase();
+  if (!rng) return false;
+  return !/berøring|nærkamp|touch|melee/.test(rng);
 }
 
 // Våpenvelgeren er et panel inne i editoren, ikke en egen modal:
@@ -3278,6 +3469,48 @@ function uniqueCombatantName(base) {
   return stem + " " + n;
 }
 
+// Unnvikelse: eget ferdighetsfelt om rollen har det, ellers halve DEX,
+// slik Call of Cthulhu setter startverdien.
+function dodgeValueOf(c) {
+  const keys = Object.keys(c.skills || {});
+  const hit = keys.find((k) => /^(dodge|unnvik)/i.test(k));
+  if (hit) {
+    const v = String(c.skills[hit]).replace("%", "").trim();
+    if (v) return v;
+  }
+  const dex = parseInt(c.stats && c.stats.DEX, 10);
+  return isNaN(dex) ? "" : String(Math.floor(dex / 2));
+}
+
+// Build brukes til manøvrer (grep, avvæpning, knockout).
+function buildValueOf(c) {
+  const given = String((c.stats && c.stats.Build) || "").trim();
+  if (given) return given;
+  const str = parseInt(c.stats && c.stats.STR, 10);
+  const siz = parseInt(c.stats && c.stats.SIZ, 10);
+  if (isNaN(str) || isNaN(siz)) return "";
+  const t = str + siz;
+  if (t <= 64) return "-2";
+  if (t <= 84) return "-1";
+  if (t <= 124) return "0";
+  if (t <= 164) return "1";
+  if (t <= 204) return "2";
+  if (t <= 284) return "3";
+  if (t <= 364) return "4";
+  return "5";
+}
+
+// Statblokkene fra Malleus Monstrorum skriver skaden som «1D6 + db».
+// Da skal damage bonus legges til, selv om feltet uses_db mangler.
+function normalizeAttack(a) {
+  const out = Object.assign({}, a);
+  if (out.uses_db === undefined &&
+      /(\+\s*db\b|damage bonus)/i.test(String(out.damage || ""))) {
+    out.uses_db = true;
+  }
+  return out;
+}
+
 function makeCombatant(charLike) {
   const c = normalizeChar(charLike);
   const maxHp = charMaxHp(c);
@@ -3295,11 +3528,34 @@ function makeCombatant(charLike) {
     hpMax: maxHp,
     armor: c.stats.Armor || c.armor || "",
     db: c.stats.DB || "",
-    attacks: (c.attacks || []).map((a) => Object.assign({}, a)),
+    dodge: dodgeValueOf(c),
+    build: buildValueOf(c),
+    // Pulp-helter tåler mer: de bruker ikke major wound-regelen.
+    // Spillerne er helter, resten er det ikke.
+    pulp: c.kind === "pc",
+    attacks: (c.attacks || []).map(normalizeAttack),
     conditions: [],
     majorWound: false,
+    // Slå tilbake kan gjøres én gang per runde; unnvike så mange
+    // ganger man blir angrepet.
+    reacted: 0,
     note: "",
   };
+}
+
+// Kamper som ble lagret før forsvarsfeltene fantes skal fortsatt
+// virke når sida åpnes igjen.
+function upgradeCombatant(c) {
+  if (c.dodge === undefined) {
+    const dex = parseInt(c.dex, 10);
+    c.dodge = isNaN(dex) ? "" : String(Math.floor(dex / 2));
+  }
+  if (c.build === undefined) c.build = "";
+  if (c.pulp === undefined) c.pulp = c.kind === "pc";
+  if (c.reacted === undefined) c.reacted = 0;
+  if (!Array.isArray(c.conditions)) c.conditions = [];
+  c.attacks = (c.attacks || []).map(normalizeAttack);
+  return c;
 }
 
 async function addToCombat(charLike) {
@@ -3327,9 +3583,12 @@ function viewCombat(root) {
   root.appendChild(el("h1", { text: "Kamp" }));
   root.appendChild(el("p", { class: "lede",
     text: "Legg til deltakerne, skriv inn initiativet hver av dem slo, " +
-          "og trykk «Start kamp» — da settes rekkefølgen. HP, " +
-          "tilstander og runde lagres, så du kan lukke sida midt i " +
-          "en kamp." }));
+          "og trykk «Start kamp» — da settes rekkefølgen. Den som har " +
+          "tur ligger alltid øverst. Trykk «Angrip» for å kjøre et " +
+          "angrep: velg våpen og mål, skriv inn hva som ble slått ved " +
+          "bordet, la den som blir angrepet velge å unnvike eller slå " +
+          "tilbake, så regnes skaden ut etter reglene. HP, tilstander " +
+          "og runde lagres, så du kan lukke sida midt i en kamp." }));
 
   // --- kontrollrad
   const controls = el("div", { class: "row", style: "margin-bottom:14px" });
@@ -3441,12 +3700,9 @@ function viewCombat(root) {
   }
 }
 
-const CONDITIONS = ["Bevisstløs", "Døende", "Major wound", "Grepet",
+const CONDITIONS = ["Bevisstløs", "Døende", "Død", "Major wound",
+                    "Mister neste handling", "Våpen feilet", "Grepet",
                     "Gal", "Skadet", "Flykter"];
-
-// Siste angrepsresultat, slik at skaden kan settes rett inn i
-// skadefeltet på den som ble truffet.
-let lastAttack = null;
 
 // Rustningsfeltet fra fiendebanken er ofte en hel setning («none, but
 // due to their shadowy nature …»). I kampkortets ettlinjes undertittel
@@ -3510,8 +3766,12 @@ function combatantCard(c, index) {
       el("b", { text: c.name }),
       el("span", { class: "entry-sub",
         text: [KIND_LABEL[c.kind], c.dex ? "DEX " + c.dex : null,
+               c.dodge ? "unnvik " + c.dodge + "%" : null,
                c.firearm ? "skytevåpen" : null,
-               shortArmor(c.armor), c.db ? "DB " + c.db : null]
+               shortArmor(c.armor), c.db ? "DB " + c.db : null,
+               c.build !== "" && c.build !== undefined
+                 ? "Build " + c.build : null,
+               c.pulp ? "pulp-helt" : null]
           .filter(Boolean).join(" · ") }),
     ]),
     el("span", { class: "cb-hp" + (dead ? " out" : "") },
@@ -3569,6 +3829,17 @@ function combatantCard(c, index) {
                      c.firearm = !c.firearm; sortCombat();
                      await saveCombat(); render();
                    } }),
+    el("button", { class: "btn small", type: "button",
+                   "aria-pressed": String(!!c.pulp),
+                   title: "Pulp-helter bruker ikke major wound-regelen: " +
+                          "de dør av ett slag på maks HP, ligger for " +
+                          "døden på halve maks HP ned til null, og " +
+                          "besvimer ellers på null.",
+                   text: c.pulp ? "Pulp ✓" : "Pulp",
+                   onclick: async () => {
+                     c.pulp = !c.pulp;
+                     await saveCombat(); render();
+                   } }),
     el("button", { class: "btn small", type: "button", text: "Fjern",
                    onclick: async () => {
                      cb.combatants = cb.combatants.filter((x) => x.id !== c.id);
@@ -3577,61 +3848,61 @@ function combatantCard(c, index) {
                      await saveCombat(); render();
                    } }),
   ]);
-  if (lastAttack && lastAttack.hit && lastAttack.damage) {
-    tools.insertBefore(el("button", {
-      class: "btn small", type: "button",
-      title: "Sett inn skaden fra siste angrepsslag",
-      text: "← " + lastAttack.damage,
-      onclick: () => { dmg.value = String(lastAttack.damage); applyHp(-1); },
-    }), tools.children[1]);
-  }
   card.appendChild(tools);
 
-  // --- angrep, til å lese av mens det står på
-  if (c.attacks && c.attacks.length) {
-    const atk = el("div", { class: "cb-attacks" });
-    c.attacks.forEach((a) => {
-      atk.appendChild(el("button", {
-        class: "chip atk", type: "button",
-        title: "Slå mot " + (a.skill || "?"),
-        text: a.name + (a.skill ? " " + a.skill : "") +
-              (a.damage ? " · " + a.damage : ""),
-        onclick: () => {
-          const res = resolveAttack(c, a);
-          if (!res) { toast("Ingen treffsjanse på dette angrepet"); return; }
-          let line = c.name + " – " + a.name + " (" + res.target + "%): " +
-                     res.roll + " " + res.label;
-          if (res.malfunction) {
-            line += " — VÅPENET SVIKTER";
-          } else if (res.hit) {
-            line += " → " + res.damage + " skade" +
-                    (res.impaled ? " (SPIDDET!)" : "") +
-                    (res.damageDetail ? "  [" + res.damageDetail + "]" : "");
-          }
-          cb.log.push(line);
-          lastAttack = res;
-          saveCombat().then(render);
-        },
-      }));
-    });
-    card.appendChild(atk);
-  }
-
-  // --- tilstander
-  const conds = el("div", { class: "cb-conds" });
-  CONDITIONS.forEach((name) => {
-    const on = c.conditions.indexOf(name) !== -1;
-    conds.appendChild(el("button", {
-      class: "chip cond" + (on ? " on" : ""), type: "button",
-      "aria-pressed": String(on), text: name,
-      onclick: async () => {
-        if (on) c.conditions = c.conditions.filter((x) => x !== name);
-        else c.conditions.push(name);
-        await saveCombat(); render();
-      },
+  // --- angrep: hvert våpen starter angrepsflyten med det valgt
+  const atk = el("div", { class: "cb-attacks" });
+  atk.appendChild(el("button", {
+    class: "btn small" + (isTurn ? " primary" : ""), type: "button",
+    text: "⚔ Angrip",
+    title: "Velg angrep og mål, og kjør slaget steg for steg",
+    onclick: () => openAttackFlow(c),
+  }));
+  (c.attacks || []).forEach((a) => {
+    atk.appendChild(el("button", {
+      class: "chip atk", type: "button",
+      title: "Angrip med " + a.name,
+      text: a.name + (a.skill ? " " + a.skill : "") +
+            (a.damage ? " · " + a.damage : ""),
+      onclick: () => pickTarget(c, a),
     }));
   });
+  card.appendChild(atk);
+
+  // --- tilstander. Bare de som gjelder vises; resten ligger bak
+  // «+ Tilstand», slik at kortet holder seg lesbart midt i en kamp.
+  const conds = el("div", { class: "cb-conds" });
+  const picker = el("div", { class: "cb-conds condpick", hidden: true });
+
+  async function toggleCond(name) {
+    if (c.conditions.indexOf(name) !== -1) {
+      c.conditions = c.conditions.filter((x) => x !== name);
+    } else {
+      c.conditions.push(name);
+    }
+    await saveCombat(); render();
+  }
+
+  (c.conditions || []).forEach((name) => {
+    conds.appendChild(el("button", {
+      class: "chip cond on", type: "button", "aria-pressed": "true",
+      title: "Fjern tilstanden", text: name + " ×",
+      onclick: () => toggleCond(name),
+    }));
+  });
+  conds.appendChild(el("button", {
+    class: "chip cond add", type: "button", text: "+ Tilstand",
+    onclick: () => { picker.hidden = !picker.hidden; },
+  }));
+  CONDITIONS.filter((x) => (c.conditions || []).indexOf(x) === -1)
+    .forEach((name) => {
+      picker.appendChild(el("button", {
+        class: "chip cond", type: "button", text: name,
+        onclick: () => toggleCond(name),
+      }));
+    });
   card.appendChild(conds);
+  card.appendChild(picker);
 
   const note = el("input", { class: "field", placeholder: "Notat…",
                              value: c.note || "" });
@@ -3663,6 +3934,733 @@ async function advanceTurn() {
   }
   await saveCombat();
   render();
+}
+
+/* =================== ANGREPSFLYTEN I KAMP =======================
+
+   Kampen kjøres herfra: velg angrep, velg mål, skriv inn hva som ble
+   slått ved bordet, og la den som blir angrepet velge hva den gjør.
+   Skaden regnes ut automatisk etter treffnivå, spidding, damage bonus
+   og rustning, og settes rett på HP-en når du godtar resultatet.
+
+   Reglene er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
+   nærkamp er et motsatt slag der forsvareren kan unnvike eller slå
+   tilbake, skytevåpen kan bare møtes med å dykke i dekning, og
+   pulp-helter bruker ikke major wound-regelen.                     */
+
+// Flyten holdes utenfor modalen, så alle tre stegene ser samme data.
+let atkFlow = null;
+
+function livingCombatants() {
+  return state.combat.combatants;
+}
+
+function attacksOf(c) {
+  return (c.attacks || []).filter((a) => a && a.name);
+}
+
+function manoeuvreOption() {
+  return {
+    name: "Manøver", manoeuvre: true, damage: "", skill: "",
+    uses_db: false, can_impale: false, malfunction: null,
+    note: "Grep, avvæpning, kaste i bakken, knockout. Ingen skade av " +
+          "seg selv — slås mot Slåsskamp, og Build avgjør om det i det " +
+          "hele tatt lar seg gjøre.",
+  };
+}
+
+// Treffsjansen som tall. Statblokker skriver «35%», weapons.json også.
+function skillNumber(v) {
+  const m = String(v === undefined || v === null ? "" : v).match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+
+function attackSummary(a) {
+  return [a.skill || null, a.damage || null, a.range || null,
+          a.ammo ? "ammo " + a.ammo : null,
+          a.attacks && a.attacks !== "1" ? a.attacks + "/runde" : null,
+          a.can_impale ? "spidder" : null,
+          a.malfunction ? "feiler " + a.malfunction + "+" : null]
+    .filter(Boolean).join(" · ");
+}
+
+/* --- steg 1: hvilket angrep --- */
+function openAttackFlow(attacker) {
+  const list = attacksOf(attacker);
+  openModal("Angrep — " + attacker.name,
+    "Velg angrepet som brukes", (body) => {
+      if (!list.length) {
+        body.appendChild(emptyBox("Ingen angrep på denne deltakeren.",
+          "Legg inn våpen på rollen under Roller, eller bruk en manøver."));
+      }
+      const stack = el("div", { class: "stack" });
+      list.forEach((a) => {
+        const t = thresholds(skillNumber(a.skill));
+        stack.appendChild(el("button", {
+          class: "entry pickrow", type: "button",
+          onclick: () => pickTarget(attacker, a),
+        }, [
+          el("span", { class: "entry-body" }, [
+            el("span", { class: "entry-title", text: a.name }),
+            el("span", { class: "entry-sub", text: attackSummary(a) }),
+            el("span", { class: "entry-sub",
+              text: skillNumber(a.skill)
+                ? "ekstrem ≤" + t.extreme + " · hard ≤" + t.hard +
+                  " · vanlig ≤" + t.regular + " · fumle ≥" + t.fumble
+                : "Ingen treffsjanse lagt inn — skriv den inn i neste steg." }),
+          ]),
+          el("span", { class: "entry-open",
+                       text: isRangedAttack(a) ? "AVSTAND" : "NÆRKAMP" }),
+        ]));
+      });
+      stack.appendChild(el("button", {
+        class: "entry pickrow", type: "button",
+        onclick: () => pickTarget(attacker, manoeuvreOption()),
+      }, [
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title", text: "Manøver" }),
+          el("span", { class: "entry-sub", text: manoeuvreOption().note }),
+        ]),
+        el("span", { class: "entry-open", text: "NÆRKAMP" }),
+      ]));
+
+      // Har ikke deltakeren våpen lagt inn — eller griper den noe som
+      // ligger der — kan et hvilket som helst våpen fra lista brukes
+      // med én gang. Treffsjansen hentes fra rollens ferdigheter.
+      stack.appendChild(el("button", {
+        class: "entry pickrow", type: "button",
+        onclick: () => pickWeaponForAttack(attacker),
+      }, [
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title", text: "Fra våpenlista" }),
+          el("span", { class: "entry-sub",
+            text: "Alle våpnene i appen, med skade, rekkevidde og " +
+                  "feilgrense. Treffsjansen fylles inn fra rollens " +
+                  "ferdigheter der den finnes." }),
+        ]),
+        el("span", { class: "entry-open", text: "VELG" }),
+      ]));
+
+      stack.appendChild(el("button", {
+        class: "entry pickrow", type: "button",
+        onclick: () => improvisedAttack(attacker),
+      }, [
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title", text: "Improvisert" }),
+          el("span", { class: "entry-sub",
+            text: "Skriv inn navn, treffsjanse og skade selv — stol, " +
+                  "kokende vann, en åre." }),
+        ]),
+        el("span", { class: "entry-open", text: "SKRIV INN" }),
+      ]));
+      body.appendChild(stack);
+    }, []);
+}
+
+// Rollen bak en kampdeltaker, til å slå opp ferdigheter i.
+function charBehind(combatant) {
+  return state.characters.find((x) => x.id === combatant.charId) || null;
+}
+
+function pickWeaponForAttack(attacker) {
+  const bank = state.weapons;
+  openModal("Våpen — " + attacker.name,
+    "Velg hva som brukes i dette angrepet", (body) => {
+      if (!bank || !bank.weapons) {
+        body.appendChild(emptyBox("Ingen våpenliste bygget inn."));
+        return;
+      }
+      const cats = bank.categories || {};
+      const listBox = el("div", { class: "picklist" });
+      let query = "";
+      function refresh() {
+        listBox.innerHTML = "";
+        const q = query.trim().toLowerCase();
+        const shown = bank.weapons.filter((w) => !q ||
+          (w.name + " " + (w.skill || "") + " " + (w.damage || ""))
+            .toLowerCase().indexOf(q) !== -1);
+        if (!shown.length) {
+          listBox.appendChild(emptyBox("Ingen treff."));
+          return;
+        }
+        const order = [];
+        const byCat = {};
+        shown.forEach((w) => {
+          const c = w.category || "annet";
+          if (!byCat[c]) { byCat[c] = []; order.push(c); }
+          byCat[c].push(w);
+        });
+        order.forEach((c) => {
+          listBox.appendChild(el("div", { class: "section-label",
+                                          text: cats[c] || c }));
+          byCat[c].forEach((w) => {
+            const a = weaponToAttack(w, charBehind(attacker));
+            listBox.appendChild(el("button", {
+              class: "entry pickrow", type: "button",
+              onclick: () => pickTarget(attacker, a),
+            }, [
+              el("span", { class: "entry-body" }, [
+                el("span", { class: "entry-title", text: w.name }),
+                el("span", { class: "entry-sub", text: attackSummary(a) ||
+                  (w.skill + " · " + w.damage) }),
+              ]),
+              el("span", { class: "entry-open",
+                           text: a.skill ? a.skill : "SKRIV INN %" }),
+            ]));
+          });
+        });
+      }
+      const search = el("input", { class: "field", type: "search",
+        id: "flow-weapon-search",
+        placeholder: "Søk i " + bank.weapons.length + " våpen…" });
+      search.addEventListener("input", debounce(() => {
+        query = search.value; refresh();
+      }, 180));
+      body.appendChild(search);
+      body.appendChild(el("div", { style: "height:8px" }));
+      body.appendChild(listBox);
+      refresh();
+    }, []);
+}
+
+function improvisedAttack(attacker) {
+  const name = el("input", { class: "field", id: "imp-name",
+                             placeholder: "Hva slås det med" });
+  const skill = el("input", { class: "field cb-num", type: "number",
+                              id: "imp-skill", placeholder: "%" });
+  const dmg = el("input", { class: "field", id: "imp-damage",
+                            placeholder: "1D6, 2D6+2 …" });
+  const impale = el("button", { class: "chip resp", type: "button",
+                                text: "Spidder", "aria-pressed": "false" });
+  let canImpale = false;
+  impale.addEventListener("click", () => {
+    canImpale = !canImpale;
+    impale.classList.toggle("on");
+    impale.setAttribute("aria-pressed", String(canImpale));
+  });
+  openModal("Improvisert angrep", attacker.name, (body) => {
+    body.appendChild(el("div", { class: "flowcard" }, [
+      el("label", { class: "minilabel", text: "Navn" }), name,
+      el("div", { style: "height:8px" }),
+      el("div", { class: "rollrow" }, [
+        el("label", { class: "minilabel", text: "Treffsjanse %" }), skill,
+        el("label", { class: "minilabel", text: "Skade" }), dmg,
+      ]),
+      el("div", { class: "respchips" }, [impale]),
+      el("p", { class: "entry-sub",
+        text: "Damage bonus legges til automatisk på nærkampangrep." }),
+    ]));
+  }, [
+    el("button", { class: "btn primary", type: "button", text: "Videre",
+      onclick: () => {
+        if (!dmg.value.trim()) { toast("Skaden må fylles ut"); return; }
+        pickTarget(attacker, {
+          name: name.value.trim() || "Improvisert",
+          skill: skill.value.trim() ? skill.value.trim() + "%" : "",
+          damage: dmg.value.trim(), uses_db: true,
+          can_impale: canImpale, malfunction: null, category: "melee",
+        });
+      } }),
+  ]);
+}
+
+/* --- steg 2: mot hvem --- */
+function pickTarget(attacker, attack) {
+  const others = livingCombatants().filter((x) => x.id !== attacker.id);
+  openModal(attack.name + " — mot hvem?",
+    attacker.name + (isRangedAttack(attack) ? " · på avstand" : " · nærkamp"),
+    (body) => {
+      if (!others.length) {
+        body.appendChild(emptyBox("Ingen andre i kampen."));
+        return;
+      }
+      const stack = el("div", { class: "stack" });
+      others.forEach((t) => {
+        const down = t.hp <= 0;
+        stack.appendChild(el("button", {
+          class: "entry pickrow" + (down ? " dimmed" : ""), type: "button",
+          onclick: () => openResolve(attacker, attack, t),
+        }, [
+          el("span", { class: "entry-body" }, [
+            el("span", { class: "entry-title", text: t.name }),
+            el("span", { class: "entry-sub",
+              text: [KIND_LABEL[t.kind], "HP " + t.hp + "/" + t.hpMax,
+                     armorValue(t) ? "rustning " + armorValue(t) : null,
+                     t.dodge ? "unnvik " + t.dodge + "%" : null,
+                     (t.conditions || []).join(", ") || null]
+                .filter(Boolean).join(" · ") }),
+          ]),
+          el("span", { class: "entry-open", text: down ? "NEDE" : "VELG" }),
+        ]));
+      });
+      body.appendChild(stack);
+    }, []);
+}
+
+/* --- steg 3: slagene og resultatet --- */
+function openResolve(attacker, attack, target) {
+  const ranged = isRangedAttack(attack);
+  atkFlow = {
+    attacker: attacker, attack: attack, target: target, ranged: ranged,
+    attackSkill: skillNumber(attack.skill),
+    attackRoll: "",
+    response: "none",
+    defSkill: skillNumber(target.dodge),
+    defRoll: "",
+    defAttack: attacksOf(target)[0] || null,
+    knockout: false,
+    damage: null,       // { total, detail, impaled, victim }
+    outcomeKey: "",
+    result: null,
+  };
+
+  let applyBtn = null;
+  const foot = [
+    el("button", { class: "btn", type: "button", text: "Avbryt",
+                   onclick: () => closeModal() }),
+    (applyBtn = el("button", {
+      class: "btn primary", type: "button", text: "Bruk resultatet",
+      disabled: "disabled",
+      onclick: () => applyFlowResult(),
+    })),
+  ];
+
+  openModal(
+    () => atkFlow.attacker.name + " → " + atkFlow.target.name,
+    () => atkFlow.attack.name + (atkFlow.ranged ? " · avstand" : " · nærkamp"),
+    (body) => buildResolve(body, () => applyBtn),
+    foot);
+}
+
+function levelChip(g) {
+  if (!g) return el("span", { class: "lvlchip", text: "—" });
+  return el("span", { class: "lvlchip " + g.cls,
+                      text: g.roll + " · " + g.label });
+}
+
+function buildResolve(body, getApplyBtn) {
+  const f = atkFlow;
+  const verdict = el("div", { class: "verdict" });
+  const dmgBox = el("div", { class: "dmgbox" });
+
+  /* --- angriperen --- */
+  const aSkill = el("input", { class: "field cb-num", type: "number",
+    inputmode: "numeric", id: "flow-atk-skill",
+    value: f.attackSkill ? String(f.attackSkill) : "" });
+  const aRoll = el("input", { class: "field cb-num", type: "number",
+    inputmode: "numeric", id: "flow-atk-roll", placeholder: "1–100",
+    value: f.attackRoll });
+  const aThresh = el("p", { class: "threshline" });
+  const aChip = el("span", { class: "lvlholder" });
+
+  /* --- forsvareren --- */
+  const dSkill = el("input", { class: "field cb-num", type: "number",
+    inputmode: "numeric", id: "flow-def-skill",
+    value: f.defSkill ? String(f.defSkill) : "" });
+  const dRoll = el("input", { class: "field cb-num", type: "number",
+    inputmode: "numeric", id: "flow-def-roll", placeholder: "1–100",
+    value: f.defRoll });
+  const dThresh = el("p", { class: "threshline" });
+  const dChip = el("span", { class: "lvlholder" });
+  const dBox = el("div", { class: "defroll" }, [
+    el("label", { class: "minilabel", text: "Ferdighet %" }), dSkill,
+    el("label", { class: "minilabel", text: "Slaget" }), dRoll,
+    el("button", { class: "btn small", type: "button", text: "Slå",
+      title: "La appen slå for denne — nyttig for NPCer og fiender",
+      onclick: () => { dRoll.value = String(1 + Math.floor(Math.random() * 100));
+                       f.defRoll = dRoll.value; update(); } }),
+    dChip,
+  ]);
+
+  function responses() {
+    const out = [{ key: "none", label: "Ingenting",
+                   hint: "Angriperen trenger bare en vanlig suksess." }];
+    if (f.ranged) {
+      out.push({ key: "dive", label: "Dykk i dekning",
+                 hint: "Unnvikelse mot skytevåpen. Koster neste handling." });
+      out.push({ key: "dodge", label: "Unnvik likevel",
+                 hint: "Normalt ikke lov mot skytevåpen — bare om du som " +
+                       "Keeper tillater det." });
+    } else {
+      out.push({ key: "dodge", label: "Unnvik",
+                 hint: "Motsatt slag mot Unnvikelse. Vinner forsvareren, " +
+                       "treffer ikke angrepet." });
+      out.push({ key: "fightback", label: "Slå tilbake",
+                 hint: "Motsatt slag med eget våpen. Vinner forsvareren, " +
+                       "er det angriperen som tar skaden. Én gang per runde." });
+    }
+    return out;
+  }
+
+  const respRow = el("div", { class: "respchips" });
+  const respHint = el("p", { class: "entry-sub" });
+  const fbPick = el("div", { class: "fbpick" });
+
+  function drawResponses() {
+    respRow.innerHTML = "";
+    responses().forEach((r) => {
+      const on = f.response === r.key;
+      respRow.appendChild(el("button", {
+        class: "chip resp" + (on ? " on" : ""), type: "button",
+        "aria-pressed": String(on), text: r.label,
+        onclick: () => {
+          f.response = r.key;
+          if (r.key === "fightback") {
+            f.defSkill = skillNumber(f.defAttack && f.defAttack.skill);
+          } else {
+            f.defSkill = skillNumber(f.target.dodge);
+          }
+          dSkill.value = f.defSkill ? String(f.defSkill) : "";
+          drawResponses(); update();
+        },
+      }));
+    });
+    const cur = responses().find((r) => r.key === f.response);
+    respHint.textContent = cur ? cur.hint : "";
+
+    fbPick.innerHTML = "";
+    if (f.response === "fightback") {
+      const list = attacksOf(f.target);
+      if (!list.length) {
+        fbPick.appendChild(el("p", { class: "caveat",
+          text: "Denne har ingen angrep lagt inn. Skriv inn ferdigheten " +
+                "og skaden for hånd, eller velg noe annet." }));
+      }
+      list.forEach((a) => {
+        const on = f.defAttack === a;
+        fbPick.appendChild(el("button", {
+          class: "chip atk" + (on ? " on" : ""), type: "button",
+          text: a.name + (a.skill ? " " + a.skill : "") +
+                (a.damage ? " · " + a.damage : ""),
+          onclick: () => {
+            f.defAttack = a;
+            f.defSkill = skillNumber(a.skill);
+            dSkill.value = f.defSkill ? String(f.defSkill) : "";
+            drawResponses(); update();
+          },
+        }));
+      });
+      if (f.target.reacted === state.combat.round && state.combat.round) {
+        fbPick.appendChild(el("p", { class: "caveat",
+          text: f.target.name + " har alt slått tilbake denne runden. " +
+                "Man kan slå tilbake én gang per runde, men unnvike " +
+                "så mange ganger man blir angrepet." }));
+      }
+    }
+  }
+
+  function update() {
+    f.attackSkill = parseInt(aSkill.value, 10) || 0;
+    f.attackRoll = aRoll.value;
+    f.defSkill = parseInt(dSkill.value, 10) || 0;
+    f.defRoll = dRoll.value;
+
+    const at = thresholds(f.attackSkill);
+    aThresh.textContent = f.attackSkill
+      ? "kritisk 01 · ekstrem ≤" + at.extreme + " · hard ≤" + at.hard +
+        " · vanlig ≤" + at.regular + " · fumle ≥" + at.fumble
+      : "Skriv inn treffsjansen for å se grensene.";
+    const dt = thresholds(f.defSkill);
+    dThresh.textContent = f.defSkill
+      ? "ekstrem ≤" + dt.extreme + " · hard ≤" + dt.hard +
+        " · vanlig ≤" + dt.regular + " · fumle ≥" + dt.fumble
+      : "";
+
+    const aNum = parseInt(f.attackRoll, 10);
+    const aG = (aNum >= 1 && aNum <= 100)
+      ? gradeRoll(aNum, f.attackSkill) : null;
+    aChip.innerHTML = ""; aChip.appendChild(levelChip(aG));
+
+    const needsDef = f.response !== "none";
+    dBox.hidden = !needsDef;
+    const dNum = parseInt(f.defRoll, 10);
+    const dG = (needsDef && dNum >= 1 && dNum <= 100)
+      ? gradeRoll(dNum, f.defSkill) : null;
+    dChip.innerHTML = ""; dChip.appendChild(levelChip(dG));
+
+    f.result = computeFlow(aG, dG);
+    renderVerdict(verdict, dmgBox, f.result);
+    const btn = getApplyBtn();
+    if (btn) btn.disabled = f.result && f.result.ready ? false : "disabled";
+  }
+
+  [aSkill, aRoll, dSkill, dRoll].forEach((inp) => {
+    inp.addEventListener("input", update);
+  });
+
+  /* --- selve oppsettet --- */
+  const t = f.target;
+  body.appendChild(el("div", { class: "flowcard" }, [
+    el("p", { class: "eyebrow", text: "Angriper" }),
+    el("p", { class: "flowname", text: f.attacker.name + " — " + f.attack.name }),
+    el("p", { class: "entry-sub", text: attackSummary(f.attack) ||
+      (f.attack.manoeuvre ? "Build " + (f.attacker.build || "?") + " mot " +
+        (t.build || "?") : "") }),
+    el("div", { class: "rollrow" }, [
+      el("label", { class: "minilabel", text: "Ferdighet %" }), aSkill,
+      el("label", { class: "minilabel", text: "Slaget" }), aRoll,
+      el("button", { class: "btn small", type: "button", text: "Slå",
+        title: "La appen slå for denne — nyttig for NPCer og fiender",
+        onclick: () => { aRoll.value = String(1 + Math.floor(Math.random() * 100));
+                         f.attackRoll = aRoll.value; update(); } }),
+      aChip,
+    ]),
+    aThresh,
+  ]));
+
+  if (f.attack.manoeuvre) {
+    const ko = el("button", {
+      class: "chip resp" + (f.knockout ? " on" : ""), type: "button",
+      text: "Knockout-forsøk",
+      onclick: () => { f.knockout = !f.knockout; ko.classList.toggle("on");
+                       update(); },
+    });
+    body.appendChild(el("div", { class: "respchips" }, [ko]));
+    body.appendChild(el("p", { class: "entry-sub",
+      text: "Pulp Cthulhu: en manøver med et stumpt angrep kan slå " +
+            "motstanderen bevisstløs. Da tar den bare 1 i skade. Er " +
+            "målets Build ett hakk høyere, får angriperen en straffe" +
+            "terning; er den to hakk høyere, lar det seg ikke gjøre." }));
+  }
+
+  body.appendChild(el("div", { class: "flowcard" }, [
+    el("p", { class: "eyebrow", text: "Blir angrepet" }),
+    el("p", { class: "flowname", text: t.name }),
+    el("p", { class: "entry-sub",
+      text: ["HP " + t.hp + "/" + t.hpMax,
+             armorValue(t) ? "rustning " + armorValue(t) : "ingen rustning",
+             t.dodge ? "unnvik " + t.dodge + "%" : null,
+             t.pulp ? "pulp-helt" : null].filter(Boolean).join(" · ") }),
+    respRow, respHint, fbPick, dBox, dThresh,
+  ]));
+
+  body.appendChild(verdict);
+  body.appendChild(dmgBox);
+
+  drawResponses();
+  update();
+}
+
+/* Skaden slås én gang per utfall. Uten dette ville tallet endret seg
+   for hvert tastetrykk i feltene, og det ville sett ut som fusk.  */
+function cachedDamage(who, attack, label, victim, force) {
+  const f = atkFlow;
+  if (!f.dmgCache) f.dmgCache = {};
+  const key = [who.id, attack.name, label, victim.id].join("|");
+  if (force || !f.dmgCache[key]) {
+    f.dmgCache[key] = rollAttackDamage(who, attack, label);
+  }
+  return f.dmgCache[key];
+}
+
+/* Regn ut hva som skjer. Returnerer et objekt som både kan vises og
+   brukes til å sette skaden.                                       */
+function computeFlow(aG, dG) {
+  const f = atkFlow;
+  const out = { ready: false, lines: [], headline: "", tone: "",
+                victim: null, damage: null, conditions: [], notes: [] };
+
+  if (!aG) {
+    out.headline = "Skriv inn angriperens slag.";
+    return out;
+  }
+
+  // Feiler våpenet, er alt annet likegyldig.
+  const mal = parseInt(f.attack.malfunction, 10);
+  if (mal && aG.roll >= mal) {
+    out.ready = true;
+    out.tone = "bad";
+    out.headline = "Våpenet svikter";
+    out.lines.push(f.attack.name + " feiler på " + aG.roll +
+                   " (feilgrense " + mal + "). Ingen skade. Våpenet må " +
+                   "klargjøres på nytt — det tar en runde, eller et " +
+                   "slag mot Mekanisk reparasjon om det har låst seg.");
+    out.attackerCondition = "Våpen feilet";
+    return out;
+  }
+
+  if (f.response !== "none" && !dG) {
+    out.headline = "Skriv inn forsvarerens slag.";
+    return out;
+  }
+
+  const opp = opposedOutcome(aG, f.response === "none" ? null : dG);
+  out.ready = true;
+  out.lines.push(opp.why);
+
+  if (opp.winner === "attacker") {
+    if (f.attack.manoeuvre) {
+      out.tone = "hit";
+      out.headline = "Manøveren lykkes";
+      out.victim = f.target;
+      if (f.knockout) {
+        out.damage = { total: 1, detail: "knockout", impaled: false };
+        out.noReroll = true;
+        out.conditions.push("Bevisstløs");
+        out.lines.push(f.target.name + " slås bevisstløs og tar 1 i skade.");
+      } else {
+        out.lines.push("Grepet, avvæpningen eller kastet går igjennom. " +
+                       "Ingen skade — beskriv følgen og gi målet den " +
+                       "tilstanden det gir.");
+      }
+      return out;
+    }
+    out.tone = "hit";
+    out.headline = f.attacker.name + " treffer";
+    out.victim = f.target;
+    out.dmgFrom = f.attacker;
+    out.dmgAttack = f.attack;
+    out.dmgLabel = aG.label;
+    out.damage = cachedDamage(f.attacker, f.attack, aG.label, f.target);
+    return out;
+  }
+
+  if (opp.winner === "defender") {
+    if (f.response === "fightback") {
+      out.tone = "hit";
+      out.headline = f.target.name + " slår tilbake og treffer";
+      out.victim = f.attacker;
+      out.fightBack = true;
+      if (f.defAttack) {
+        out.dmgFrom = f.target;
+        out.dmgAttack = f.defAttack;
+        out.dmgLabel = dG.label;
+        out.damage = cachedDamage(f.target, f.defAttack, dG.label, f.attacker);
+      } else {
+        out.lines.push("Ingen angrep valgt for mot-slaget — skriv inn " +
+                       "skaden for hånd.");
+      }
+      return out;
+    }
+    out.tone = "miss";
+    out.headline = f.response === "dive"
+      ? f.target.name + " dykker i dekning" : f.target.name + " unnviker";
+    if (f.response === "dive") {
+      out.conditions.push("Mister neste handling");
+      out.victim = f.target;
+      out.lines.push("Å dykke i dekning koster neste handling. " +
+                     "Angrepet treffer ikke.");
+    } else {
+      out.lines.push("Angrepet treffer ikke.");
+    }
+    return out;
+  }
+
+  if (opp.winner === "draw") {
+    out.tone = "miss";
+    out.headline = "Uavgjort — ingenting skjer";
+    return out;
+  }
+
+  // Angriperen bommet eller fumlet.
+  out.tone = aG.rank < 0 ? "bad" : "miss";
+  out.headline = aG.rank < 0
+    ? f.attacker.name + " fumler" : f.attacker.name + " bommer";
+  if (aG.rank < 0) {
+    out.lines.push("Fumle: du bestemmer følgen. Mistet våpen, tapt " +
+                   "balanse, truffet en venn, eller åpen for neste " +
+                   "angrep — velg noe som passer situasjonen.");
+  }
+  return out;
+}
+
+function renderVerdict(box, dmgBox, res) {
+  box.innerHTML = "";
+  dmgBox.innerHTML = "";
+  if (!res) return;
+
+  box.className = "verdict" + (res.tone ? " " + res.tone : "");
+  box.appendChild(el("p", { class: "verdict-head", text: res.headline }));
+  res.lines.forEach((l) => {
+    box.appendChild(el("p", { class: "entry-sub", text: l }));
+  });
+
+  if (!res.damage || !res.victim) return;
+
+  const victim = res.victim;
+  const armor = armorValue(victim);
+  const net = Math.max(0, res.damage.total - armor);
+  const wound = woundOutcome(victim, net);
+
+  dmgBox.className = "dmgbox";
+  dmgBox.appendChild(el("p", { class: "eyebrow", text: "Skade" }));
+  dmgBox.appendChild(el("p", { class: "dmgnum" }, [
+    el("b", { text: String(net) }),
+    el("span", { text: " på " + victim.name +
+      (armor ? "  (" + res.damage.total + " − rustning " + armor + ")" : "") }),
+  ]));
+  dmgBox.appendChild(el("p", { class: "entry-sub",
+    text: res.damage.detail + (res.damage.impaled ? "  — SPIDDET" : "") }));
+  dmgBox.appendChild(el("p", { class: "entry-sub",
+    text: "HP " + victim.hp + " → " + wound.hpAfter + " av " + victim.hpMax }));
+  wound.notes.forEach((n) => {
+    dmgBox.appendChild(el("p", { class: "caveat", text: n }));
+  });
+  if (!res.noReroll && res.dmgAttack) {
+    dmgBox.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Slå skaden på nytt",
+      title: "Samme treffnivå, nye terninger",
+      onclick: () => {
+        res.damage = cachedDamage(res.dmgFrom, res.dmgAttack, res.dmgLabel,
+                                  res.victim, true);
+        renderVerdict(box, dmgBox, res);
+      },
+    }));
+  }
+  res.net = net;
+  res.wound = wound;
+}
+
+async function applyFlowResult() {
+  const f = atkFlow;
+  const res = f && f.result;
+  if (!res || !res.ready) return;
+  const cb = state.combat;
+  const log = [];
+
+  log.push(f.attacker.name + " – " + f.attack.name +
+           (f.attackSkill ? " (" + f.attackSkill + "%)" : "") +
+           ": " + f.attackRoll +
+           (f.response !== "none" && f.defRoll
+             ? " mot " + f.target.name + " " + f.defRoll : "") +
+           " → " + res.headline + ".");
+
+  if (res.attackerCondition) addCondition(f.attacker, res.attackerCondition);
+
+  if (res.damage && res.victim) {
+    const victim = res.victim;
+    const net = res.net !== undefined ? res.net
+      : Math.max(0, res.damage.total - armorValue(victim));
+    const wound = res.wound || woundOutcome(victim, net);
+    const before = victim.hp;
+    victim.hp = wound.hpAfter;
+    if (wound.major) victim.majorWound = true;
+    wound.conditions.forEach((c) => addCondition(victim, c));
+    log.push(victim.name + " tar " + net + " skade" +
+             (res.damage.impaled ? " (SPIDDET)" : "") +
+             " [" + res.damage.detail + "]  " +
+             before + " → " + victim.hp + " HP.");
+    wound.notes.forEach((n) => log.push("  " + n));
+  }
+
+  (res.conditions || []).forEach((c) => {
+    const who = res.victim || f.target;
+    addCondition(who, c);
+    log.push(who.name + ": " + c + ".");
+  });
+
+  if (f.response === "fightback") f.target.reacted = cb.round;
+
+  cb.log = (cb.log || []).concat(log);
+  await saveCombat();
+  closeAllModals();
+  atkFlow = null;
+  render();
+}
+
+function addCondition(c, name) {
+  if (!Array.isArray(c.conditions)) c.conditions = [];
+  if (c.conditions.indexOf(name) === -1) c.conditions.push(name);
 }
 
 function addCombatantDialog() {
@@ -4295,6 +5293,7 @@ async function loadRoster() {
   const cb = (await store.get("combat")) || null;
   state.combat = (cb && Array.isArray(cb.combatants))
     ? Object.assign(emptyCombat(), cb) : emptyCombat();
+  state.combat.combatants.forEach(upgradeCombatant);
 }
 
 boot();

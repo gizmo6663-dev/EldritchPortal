@@ -373,6 +373,17 @@ Røyktesten bygger hele grensesnittet uten skjerm:
 xvfb-run -a python3 tests/smoke_test.py
 ```
 
+Nettleserversjonen har sine egne funksjonstester. De kjører mot
+`web/index.html` i en ekte Chromium med Playwright:
+
+```bash
+CHROMIUM_PATH=/sti/til/chromium python3 tests/web_test.py        # lagring og visninger
+CHROMIUM_PATH=/sti/til/chromium python3 tests/combat_test.py     # kamptrackeren
+CHROMIUM_PATH=/sti/til/chromium python3 tests/initiative_test.py # initiativflyten
+CHROMIUM_PATH=/sti/til/chromium python3 tests/rules_test.py      # våpen, talenter, taktikk
+CHROMIUM_PATH=/sti/til/chromium python3 tests/fightflow_test.py  # angrepsflyten og regelkjernen
+```
+
 ---
 
 ## I nettleseren
@@ -384,7 +395,7 @@ Den inneholder Keeper-delen av appen:
 - **Scenario** — bibliotek, tidslinje per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts og regeloppslag
 - **Roller** — spillere, NPCer og fiender i én liste, med filtrering per type. Alt kan opprettes, redigeres, dupliseres og slettes: karakteristikker, angrep, ferdigheter og fritekst
 - **Fiendebank** — 73 skapninger med statblokker, som kan legges i rollelisten eller sendes rett i en kamp
-- **Kamp** — huk av deltakere, skriv inn initiativet de slo, start kampen. Rundeteller, HP-sporing med automatisk major wound, tilstander, angrepsslag og logg
+- **Kamp** — huk av deltakere, skriv inn initiativet de slo, start kampen. Rundeteller, HP-sporing, tilstander, logg, og en angrepsflyt som tar deg fra våpen til mål til ferdig utregnet skade
 - **Mitt** — autolagrende notater og sesjonslogg
 - En d100-kaster med suksessgrader oppe i topplinja
 
@@ -441,18 +452,30 @@ Nettleserversjonen bygger inn `weapons.json` (28 våpen) og et talentoppslag hen
 
 **Våpen** legges på en rolle i karaktereditoren under *Angrep → + Fra våpenlista*. Da følger hele statblokka med: skade, om våpenet bruker damage bonus (helt eller halvt), om det kan spidde, feilingsverdi, rekkevidde, angrep per runde og magasin. Treffsjansen fylles automatisk fra rollens egen ferdighet når den finnes — våpenlista er norsk og karakterarkene ofte engelske, så `Håndvåpen` finner `Firearms (Handgun)`, `Nærkamp` finner `Fighting (Brawl)` og så videre.
 
-I kampen er hvert angrep en knapp. Den slår etter reglene i Call of Cthulhu 7e:
+Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
 
 | Regel | Slik det er implementert |
 |---|---|
 | Suksessgrader | 01 kritisk · ≤ verdi/5 Extreme · ≤ verdi/2 Hard · ≤ verdi vanlig |
 | Fumle | 100 alltid; 96–99 når ferdigheten er under 50 |
+| Motsatte slag | Høyeste suksessnivå vinner. Står det likt, vinner høyest ferdighetsverdi; er også den lik, skjer ingenting |
 | Spidding | Extreme eller kritisk med et spiddevåpen gir **maks** våpenskade **pluss** et nytt kast |
-| Damage bonus | Legges bare til der våpenet bruker den; `uses_db: "half"` gir halv bonus rundet ned |
+| Damage bonus | Legges bare til der våpenet bruker den; `uses_db: "half"` gir halv bonus rundet ned. Statblokker som skriver skaden som `1D6 + db` får den lagt til automatisk |
 | Feiling | Er kastet ≥ våpenets feilingsverdi, svikter våpenet og angrepet går ikke gjennom |
 | Haglegevær | Skade oppgitt som `4D6/2D6/1D6` regnes på nærmeste avstand |
+| Rustning | Trekkes fra skaden før den settes på HP. Feltet kan være en hel setning fra Malleus — første tall brukes |
+| Major wound | Halve maks-HP eller mer i ett slag. CON-slag eller bevisstløs; null HP med major wound er døende |
+| Pulp-helter | Bruker **ikke** major wound. De dør av ett slag på maks HP, ligger for døden om halve maks HP også tar dem til null, og besvimer ellers på null. Halve maks HP i ett slag krever CON-slag for å holde seg våken |
 
-Resultatet havner i kamploggen, og en knapp ved siden av skadefeltet setter skaden rett inn på den som ble truffet.
+**Angrepsflyten** kjører ett angrep fra ende til annen. Terningene slås ved bordet — appen tar imot tallet og gjør resten:
+
+1. **Angrip** på en deltaker viser angrepene hens, pluss *Manøver*, *Fra våpenlista* (alle 28 våpnene, med treffsjansen hentet fra rollens ferdigheter) og *Improvisert*, der du skriver inn navn, treffsjanse og skade selv. Hvert våpen kan også klikkes direkte i kortet.
+2. **Mot hvem** lister de andre i kampen med HP, rustning, unnvikelse og tilstander.
+3. **Oppgjøret** viser treffsjansen med grensene ved siden av (`kritisk 01 · ekstrem ≤10 · hard ≤25 · vanlig ≤50 · fumle ≥100`), og et felt du skriver slaget i. En «Slå»-knapp står ved siden av for NPCer og fiender du ikke gidder å slå for.
+4. **Den som blir angrepet** velger selv: *Ingenting*, *Unnvik* eller *Slå tilbake* i nærkamp; *Dykk i dekning* mot skytevåpen — som stopper skuddet, men koster neste handling. Velger du *Slå tilbake*, plukker du hvilket våpen det slås tilbake med, og vinner forsvareren, er det angriperen som tar skaden.
+5. **Resultatet** sier hvem som vant og hvorfor, og skaden er regnet ut: terningkast, spidding, damage bonus, rustning trukket fra, ny HP, og hva slaget fører til av major wound, bevisstløshet, døende eller død. «Bruk resultatet» setter det på HP-en, legger på tilstandene og skriver hele linja i kamploggen.
+
+Manøver (grep, avvæpning, kast) og knockout-forsøk ligger i samme flyt, med Build-forskjellen vist som veiledning.
 
 **Talenter** i et karakterkort er klikkbare. Feltet er fritekst, så det deles på komma og hvert navn slås opp i talentboka. Talenter som finnes der er uthevet i gull; ukjente vises stiplet, med forslag til hva du kanskje mente. Oppslaget dekker fysiske, mentale, kamp- og diverse pulp-talenter samt insane talents.
 
@@ -485,7 +508,9 @@ I kampvisningen finnes **Trekk taktikk**, som henter et tilfeldig kort blant dem
 
 Når du trykker **Neste tur**, flyttes den som er ferdig nederst i lista og resten rykker opp. Den som har tur ligger dermed alltid øverst, merket «NÅ» og med en egen «Ferdig — neste tur»-knapp, så du slipper å lete deg nedover midt i en kamp. Rundetelleren viser hvor mange av deltakerne som har hatt tur.
 
-Ved lik initiativverdi går den med skytevåpen klart først, deretter høyest DEX. Skade på halve maks-HP eller mer i ett slag flagges automatisk som major wound. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
+Ved lik initiativverdi går den med skytevåpen klart først, deretter høyest DEX. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
+
+Hver deltaker har et **Pulp**-flagg som avgjør hvilke sårregler som gjelder. Spillerkarakterer får det automatisk; NPCer og fiender ikke. Tilstandene på kortet viser bare det som faktisk gjelder — resten ligger bak **+ Tilstand**.
 
 ---
 

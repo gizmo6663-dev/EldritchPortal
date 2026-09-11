@@ -66,20 +66,24 @@ async def main():
             // tving fram kritisk ved å låse tilfeldigheten
             const realRandom = Math.random;
             Math.random = () => 0;            // d100 -> 1 = kritisk, terninger -> 1
-            const res = resolveAttack({db:'+1D4'},
-                {name:'Kniv', skill:'70%', damage:'1D8', can_impale:true, uses_db:true});
+            const g = gradeRoll(1, 70);
+            const d = rollAttackDamage({db:'+1D4'},
+                {name:'Kniv', skill:'70%', damage:'1D8', can_impale:true, uses_db:true},
+                g.label);
             Math.random = realRandom;
-            return res;
+            return {roll:g.roll, label:g.label, impaled:d.impaled,
+                    damage:d.total, damageDetail:d.detail};
         }""")
         print("spidding (kritisk, 1D8 + 1D4 db):", {k:imp[k] for k in ('roll','label','impaled','damage','damageDetail')})
 
         mal=await pg.evaluate("""() => {
             const realRandom = Math.random;
             Math.random = () => 0.99;         // d100 -> 100
-            const res = resolveAttack({db:''},
-                {name:'Revolver', skill:'60%', damage:'1D10', malfunction:100});
+            const r = 1 + Math.floor(Math.random()*100);
+            const g = gradeRoll(r, 60);
             Math.random = realRandom;
-            return res;
+            return {roll:g.roll, label:g.label, malfunction: g.roll >= 100,
+                    hit: g.rank > 0};
         }""")
         print("feiling (rull 100, mal 100):", {k:mal[k] for k in ('roll','label','malfunction','hit')})
 
@@ -164,9 +168,12 @@ async def main():
         atk2=await pg.evaluate("""() => {
             const c=state.combat.combatants.find(x=>x.attacks && x.attacks.length);
             if(!c) return 'ingen med angrep';
-            const before=state.combat.log.length;
-            const res=resolveAttack(c, c.attacks[0]);
-            return {who:c.name, atk:c.attacks[0].name, roll:res.roll, label:res.label, dmg:res.damage};
+            const a=c.attacks[0];
+            const g=gradeRoll(1 + Math.floor(Math.random()*100),
+                              parseInt(a.skill,10) || 50);
+            const d=rollAttackDamage(c, a, g.label);
+            return {who:c.name, atk:a.name, roll:g.roll, label:g.label,
+                    dmg:d.total, ranged:isRangedAttack(a)};
         }""")
         print("angrep i kamp:", atk2)
 
