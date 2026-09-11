@@ -383,6 +383,7 @@ CHROMIUM_PATH=/sti/til/chromium python3 tests/initiative_test.py # initiativflyt
 CHROMIUM_PATH=/sti/til/chromium python3 tests/rules_test.py      # våpen, talenter, taktikk
 CHROMIUM_PATH=/sti/til/chromium python3 tests/fightflow_test.py  # angrepsflyten og regelkjernen
 CHROMIUM_PATH=/sti/til/chromium python3 tests/special_test.py    # spesialregler for skapninger
+CHROMIUM_PATH=/sti/til/chromium python3 tests/editor_weapons_test.py  # våpen lagt på i editoren
 ```
 
 ---
@@ -453,7 +454,7 @@ Nettleserversjonen bygger inn `weapons.json` (28 våpen) og et talentoppslag hen
 
 Alle rollene i `characters.json` har fått våpnene sine lagt inn som angrep, hentet fra arkene deres. Damage bonus står ikke i skadefeltet — et slåsskampangrep er `1D3` med `uses_db`, ikke `1D3+1D4`, siden regelmotoren legger på bonusen selv.
 
-**Våpen** legges på en rolle i karaktereditoren under *Angrep → + Fra våpenlista*. Da følger hele statblokka med: skade, om våpenet bruker damage bonus (helt eller halvt), om det kan spidde, feilingsverdi, rekkevidde, angrep per runde og magasin. Treffsjansen fylles automatisk fra rollens egen ferdighet når den finnes — våpenlista er norsk og karakterarkene ofte engelske, så `Håndvåpen` finner `Firearms (Handgun)`, `Nærkamp` finner `Fighting (Brawl)` og så videre.
+**Våpen** legges på en rolle i karaktereditoren under *Angrep → + Legg til våpen*. I rollelisten går det også en snarvei rett dit: **+ Våpen** på raden åpner editoren med våpenlista framme, så man slipper å starte en kamp for å gi noen det de nettopp kjøpte. Da følger hele statblokka med: skade, om våpenet bruker damage bonus (helt eller halvt), om det kan spidde, feilingsverdi, rekkevidde, angrep per runde og magasin. Treffsjansen fylles automatisk fra rollens egen ferdighet når den finnes — våpenlista er norsk og karakterarkene ofte engelske, så `Håndvåpen` finner `Firearms (Handgun)`, `Nærkamp` finner `Fighting (Brawl)` og så videre.
 
 Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
 
@@ -503,6 +504,22 @@ Statblokkene i fiendebanken er hentet maskinelt ut av Malleus Monstrorum, og en 
 I angrepsflyten dukker det opp to ekstra valg når målet har slike regler: **hva du treffer** (kroppen, eller en teller som tentaklene — da rives lemmet av i stedet for at HP-en går ned) og **skadetype**, forhåndsvalgt ut fra våpenet. Boka har ingen regel for å hugge tentakler av en polyp; den muligheten er lagt inn som en huskeregel for Keepere som vil kjøre det slik, og står merket som det.
 
 **Talenter** i et karakterkort er klikkbare. Feltet er fritekst, så det deles på komma og hvert navn slås opp i talentboka. Talenter som finnes der er uthevet i gull; ukjente vises stiplet, med forslag til hva du kanskje mente. Oppslaget dekker fysiske, mentale, kamp- og diverse pulp-talenter samt insane talents.
+
+Talenter skrives ofte med valget sitt hengt på — `Psychic Power: Telekinesis`, `Animal Companion (dog)`. Boka fører dem under grunnnavnet, så begge formene finner fram, og valget vises som en egen rad i kortet.
+
+Flere talenter sier bare «see Psychic Powers, page 83» eller «may spend 10 Luck points». `bestiary/talent_rules.json` inneholder reglene de viser til, og talentkortet får en **Reglene bak**-rad som åpner dem:
+
+| Regelboks | Dekker |
+|---|---|
+| Psykiske krefter | Kostnad i magic points, CON-slag når de tar slutt, vanskegrad — og alle fem kreftene: Clairvoyance, Divination, Medium, Psychometry, Telekinesis |
+| Weird Science og dingser | Å bygge en dings, vanskegrad etter hva den gjør, hva som skjer når byggingen går galt, Mythos-teknologi |
+| Å bruke Luck | Alle seks Luck-kjøpene for pulp-helter |
+| Å dykke i dekning | Unnvikelse mot skytevåpen, undertrykkende ild, liggende |
+| Manøvrer og Build | Build mot Build, og knockout-regelen fra Pulp Cthulhu |
+| Flere skudd i samme runde | Straffeterning for flere skudd, og to våpen samtidig |
+| Sanity og Cthulhu Mythos | Hardened, Mythos Knowledge og pulp-heltenes sårregler |
+
+Har rollen valgt én av de psykiske kreftene, legges den seksjonen øverst i boksen og merkes «← valgt».
 
 Talentboka bygges slik:
 

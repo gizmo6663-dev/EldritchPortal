@@ -755,6 +755,7 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 .chip.talent.known { color: var(--brass); border-color: var(--brass-dim); }
 .chip.talent.known:hover { background: var(--brass-glow); }
 .chip.talent:not(.known) { border-style: dashed; }
+.section-label.chosen { color: var(--brass); border-bottom-color: var(--brass-dim); }
 .btn.primary[disabled] { opacity: 0.4; cursor: not-allowed; }
 .cb-name { flex: 1; min-width: 0; display: block; }
 .cb-name b {
@@ -965,6 +966,7 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 <script type="application/json" id="bundled-weapons">/*__WEAPONS__*/</script>
 <script type="application/json" id="bundled-talents">/*__TALENTS__*/</script>
 <script type="application/json" id="bundled-abilities">/*__ABILITIES__*/</script>
+<script type="application/json" id="bundled-talent-rules">/*__TALENT_RULES__*/</script>
 
 <script>
 "use strict";
@@ -1068,6 +1070,7 @@ const state = {
   weapons: null,      // innebygd våpenliste, skrivebeskyttet
   talents: null,      // innebygd talentoppslag, skrivebeskyttet
   abilities: null,    // innebygde spesialregler for skapninger
+  talentRules: null,  // reglene talentene viser videre til
   combat: null,       // { active, round, turn, combatants, log }
   view: "overview",
   query: "",
@@ -2733,6 +2736,11 @@ function characterRow(c) {
     el("span", { class: "rowtools" }, [
       el("button", { class: "btn small", type: "button", text: "Til kamp",
                      onclick: () => { addToCombat(c); } }),
+      // Snarvei rett til våpenvelgeren. Kjøper spillerne noe i en
+      // butikk, skal man slippe å lete etter det inne i editoren.
+      el("button", { class: "btn small", type: "button", text: "+ Våpen",
+                     title: "Åpne editoren med våpenlista framme",
+                     onclick: () => editCharacter(c, null, "weapons") }),
       el("button", { class: "btn small", type: "button", text: "Rediger",
                      onclick: () => editCharacter(c) }),
       el("button", { class: "btn small", type: "button", text: "Dupliser",
@@ -2774,7 +2782,8 @@ function uniqueName(base) {
 
 /* ---------------------- karaktereditor -------------------------- */
 
-function editCharacter(existing, kindHint) {
+// focus: "weapons" åpner editoren med våpenlista framme med én gang.
+function editCharacter(existing, kindHint, focus) {
   const isNew = !existing;
   const c = normalizeChar(existing
     ? JSON.parse(JSON.stringify(existing))
@@ -2920,6 +2929,15 @@ function editCharacter(existing, kindHint) {
         attackList.appendChild(attackRow(weaponToAttack(w, c)));
       });
       body.appendChild(weapPanel);
+      if (focus === "weapons") {
+        weapPanel.hidden = false;
+        // Lista ligger et stykke nede i editoren.
+        setTimeout(() => {
+          weapPanel.scrollIntoView({ block: "center" });
+          const f = document.getElementById("weap-search");
+          if (f) f.focus();
+        }, 0);
+      }
       fields._attacks = attackList;
 
       // --- ferdigheter
@@ -3264,9 +3282,67 @@ function splitTalents(text) {
     .split(/[,;\n]/).map((t) => t.trim()).filter(Boolean);
 }
 
+/* Talenter skrives ofte med valget sitt hengt på: «Psychic Power:
+   Telekinesis», «Animal Companion (dog)». Boka fører dem under
+   grunnnavnet, så begge formene må finne fram — og valget skal vises,
+   ikke kastes.                                                     */
+function splitTalentName(name) {
+  const raw = String(name || "").trim();
+  let base = raw;
+  let spec = "";
+  const colon = raw.indexOf(":");
+  if (colon !== -1) {
+    base = raw.slice(0, colon).trim();
+    spec = raw.slice(colon + 1).trim();
+  } else {
+    const par = raw.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+    if (par) { base = par[1].trim(); spec = par[2].trim(); }
+  }
+  return { raw: raw, base: base, spec: spec };
+}
+
 function lookupTalent(name) {
-  const key = name.toLowerCase().replace(/\s*\(.*\)\s*$/, "").trim();
-  return talentIndex[key] || talentIndex[name.toLowerCase()] || null;
+  const parts = splitTalentName(name);
+  return talentIndex[parts.raw.toLowerCase()] ||
+         talentIndex[parts.base.toLowerCase()] || null;
+}
+
+/* Regelboksene et talent viser videre til — psykiske krefter, weird
+   science, Luck-bruk. Uten dem sier talentet bare «see page 83».  */
+function talentRulesFor(name) {
+  const bank = state.talentRules;
+  if (!bank) return [];
+  const parts = splitTalentName(name);
+  const key = Object.keys(bank.talents || {}).find(
+    (k) => k.toLowerCase() === parts.base.toLowerCase() ||
+           k.toLowerCase() === parts.raw.toLowerCase());
+  if (!key) return [];
+  return (bank.talents[key] || [])
+    .map((id) => (bank.rules || []).find((r) => r.id === id))
+    .filter(Boolean);
+}
+
+function openRuleBox(rule, highlight) {
+  openModal(rule.title, rule.source, (body) => {
+    if (rule.intro) {
+      body.appendChild(el("p", { class: "prose", text: rule.intro }));
+    }
+    // Har rollen valgt én av kreftene, legges den øverst.
+    const secs = (rule.sections || []).slice();
+    if (highlight) {
+      const i = secs.findIndex(
+        (x) => x.title.toLowerCase() === String(highlight).toLowerCase());
+      if (i > 0) secs.unshift(secs.splice(i, 1)[0]);
+    }
+    secs.forEach((sec) => {
+      const on = highlight &&
+        sec.title.toLowerCase() === String(highlight).toLowerCase();
+      body.appendChild(el("div", {
+        class: "section-label" + (on ? " chosen" : ""),
+        text: sec.title + (on ? "  ← valgt" : "") }));
+      body.appendChild(el("p", { class: "prose", text: sec.body }));
+    });
+  }, []);
 }
 
 function talentChips(text) {
@@ -3390,15 +3466,42 @@ function openTalent(name, talent) {
         }
         return;
       }
+      const parts = splitTalentName(name);
+      if (parts.spec) {
+        body.appendChild(el("div", { class: "callout" }, [
+          el("p", { class: "eyebrow", text: "Valgt" }),
+          el("p", { text: parts.spec }),
+        ]));
+      }
       body.appendChild(el("p", { class: "prose", text: talent.description }));
+
+      // Talenter som bare viser videre til et kapittel får reglene
+      // hit, i stedet for et sidetall man må slå opp.
+      const rules = talentRulesFor(name);
+      if (rules.length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Reglene bak" }));
+        const stack = el("div", { class: "stack" });
+        rules.forEach((r) => {
+          stack.appendChild(el("button", {
+            class: "entry pickrow", type: "button",
+            onclick: () => openRuleBox(r, parts.spec),
+          }, [
+            el("span", { class: "entry-body" }, [
+              el("span", { class: "entry-title", text: r.title }),
+              el("span", { class: "entry-sub", text: r.source }),
+            ]),
+            el("span", { class: "entry-open", text: "ÅPNE" }),
+          ]));
+        });
+        body.appendChild(stack);
+      }
+
       if (state.talents && state.talents.note) {
         body.appendChild(el("p", { class: "caveat",
                                    text: state.talents.note }));
       }
-    }, [
-      el("button", { class: "btn", type: "button", text: "Lukk",
-                     onclick: closeModal }),
-    ]);
+    }, []);
 }
 
 /* ------------------------- fiendebank --------------------------- */
@@ -5919,6 +6022,9 @@ function loadBestiary() {
 
   const ab = loadBundled("bundled-abilities");
   state.abilities = (ab && Array.isArray(ab.entries)) ? ab : null;
+
+  const tr = loadBundled("bundled-talent-rules");
+  state.talentRules = (tr && Array.isArray(tr.rules)) ? tr : null;
 
   const t = loadBundled("bundled-talents");
   state.talents = (t && Array.isArray(t.talents)) ? t : null;

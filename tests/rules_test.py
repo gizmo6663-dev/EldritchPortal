@@ -135,6 +135,50 @@ async def main():
         await pg.screenshot(path=f"{OUT}/talent.png")
         await pg.evaluate("closeAllModals()")
 
+        # --- 3b. TALENTER MED VALG, OG REGLENE DE VISER VIDERE TIL
+        unknown=await pg.evaluate("""() => { const bad=[];
+            state.characters.forEach((c) => {
+              ['talents','insane_talents'].forEach((f) => {
+                splitTalents(c[f] || '').forEach((n) => {
+                  if (!lookupTalent(n)) bad.push(c.name + ': ' + n);
+                });
+              });
+            }); return bad; }""")
+        print("talenter som ikke finnes i boka:", unknown or "ingen")
+        assert not unknown, unknown
+
+        # «Psychic Power: Telekinesis» skal finne «Psychic Power», vise
+        # valget, og kunne åpne reglene for psykiske krefter.
+        await pg.evaluate("() => openCharacter(state.characters.find(c=>c.name==='Skjoldvår'))")
+        await pg.wait_for_timeout(300)
+        await pg.evaluate("""() => [...document.querySelectorAll('.chip.talent')]
+            .find((x) => /Telekinesis/.test(x.textContent)).click()""")
+        await pg.wait_for_timeout(300)
+        tk=await pg.evaluate("""() => ({
+            title: document.getElementById('modal-title').firstChild.textContent,
+            chosen: document.querySelector('#modal-body .callout')
+                      ? document.querySelector('#modal-body .callout').textContent : null,
+            rules: [...document.querySelectorAll('#modal-body .pickrow .entry-title')]
+                     .map((x) => x.textContent)})""")
+        print("talent med valg:", tk)
+        assert tk["title"] == "Psychic Power", tk
+        assert "Telekinesis" in (tk["chosen"] or ""), tk
+        assert tk["rules"] == ["Psykiske krefter"], tk
+
+        await pg.evaluate("() => document.querySelectorAll('#modal-body .pickrow')[0].click()")
+        await pg.wait_for_timeout(300)
+        box=await pg.evaluate("""() => ({
+            title: document.getElementById('modal-title').firstChild.textContent,
+            secs: [...document.querySelectorAll('#modal-body .section-label')]
+                    .map((x) => x.textContent),
+            body: document.querySelectorAll('#modal-body .prose').length})""")
+        print("regelboks:", box["title"], "|", box["secs"][0], "|", box["body"], "avsnitt")
+        assert box["title"] == "Psykiske krefter", box
+        assert box["secs"][0].startswith("Telekinesis"), box
+        assert "valgt" in box["secs"][0], box
+        await pg.screenshot(path=f"{OUT}/regelboks.png", full_page=True)
+        await pg.evaluate("closeAllModals()")
+
         # --- 4. TAKTIKK
         await pg.evaluate("setView('tactics')"); await pg.wait_for_timeout(500)
         nt=await pg.evaluate("() => document.querySelectorAll('.entry').length")
