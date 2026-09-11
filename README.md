@@ -383,7 +383,7 @@ Den inneholder Keeper-delen av appen:
 - **Scenario** — bibliotek, tidslinje per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts og regeloppslag
 - **Roller** — spillere, NPCer og fiender i én liste, med filtrering per type. Alt kan opprettes, redigeres, dupliseres og slettes: karakteristikker, angrep, ferdigheter og fritekst
 - **Fiendebank** — 73 skapninger med statblokker, som kan legges i rollelisten eller sendes rett i en kamp
-- **Kamp** — initiativ etter DEX med skytevåpen først, rundeteller, HP-sporing med automatisk major wound, tilstander, angrepsslag og logg
+- **Kamp** — huk av deltakere, skriv inn initiativet de slo, start kampen. Rundeteller, HP-sporing med automatisk major wound, tilstander, angrepsslag og logg
 - **Mitt** — autolagrende notater og sesjonslogg
 - En d100-kaster med suksessgrader oppe i topplinja
 
@@ -434,7 +434,13 @@ Rollelisten skiller mellom tre typer, og typen styrer både gruppering, filter o
 
 Eldre `characters.json` fra Android-appen leses uendret: feltet `type` (PC/NPC) leses som `kind`, og flate felter som `str`, `con` og `hp` løftes inn i et `stats`-objekt ved innlasting. Import slår sammen på navn, så den samme fila kan importeres flere ganger uten å lage duplikater.
 
-**Kamptrackeren** sorterer etter DEX, med de som har skytevåpen klare øverst — slik Call of Cthulhu 7e gjør det. Skade på halve maks-HP eller mer i ett slag flagges automatisk som major wound. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
+**Kamptrackeren** følger denne flyten:
+
+1. **+ Legg til** åpner en liste over roller og fiendebank der du huker av alle du vil ha med. Hver rad har et antall, så «Ghoul × 4» blir fire deltakere med hvert sitt navn og hver sin HP.
+2. Hver deltaker får et **initiativfelt** du skriver inn det som ble slått i. Feltet er forhåndsutfylt med DEX, så lista er brukbar med én gang hvis dere ikke slår for initiativ.
+3. **Start kamp** setter rekkefølgen. Lista sorteres bevisst *ikke* mens du skriver — da ville radene hoppet rundt mens du gikk nedover dem. Er kampen alt i gang og du retter et tall, bruker du **Sorter på nytt**.
+
+Ved lik verdi går den med skytevåpen klart først, deretter høyest DEX. Skade på halve maks-HP eller mer i ett slag flagges automatisk som major wound. Kampen lagres fortløpende, så sida kan lukkes midt i en runde.
 
 ---
 
