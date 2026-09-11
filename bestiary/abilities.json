@@ -1,0 +1,811 @@
+{
+  "version": 1,
+  "title": "Spesialregler for skapninger",
+  "source": "Malleus Monstrorum (Chaosium), Call of Cthulhu 7e og Pulp Cthulhu",
+  "note": "Statblokkene i fiendebanken er hentet maskinelt ut av boka. Denne fila er skrevet for hånd, og legger på mekanismene som ikke lar seg lese ut av en tabell: tellere som rulles hver runde, angrep med begrenset bruk, regenerering, og hvilke våpen som i det hele tatt biter. Oppføringene kobles til skapninger og NPCer på navn eller id. Oppføringene treffer både på id-en i fiendebanken og på navn, slik at en kopi lagt i rollelisten også får reglene med seg.",
+  "damage_sources": {
+    "melee": "Nærkamp",
+    "firearm": "Skytevåpen",
+    "shotgun": "Hagle",
+    "fire": "Ild",
+    "electricity": "Elektrisitet",
+    "acid": "Syre eller kjemikalier",
+    "magic": "Formel",
+    "enchanted": "Fortryllet våpen",
+    "sound": "Lyd"
+  },
+  "effects": {
+    "normal": "Full skade",
+    "half": "Halv skade, rundet ned",
+    "minimum": "Minste mulige skade fra terningene",
+    "fixed": "Fast antall poeng",
+    "immune": "Ingen skade",
+    "instant_death": "Død på stedet"
+  },
+  "entries": [
+    {
+      "match": [
+        "mm-flying-polyps",
+        "flying polyp",
+        "flying polyps"
+      ],
+      "title": "Flying Polyp",
+      "abilities": [
+        {
+          "id": "tentacles",
+          "kind": "pool",
+          "name": "Tentakler",
+          "roll": "2D6",
+          "reset": "round",
+          "targetable": true,
+          "unit": "tentakler",
+          "attack": {
+            "name": "Tentakkel",
+            "skill": "85%",
+            "damage": "1D10",
+            "uses_db": false,
+            "can_impale": false,
+            "ignores_armor": true,
+            "category": "melee"
+          },
+          "description": "Polyppen danner og oppløser tentakler hele tiden. Ved starten av hver runde slås 2D6 for hvor mange tentakler som kan angripe den runden. Hver av dem gjør ett angrep. Skaden er alltid 1D10, og fordi vesenet bare er halvveis materielt går den rett på HP — rustning hjelper ikke. Såret ser ut som uttørking eller vindbrenning.",
+          "house_note": "Boka har ingen regel for å slå tentakler av polyppen; de kommer og går av seg selv. Vil du likevel la spillerne hugge løs på dem, velger du «tentakkel» som mål i angrepsflyten — da går telleren ned i stedet for HP-en. Husk at 2D6 slås på nytt neste runde uansett.",
+          "unit_one": "tentakkel",
+          "replaces": [
+            "Tentacle",
+            "Tentacles"
+          ]
+        },
+        {
+          "id": "windblast",
+          "kind": "limited",
+          "name": "Vindstøt",
+          "uses": 1,
+          "reset": "round",
+          "cost": "1 magic point per runde",
+          "attack": {
+            "name": "Vindstøt",
+            "skill": "70%",
+            "damage": "5D6",
+            "uses_db": false,
+            "can_impale": false,
+            "category": "heavy",
+            "range": "18 meter"
+          },
+          "description": "En sylinder på 9 meter i tverrsnitt, med 18 meters grunnrekkevidde. Skaden er polyppens damage bonus — 5D6 for denne. Utover grunnrekkevidden faller den med 1D6 for hvert nye multiplum: 4D6 på 36 meter, 3D6 på 37 meter og oppover. Ofrene får huden flerret av seg og blåses bakover like mange meter som de mistet HP.",
+          "replaces": [
+            "Windblast",
+            "Wind blast"
+          ]
+        },
+        {
+          "id": "fixing",
+          "kind": "note",
+          "name": "Fixing attack",
+          "description": "Fangstvinden. Rekkevidde 900 meter, går rundt hjørner og opp gjennom trapper. Hver runde: motstående slag mellom målets STR og polyppens POW — halv POW over 180 meter, full POW under. Vinner polyppen, kommer målet seg ikke unna den runden. Polyppen kan flytte i full fart mens den gjør dette. Flere mål innenfor 27 meter av hverandre kan tas samtidig; legg 5 % til hver enkelts sjanse for hvert mål utover det første."
+        },
+        {
+          "id": "invisibility",
+          "kind": "note",
+          "name": "Usynlighet",
+          "description": "1 magic point per runde. Usynlig angriper den ikke med tentakler, men kan fortsatt bruke vindangrepene og kaste formler. Den som vil treffe den må først klare et Listen-slag for å høre hvor pipelyden kommer fra, og trekker deretter 50 prosentpoeng fra treffsjansen. Er den ikke helt usynlig, trekkes polyppens POW fra treffsjansen i stedet, siden den hele tiden glir inn og ut av syne.",
+          "scenario_note": "I A Slow Boat to China er polyppen rasende og blir SYNLIG hele veien. Da faller både Listen-slaget og de 50 prosentpoengene bort — men den fortsetter å flimre, så POW-fradraget kan du fortsatt bruke om du vil ha den vanskelig å treffe."
+        }
+      ],
+      "damage": {
+        "note": "4 poeng rustning, og bare minste mulige skade fra fysiske våpen. Fortryllede våpen, ild og elektrisitet gjør full skade.",
+        "rules": [
+          {
+            "source": "fire",
+            "effect": "normal"
+          },
+          {
+            "source": "electricity",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "minimum"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-crawling-ones",
+        "crawling one",
+        "crawling ones"
+      ],
+      "title": "Crawling One",
+      "abilities": [
+        {
+          "id": "no-natural-attack",
+          "kind": "note",
+          "name": "Ingen naturlige angrep",
+          "description": "En crawling one har ingen egne angrep og må bruke våpen som alle andre. Treffsjanse og skade følger våpenet den har fått tak i."
+        },
+        {
+          "id": "dissolve",
+          "kind": "note",
+          "name": "Oppløsning",
+          "description": "Blir den alvorlig truet, faller den fra hverandre til enkeltmark og -larver som spreller ned mellom gulvplankene. I praksis kan den ikke drepes med vanlige midler med mindre den trenges opp et sted den ikke kan renne ut av."
+        },
+        {
+          "id": "consume-likeness",
+          "kind": "note",
+          "name": "Consume Likeness",
+          "description": "Den kan ta skikkelsen til ethvert menneske den dreper og spiser. En ny skikkelse bruker 48 timer på å utvikle stemmebånd. I egen skikkelse kan den ikke lage lyd i det hele tatt, og må kommunisere skriftlig — men trenger ikke ord for å kaste formler."
+        }
+      ],
+      "damage": {
+        "note": "Kroppen er myk og ettergivende. Vanlige våpen gjør minste mulige skade; kuler gjør ett eneste poeng; haglskudd gjør minste mulige skade for den typen våpen. Ild, syre og elektrisitet er ikke nevnt i boka; her er de satt til full skade, siden en haug med mark åpenbart brenner. Bytt skadetype i angrepsflyten hvis du vil ha det strengere.",
+        "rules": [
+          {
+            "source": "shotgun",
+            "effect": "minimum"
+          },
+          {
+            "source": "firearm",
+            "effect": "fixed",
+            "value": 1
+          },
+          {
+            "source": "fire",
+            "effect": "normal"
+          },
+          {
+            "source": "acid",
+            "effect": "normal"
+          },
+          {
+            "source": "electricity",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "minimum"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-hunting-horrors",
+        "hunting horror",
+        "hunting horrors"
+      ],
+      "title": "Hunting Horror",
+      "abilities": [
+        {
+          "id": "two-attacks",
+          "kind": "note",
+          "name": "Bitt og hale i samme runde",
+          "description": "En hunting horror kan gjøre både bitt og haleangrep i samme runde. Kjør begge angrepene fra kampkortet før du går til neste tur."
+        },
+        {
+          "id": "tail-grapple",
+          "kind": "note",
+          "name": "Halegrep",
+          "description": "Halen snører seg om offeret og holder det fast. Skapningen kan fly av gårde med det, eller fortsette å slåss. Offeret slipper løs bare ved et motstående STR mot STR. Mens noen henger i halen, kan skapningen bare bite — men får +20 % på treffsjansen mot den som dingler. Den som er grepet får som regel ikke slått tilbake fysisk, men kan bruke formler."
+        },
+        {
+          "id": "daylight",
+          "kind": "note",
+          "name": "Oppløses av dagslys",
+          "description": "Direkte dagslys tar livet av den. Om bord betyr det at den må håndteres før daggry, eller drives ut på åpent dekk. Et kraftig nok lysglimt kan svi den til støv."
+        }
+      ]
+    },
+    {
+      "match": [
+        "mm-chthonian-full-adults",
+        "chthonian",
+        "chthonian full adult",
+        "chthonian full adults"
+      ],
+      "title": "Chthonian",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "amount": 5,
+          "reset": "round",
+          "dies_at_zero": true,
+          "description": "Leger 5 HP hver runde etter å ha blitt såret — men dør umiddelbart om den først kommer ned i null."
+        },
+        {
+          "id": "water",
+          "kind": "note",
+          "name": "Vann er dødelig",
+          "description": "Vann er giftig for chthonians. Om bord på et skip er dette den mest nærliggende utveien."
+        },
+        {
+          "id": "con-drain",
+          "kind": "note",
+          "name": "CON-tapping",
+          "description": "Nærheten til en chthonian tapper CON hver runde. Se statblokka for angrepslinja."
+        }
+      ]
+    },
+    {
+      "match": [
+        "mm-dark-sargassum",
+        "dark sargassum"
+      ],
+      "title": "Dark Sargassum",
+      "damage": {
+        "note": "Skytevåpen gjør ett poeng; en spidding fra skytevåpen gjør to. Hagler er unntaket og gjør minste mulige skade. Nærkampvåpen gjør full skade. Ild, sprengning, etsing, elektrisitet og gift har ingen virkning.",
+        "rules": [
+          {
+            "source": "shotgun",
+            "effect": "minimum"
+          },
+          {
+            "source": "firearm",
+            "impaling": true,
+            "effect": "fixed",
+            "value": 2
+          },
+          {
+            "source": "firearm",
+            "effect": "fixed",
+            "value": 1
+          },
+          {
+            "source": "fire",
+            "effect": "immune"
+          },
+          {
+            "source": "electricity",
+            "effect": "immune"
+          },
+          {
+            "source": "acid",
+            "effect": "immune"
+          },
+          {
+            "source": "any",
+            "effect": "normal"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-dwellers-in-the-depths",
+        "dwellers in the depths",
+        "dweller in the depths"
+      ],
+      "title": "Dweller in the Depths",
+      "abilities": [
+        {
+          "id": "brain-organ",
+          "kind": "weakspot",
+          "name": "Hjerneorganet",
+          "chance": 10,
+          "effect": "instant_death",
+          "description": "Skapningen er immun mot nesten all fysisk skade. Unntaket er hjerneorganet: et treff der dreper den på stedet. Ethvert treff har 10 % sjanse for å treffe organet — slå 1D100 etter et treff, og på 10 eller lavere er den ferdig."
+        }
+      ],
+      "damage": {
+        "note": "Immun mot det meste av fysisk skade. Ild, elektrisitet og magi gjør full skade.",
+        "rules": [
+          {
+            "source": "fire",
+            "effect": "normal"
+          },
+          {
+            "source": "electricity",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-nioth-korghai",
+        "nioth-korghai"
+      ],
+      "title": "Nioth-korghai",
+      "abilities": [
+        {
+          "id": "solar-plexus",
+          "kind": "weakspot",
+          "name": "Solar plexus",
+          "chance_of_skill": 10,
+          "effect": "instant_death",
+          "description": "Skapningen kan ikke såres andre steder enn i solar plexus. For å treffe der må angriperen slå 10 % eller mindre av sin egen treffsjanse. Et treff der med et blyvåpen dreper den på stedet."
+        }
+      ],
+      "damage": {
+        "note": "Alt annet enn et treff i solar plexus preller av.",
+        "rules": [
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-servitors-of-the-outer-gods",
+        "servitors of the outer god",
+        "servitors of the outer gods"
+      ],
+      "title": "Servitor of the Outer Gods",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "amount": 3,
+          "reset": "round",
+          "description": "Leger 3 HP hver runde helt til den er død."
+        }
+      ],
+      "damage": {
+        "note": "Ingen fysiske våpen biter. Magiske våpen gjør full skade.",
+        "rules": [
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-star-spawn-of-cthulhu",
+        "star-spawn of cthulhu"
+      ],
+      "title": "Star-spawn of Cthulhu",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "amount": 3,
+          "reset": "round",
+          "description": "Leger 3 HP hver runde. Med 10 poeng rustning i tillegg må skaden komme fort for å bety noe."
+        }
+      ]
+    },
+    {
+      "match": [
+        "mm-spawn-of-abhoth",
+        "spawn of abhoth"
+      ],
+      "title": "Spawn of Abhoth",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "roll": "1D20",
+          "reset": "round",
+          "description": "Leger 1D20 HP hver runde. Slås på nytt hver runde."
+        }
+      ]
+    },
+    {
+      "match": [
+        "mm-gof-nn-hupadgh-shub-niggurath",
+        "gof'nn hupadgh shub-niggurath"
+      ],
+      "title": "Gof'nn Hupadgh Shub-Niggurath",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "roll": "1D6",
+          "reset": "round",
+          "description": "Leger 1D6 HP hver runde helt til den er død."
+        }
+      ]
+    },
+    {
+      "match": [
+        "mm-thralls-of-cthulhu",
+        "thralls of cthulhu"
+      ],
+      "title": "Thrall of Cthulhu",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "roll": "1D6",
+          "reset": "round",
+          "description": "Leger 1D6 HP hver runde. En thrall som slås ned til null av fysiske angrep, reiser seg helt uskadd igjen etter 1D8+1 runder. Magiske angrep er det som virkelig biter."
+        }
+      ]
+    },
+    {
+      "match": [
+        "mm-spawn-of-the-green-abyss",
+        "spawn of the green abyss"
+      ],
+      "title": "Spawn of the Green Abyss",
+      "abilities": [
+        {
+          "id": "regen",
+          "kind": "regen",
+          "name": "Regenerering",
+          "roll": "1D3",
+          "reset": "round",
+          "description": "Leger 1D3 HP hver runde."
+        }
+      ],
+      "damage": {
+        "note": "Immun mot vanlige våpen. Formler, fortryllede våpen, ild, elektrisitet og kjemikalier biter.",
+        "rules": [
+          {
+            "source": "fire",
+            "effect": "normal"
+          },
+          {
+            "source": "electricity",
+            "effect": "normal"
+          },
+          {
+            "source": "acid",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-broodlings-of-eihort",
+        "broodlings of eihort"
+      ],
+      "title": "Broodling of Eihort",
+      "abilities": [
+        {
+          "id": "regrow",
+          "kind": "note",
+          "name": "Gjenvekst",
+          "description": "Slipper en broodling unna med så mye som ett HP igjen, kan den vokse helt ut igjen. Det tar 10 minutter per HP."
+        }
+      ],
+      "damage": {
+        "note": "Alle fysiske angrep gjør minste mulige skade.",
+        "rules": [
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "minimum"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-adumbrali",
+        "adumbrali"
+      ],
+      "title": "Adumbrali",
+      "damage": {
+        "note": "Skyggeaktig. Immun mot alle verdslige våpen. Bare fortryllede våpen og formler som angriper POW eller INT biter.",
+        "rules": [
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-chakota",
+        "chakota"
+      ],
+      "title": "Chakota",
+      "damage": {
+        "note": "Immun mot fysiske våpen. Ild, magi og elektrisitet biter. Dekkes munnene til, kan den kveles i jord eller vann.",
+        "rules": [
+          {
+            "source": "fire",
+            "effect": "normal"
+          },
+          {
+            "source": "electricity",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-cold-ones",
+        "cold one",
+        "cold ones"
+      ],
+      "title": "Cold One",
+      "damage": {
+        "note": "Immun mot alle fysiske angrep. Ild gjør 2D6 per treff med fakkel eller tilsvarende.",
+        "rules": [
+          {
+            "source": "fire",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-lumens",
+        "lumen",
+        "lumens"
+      ],
+      "title": "Lumen",
+      "damage": {
+        "note": "Immun mot alt som ikke er magisk.",
+        "rules": [
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-denizens-of-s-glhuo",
+        "denizens of s'glhuo"
+      ],
+      "title": "Denizen of S'glhuo",
+      "damage": {
+        "note": "Levende lyd. Immun mot all fysisk skade. Formler mot INT eller POW virker normalt, og skurrende lyd er særlig effektivt.",
+        "rules": [
+          {
+            "source": "sound",
+            "effect": "normal"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-beings-of-ib-ghost-beings-of-ib",
+        "beings of ib & ghost-beings of ib"
+      ],
+      "title": "Ghost-being of Ib",
+      "damage": {
+        "note": "Gjenferdene kan ikke skades fysisk i det hele tatt. Formler som angriper eller tapper POW eller INT virker.",
+        "rules": [
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "immune"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-spawn-of-nyogtha",
+        "spawn of nyogtha"
+      ],
+      "title": "Spawn of Nyogtha",
+      "damage": {
+        "note": "Immun mot kuler og spiddevåpen, og tar minste mulige skade fra alt annet. Også immun mot ild, syre og stråling.",
+        "rules": [
+          {
+            "source": "firearm",
+            "effect": "immune"
+          },
+          {
+            "source": "shotgun",
+            "effect": "immune"
+          },
+          {
+            "source": "any",
+            "impaling": true,
+            "effect": "immune"
+          },
+          {
+            "source": "fire",
+            "effect": "immune"
+          },
+          {
+            "source": "acid",
+            "effect": "immune"
+          },
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "minimum"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-martians",
+        "martian",
+        "martians"
+      ],
+      "title": "Martian",
+      "damage": {
+        "note": "Alle fysiske våpen gjør halv skade.",
+        "rules": [
+          {
+            "source": "magic",
+            "effect": "normal"
+          },
+          {
+            "source": "enchanted",
+            "effect": "normal"
+          },
+          {
+            "source": "any",
+            "effect": "half"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-children-of-the-wind",
+        "children of the wind"
+      ],
+      "title": "Child of the Wind",
+      "damage": {
+        "note": "Spekkete hud: spiddevåpen gjør bare halv skade. Alt annet gjør full skade.",
+        "rules": [
+          {
+            "source": "any",
+            "impaling": true,
+            "effect": "half"
+          },
+          {
+            "source": "any",
+            "effect": "normal"
+          }
+        ]
+      }
+    },
+    {
+      "match": [
+        "mm-spawn-of-othuyeg",
+        "spawn of othuyeg"
+      ],
+      "title": "Spawn of Othuyeg",
+      "damage": {
+        "note": "Bare minimal skade fra spiddevåpen.",
+        "rules": [
+          {
+            "source": "any",
+            "impaling": true,
+            "effect": "minimum"
+          },
+          {
+            "source": "any",
+            "effect": "normal"
+          }
+        ]
+      }
+    }
+  ]
+}

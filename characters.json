@@ -1006,10 +1006,10 @@
     "build": "6",
     "move": "8/12 (flygende)",
     "dodge": "30%",
-    "weapons": "2D6 tentakler (85% skade 1D10 direkte mot HP, ignorerer rustning); vindblåst 70% (20 yards, skade lik DB); fixing attack (motstående STR vs POW)",
+    "weapons": "Tentakler 85 %, skade 1D10 rett på HP (rustning hjelper ikke) — antallet slås med 2D6 hver runde, og hver tentakkel angriper én gang. Vindstøt 70 %, skade 5D6 (= DB), én gang per runde, 18 meters grunnrekkevidde. Fixing attack: motstående STR mot polyppens POW hver runde.",
     "talents": "",
-    "backstory": "Gruvekrolig skapning fra havets dyp. Tilkalles av Pipes of Leng. Halvveis ikke-materiell.",
-    "notes": "Armor: 4, får minimum skade fra fysiske våpen. Usynlighet (1 MP/runde). SAN-loss: 1D3/1D20. Kan stoppes ved å ødelegge Pipes of Leng (50 HP, 3 armor).",
+    "backstory": "Gruvekkende skapning fra mørket under havbunnen. Tilkalles av Pipes of Leng, og blir rasende — ikke styrt — av dem. Bare halvveis materiell, og glir hele tiden inn og ut av syne.",
+    "notes": "Rustning 4, og bare MINSTE mulige skade fra fysiske våpen — fortryllede våpen, ild og elektrisitet gjør full skade. Usynlighet for 1 magic point per runde; usynlig bruker den ikke tentakler. SAN-tap 1D3/1D20. Kan stoppes ved å ødelegge Pipes of Leng (50 HP, 3 rustning). Se Spesialregler på kortet for hele mekanikken.",
     "skills": {}
   },
   {

@@ -382,6 +382,7 @@ CHROMIUM_PATH=/sti/til/chromium python3 tests/combat_test.py     # kamptrackeren
 CHROMIUM_PATH=/sti/til/chromium python3 tests/initiative_test.py # initiativflyten
 CHROMIUM_PATH=/sti/til/chromium python3 tests/rules_test.py      # våpen, talenter, taktikk
 CHROMIUM_PATH=/sti/til/chromium python3 tests/fightflow_test.py  # angrepsflyten og regelkjernen
+CHROMIUM_PATH=/sti/til/chromium python3 tests/special_test.py    # spesialregler for skapninger
 ```
 
 ---
@@ -394,7 +395,7 @@ Den inneholder Keeper-delen av appen:
 
 - **Scenario** — bibliotek, tidslinje per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts og regeloppslag
 - **Roller** — spillere, NPCer og fiender i én liste, med filtrering per type. Alt kan opprettes, redigeres, dupliseres og slettes: karakteristikker, angrep, ferdigheter og fritekst
-- **Fiendebank** — 73 skapninger med statblokker, som kan legges i rollelisten eller sendes rett i en kamp
+- **Fiendebank** — 73 skapninger med statblokker, som kan legges i rollelisten eller sendes rett i en kamp. 24 av dem har egne mekanismer lagt inn: tellere som rulles hver runde, regenerering, svake punkter og regler for hvilke våpen som i det hele tatt biter
 - **Kamp** — huk av deltakere, skriv inn initiativet de slo, start kampen. Rundeteller, HP-sporing, tilstander, logg, og en angrepsflyt som tar deg fra våpen til mål til ferdig utregnet skade
 - **Mitt** — autolagrende notater og sesjonslogg
 - En d100-kaster med suksessgrader oppe i topplinja
@@ -476,6 +477,28 @@ Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
 5. **Resultatet** sier hvem som vant og hvorfor, og skaden er regnet ut: terningkast, spidding, damage bonus, rustning trukket fra, ny HP, og hva slaget fører til av major wound, bevisstløshet, døende eller død. «Bruk resultatet» setter det på HP-en, legger på tilstandene og skriver hele linja i kamploggen.
 
 Manøver (grep, avvæpning, kast) og knockout-forsøk ligger i samme flyt, med Build-forskjellen vist som veiledning.
+
+### Spesialregler for skapninger
+
+Statblokkene i fiendebanken er hentet maskinelt ut av Malleus Monstrorum, og en tabell kan ikke si at en flying polyp danner nye tentakler hver runde, at en chthonian leger seg mellom rundene, eller at kuler ikke biter på en crawling one. Det står i `bestiary/abilities.json`, er skrevet for hånd, og kobles på skapninger og NPCer på id eller navn — også på en redigerbar kopi lagt i rollelisten.
+
+| Type | Hva den gjør |
+|---|---|
+| `pool` | En teller som slås fra en terningformel. Hvert angrep tilknyttet den bruker opp én. Slås på nytt ved hvert rundeskifte |
+| `limited` | N bruk per runde, nullstilles ved rundeskiftet |
+| `regen` | Leger et fast antall eller en terningformel HP hver runde. `dies_at_zero` gjør at skapningen likevel dør om den først når null |
+| `weakspot` | Et punkt som dreper på stedet. Enten en fast prosentsjanse per treff, eller et krav om at treffslaget er under en andel av egen ferdighet |
+| `damage` | Hvilke våpen som biter. Hver regel matcher en skadetype (og eventuelt om treffet spiddet), og gir `normal`, `half`, `minimum`, `fixed` eller `immune` |
+| `note` | Ren tekst — fixing attack, usynlighet, halegrep, dagslys |
+
+24 skapninger har slike regler. Flying polyp er den mest omfattende:
+
+- **Tentakler** — 2D6 slås ved starten av hver runde og vises som en teller på kampkortet. Hvert tentakkelangrep (85 %, 1D10) bruker opp én, og skaden går **rett på HP** — rustning teller ikke, fordi vesenet bare er halvveis materielt. Telleren kan også justeres for hånd eller slås om igjen.
+- **Vindstøt** — én gang per runde, 70 %, skade lik damage bonus (5D6). Chipen blir grå når den er brukt.
+- **Fixing attack** og **usynlighet** står som oppslag på kortet, med scenarioets avvik (polyppen i *A Slow Boat to China* er rasende og blir synlig).
+- **Hva som biter** — 4 poeng rustning, og bare minste mulige skade fra fysiske våpen. Ild, elektrisitet, fortryllede våpen og formler gjør full skade.
+
+I angrepsflyten dukker det opp to ekstra valg når målet har slike regler: **hva du treffer** (kroppen, eller en teller som tentaklene — da rives lemmet av i stedet for at HP-en går ned) og **skadetype**, forhåndsvalgt ut fra våpenet. Boka har ingen regel for å hugge tentakler av en polyp; den muligheten er lagt inn som en huskeregel for Keepere som vil kjøre det slik, og står merket som det.
 
 **Talenter** i et karakterkort er klikkbare. Feltet er fritekst, så det deles på komma og hvert navn slås opp i talentboka. Talenter som finnes der er uthevet i gull; ukjente vises stiplet, med forslag til hva du kanskje mente. Oppslaget dekker fysiske, mentale, kamp- og diverse pulp-talenter samt insane talents.
 

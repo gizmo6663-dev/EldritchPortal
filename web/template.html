@@ -855,6 +855,32 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 .dmgnum b { font-size: 26px; color: var(--signal); margin-right: 6px; }
 .pickrow.dimmed { opacity: 0.5; }
 
+/* Tellere for skapninger med egne mekanismer. */
+.cb-special { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.resbox {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 3px 8px; border-radius: 999px;
+  border: 1px solid var(--rule); background: var(--ink);
+}
+.resbox.spent { opacity: 0.45; }
+.resnum {
+  font-family: var(--mono); font-size: 15px; font-weight: 600;
+  color: var(--brass); font-variant-numeric: tabular-nums;
+  min-width: 14px; text-align: center;
+}
+.reslabel {
+  font-family: var(--ui); font-size: 11px; letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.resadj {
+  font-family: var(--mono); font-size: 13px; line-height: 1;
+  color: var(--muted); padding: 2px 5px; border-radius: 4px;
+  border: 1px solid transparent;
+}
+.resadj:hover { color: var(--brass); border-color: var(--brass-dim); }
+.resadj.roll { font-size: 10px; letter-spacing: 0.06em; }
+.chip.atk.spent { opacity: 0.4; }
+
 .logline {
   font-family: var(--mono); font-size: 12px; color: var(--muted);
   margin: 0 0 4px; padding-bottom: 4px;
@@ -935,6 +961,7 @@ table.skills td:last-child { font-family: var(--mono); text-align: right; color:
 <script type="application/json" id="bundled-bestiary">/*__BESTIARY__*/</script>
 <script type="application/json" id="bundled-weapons">/*__WEAPONS__*/</script>
 <script type="application/json" id="bundled-talents">/*__TALENTS__*/</script>
+<script type="application/json" id="bundled-abilities">/*__ABILITIES__*/</script>
 
 <script>
 "use strict";
@@ -1037,6 +1064,7 @@ const state = {
   bestiary: null,     // innebygd fiendebank, skrivebeskyttet
   weapons: null,      // innebygd våpenliste, skrivebeskyttet
   talents: null,      // innebygd talentoppslag, skrivebeskyttet
+  abilities: null,    // innebygde spesialregler for skapninger
   combat: null,       // { active, round, turn, combatants, log }
   view: "overview",
   query: "",
@@ -1936,6 +1964,15 @@ function openCharacter(pc) {
         body.appendChild(el("div", { class: "section-label", text: pair[1] }));
         body.appendChild(el("p", { class: "prose", text: c[pair[0]] }));
       });
+
+      // Skapninger med egne mekanismer får dem vist her også, ikke
+      // bare i fiendebanken.
+      const sp = specialFor(c);
+      if (sp) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Spesialregler" }));
+        specialRulesBody(sp, body);
+      }
     },
     [
       el("button", { class: "btn primary", type: "button", text: "Til kamp",
@@ -3081,6 +3118,7 @@ function weaponToAttack(w, character) {
     ammo: w.ammo || null,
     range: w.range || null,
     category: w.category || "",
+    subcategory: w.subcategory || "",
     weaponId: w.id,
   };
 }
@@ -3424,12 +3462,294 @@ function openBeast(beast) {
       body.appendChild(el("div", { class: "section-label", text: pair[1] }));
       body.appendChild(el("p", { class: "prose", text: beast[pair[0]] }));
     });
+    // Mekanismene tabellen ikke rommer — tentakler som vokser fram,
+    // regenerering, hvilke våpen som biter.
+    const sp = specialFor(beast);
+    if (sp) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Spesialregler" }));
+      specialRulesBody(sp, body);
+    }
   }, [
     el("button", { class: "btn primary", type: "button", text: "Til kamp",
                    onclick: () => { closeModal(); addToCombat(beastToChar(beast)); } }),
     el("button", { class: "btn", type: "button", text: "Til rollelisten",
                    onclick: () => { closeModal(); addBeastToRoster(beast); } }),
   ]);
+}
+
+/* ================== SPESIALREGLER FOR SKAPNINGER =================
+
+   Noen skapninger gjør ikke bare «angrep, skade, HP». En flying polyp
+   danner nye tentakler hver runde; en chthonian leger seg mellom
+   rundene; en crawling one bryr seg ikke om kuler. Statblokkene er
+   hentet maskinelt ut av Malleus Monstrorum og kan ikke si noe om
+   dette, så reglene ligger i bestiary/abilities.json og kobles på her
+   — på id eller navn.                                               */
+
+// Minste mulige skade fra en terningformel: én per terning, pluss
+// faste ledd. Brukt der boka sier «minimum damage».
+function minDiceExpr(expr) {
+  return parseDiceExpr(expr).reduce((sum, t) => sum +
+    t.sign * (t.flat !== undefined ? t.flat : t.n), 0);
+}
+
+function specialFor(charLike) {
+  const bank = state.abilities;
+  if (!bank || !charLike) return null;
+  // «source» er id-en i fiendebanken, og følger med en kopi som er
+  // lagt i rollelisten. Uten den ville en redigerbar kopi mistet
+  // reglene sine.
+  const ids = [charLike.id, charLike.charId, charLike.source]
+    .filter(Boolean).map((x) => String(x).toLowerCase());
+  const name = String(charLike.name || "").toLowerCase();
+  return bank.entries.find((e) => (e.match || []).some((m) => {
+    const k = String(m).toLowerCase();
+    return ids.indexOf(k) !== -1 || (name && name.indexOf(k) !== -1);
+  })) || null;
+}
+
+function abilitiesOf(c) {
+  return (c && c.special && c.special.abilities) || [];
+}
+
+function damageRulesOf(c) {
+  return (c && c.special && c.special.damage) || null;
+}
+
+/* --- tellere og bruk per runde --- */
+
+// Hvor mange tentakler polyppen har i denne runden, hvor mange
+// vindstøt den har igjen. Slås når kampen starter og ved hver ny runde.
+function rollResources(c, opts) {
+  const o = opts || {};
+  if (!c.pools) c.pools = {};
+  if (!c.used) c.used = {};
+  const rolled = [];
+  abilitiesOf(c).forEach((a) => {
+    if (a.kind === "pool") {
+      const missing = c.pools[a.id] === undefined;
+      // onlyMissing brukes når sida lastes på nytt midt i en runde:
+      // da skal telleren stå som den sto, ikke slås om igjen.
+      const due = o.onlyMissing ? missing
+        : (o.first || missing || a.reset === "round");
+      if (!due) return;
+      const r = rollDiceExpr(a.roll || "1");
+      c.pools[a.id] = Math.max(0, r.total);
+      rolled.push(c.name + ": " + a.name + " " + r.total +
+                  " (" + a.roll + ")");
+    } else if (a.kind === "limited") {
+      if (o.onlyMissing && c.used[a.id] !== undefined) return;
+      if (o.first || o.onlyMissing || a.reset === "round") c.used[a.id] = 0;
+    }
+  });
+  return rolled;
+}
+
+// Regenerering skjer ved rundeskifte, og bare på noen som fortsatt
+// lever. En chthonian som er nede i null er død og leger ingenting.
+function applyRegen(c) {
+  const out = [];
+  abilitiesOf(c).forEach((a) => {
+    if (a.kind !== "regen") return;
+    if (c.hp <= 0) {
+      if (a.dies_at_zero) {
+        addCondition(c, "Død");
+        out.push(c.name + " nådde null HP og dør på stedet — den leger " +
+                 "seg ikke tilbake.");
+      }
+      return;
+    }
+    if (c.hp >= c.hpMax) return;
+    const amount = a.roll ? rollDiceExpr(a.roll).total : (a.amount || 0);
+    if (amount <= 0) return;
+    const before = c.hp;
+    c.hp = Math.min(c.hpMax, c.hp + amount);
+    out.push(c.name + " regenererer " + amount + " HP (" + before +
+             " → " + c.hp + ").");
+  });
+  return out;
+}
+
+function poolLeft(c, abilityId) {
+  return (c.pools && c.pools[abilityId] !== undefined)
+    ? c.pools[abilityId] : null;
+}
+
+function usesLeft(c, ability) {
+  const used = (c.used && c.used[ability.id]) || 0;
+  return Math.max(0, (ability.uses || 1) - used);
+}
+
+// Hvor mange handlinger et angrep har igjen. null = ubegrenset.
+function attackBudget(c, attack) {
+  if (!attack || !attack.abilityId) return null;
+  const ab = abilitiesOf(c).find((a) => a.id === attack.abilityId);
+  if (!ab) return null;
+  if (ab.kind === "pool") return poolLeft(c, ab.id);
+  if (ab.kind === "limited") return usesLeft(c, ab);
+  return null;
+}
+
+function spendAttack(c, attack) {
+  if (!attack || !attack.abilityId) return;
+  const ab = abilitiesOf(c).find((a) => a.id === attack.abilityId);
+  if (!ab) return;
+  if (ab.kind === "pool") {
+    c.pools[ab.id] = Math.max(0, (c.pools[ab.id] || 0) - 1);
+  } else if (ab.kind === "limited") {
+    c.used[ab.id] = ((c.used && c.used[ab.id]) || 0) + 1;
+  }
+}
+
+// Tellere det går an å angripe direkte — polyppens tentakler.
+function targetablePools(c) {
+  return abilitiesOf(c).filter((a) => a.kind === "pool" && a.targetable);
+}
+
+/* --- hvilke våpen som biter --- */
+
+const SOURCE_LABEL = {
+  melee: "Nærkamp", firearm: "Skytevåpen", shotgun: "Hagle",
+  fire: "Ild", electricity: "Elektrisitet", acid: "Syre",
+  magic: "Formel", enchanted: "Fortryllet", sound: "Lyd",
+};
+const SOURCE_ORDER = ["melee", "firearm", "shotgun", "fire", "electricity",
+                      "acid", "magic", "enchanted", "sound"];
+
+// Hva slags skade et angrep er, ut fra våpenet det kom fra.
+function damageSourceOf(attack) {
+  if (!attack) return "melee";
+  const sub = String(attack.subcategory || "").toLowerCase();
+  if (sub === "shotgun") return "shotgun";
+  const cat = String(attack.category || "").toLowerCase();
+  if (cat === "firearms") return "firearm";
+  if (cat === "melee") return "melee";
+  const name = String(attack.name || "").toLowerCase();
+  if (/hagle|shotgun/.test(name)) return "shotgun";
+  if (/molotov|brann|flamme|fakkel/.test(name)) return "fire";
+  if (/tesla|lyn|elektr/.test(name)) return "electricity";
+  if (/syre|acid/.test(name)) return "acid";
+  if (isRangedAttack(attack)) return "firearm";
+  return "melee";
+}
+
+/* Regn om rå skade etter skapningens regler. Returnerer det som
+   faktisk skal trekkes fra, og en linje som forklarer hvorfor.     */
+function filterDamage(victim, attack, source, raw) {
+  const rules = damageRulesOf(victim);
+  const amount = raw ? raw.total : 0;
+  if (!rules || !rules.rules) return { amount: amount, note: "" };
+
+  const impaling = !!(raw && raw.impaled);
+  const hit = rules.rules.find((r) => {
+    if (r.impaling !== undefined && !!r.impaling !== impaling) return false;
+    if (!r.source || r.source === "any") return true;
+    return r.source === source;
+  });
+  if (!hit || hit.effect === "normal") return { amount: amount, note: "" };
+
+  const label = SOURCE_LABEL[source] || source;
+  if (hit.effect === "immune") {
+    return { amount: 0, note: label + " biter ikke på denne." };
+  }
+  if (hit.effect === "half") {
+    return { amount: Math.floor(amount / 2),
+             note: label + " gjør halv skade: " + amount + " → " +
+                   Math.floor(amount / 2) + "." };
+  }
+  if (hit.effect === "fixed") {
+    return { amount: hit.value || 0,
+             note: label + " gjør bare " + (hit.value || 0) +
+                   (impaling ? " selv med spidding." : ".") };
+  }
+  if (hit.effect === "minimum") {
+    const min = Math.max(0, minDiceExpr(attack && attack.damage));
+    return { amount: min,
+             note: label + " gjør minste mulige skade: " + min +
+                   " i stedet for " + amount + "." };
+  }
+  return { amount: amount, note: "" };
+}
+
+/* Spesialreglene som lesbar tekst. Brukes både i kampkortet, i
+   fiendebanken og på karakterkortet.                              */
+function specialRulesBody(entry, body) {
+  if (!entry) {
+    body.appendChild(emptyBox("Ingen spesialregler lagt inn for denne."));
+    return;
+  }
+  (entry.abilities || []).forEach((a) => {
+    body.appendChild(el("div", { class: "section-label", text: a.name }));
+    const meta = [];
+    if (a.kind === "pool") meta.push("slås " + a.roll + " hver runde");
+    if (a.kind === "limited") {
+      meta.push((a.uses || 1) + " gang" + ((a.uses || 1) > 1 ? "er" : "") +
+                " per runde");
+    }
+    if (a.kind === "regen") {
+      meta.push("leger " + (a.roll || a.amount) + " HP per runde");
+    }
+    if (a.kind === "weakspot") {
+      meta.push(a.chance_of_skill
+        ? "krever " + a.chance_of_skill + " % av egen treffsjanse"
+        : a.chance + " % sjanse per treff");
+    }
+    if (a.cost) meta.push(a.cost);
+    if (a.attack) {
+      meta.push([a.attack.skill, a.attack.damage,
+                 a.attack.ignores_armor ? "ignorerer rustning" : null]
+        .filter(Boolean).join(" · "));
+    }
+    if (meta.length) {
+      body.appendChild(el("p", { class: "entry-sub", text: meta.join("  ·  ") }));
+    }
+    if (a.description) {
+      body.appendChild(el("p", { class: "prose", text: a.description }));
+    }
+    if (a.scenario_note) {
+      body.appendChild(el("p", { class: "callout" }, [
+        el("p", { class: "eyebrow", text: "I dette scenarioet" }),
+        el("p", { text: a.scenario_note }),
+      ]));
+    }
+    if (a.house_note) {
+      body.appendChild(el("p", { class: "caveat", text: a.house_note }));
+    }
+  });
+  if (entry.damage) {
+    body.appendChild(el("div", { class: "section-label",
+                                 text: "Hva som biter" }));
+    if (entry.damage.note) {
+      body.appendChild(el("p", { class: "prose", text: entry.damage.note }));
+    }
+    const bank = state.abilities || {};
+    const labels = bank.damage_sources || SOURCE_LABEL;
+    const effects = bank.effects || {};
+    const box = el("div", { class: "stack" });
+    (entry.damage.rules || []).forEach((r) => {
+      const src = (!r.source || r.source === "any")
+        ? "Alt annet" : (labels[r.source] || r.source);
+      const eff = r.effect === "fixed"
+        ? (r.value + " poeng")
+        : (effects[r.effect] || r.effect);
+      box.appendChild(el("div", { class: "entry" }, [
+        el("span", { class: "tick", style: "border-color:transparent" }),
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title",
+            text: src + (r.impaling ? " som spidder" : "") }),
+          el("span", { class: "entry-sub", text: eff }),
+        ]),
+      ]));
+    });
+    body.appendChild(box);
+  }
+}
+
+function openSpecialRules(c) {
+  const entry = (c && c.special) || specialFor(c);
+  openModal("Spesialregler — " + (c.name || "?"),
+    entry ? entry.title : "", (body) => specialRulesBody(entry, body), []);
 }
 
 /* ------------------------- kamptracker -------------------------- */
@@ -3514,7 +3834,7 @@ function normalizeAttack(a) {
 function makeCombatant(charLike) {
   const c = normalizeChar(charLike);
   const maxHp = charMaxHp(c);
-  return {
+  const entry = {
     id: newId("cb"),
     charId: c.id,
     name: uniqueCombatantName(c.name),
@@ -3534,6 +3854,11 @@ function makeCombatant(charLike) {
     // Spillerne er helter, resten er det ikke.
     pulp: c.kind === "pc",
     attacks: (c.attacks || []).map(normalizeAttack),
+    // Spesialregler fra abilities.json — tentakler som vokser fram,
+    // regenerering, hvilke våpen som i det hele tatt biter.
+    special: specialFor(c) || null,
+    pools: {},
+    used: {},
     conditions: [],
     majorWound: false,
     // Slå tilbake kan gjøres én gang per runde; unnvike så mange
@@ -3541,6 +3866,8 @@ function makeCombatant(charLike) {
     reacted: 0,
     note: "",
   };
+  rollResources(entry, { first: true });
+  return entry;
 }
 
 // Kamper som ble lagret før forsvarsfeltene fantes skal fortsatt
@@ -3555,6 +3882,12 @@ function upgradeCombatant(c) {
   if (c.reacted === undefined) c.reacted = 0;
   if (!Array.isArray(c.conditions)) c.conditions = [];
   c.attacks = (c.attacks || []).map(normalizeAttack);
+  if (c.special === undefined) {
+    c.special = specialFor({ id: c.charId, name: c.name }) || null;
+  }
+  if (!c.pools) c.pools = {};
+  if (!c.used) c.used = {};
+  rollResources(c, { onlyMissing: true });
   return c;
 }
 
@@ -3602,6 +3935,9 @@ function viewCombat(root) {
         cb.log = ["Runde 1 begynner. Rekkefølge: " +
                   cb.combatants.map((x) => x.name + " " + initiativeOf(x))
                     .join(", ") + "."];
+        cb.combatants.forEach((x) => {
+          rollResources(x, { first: true }).forEach((l) => cb.log.push(l));
+        });
         await saveCombat(); render();
       },
     }));
@@ -3850,6 +4186,61 @@ function combatantCard(c, index) {
   ]);
   card.appendChild(tools);
 
+  // --- spesialregler med teller: tentakler, vindstøt, regenerering
+  const abil = abilitiesOf(c);
+  if (abil.length) {
+    const strip = el("div", { class: "cb-special" });
+    abil.forEach((a) => {
+      if (a.kind === "pool") {
+        const left = poolLeft(c, a.id) || 0;
+        strip.appendChild(el("span", { class: "resbox" }, [
+          el("button", { class: "resadj", type: "button", text: "−",
+            title: "Én mindre", onclick: async () => {
+              c.pools[a.id] = Math.max(0, left - 1);
+              await saveCombat(); render();
+            } }),
+          el("span", { class: "resnum", text: String(left) }),
+          el("button", { class: "resadj", type: "button", text: "+",
+            title: "Én mer", onclick: async () => {
+              c.pools[a.id] = left + 1;
+              await saveCombat(); render();
+            } }),
+          el("span", { class: "reslabel", text: a.unit || a.name }),
+          el("button", { class: "resadj roll", type: "button",
+            text: "slå " + (a.roll || "").toLowerCase(),
+            title: "Slå " + a.roll + " på nytt for denne runden",
+            onclick: async () => {
+              const r = rollDiceExpr(a.roll || "1");
+              c.pools[a.id] = Math.max(0, r.total);
+              state.combat.log.push(c.name + ": " + a.name + " " +
+                                    r.total + " (" + a.roll + ")");
+              await saveCombat(); render();
+            } }),
+        ]));
+      } else if (a.kind === "limited") {
+        const left = usesLeft(c, a);
+        strip.appendChild(el("span", {
+          class: "resbox" + (left ? "" : " spent"),
+          title: a.description || "",
+        }, [
+          el("span", { class: "resnum", text: left + "/" + (a.uses || 1) }),
+          el("span", { class: "reslabel", text: a.name }),
+        ]));
+      } else if (a.kind === "regen") {
+        strip.appendChild(el("span", { class: "resbox", title: a.description }, [
+          el("span", { class: "reslabel",
+                       text: "leger " + (a.roll || a.amount) + "/runde" }),
+        ]));
+      }
+    });
+    strip.appendChild(el("button", {
+      class: "chip cond add", type: "button", text: "Spesialregler",
+      title: "Se hva denne skapningen kan",
+      onclick: () => openSpecialRules(c),
+    }));
+    card.appendChild(strip);
+  }
+
   // --- angrep: hvert våpen starter angrepsflyten med det valgt
   const atk = el("div", { class: "cb-attacks" });
   atk.appendChild(el("button", {
@@ -3858,12 +4249,15 @@ function combatantCard(c, index) {
     title: "Velg angrep og mål, og kjør slaget steg for steg",
     onclick: () => openAttackFlow(c),
   }));
-  (c.attacks || []).forEach((a) => {
+  attacksOf(c).forEach((a) => {
+    const left = attackBudget(c, a);
     atk.appendChild(el("button", {
-      class: "chip atk", type: "button",
-      title: "Angrip med " + a.name,
+      class: "chip atk" + (left === 0 ? " spent" : ""), type: "button",
+      title: left === null ? "Angrip med " + a.name
+        : a.name + ": " + left + " igjen denne runden",
       text: a.name + (a.skill ? " " + a.skill : "") +
-            (a.damage ? " · " + a.damage : ""),
+            (a.damage ? " · " + a.damage : "") +
+            (left !== null ? "  ×" + left : ""),
       onclick: () => pickTarget(c, a),
     }));
   });
@@ -3931,6 +4325,12 @@ async function advanceTurn() {
     cb.taken = 0;
     cb.round += 1;
     cb.log.push("— Runde " + cb.round + " —");
+    // Ved rundeskiftet leger de som leger seg, og de som danner nye
+    // lemmer slår for hvor mange de har i den nye runden.
+    cb.combatants.forEach((x) => {
+      applyRegen(x).forEach((line) => cb.log.push(line));
+      rollResources(x).forEach((line) => cb.log.push(line));
+    });
   }
   await saveCombat();
   render();
@@ -3956,7 +4356,22 @@ function livingCombatants() {
 }
 
 function attacksOf(c) {
-  return (c.attacks || []).filter((a) => a && a.name);
+  const own = (c.attacks || []).filter((a) => a && a.name);
+  // Tentakkelen og vindstøtet står ikke i angrepslista på statblokka —
+  // de kommer fra spesialreglene, og har hver sin teller.
+  const extra = [];
+  const drop = {};
+  abilitiesOf(c).forEach((a) => {
+    if (!a.attack) return;
+    // Statblokka har den samme linja på engelsk. Den blir stående i
+    // veien, så spesialregelen overtar den.
+    (a.replaces || []).concat(a.attack.name).forEach((n) => {
+      drop[String(n).toLowerCase()] = true;
+    });
+    extra.push(Object.assign({}, a.attack, { abilityId: a.id }));
+  });
+  return extra.concat(
+    own.filter((x) => !drop[String(x.name).toLowerCase()]));
 }
 
 function manoeuvreOption() {
@@ -3977,6 +4392,7 @@ function skillNumber(v) {
 
 function attackSummary(a) {
   return [a.skill || null, a.damage || null, a.range || null,
+          a.ignores_armor ? "ignorerer rustning" : null,
           a.ammo ? "ammo " + a.ammo : null,
           a.attacks && a.attacks !== "1" ? a.attacks + "/runde" : null,
           a.can_impale ? "spidder" : null,
@@ -3996,12 +4412,21 @@ function openAttackFlow(attacker) {
       const stack = el("div", { class: "stack" });
       list.forEach((a) => {
         const t = thresholds(skillNumber(a.skill));
+        const left = attackBudget(attacker, a);
+        const spent = left === 0;
         stack.appendChild(el("button", {
-          class: "entry pickrow", type: "button",
-          onclick: () => pickTarget(attacker, a),
+          class: "entry pickrow" + (spent ? " dimmed" : ""), type: "button",
+          onclick: () => {
+            if (spent) {
+              toast("Ingen igjen av dette angrepet denne runden");
+              return;
+            }
+            pickTarget(attacker, a);
+          },
         }, [
           el("span", { class: "entry-body" }, [
-            el("span", { class: "entry-title", text: a.name }),
+            el("span", { class: "entry-title",
+              text: a.name + (left !== null ? "  —  " + left + " igjen" : "") }),
             el("span", { class: "entry-sub", text: attackSummary(a) }),
             el("span", { class: "entry-sub",
               text: skillNumber(a.skill)
@@ -4209,6 +4634,10 @@ function openResolve(attacker, attack, target) {
     defRoll: "",
     defAttack: attacksOf(target)[0] || null,
     knockout: false,
+    // Hva slags skade dette er, til skapninger som bare biter på noe.
+    source: damageSourceOf(attack),
+    // «body» eller id-en til en teller det går an å hugge løs på.
+    part: "body",
     damage: null,       // { total, detail, impaled, victim }
     outcomeKey: "",
     result: null,
@@ -4423,7 +4852,7 @@ function buildResolve(body, getApplyBtn) {
             "terning; er den to hakk høyere, lar det seg ikke gjøre." }));
   }
 
-  body.appendChild(el("div", { class: "flowcard" }, [
+  const defCard = el("div", { class: "flowcard" }, [
     el("p", { class: "eyebrow", text: "Blir angrepet" }),
     el("p", { class: "flowname", text: t.name }),
     el("p", { class: "entry-sub",
@@ -4431,14 +4860,108 @@ function buildResolve(body, getApplyBtn) {
              armorValue(t) ? "rustning " + armorValue(t) : "ingen rustning",
              t.dodge ? "unnvik " + t.dodge + "%" : null,
              t.pulp ? "pulp-helt" : null].filter(Boolean).join(" · ") }),
-    respRow, respHint, fbPick, dBox, dThresh,
-  ]));
+  ]);
+
+  // --- hvor treffer man? Polyppens tentakler kan hugges av.
+  const pools = targetablePools(t);
+  if (pools.length) {
+    const partRow = el("div", { class: "respchips" });
+    const partHint = el("p", { class: "entry-sub" });
+    function drawParts() {
+      partRow.innerHTML = "";
+      const opts = [{ key: "body", label: t.name,
+                      hint: "Skaden går på HP som vanlig." }]
+        .concat(pools.map((a) => ({
+          key: a.id,
+          label: a.name + " (" + (poolLeft(t, a.id) || 0) + ")",
+          hint: (a.house_note || a.description || ""),
+        })));
+      opts.forEach((o) => {
+        const on = f.part === o.key;
+        partRow.appendChild(el("button", {
+          class: "chip resp" + (on ? " on" : ""), type: "button",
+          "aria-pressed": String(on), text: o.label,
+          onclick: () => { f.part = o.key; drawParts(); update(); },
+        }));
+      });
+      const cur = opts.find((o) => o.key === f.part);
+      partHint.textContent = cur ? cur.hint : "";
+    }
+    defCard.appendChild(el("p", { class: "eyebrow", text: "Treffer" }));
+    defCard.appendChild(partRow);
+    defCard.appendChild(partHint);
+    drawParts();
+  }
+
+  // --- hva slags skade er dette? Bare interessant for dem som har
+  //     regler for det — en polyp bryr seg, en gangster gjør ikke.
+  if (damageRulesOf(t)) {
+    const srcRow = el("div", { class: "respchips" });
+    function drawSources() {
+      srcRow.innerHTML = "";
+      SOURCE_ORDER.forEach((k) => {
+        const on = f.source === k;
+        srcRow.appendChild(el("button", {
+          class: "chip resp" + (on ? " on" : ""), type: "button",
+          "aria-pressed": String(on), text: SOURCE_LABEL[k],
+          onclick: () => { f.source = k; drawSources(); update(); },
+        }));
+      });
+    }
+    defCard.appendChild(el("p", { class: "eyebrow", text: "Skadetype" }));
+    defCard.appendChild(srcRow);
+    defCard.appendChild(el("p", { class: "caveat",
+      text: damageRulesOf(t).note || "" }));
+    drawSources();
+  }
+
+  defCard.appendChild(respRow);
+  defCard.appendChild(respHint);
+  defCard.appendChild(fbPick);
+  defCard.appendChild(dBox);
+  defCard.appendChild(dThresh);
+  body.appendChild(defCard);
 
   body.appendChild(verdict);
   body.appendChild(dmgBox);
 
   drawResponses();
   update();
+}
+
+/* Svake punkter: noen skapninger kan bare drepes ett sted. Enten har
+   hvert treff en fast sjanse for å finne punktet, eller så må selve
+   treffslaget være lavt nok. Slaget gjøres én gang per utfall.    */
+function applyWeakspot(out, aG) {
+  const f = atkFlow;
+  const spots = abilitiesOf(f.target).filter((a) => a.kind === "weakspot");
+  if (!spots.length) return;
+  spots.forEach((spot) => {
+    let found = false;
+    let how = "";
+    if (spot.chance_of_skill) {
+      const need = Math.floor(f.attackSkill * spot.chance_of_skill / 100);
+      found = need > 0 && aG.roll <= need;
+      how = "trengte " + need + " eller lavere, slo " + aG.roll;
+    } else {
+      if (!f.spotRolls) f.spotRolls = {};
+      if (f.spotRolls[spot.id] === undefined) {
+        f.spotRolls[spot.id] = 1 + Math.floor(Math.random() * 100);
+      }
+      const r = f.spotRolls[spot.id];
+      found = r <= (spot.chance || 0);
+      how = "slo " + r + " mot " + (spot.chance || 0) + " %";
+    }
+    if (found && spot.effect === "instant_death") {
+      out.headline = spot.name.toUpperCase() + " — død på stedet";
+      out.instantDeath = true;
+      out.damage = null;
+      out.conditions.push("Død");
+      out.lines.push(spot.name + ": " + how + ". " + spot.description);
+    } else {
+      out.lines.push(spot.name + ": " + how + " — bommet på punktet.");
+    }
+  });
 }
 
 /* Skaden slås én gang per utfall. Uten dette ville tallet endret seg
@@ -4506,12 +5029,32 @@ function computeFlow(aG, dG) {
       return out;
     }
     out.tone = "hit";
-    out.headline = f.attacker.name + " treffer";
     out.victim = f.target;
+
+    // Gikk slaget mot en tentakkel og ikke mot kroppen, river det
+    // lemmet av i stedet for å gjøre skade på HP-en.
+    if (f.part && f.part !== "body") {
+      const ab = abilitiesOf(f.target).find((x) => x.id === f.part);
+      const left = poolLeft(f.target, f.part) || 0;
+      const part = ab ? (ab.unit_one || ab.name.toLowerCase()) : "del";
+      out.headline = left
+        ? f.attacker.name + " river av en " + part
+        : "Ingen igjen å treffe";
+      out.poolHit = left ? f.part : null;
+      out.lines.push(left
+        ? "Telleren går fra " + left + " til " + (left - 1) + ". " +
+          "Ingen skade på HP."
+        : "Det er ingen igjen av dem akkurat nå.");
+      if (ab && ab.house_note) out.lines.push(ab.house_note);
+      return out;
+    }
+
+    out.headline = f.attacker.name + " treffer";
     out.dmgFrom = f.attacker;
     out.dmgAttack = f.attack;
     out.dmgLabel = aG.label;
     out.damage = cachedDamage(f.attacker, f.attack, aG.label, f.target);
+    applyWeakspot(out, aG);
     return out;
   }
 
@@ -4526,6 +5069,7 @@ function computeFlow(aG, dG) {
         out.dmgAttack = f.defAttack;
         out.dmgLabel = dG.label;
         out.damage = cachedDamage(f.target, f.defAttack, dG.label, f.attacker);
+        out.dmgSource = damageSourceOf(f.defAttack);
       } else {
         out.lines.push("Ingen angrep valgt for mot-slaget — skriv inn " +
                        "skaden for hånd.");
@@ -4578,19 +5122,34 @@ function renderVerdict(box, dmgBox, res) {
   if (!res.damage || !res.victim) return;
 
   const victim = res.victim;
-  const armor = armorValue(victim);
-  const net = Math.max(0, res.damage.total - armor);
+  const src = res.dmgSource || atkFlow.source;
+  // Noen skapninger bryr seg ikke om kuler, andre ikke om ild.
+  const filt = filterDamage(victim, res.dmgAttack, src, res.damage);
+  // Polyppens tentakkel går rett på HP — rustning hjelper ikke.
+  const ignores = !!(res.dmgAttack && res.dmgAttack.ignores_armor);
+  const armor = ignores ? 0 : armorValue(victim);
+  const net = Math.max(0, filt.amount - armor);
   const wound = woundOutcome(victim, net);
+
+  const bits = [];
+  if (filt.amount !== res.damage.total) {
+    bits.push(res.damage.total + " → " + filt.amount);
+  }
+  if (armor) bits.push("− rustning " + armor);
+  else if (ignores && armorValue(victim)) bits.push("rustning teller ikke");
 
   dmgBox.className = "dmgbox";
   dmgBox.appendChild(el("p", { class: "eyebrow", text: "Skade" }));
   dmgBox.appendChild(el("p", { class: "dmgnum" }, [
     el("b", { text: String(net) }),
     el("span", { text: " på " + victim.name +
-      (armor ? "  (" + res.damage.total + " − rustning " + armor + ")" : "") }),
+      (bits.length ? "  (" + bits.join(", ") + ")" : "") }),
   ]));
   dmgBox.appendChild(el("p", { class: "entry-sub",
     text: res.damage.detail + (res.damage.impaled ? "  — SPIDDET" : "") }));
+  if (filt.note) {
+    dmgBox.appendChild(el("p", { class: "caveat", text: filt.note }));
+  }
   dmgBox.appendChild(el("p", { class: "entry-sub",
     text: "HP " + victim.hp + " → " + wound.hpAfter + " av " + victim.hpMax }));
   wound.notes.forEach((n) => {
@@ -4609,6 +5168,7 @@ function renderVerdict(box, dmgBox, res) {
   }
   res.net = net;
   res.wound = wound;
+  res.filterNote = filt.note;
 }
 
 async function applyFlowResult() {
@@ -4627,6 +5187,25 @@ async function applyFlowResult() {
 
   if (res.attackerCondition) addCondition(f.attacker, res.attackerCondition);
 
+  // Angrepet brukte opp en tentakkel eller et vindstøt.
+  spendAttack(f.attacker, f.attack);
+  if (res.fightBack && f.defAttack) spendAttack(f.target, f.defAttack);
+
+  // Et treff mot en teller river av lemmet i stedet for å gjøre skade.
+  if (res.poolHit) {
+    const ab = abilitiesOf(f.target).find((x) => x.id === res.poolHit);
+    const before = poolLeft(f.target, res.poolHit) || 0;
+    f.target.pools[res.poolHit] = Math.max(0, before - 1);
+    log.push(f.target.name + ": " + (ab ? ab.name : res.poolHit) + " " +
+             before + " → " + f.target.pools[res.poolHit] + ".");
+  }
+
+  if (res.instantDeath && res.victim) {
+    res.victim.hp = 0;
+    log.push(res.victim.name + " er ferdig — treff i et punkt som dreper " +
+             "på stedet.");
+  }
+
   if (res.damage && res.victim) {
     const victim = res.victim;
     const net = res.net !== undefined ? res.net
@@ -4640,6 +5219,7 @@ async function applyFlowResult() {
              (res.damage.impaled ? " (SPIDDET)" : "") +
              " [" + res.damage.detail + "]  " +
              before + " → " + victim.hp + " HP.");
+    if (res.filterNote) log.push("  " + res.filterNote);
     wound.notes.forEach((n) => log.push("  " + n));
   }
 
@@ -5268,6 +5848,9 @@ function loadBestiary() {
 
   const w = loadBundled("bundled-weapons");
   state.weapons = (w && Array.isArray(w.weapons)) ? w : null;
+
+  const ab = loadBundled("bundled-abilities");
+  state.abilities = (ab && Array.isArray(ab.entries)) ? ab : null;
 
   const t = loadBundled("bundled-talents");
   state.talents = (t && Array.isArray(t.talents)) ? t : null;

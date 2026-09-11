@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 4
+VERSION = 5
 
 # --------------------------------------------------------------- meta
 
@@ -1150,17 +1150,37 @@ data["npcs"] = [
                "INT": "14", "POW": "80", "HP": "38", "MP": "16",
                "DB": "+5D6 (bare for vindstøtet)",
                "Move": "8 / 12 flygende", "Armor": "4"},
-        combat=["Tentacle 85 %, skade 1D10 — som uttørking eller "
-                "ekstrem vindbrenning",
-                "Windblast 70 %, skade db, redusert med 1D6 per 18 "
-                "meter avstand — knuser glass og slynger møbler",
+        combat=["TENTAKLER: slå 2D6 ved starten av hver runde for hvor "
+                "mange tentakler som kan angripe den runden. Hver av "
+                "dem gjør ett angrep, 85 %, skade 1D10 — rett på HP, "
+                "rustning hjelper ikke, fordi vesenet bare er halvveis "
+                "materielt. Såret ser ut som uttørking eller ekstrem "
+                "vindbrenning.",
+                "VINDSTØT: én gang per runde, 70 %, skade lik damage "
+                "bonus (5D6). Sylinder på 9 meter i tverrsnitt, "
+                "grunnrekkevidde 18 meter; skaden faller 1D6 for hvert "
+                "nye multiplum av den avstanden. Knuser glass, slynger "
+                "møbler, og blåser ofrene bakover like mange meter som "
+                "de mistet HP.",
+                "FIXING ATTACK: fangstvinden, rekkevidde 900 meter, går "
+                "rundt hjørner. Motstående STR mot polyppens POW hver "
+                "runde — halv POW over 180 meter. Vinner polyppen, "
+                "kommer målet seg ikke unna den runden.",
+                "Hvert vindangrep koster 1 magic point per runde.",
                 "Bruker 10 runder på å rive seg gjennom skroget til "
                 "lasterom 7"],
         armor="4 poeng. Tar bare MINIMUM skade fra fysiske våpen. "
               "Fortryllede våpen, ild og elektriske angrep gjør full "
               "skade.",
         special="På grunn av det fullstendige raseriet forblir den "
-                "SYNLIG — som betyr at alle om bord ser den.\n\n"
+                "SYNLIG — som betyr at alle om bord ser den. Normalt "
+                "glir en polyp inn og ut av syne, og da trekkes POW-en "
+                "dens fra treffsjansen til den som skyter. Gjør den seg "
+                "helt usynlig (1 magic point per runde), bruker den "
+                "ikke tentakler i det hele tatt, men kan fortsatt "
+                "vindangripe og kaste formler; da må man først klare et "
+                "Listen-slag for å høre hvor pipelyden kommer fra, og "
+                "trekker 50 prosentpoeng fra treffsjansen.\n\n"
                 "Stanser pipene, snur den og drar tilbake dit den kom "
                 "fra, og etterlater seg en stripe av ødeleggelse. "
                 "Fortsetter de å spille, legger den skipet i grus.",
@@ -1170,7 +1190,10 @@ data["npcs"] = [
                    "opposed rollen for Bind Flying Polyp og "
                    "skadereglene). Skills: Hide 30 %, Track 35 %.",
         notes="Se Regler: Å håndtere polyppen for de tre utveiene — "
-              "ødelegg pipene, bind den, eller slåss."),
+              "ødelegg pipene, bind den, eller slåss. Tentakkeltelleren "
+              "og vindstøtet er bygget inn i kamptrackeren i "
+              "nettleserversjonen: 2D6 slås automatisk ved hvert "
+              "rundeskifte, og hvert angrep bruker opp en tentakkel."),
 
     npc("npc-hunting-horror", "Hunting Horror", "Monster",
         "Valgfritt — tilkalt for å drepe heltene",
@@ -1182,10 +1205,20 @@ data["npcs"] = [
                "INT": "16", "POW": "21", "HP": "26", "MP": "4",
                "DB": "+3D6", "Move": "7 / 11 flygende",
                "Armor": "9"},
-        combat=["Bite 65 %, skade 1D6",
-                "Tail 90 %, grapple — halen snører seg om målet"],
+        combat=["TO HANDLINGER: den kan bite OG bruke halen i samme "
+                "runde.",
+                "Bite 65 %, skade 1D6",
+                "Tail 90 %, grapple — halen snører seg om målet og "
+                "holder det fast. Den kan fly av gårde med offeret, "
+                "eller bli stående og slåss. Offeret slipper løs bare "
+                "ved et motstående STR mot STR.",
+                "Mens noen henger i halen, kan skapningen bare bite — "
+                "men får +20 % på treffsjansen mot den som dingler. Den "
+                "som er grepet får som regel ikke slått tilbake "
+                "fysisk, men kan bruke formler."],
         special="Ødelegges av direkte sollys. Om bord betyr det at den "
-                "må håndteres før daggry, eller drives ut på åpent dekk.",
+                "må håndteres før daggry, eller drives ut på åpent "
+                "dekk. Et kraftig nok lysglimt kan svi den til støv.",
         sanity_loss="1D3/1D20",
         stats_note="Karakteristikker fra Malleus Monstrorum. Rustning: "
                    "9 poeng hud, og den kan ikke impales av kuler. "

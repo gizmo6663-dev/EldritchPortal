@@ -21,6 +21,7 @@ SCENARIO_DIR = os.path.join(ROOT, "scenarios")
 BESTIARY_DIR = os.path.join(ROOT, "bestiary")
 WEAPONS_FILE = os.path.join(ROOT, "weapons.json")
 TALENTS_FILE = os.path.join(BESTIARY_DIR, "talents.json")
+ABILITIES_FILE = os.path.join(BESTIARY_DIR, "abilities.json")
 
 SKELETON = """<!doctype html>
 <html lang="nb">
@@ -58,7 +59,8 @@ def main():
     bestiary = {"creatures": []}
     if os.path.isdir(BESTIARY_DIR):
         for name in sorted(os.listdir(BESTIARY_DIR)):
-            if not name.endswith(".json") or name == "talents.json":
+            if not name.endswith(".json") or name in ("talents.json",
+                                                      "abilities.json"):
                 continue
             with open(os.path.join(BESTIARY_DIR, name),
                       encoding="utf-8") as fh:
@@ -78,11 +80,16 @@ def main():
     if os.path.exists(TALENTS_FILE):
         with open(TALENTS_FILE, encoding="utf-8") as fh:
             talents = json.load(fh)
+    abilities = {"entries": []}
+    if os.path.exists(ABILITIES_FILE):
+        with open(ABILITIES_FILE, encoding="utf-8") as fh:
+            abilities = json.load(fh)
 
     page = template.replace("/*__SCENARIOS__*/", embed(scenarios))
     page = page.replace("/*__BESTIARY__*/", embed(bestiary))
     page = page.replace("/*__WEAPONS__*/", embed(weapons))
     page = page.replace("/*__TALENTS__*/", embed(talents))
+    page = page.replace("/*__ABILITIES__*/", embed(abilities))
 
     app_path = os.path.join(HERE, "app.html")
     with open(app_path, "w", encoding="utf-8") as fh:
@@ -100,8 +107,9 @@ def main():
               f"{os.path.getsize(path) / 1024:8.1f} kB")
     print(f"{len(scenarios)} scenario(er), "
           f"{len(bestiary['creatures'])} skapninger, "
-          f"{len(weapons.get('weapons', []))} våpen og "
-          f"{len(talents.get('talents', []))} talenter bygget inn")
+          f"{len(weapons.get('weapons', []))} våpen, "
+          f"{len(talents.get('talents', []))} talenter og "
+          f"{len(abilities.get('entries', []))} spesialregelsett bygget inn")
 
 
 if __name__ == "__main__":
