@@ -2,180 +2,236 @@
   "version": 1,
   "title": "Regler bak talentene",
   "source": "Pulp Cthulhu og Call of Cthulhu 7e (Chaosium)",
-  "note": "Flere talenter sier bare «see Psychic Powers, page 83» eller «may spend 10 Luck points». Her står reglene de viser til, slik at man slipper å slå opp i boka midt i en økt.",
+  "note": "Talentreglene her er fra Pulp Cthulhu, som jeg IKKE har som tekst i denne økta. De er skrevet ned fra kjennskap til reglene, ikke lest av fra boka, og de bør kontrolleres mot den før de avgjør noe viktig. Seksjoner merket «grunnbok» er derimot lest av fra Call of Cthulhu 7e.",
   "rules": [
     {
       "id": "psychic-powers",
       "title": "Psykiske krefter",
-      "source": "Pulp Cthulhu s. 83–85",
+      "source": "Pulp Cthulhu — ikke kontrollert mot boka",
       "intro": "Talentet Psychic Power gir én psykisk kraft, og den er en ferdighet som alle andre — poeng må legges i den fra yrket eller fra personlige interesser. Startverdien er 00 %.\n\nÅ bruke en psykisk kraft koster magic points, på samme måte som formler. Har helten ikke nok igjen, slås et CON-slag: klarer hen det, holder hen seg våken og resten av kostnaden tas rett fra HP; ryker slaget, faller hen bevisstløs og kraften virker ikke.\n\nEt mislykket slag betyr at ingenting skjer — kostnaden i magic points er betalt og tapt. For de rundt ser det ut som at personen nøler et øyeblikk. Slaget kan pushes med en rimelig begrunnelse.\n\nVanskegrad: Regular når man har god tid i rolige omgivelser, Hard midt i dramatisk handling, for eksempel i en kamp.",
       "sections": [
         {
           "title": "Telekinesis",
-          "body": "Flytter gjenstander med tankekraft. Helten kan bevege enhver livløs ting som et gjennomsnittsmenneske lett kunne løftet og kastet, for 1 magic point per gjenstand.\n\nUTENFOR KAMP: et Telekinesis-slag og 1 magic point flytter gjenstanden inntil 5 meter, normalt i hvilken retning man vil.\n\nI KAMP: et kombinert Telekinesis- og Throw-slag, og 1 magic point. Slaget må være lik eller under BEGGE ferdighetene for å telle som et avstandsangrep, og kan ikke pushes. Målet kan unnvike hvis det er klar over angrepet (motsatt slag mot den psykiskes). Skaden følger gjenstanden — vanligvis 1D4 til 1D6 for noe smått eller middels stort.\n\nSOM FORSVAR: telekinese kan brukes som usynlig rustning. Ett Telekinesis-slag per angrep, og 1 magic point gir 1 poeng rustning — 10 magic points gir 10 poeng. Slaget kan ikke pushes når det brukes slik.\n\nVALGFRITT: vil man flytte noe større enn ett menneske klarer, for eksempel en bil, settes kostnaden i magic points til hvor mange folk det realistisk ville tatt, og vanskegraden heves til Extreme. Gjenstanden kan ikke kastes eller løftes høyt, bare dras sakte inntil 3 meter."
+          "body": "Flytter gjenstander med tankekraft. Helten kan bevege enhver livløs ting som et gjennomsnittsmenneske lett kunne løftet og kastet, for 1 magic point per gjenstand.\n\nUTENFOR KAMP: et Telekinesis-slag og 1 magic point flytter gjenstanden inntil 5 meter, normalt i hvilken retning man vil.\n\nI KAMP: et kombinert Telekinesis- og Throw-slag, og 1 magic point. Slaget må være lik eller under BEGGE ferdighetene for å telle som et avstandsangrep, og kan ikke pushes. Målet kan unnvike hvis det er klar over angrepet (motsatt slag mot den psykiskes). Skaden følger gjenstanden — vanligvis 1D4 til 1D6 for noe smått eller middels stort.\n\nSOM FORSVAR: telekinese kan brukes som usynlig rustning. Ett Telekinesis-slag per angrep, og 1 magic point gir 1 poeng rustning — 10 magic points gir 10 poeng. Slaget kan ikke pushes når det brukes slik.\n\nVALGFRITT: vil man flytte noe større enn ett menneske klarer, for eksempel en bil, settes kostnaden i magic points til hvor mange folk det realistisk ville tatt, og vanskegraden heves til Extreme. Gjenstanden kan ikke kastes eller løftes høyt, bare dras sakte inntil 3 meter.",
+          "source": "pulp"
         },
         {
           "title": "Clairvoyance",
-          "body": "Annet syn. Gir kunnskap om en gjenstand, en person, et sted eller en hendelse — også evnen til å ane gjenferd og usynlige Mythos-skapninger, grovt lokalisere noe som er borte, eller kjenne at noe tragisk har skjedd på et sted.\n\nHelten konsentrerer seg i 1D6 runder, bruker 1D6+1 magic points, og slår Clairvoyance. Mislykkes slaget, oppfattes ingenting; det kan pushes for ytterligere 5 magic points. Ved suksess får hen noe relevant å vite — hva og hvor mye er Keeperens avgjørelse, og er ofte vagt eller ufullstendig.\n\nKommer hen i kontakt med en fremmed intelligens, kreves et Sanity-slag med det vanlige tapet for den skapningen."
+          "body": "Annet syn. Gir kunnskap om en gjenstand, en person, et sted eller en hendelse — også evnen til å ane gjenferd og usynlige Mythos-skapninger, grovt lokalisere noe som er borte, eller kjenne at noe tragisk har skjedd på et sted.\n\nHelten konsentrerer seg i 1D6 runder, bruker 1D6+1 magic points, og slår Clairvoyance. Mislykkes slaget, oppfattes ingenting; det kan pushes for ytterligere 5 magic points. Ved suksess får hen noe relevant å vite — hva og hvor mye er Keeperens avgjørelse, og er ofte vagt eller ufullstendig.\n\nKommer hen i kontakt med en fremmed intelligens, kreves et Sanity-slag med det vanlige tapet for den skapningen.",
+          "source": "pulp"
         },
         {
           "title": "Divination",
-          "body": "Spådom med et ritual — tarot, pendel, ouijabrett, runer. Retter seg mot ett bestemt spørsmål som kan besvares med ja eller nei: «Er det fare i huset i Ocean Avenue?», «Lever dr. Zarkov?» Alt utover det er opp til Keeperen.\n\nEn lesning tar 1D10 runder, koster 1D6 magic points og krever et vellykket Divination-slag."
+          "body": "Spådom med et ritual — tarot, pendel, ouijabrett, runer. Retter seg mot ett bestemt spørsmål som kan besvares med ja eller nei: «Er det fare i huset i Ocean Avenue?», «Lever dr. Zarkov?» Alt utover det er opp til Keeperen.\n\nEn lesning tar 1D10 runder, koster 1D6 magic points og krever et vellykket Divination-slag.",
+          "source": "pulp"
         },
         {
           "title": "Medium",
-          "body": "Kontakt med ånder, kanskje til og med fremmede nærvær. Mediet åpner en del av sinnet sitt og blir en kanal. Det kommer ofte som en stemme gjennom mediets munn, men kan også være ord og setninger som dukker opp i tankene.\n\nMediet bruker 1D10 runder på å forberede seg. Ånder liker ikke alltid å bli kontaktet, og samtalen er kort — noen minutter på det meste. Mediet vet ikke hva det får tak i. Kaprer et ondsinnet nærvær seansen, kan mediet forsøke et motsatt POW-slag for å drive det ut. Mislykkes det, kan vesenet styre kroppen i inntil 1D10 runder før mediet besvimer og vesenet kastes av. Slikt krever som regel Sanity-slag."
+          "body": "Kontakt med ånder, kanskje til og med fremmede nærvær. Mediet åpner en del av sinnet sitt og blir en kanal. Det kommer ofte som en stemme gjennom mediets munn, men kan også være ord og setninger som dukker opp i tankene.\n\nMediet bruker 1D10 runder på å forberede seg. Ånder liker ikke alltid å bli kontaktet, og samtalen er kort — noen minutter på det meste. Mediet vet ikke hva det får tak i. Kaprer et ondsinnet nærvær seansen, kan mediet forsøke et motsatt POW-slag for å drive det ut. Mislykkes det, kan vesenet styre kroppen i inntil 1D10 runder før mediet besvimer og vesenet kastes av. Slikt krever som regel Sanity-slag.",
+          "source": "pulp"
         },
         {
           "title": "Psychometry",
-          "body": "Suger inntrykk og følelser ut av en fysisk, livløs gjenstand — en bok, et hus, et sigarettetui. Lesningen sier noe om hvem eieren er eller var, og hva slags menneske det er.\n\nHelten må ta på gjenstanden og konsentrere seg i 1D10 minutter uten å gjøre noe annet. Så slås Psychometry og 1D6+4 magic points brukes. Sterke følelser kommer først — sorg, hat, kjærlighet — deretter mer bestemte inntrykk: om gjenstanden er brukt til et drap, hvem den tilhører, eller hvor den har vært.\n\nOpplysningene bør holdes forholdsvis vage. Brukt ubesindig velter psychometry en etterforskning."
+          "body": "Suger inntrykk og følelser ut av en fysisk, livløs gjenstand — en bok, et hus, et sigarettetui. Lesningen sier noe om hvem eieren er eller var, og hva slags menneske det er.\n\nHelten må ta på gjenstanden og konsentrere seg i 1D10 minutter uten å gjøre noe annet. Så slås Psychometry og 1D6+4 magic points brukes. Sterke følelser kommer først — sorg, hat, kjærlighet — deretter mer bestemte inntrykk: om gjenstanden er brukt til et drap, hvem den tilhører, eller hvor den har vært.\n\nOpplysningene bør holdes forholdsvis vage. Brukt ubesindig velter psychometry en etterforskning.",
+          "source": "pulp"
         }
       ]
     },
     {
       "id": "weird-science",
       "title": "Weird Science og dingser",
-      "source": "Pulp Cthulhu s. 86–88",
+      "source": "Pulp Cthulhu — ikke kontrollert mot boka",
       "intro": "Talentet Weird Science lar helten bygge og reparere weird science-innretninger. Talentet Gadget gir én ferdig dings ved spillets start. Hvor mye slikt som finnes i spillet, er Keeperens avgjørelse — i lavere pulp-nivå bør dingser stort sett ligge hos skurker og monstre.\n\nEn dings bør gjøre ÉN ting. En innretning bygget for å frakte folk til månen, frakter folk til månen — ikke til Jupiter.",
       "sections": [
         {
           "title": "Å bygge en dings",
-          "body": "Helten må først skaffe delene, og ha verksted og verktøy. Det kan gå ut over spending level, tvinge fram salg av verdier, eller kreve at deler blir stjålet.\n\nSå kreves kunnskapen: Mechanical Repair, Electrical Repair, Computer Use, Occult — og Cthulhu Mythos for det virkelig esoteriske. Ett slag, eller et kombinert slag, avgjør om byggingen lyktes. Keeperen setter vanskegraden.\n\nTiden det tar, settes av Keeperen og skal øke med kompleksiteten: en enkel dings 1D10+5 timer, en sammensatt 1D10+5 dager eller måneder, en svært sammensatt 1D10+5 år."
+          "body": "Helten må først skaffe delene, og ha verksted og verktøy. Det kan gå ut over spending level, tvinge fram salg av verdier, eller kreve at deler blir stjålet.\n\nSå kreves kunnskapen: Mechanical Repair, Electrical Repair, Computer Use, Occult — og Cthulhu Mythos for det virkelig esoteriske. Ett slag, eller et kombinert slag, avgjør om byggingen lyktes. Keeperen setter vanskegraden.\n\nTiden det tar, settes av Keeperen og skal øke med kompleksiteten: en enkel dings 1D10+5 timer, en sammensatt 1D10+5 dager eller måneder, en svært sammensatt 1D10+5 år.",
+          "source": "pulp"
         },
         {
           "title": "Vanskegrad etter hva dingsen gjør",
-          "body": "REGULAR: én enkel, ikke-ødeleggende funksjon. Eller den etterligner et ferdighetsslag med 40 % sjanse, slik at en ufaglært får 40 %.\n\nHARD: én sammensatt eller ødeleggende funksjon, for eksempel et våpen. Eller den etterligner et ferdighetsslag med 60 %. Eller den gir en bonusterning til ett bestemt ferdighetsslag, med 1D4 bruk.\n\nEXTREME: én svært sammensatt funksjon. Eller én bisarr funksjon. Eller den etterligner et ferdighetsslag med 90 %. Eller den gir en bonusterning med 1D10 bruk. Alt som har med Mythos å gjøre, ligger her.\n\n(Cthulhu Mythos kan aldri etterlignes av en dings.)"
+          "body": "REGULAR: én enkel, ikke-ødeleggende funksjon. Eller den etterligner et ferdighetsslag med 40 % sjanse, slik at en ufaglært får 40 %.\n\nHARD: én sammensatt eller ødeleggende funksjon, for eksempel et våpen. Eller den etterligner et ferdighetsslag med 60 %. Eller den gir en bonusterning til ett bestemt ferdighetsslag, med 1D4 bruk.\n\nEXTREME: én svært sammensatt funksjon. Eller én bisarr funksjon. Eller den etterligner et ferdighetsslag med 90 %. Eller den gir en bonusterning med 1D10 bruk. Alt som har med Mythos å gjøre, ligger her.\n\n(Cthulhu Mythos kan aldri etterlignes av en dings.)",
+          "source": "pulp"
         },
         {
           "title": "Når det går galt",
-          "body": "Et mislykket slag betyr at innretningen ikke virker, og det må gå like lang tid til før et nytt slag er mulig. Med en god begrunnelse kan slaget pushes — men følgen av et mislykket pushet slag skal være dramatisk, sannsynligvis eksplosiv, og koste HP. Et fumlet slag, pushet eller ikke, betyr at innretningen er fullstendig ødelagt.\n\nForslag til mislykkede pushede slag:\n• Dingsen virker en stund, men kan eksplodere når som helst: Luck-slag hver gang den brukes, og ved fiasko eksploderer den og gjør 1D6 skade på brukeren og alle innenfor halvannen meter.\n• Den går opp i en ildkule og gjør mellom 2D10 og 4D10 på alle innenfor tre meter.\n• Den virker ikke som tenkt, har en alvorlig bivirkning, eller oppfører seg farlig og uventet."
+          "body": "Et mislykket slag betyr at innretningen ikke virker, og det må gå like lang tid til før et nytt slag er mulig. Med en god begrunnelse kan slaget pushes — men følgen av et mislykket pushet slag skal være dramatisk, sannsynligvis eksplosiv, og koste HP. Et fumlet slag, pushet eller ikke, betyr at innretningen er fullstendig ødelagt.\n\nForslag til mislykkede pushede slag:\n• Dingsen virker en stund, men kan eksplodere når som helst: Luck-slag hver gang den brukes, og ved fiasko eksploderer den og gjør 1D6 skade på brukeren og alle innenfor halvannen meter.\n• Den går opp i en ildkule og gjør mellom 2D10 og 4D10 på alle innenfor tre meter.\n• Den virker ikke som tenkt, har en alvorlig bivirkning, eller oppfører seg farlig og uventet.",
+          "source": "pulp"
         },
         {
           "title": "Mythos-teknologi",
-          "body": "Mange Mythos-raser har sin egen teknologi. Den faller inn under weird science, men er ikke laget for mennesker. Havner den i menneskehender, er den vanskelig å bruke — brukeren skader som regel seg selv før hen får den til å virke. Mennesker kan heller ikke kopiere slike innretninger eller egentlig forstå hvordan de er laget."
+          "body": "Mange Mythos-raser har sin egen teknologi. Den faller inn under weird science, men er ikke laget for mennesker. Havner den i menneskehender, er den vanskelig å bruke — brukeren skader som regel seg selv før hen får den til å virke. Mennesker kan heller ikke kopiere slike innretninger eller egentlig forstå hvordan de er laget.",
+          "source": "pulp"
         }
       ]
     },
     {
       "id": "luck-spends",
       "title": "Å bruke Luck",
-      "source": "Pulp Cthulhu s. 60–62",
+      "source": "Pulp Cthulhu — ikke kontrollert mot boka",
       "intro": "Flere talenter koster Luck å bruke. Dette er hele lista over hva en pulp-helt kan kjøpe med Luck-poengene sine.",
       "sections": [
         {
           "title": "Justere et ferdighets- eller karakteristikk-slag",
-          "body": "Koster 1 for 1. Etter at slaget er gjort, kan Luck brukes til å endre resultatet, poeng for poeng. Det eneste taket er hvor mye Luck helten har igjen."
+          "body": "Koster 1 for 1. Etter at slaget er gjort, kan Luck brukes til å endre resultatet, poeng for poeng. Det eneste taket er hvor mye Luck helten har igjen.",
+          "source": "pulp"
         },
         {
           "title": "«Det er bare en skramme!»",
-          "body": "Koster 20 Luck. Etter å ha tatt skade kan helten bruke 20 Luck og få tilbake 1D6 HP med én gang. Man kan ikke komme over maks HP. Keeperen kan også la dette brukes en stund etter at skaden ble tatt, som raskere helbredelse for en hardt skadet helt."
+          "body": "Koster 20 Luck. Etter å ha tatt skade kan helten bruke 20 Luck og få tilbake 1D6 HP med én gang. Man kan ikke komme over maks HP. Keeperen kan også la dette brukes en stund etter at skaden ble tatt, som raskere helbredelse for en hardt skadet helt.",
+          "source": "pulp"
         },
         {
           "title": "Unngå en sikker død",
-          "body": "Koster alle Luck-poengene, minst 30. Har helten 30 eller flere igjen, kan alle brukes til å komme tilbake fra dødens rand: hen får 1D6+1 HP og dukker opp i neste scene i passende forfatning. Spilleren forteller selv hvordan det gikk til.\n\nHelten står da på null Luck resten av økta, og får neppe 30 igjen på en stund."
+          "body": "Koster alle Luck-poengene, minst 30. Har helten 30 eller flere igjen, kan alle brukes til å komme tilbake fra dødens rand: hen får 1D6+1 HP og dukker opp i neste scene i passende forfatning. Spilleren forteller selv hvordan det gikk til.\n\nHelten står da på null Luck resten av økta, og får neppe 30 igjen på en stund.",
+          "source": "pulp"
         },
         {
           "title": "Se bort fra en fumle eller en våpenfeil",
-          "body": "Koster 10 Luck. Sier slaget at nærkampvåpenet fumler eller at skytevåpenet feiler, kan 10 Luck brukes til å se bort fra følgen. Selve terningkastet står — angrepet er fortsatt bommet — men våpenet knekker ikke og geværet låser seg ikke."
+          "body": "Koster 10 Luck. Sier slaget at nærkampvåpenet fumler eller at skytevåpenet feiler, kan 10 Luck brukes til å se bort fra følgen. Selve terningkastet står — angrepet er fortsatt bommet — men våpenet knekker ikke og geværet låser seg ikke.",
+          "source": "pulp"
         },
         {
           "title": "Halvere Sanity-tap",
-          "body": "Koster dobbelt så mye Luck som tapet. Etter et mislykket Sanity-slag kan tapet halveres ved å bruke Luck lik det dobbelte. Mister helten 8 Sanity, koster det 16 Luck å gjøre det om til 4."
+          "body": "Koster dobbelt så mye Luck som tapet. Etter et mislykket Sanity-slag kan tapet halveres ved å bruke Luck lik det dobbelte. Mister helten 8 Sanity, koster det 16 Luck å gjøre det om til 4.",
+          "source": "pulp"
         },
         {
           "title": "Holde seg våken",
-          "body": "Koster 1 Luck, og dobles hver runde. Ryker CON-slaget for å holde seg våken, eller er bevisstløshet automatisk, kan helten bruke 1 Luck for å stå oppreist ut runden. Neste runde koster 2, så 4, 8, 16 — betalt i starten av hver runde. Når Luck tar slutt, eller helten ikke vil betale mer, faller hen om."
+          "body": "Koster 1 Luck, og dobles hver runde. Ryker CON-slaget for å holde seg våken, eller er bevisstløshet automatisk, kan helten bruke 1 Luck for å stå oppreist ut runden. Neste runde koster 2, så 4, 8, 16 — betalt i starten av hver runde. Når Luck tar slutt, eller helten ikke vil betale mer, faller hen om.",
+          "source": "pulp"
         }
       ]
     },
     {
       "id": "dive-for-cover",
       "title": "Å dykke i dekning",
-      "source": "Call of Cthulhu 7e, kapittel 7",
-      "intro": "Skytevåpen kan ikke unnvikes på vanlig vis. Det målet kan gjøre, er å kaste seg i dekning — og det koster neste handling.",
+      "source": "Call of Cthulhu 7e, kapittel 6",
+      "intro": "Skytevåpen kan ikke unnvikes på vanlig vis. Det målet kan gjøre, er å kaste seg i dekning — og det gjør ikke skuddet borte, det gjør det bare vanskeligere. Dette er en av reglene folk oftest tar feil av.",
       "sections": [
         {
           "title": "Slik det spilles",
-          "body": "Målet slår Unnvikelse mot skytterens slag. Lykkes det, treffer ikke skuddet, men målet mister neste handling i runden.\n\nTalentet NIMBLE fjerner den kostnaden: helten mister ikke neste handling når hen dykker i dekning mot skytevåpen.\n\nKamptrackeren gir «Dykk i dekning» som forsvarsvalg mot alle avstandsangrep, og setter tilstanden «Mister neste handling» på den som brukte det. Har figuren Nimble, fjerner du bare den tilstanden igjen."
+          "body": "ET MÅL SOM VET at det blir skutt på, kan kaste seg i dekning: bak noe, ned på gulvet, eller i full fart til siden.\n\nDET KREVER ET UNNVIKELSE-SLAG. LYKKES DET, blir målet vanskeligere å treffe, og ANGRIPEREN FÅR ÉN STRAFFETERNING. Skuddet forsvinner IKKE — det slås fortsatt, bare med straffeterningen på.\n\nEN STRAFFETERNING er en ekstra TIERTERNING: slå én til, behold enerterningen, og bruk det VERSTE av de to tier-resultatene.\n\nPRISEN BETALES UANSETT: den som dykker i dekning mister sitt NESTE angrep, enten unnvikelsen gikk eller ikke. Har figuren alt angrepet denne runden, mister den angrepet sitt NESTE runde. Fram til den får angripe igjen, er det eneste den kan gjøre å unnvike videre angrep. Har en skapning flere angrep per runde, mister den ALLE sammen, ikke bare ett.\n\nBRYTER NOEN DEKNINGEN — om så bare for å skyte et skudd — kan hen bli tatt av en annen som holder på turen sin.\n\nTalentet NIMBLE fjerner kostnaden: helten mister ikke angrepet sitt når hen dykker i dekning mot skytevåpen.\n\nI KAMPTRACKEREN: velg «Dykk i dekning» som forsvar. Går unnvikelsen, ber appen om den ekstra tierterningen og regner ut hva slaget teller som. Tilstanden «Mister neste angrep» settes uansett — har figuren Nimble, fjerner du den bare igjen.",
+          "source": "grunnbok"
         },
         {
           "title": "Undertrykkende ild",
-          "body": "En skytter med automatvåpen kan hose ned et område uten å peke ut ett mål. Alle i området får valget om å dykke i dekning, og de som gjør det kan ikke skyte tilbake. Helter velger selv; alle andre antas å kaste seg ned. Deretter trekker Keeperen målet eller målene tilfeldig blant hele gruppa — også blant dem som kom seg i dekning, som da er vanskeligere å treffe."
+          "body": "En skytter med automatvåpen kan hose ned et område uten å peke ut ett mål. Alle i området får valget om å dykke i dekning, og de som gjør det kan ikke skyte tilbake. Helter velger selv; alle andre antas å kaste seg ned. Deretter trekker Keeperen målet eller målene tilfeldig blant hele gruppa — også blant dem som kom seg i dekning, som da er vanskeligere å treffe.",
+          "source": "grunnbok"
         },
         {
           "title": "Liggende",
-          "body": "Den som ligger flatt er et mindre mål: skytevåpen mot en liggende figur får en straffeterning, med mindre det skytes på klosshold. Nærkampangrep mot en liggende får derimot en bonusterning.\n\nÅ ligge er også et stødig skytestativ: en liggende figur får en bonusterning på Firearms-slag. Man kan reise seg når man lykkes med å unnvike eller slå tilbake, eller bruke sin egen tur på å komme seg opp og så handle."
+          "body": "Den som ligger flatt er et mindre mål: skytevåpen mot en liggende figur får en straffeterning, med mindre det skytes på klosshold. Nærkampangrep mot en liggende får derimot en bonusterning.\n\nÅ ligge er også et stødig skytestativ: en liggende figur får en bonusterning på Firearms-slag. Man kan reise seg når man lykkes med å unnvike eller slå tilbake, eller bruke sin egen tur på å komme seg opp og så handle.",
+          "source": "grunnbok"
         }
       ]
     },
     {
       "id": "manoeuvres",
       "title": "Manøvrer og Build",
-      "source": "Call of Cthulhu 7e, kapittel 7, og Pulp Cthulhu s. 65",
+      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
       "intro": "En manøver er alt som ikke er å gjøre skade: gripe, avvæpne, kaste noen i bakken, dra en bevisstløs venn ut av veien. Build avgjør om det i det hele tatt lar seg gjøre.",
       "sections": [
         {
           "title": "Build mot Build",
-          "body": "Er målets Build ett hakk høyere enn angriperens, får angriperen en straffeterning på slaget. Er den to hakk eller mer høyere, lar manøveren seg ikke gjøre i det hele tatt.\n\nTalentet OUTMANEUVER regner helten som ett Build høyere når hen setter i gang en manøver — Build 1 teller som Build 2 — og gjør det dermed mindre sannsynlig å få straffeterningen."
+          "body": "Sammenlign Build på de to. TELL FORSKJELLEN I POENG — det er ikke en av/på-grense:\n\n  • SAMME Build, eller angriperen har HØYERE: ingen modifikator.\n  • Angriperen er ÉTT poeng lavere: ÉN straffeterning.\n  • Angriperen er TO poeng lavere: TO straffeterninger (og to er taket).\n  • Angriperen er TRE poeng eller mer lavere: MANØVEREN ER UMULIG. Hen kan få tak i motstanderen, men mangler kraften og størrelsen til å gjøre noe med grepet.\n\nVED DETTE BORDET: Beefcake har Build 2; Walther, Skjoldvår og Franz har Build 1; Dagrun har Build −1. Polyppen har Build 6. Det betyr at INGEN i gruppa kan gjøre en manøver mot polyppen — forskjellen er fire eller mer. Beefcake er den eneste som kan gjøre noe mot de større motstanderne.\n\nTalentet OUTMANEUVER regner helten som ett Build høyere når hen setter i gang en manøver — Build 1 teller som Build 2 — og flytter dermed grensen ett hakk.",
+          "source": "grunnbok"
         },
         {
           "title": "Knockout",
-          "body": "Pulp Cthulhu: en figur kan si fra at hen forsøker å slå motstanderen bevisstløs. På sin tur i DEX-rekkefølgen, eller som et overraskelsesangrep, behandles det som en manøver med et stumpt angrep — knyttneve, kølle, geværkolbe. Lykkes manøveren, er motstanderen ute, og tar bare 1 i skade.\n\nDet virker på alt som har en skalle eller et tilsvarende sårbart punkt: mennesker, deep ones, ghouls. Ikke på en shoggoth."
+          "body": "Pulp Cthulhu: en figur kan si fra at hen forsøker å slå motstanderen bevisstløs. På sin tur i DEX-rekkefølgen, eller som et overraskelsesangrep, behandles det som en manøver med et stumpt angrep — knyttneve, kølle, geværkolbe. Lykkes manøveren, er motstanderen ute, og tar bare 1 i skade.\n\nDet virker på alt som har en skalle eller et tilsvarende sårbart punkt: mennesker, deep ones, ghouls. Ikke på en shoggoth.",
+          "source": "grunnbok + pulp"
         }
       ]
     },
     {
       "id": "multiple-shots",
       "title": "Flere skudd i samme runde",
-      "source": "Call of Cthulhu 7e s. 113, og Pulp Cthulhu s. 71",
+      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
       "intro": "Talentet RAPID FIRE fjerner straffeterningen for flere håndvåpenskudd i samme runde.",
       "sections": [
         {
           "title": "Regelen",
-          "body": "Skyter man flere skudd i samme runde, får hvert skudd — også det første — en straffeterning. Rapid Fire fjerner den for håndvåpen.\n\nHvor mange skudd våpenet rekker, står i «angrep per runde» på våpenkortet. En Colt M1911 tar tre, en revolver som regel ett til tre."
+          "body": "Skyter man flere skudd i samme runde, får hvert skudd — også det første — en straffeterning. Rapid Fire fjerner den for håndvåpen.\n\nHvor mange skudd våpenet rekker, står i «angrep per runde» på våpenkortet. En Colt M1911 tar tre, en revolver som regel ett til tre.",
+          "source": "grunnbok + pulp"
         },
         {
           "title": "To våpen samtidig",
-          "body": "Valgfri regel i Pulp Cthulhu: hvem som helst kan skyte eller slå med to våpen, ett i hver hånd. Alle angrepene, også det første, får en straffeterning.\n\nFumlesjansen øker også: kreves 50 eller mer for å lykkes, fumler man på 96–100; kreves under 50, fumler man på 90–100. En våpenfeil inntreffer likevel bare innenfor våpenets egen feilgrense.\n\nÅ ha to våpen endrer ikke evnen til å slå tilbake — man slår tilbake med ett av dem."
+          "body": "Valgfri regel i Pulp Cthulhu: hvem som helst kan skyte eller slå med to våpen, ett i hver hånd. Alle angrepene, også det første, får en straffeterning.\n\nFumlesjansen øker også: kreves 50 eller mer for å lykkes, fumler man på 96–100; kreves under 50, fumler man på 90–100. En våpenfeil inntreffer likevel bare innenfor våpenets egen feilgrense.\n\nÅ ha to våpen endrer ikke evnen til å slå tilbake — man slår tilbake med ett av dem.",
+          "source": "grunnbok + pulp"
         }
       ]
     },
     {
       "id": "sanity-and-mythos",
       "title": "Sanity og Cthulhu Mythos",
-      "source": "Call of Cthulhu 7e og Pulp Cthulhu s. 66",
+      "source": "Call of Cthulhu 7e kapittel 8, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
       "intro": "Talentene HARDENED og MYTHOS KNOWLEDGE griper begge inn i Sanity-reglene.",
       "sections": [
         {
           "title": "Hardened",
-          "body": "Helten mister ikke Sanity av å angripe andre mennesker, av å se stygge skader, eller av å se lik. Mythos-syner rammer fortsatt som før."
+          "body": "Helten mister ikke Sanity av å angripe andre mennesker, av å se stygge skader, eller av å se lik. Mythos-syner rammer fortsatt som før.",
+          "source": "grunnbok + pulp"
         },
         {
           "title": "Mythos Knowledge",
-          "body": "Helten starter med Cthulhu Mythos 10. Husk at Cthulhu Mythos trekkes fra maks Sanity: taket er 99 minus Mythos-verdien. Ti poeng Mythos betyr et Sanity-tak på 89."
+          "body": "Helten starter med Cthulhu Mythos 10. Husk at Cthulhu Mythos trekkes fra maks Sanity: taket er 99 minus Mythos-verdien. Ti poeng Mythos betyr et Sanity-tak på 89.",
+          "source": "grunnbok + pulp"
         },
         {
           "title": "Pulp-helter og sår",
-          "body": "Pulp-helter bruker ikke major wound-regelen. De dør av ett slag som er lik eller større enn maks HP. Er slaget på halve maks HP eller mer OG tar dem til null, ligger de for døden. Ellers besvimer de på null. Et slag på halve maks HP eller mer krever CON-slag for å holde seg våken — og der kan Luck brukes (se «Å bruke Luck»)."
+          "body": "Pulp-helter bruker ikke major wound-regelen. De dør av ett slag som er lik eller større enn maks HP. Er slaget på halve maks HP eller mer OG tar dem til null, ligger de for døden. Ellers besvimer de på null. Et slag på halve maks HP eller mer krever CON-slag for å holde seg våken — og der kan Luck brukes (se «Å bruke Luck»).",
+          "source": "grunnbok + pulp"
         }
       ]
     }
   ],
   "talents": {
-    "Psychic Power": ["psychic-powers"],
-    "Weird Science": ["weird-science"],
-    "Gadget": ["weird-science"],
-    "Heavy Hitter": ["luck-spends"],
-    "Master of Disguise": ["luck-spends"],
-    "Resourceful": ["luck-spends"],
-    "Stout Constitution": ["luck-spends"],
-    "Tough Guy": ["luck-spends", "sanity-and-mythos"],
-    "Lucky": ["luck-spends"],
-    "Nimble": ["dive-for-cover"],
-    "Outmaneuver": ["manoeuvres"],
-    "Rapid Fire": ["multiple-shots"],
-    "Hardened": ["sanity-and-mythos"],
-    "Mythos Knowledge": ["sanity-and-mythos"],
-    "Quick Healer": ["sanity-and-mythos"]
+    "Psychic Power": [
+      "psychic-powers"
+    ],
+    "Weird Science": [
+      "weird-science"
+    ],
+    "Gadget": [
+      "weird-science"
+    ],
+    "Heavy Hitter": [
+      "luck-spends"
+    ],
+    "Master of Disguise": [
+      "luck-spends"
+    ],
+    "Resourceful": [
+      "luck-spends"
+    ],
+    "Stout Constitution": [
+      "luck-spends"
+    ],
+    "Tough Guy": [
+      "luck-spends",
+      "sanity-and-mythos"
+    ],
+    "Lucky": [
+      "luck-spends"
+    ],
+    "Nimble": [
+      "dive-for-cover"
+    ],
+    "Outmaneuver": [
+      "manoeuvres"
+    ],
+    "Rapid Fire": [
+      "multiple-shots"
+    ],
+    "Hardened": [
+      "sanity-and-mythos"
+    ],
+    "Mythos Knowledge": [
+      "sanity-and-mythos"
+    ],
+    "Quick Healer": [
+      "sanity-and-mythos"
+    ]
   }
 }

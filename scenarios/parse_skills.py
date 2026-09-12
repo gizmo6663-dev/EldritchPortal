@@ -40,6 +40,12 @@ COLLISION = {
     "Accounting": ("Grants understanding of accountancy procedures", None),
     "Credit Rating": ("A measure of how prosperous",
                       "This skill reflects understanding of the inhuman"),
+    "Climb": ("This skill allows a character to climb trees",
+              "This skill assumes some form of military training"),
+    "Drive Auto": ("Anyone with this skill can drive a car",
+                   "For troubleshooting and repairing electronic equipment"),
+    "Firearms": ("Covers all manner of firearms",
+                 "Fighting skill denotes"),
 }
 
 

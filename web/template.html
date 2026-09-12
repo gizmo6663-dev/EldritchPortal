@@ -1609,8 +1609,23 @@ function rollAttackDamage(combatant, attack, label) {
    Høyeste suksessnivå vinner; står det likt, vinner den med høyest
    ferdighetsverdi. Er også den lik, skjer ingenting.
 
-   Skytevåpen slås ikke motsatt. Målet kan bare dykke i dekning, og
-   mister da neste handling.                                       */
+   Skytevåpen slås ikke motsatt. Målet kan dykke i dekning: det er et
+   Unnvikelse-slag, og LYKKES DET, gir det angriperen én STRAFFETERNING
+   — skuddet blir ikke borte. Den som dykker mister neste angrep
+   uansett om slaget gikk eller ikke.                              */
+
+/* En straffeterning er en EKSTRA TIERTERNING: man beholder enerterningen
+   og bruker det verste av de to tier-resultatene. 00+0 er 100, og 100 er
+   det verste man kan få. Spilleren slår ved bordet og skriver inn den
+   ekstra tierterningen her.                                        */
+function withPenaltyTens(roll, tens) {
+  const r = parseInt(roll, 10);
+  const x = parseInt(tens, 10);
+  if (!(r >= 1 && r <= 100) || !(x >= 0 && x <= 9)) return r;
+  const units = r % 10;                 // 100 gir 0, som er riktig
+  const alt = (x * 10 + units) || 100;  // 00 + 0 = 100
+  return Math.max(r, alt);
+}
 
 function opposedOutcome(att, def) {
   // att og def er resultater fra gradeRoll. def kan være null når den
@@ -3684,12 +3699,19 @@ function openRuleBox(rule, highlight) {
         (x) => x.title.toLowerCase() === String(highlight).toLowerCase());
       if (i > 0) secs.unshift(secs.splice(i, 1)[0]);
     }
-    const SRC_LABEL = {
-      "verbatim": "ordrett fra boka",
-      "reconstructed": "skrevet ut fra reglene",
-      "scenario": "fra scenarioet",
-      "scenario + reconstructed": "scenariotall + reglene",
+    // Merket sier hvilken BOK avsnittet kommer fra, og kan settes
+    // sammen med « + ». Pulp-merket sier uttrykkelig fra om at den
+    // boka ikke er kontrollert, for den finnes ikke som tekst her.
+    const SRC_PART = {
+      "grunnbok": "grunnboka",
+      "pulp": "Pulp Cthulhu (ikke kontrollert)",
+      "scenario": "scenarioet",
       "eget": "til dette bordet",
+    };
+    const srcLabel = (s) => {
+      const parts = String(s || "").split("+").map((x) => x.trim())
+        .filter(Boolean).map((x) => SRC_PART[x] || x);
+      return parts.length ? "fra " + parts.join(" + ") : "";
     };
     secs.forEach((sec) => {
       const on = highlight &&
@@ -3699,7 +3721,7 @@ function openRuleBox(rule, highlight) {
       head.appendChild(el("span", {
         text: sec.title + (on ? "  ← valgt" : "") }));
       // Hva som er sitat og hva som er skrevet ut, skal alltid stå.
-      const tag = SRC_LABEL[sec.source];
+      const tag = srcLabel(sec.source);
       if (tag) {
         head.appendChild(el("span", { class: "line-src", text: tag }));
       }
@@ -4555,7 +4577,7 @@ function viewCombat(root) {
 }
 
 const CONDITIONS = ["Bevisstløs", "Døende", "Død", "Major wound",
-                    "Mister neste handling", "Våpen feilet", "Grepet",
+                    "Mister neste angrep", "Våpen feilet", "Grepet",
                     "Gal", "Skadet", "Flykter"];
 
 // Rustningsfeltet fra fiendebanken er ofte en hel setning («none, but
@@ -5241,12 +5263,25 @@ function buildResolve(body, getApplyBtn) {
     dChip,
   ]);
 
+  // Vises bare når målet dykker i dekning OG slaget gikk: da skal
+  // angriperen ha én straffeterning, altså en ekstra tierterning.
+  const penTens = el("input", { class: "rollin", type: "number",
+    min: "0", max: "9", placeholder: "0-9" });
+  const penBox = el("div", { class: "defroll", hidden: true }, [
+    el("label", { class: "minilabel", text: "Ekstra tierterning" }), penTens,
+    el("button", { class: "btn small", type: "button", text: "Slå",
+      onclick: () => { penTens.value = String(Math.floor(Math.random() * 10));
+                       f.penTens = penTens.value; update(); } }),
+  ]);
+
   function responses() {
     const out = [{ key: "none", label: "Ingenting",
                    hint: "Angriperen trenger bare en vanlig suksess." }];
     if (f.ranged) {
       out.push({ key: "dive", label: "Dykk i dekning",
-                 hint: "Unnvikelse mot skytevåpen. Koster neste handling." });
+                 hint: "Unnvikelse mot skytevåpen. Lykkes slaget, får " +
+                       "angriperen én straffeterning — skuddet forsvinner " +
+                       "ikke. Koster neste angrep uansett." });
       out.push({ key: "dodge", label: "Unnvik likevel",
                  hint: "Kuler kan ikke unnvikes — de kan ikke ses i " +
                        "bevegelse. Bruk bare dette om du som Keeper " +
@@ -5338,11 +5373,6 @@ function buildResolve(body, getApplyBtn) {
         " · vanlig ≤" + dt.regular + " · fumle ≥" + dt.fumble
       : "";
 
-    const aNum = parseInt(f.attackRoll, 10);
-    const aG = (aNum >= 1 && aNum <= 100)
-      ? gradeRoll(aNum, f.attackSkill) : null;
-    aChip.innerHTML = ""; aChip.appendChild(levelChip(aG));
-
     const needsDef = f.response !== "none";
     dBox.hidden = !needsDef;
     const dNum = parseInt(f.defRoll, 10);
@@ -5350,13 +5380,29 @@ function buildResolve(body, getApplyBtn) {
       ? gradeRoll(dNum, f.defSkill) : null;
     dChip.innerHTML = ""; dChip.appendChild(levelChip(dG));
 
+    // Et vellykket dekningsdykk gir angriperen én straffeterning.
+    f.penTens = penTens.value;
+    const penalised = f.response === "dive" && dG && dG.rank > 0;
+    penBox.hidden = !penalised;
+    const ph = body.querySelector("#penhint");
+    if (ph) ph.hidden = !penalised;
+    if (!penalised) { penTens.value = ""; f.penTens = ""; }
+
+    const aNum = parseInt(f.attackRoll, 10);
+    const aUse = penalised ? withPenaltyTens(aNum, f.penTens) : aNum;
+    f.effRoll = aUse;
+    f.penalised = penalised;
+    const aG = (aUse >= 1 && aUse <= 100)
+      ? gradeRoll(aUse, f.attackSkill) : null;
+    aChip.innerHTML = ""; aChip.appendChild(levelChip(aG));
+
     f.result = computeFlow(aG, dG);
     renderVerdict(verdict, dmgBox, f.result);
     const btn = getApplyBtn();
     if (btn) btn.disabled = f.result && f.result.ready ? false : "disabled";
   }
 
-  [aSkill, aRoll, dSkill, dRoll].forEach((inp) => {
+  [aSkill, aRoll, dSkill, dRoll, penTens].forEach((inp) => {
     inp.addEventListener("input", update);
   });
 
@@ -5463,6 +5509,10 @@ function buildResolve(body, getApplyBtn) {
   defCard.appendChild(fbPick);
   defCard.appendChild(dBox);
   defCard.appendChild(dThresh);
+  defCard.appendChild(penBox);
+  defCard.appendChild(el("p", { class: "caveat", id: "penhint", hidden: true,
+    text: "Dekningen holdt. Slå én tierterning til og skriv den inn — " +
+          "angriperen bruker det verste av de to tier-resultatene." }));
   body.appendChild(defCard);
 
   body.appendChild(verdict);
@@ -5550,6 +5600,45 @@ function computeFlow(aG, dG) {
     return out;
   }
 
+  /* Dekningsdykk er ikke et motsatt slag. Unnvikelsen avgjør bare om
+     angriperen får en straffeterning; treffer gjør skuddet hvis det
+     lykkes mot sin egen vanskegrad. Og den som dykket, mister neste
+     angrep uansett hvordan det gikk.                              */
+  if (f.response === "dive") {
+    if (f.penalised && !(parseInt(f.penTens, 10) >= 0)) {
+      out.headline = "Skriv inn den ekstra tierterningen.";
+      return out;
+    }
+    out.ready = true;
+    out.victim = f.target;
+    out.conditions.push("Mister neste angrep");
+    if (f.penalised) {
+      out.lines.push("Dekningen holdt: angriperen fikk én straffeterning, " +
+                     "og slaget teller som " + f.effRoll + ".");
+    } else {
+      out.lines.push("Dekningen holdt ikke — ingen straffeterning.");
+    }
+    out.lines.push("Å dykke i dekning koster neste angrep, uansett om " +
+                   "unnvikelsen gikk. Har figuren alt angrepet denne " +
+                   "runden, mister den angrepet sitt neste runde. Fram " +
+                   "til da kan den bare unnvike.");
+    if (aG.rank > 0) {
+      out.tone = "hit";
+      out.headline = f.attacker.name + " treffer likevel";
+      out.dmgFrom = f.attacker;
+      out.dmgAttack = f.attack;
+      out.dmgLabel = aG.label;
+      out.damage = cachedDamage(f.attacker, f.attack, aG.label, f.target);
+      applyWeakspot(out, aG);
+    } else {
+      out.tone = aG.rank < 0 ? "bad" : "miss";
+      out.headline = aG.rank < 0
+        ? f.attacker.name + " fumler" : f.target.name + " kommer seg unna";
+      out.damage = null;
+    }
+    return out;
+  }
+
   const opp = opposedOutcome(aG, f.response === "none" ? null : dG);
   out.ready = true;
   out.lines.push(opp.why);
@@ -5619,17 +5708,10 @@ function computeFlow(aG, dG) {
       }
       return out;
     }
+    // Dekningsdykk er tatt hånd om over; her er det bare unnvikelse.
     out.tone = "miss";
-    out.headline = f.response === "dive"
-      ? f.target.name + " dykker i dekning" : f.target.name + " unnviker";
-    if (f.response === "dive") {
-      out.conditions.push("Mister neste handling");
-      out.victim = f.target;
-      out.lines.push("Å dykke i dekning koster neste handling. " +
-                     "Angrepet treffer ikke.");
-    } else {
-      out.lines.push("Angrepet treffer ikke.");
-    }
+    out.headline = f.target.name + " unnviker";
+    out.lines.push("Angrepet treffer ikke.");
     return out;
   }
 

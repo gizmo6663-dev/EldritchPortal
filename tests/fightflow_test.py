@@ -245,14 +245,26 @@ async def main():
         await pg.wait_for_timeout(200)
         await pg.fill("#flow-def-roll", "1")
         await pg.wait_for_timeout(300)
-        check("dekning stopper skuddet", await head(), "Ghouls dykker i dekning")
+        # Unnvikelsen gikk, så appen skal be om en ekstra tierterning
+        # i stedet for å la skuddet forsvinne.
+        check("vellykket dekning ber om straffeterningen",
+              await head(), "Skriv inn den ekstra tierterningen.")
+        pen = await pg.evaluate(
+            "() => [...document.querySelectorAll('.defroll')].pop().hidden")
+        check("og feltet er synlig", pen, False)
+        # Slaget var 30; tierterning 8 gjør det til 80, som bommer mot 60.
+        await pg.evaluate("""() => { const e = [...document.querySelectorAll('.rollin')]
+            .pop(); e.value = '8'; e.dispatchEvent(new Event('input')); }""")
+        await pg.wait_for_timeout(300)
+        check("straffeterningen får skuddet til å bomme",
+              await head(), "Ghouls kommer seg unna")
         await pg.evaluate(
             "() => document.querySelectorAll('#modal-foot .btn')[1].click()")
         await pg.wait_for_timeout(600)
         conds = await pg.evaluate(
             "() => state.combat.combatants.find((c) => /Ghoul/.test(c.name)).conditions")
-        check("og koster neste handling",
-              "Mister neste handling" in conds, True)
+        check("og koster neste angrep",
+              "Mister neste angrep" in conds, True)
 
         print("\n== fumle og improvisert angrep ==")
         await open_flow("Plukk opp et annet våpen")
@@ -299,6 +311,48 @@ async def main():
         check("og settes som tilstand", "Død" in dead["conditions"], True)
         check("med HP på null", dead["hp"], 0)
         await pg.screenshot(path=f"{OUT}/liste.png", full_page=True)
+
+        # Dekningsdykk er IKKE et motsatt slag: en vellykket unnvikelse
+        # gir angriperen én straffeterning, og skuddet slås fortsatt.
+        print("\n== dykk i dekning ==")
+        pen = await pg.evaluate("""() => ({
+            ingen: withPenaltyTens(34, 8),
+            bedre: withPenaltyTens(34, 1),
+            hundre: withPenaltyTens(100, 0),
+            nullEr100: withPenaltyTens(10, 0),
+        })""")
+        check("straffeterning tar det verste tier-resultatet", pen["ingen"], 84)
+        check("og aldri det beste", pen["bedre"], 34)
+        check("00 + 0 er 100", pen["nullEr100"], 100)
+        check("100 er verst", pen["hundre"], 100)
+
+        flow = await pg.evaluate("""() => {
+            atkFlow = { attacker: {name:'A', build:1}, target: {name:'B', build:1},
+                        attack: {name:'Skudd', damage:'1D6'}, ranged: true,
+                        response: 'dive', penalised: true, penTens: '8',
+                        effRoll: 84, part: 'body' };
+            const a = gradeRoll(84, 60), d = gradeRoll(20, 40);
+            const r = computeFlow(a, d);
+            return { tone: r.tone, cond: r.conditions, dmg: !!r.damage,
+                     head: r.headline };
+        }""")
+        check("bommet skudd etter straffeterning", flow["tone"], "miss")
+        check("men dekningen koster angrepet",
+              "Mister neste angrep" in flow["cond"], True)
+        check("og ingen skade", flow["dmg"], False)
+
+        hit = await pg.evaluate("""() => {
+            atkFlow = { attacker: {name:'A', build:1}, target: {name:'B', build:1},
+                        attack: {name:'Skudd', damage:'1D6'}, ranged: true,
+                        response: 'dive', penalised: true, penTens: '1',
+                        effRoll: 34, part: 'body' };
+            const r = computeFlow(gradeRoll(34, 60), gradeRoll(20, 40));
+            return { tone: r.tone, cond: r.conditions, dmg: !!r.damage };
+        }""")
+        check("skuddet treffer likevel om det går inn", hit["tone"], "hit")
+        check("og dekningen koster fortsatt angrepet",
+              "Mister neste angrep" in hit["cond"], True)
+        check("med skade regnet ut", hit["dmg"], True)
 
         print("\n== alt overlever en omlasting ==")
         pg2 = await ctx.new_page()

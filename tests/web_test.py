@@ -69,15 +69,32 @@ async def main():
             keeper: state.keeperRules ? state.keeperRules.rules.length : 0,
             talent: state.talentRules ? state.talentRules.rules.length : 0,
             skills: state.skillBook ? state.skillBook.skills.length : 0,
-            unsourced: (state.keeperRules ? state.keeperRules.rules : [])
-              .reduce((a,r)=>a.concat((r.sections||[])
-                .filter(s=>!s.source).map(s=>r.id+': '+s.title)), []),
+            unsourced: [state.keeperRules, state.talentRules]
+              .filter(Boolean)
+              .reduce((a,bank)=>a.concat((bank.rules||[])
+                .reduce((b,r)=>b.concat((r.sections||[])
+                  .filter(s=>!s.source).map(s=>r.id+': '+s.title)), [])), []),
+            badtag: [state.keeperRules, state.talentRules]
+              .filter(Boolean)
+              .reduce((a,bank)=>a.concat((bank.rules||[])
+                .reduce((b,r)=>b.concat((r.sections||[])
+                  .map(s=>s.source).filter(s=>String(s).split('+')
+                    .map(x=>x.trim()).some(x=>
+                      ['grunnbok','pulp','scenario','eget'].indexOf(x)===-1))
+                  .map(s=>r.id+': '+s)), [])), []),
+            ids: (state.keeperRules ? state.keeperRules.rules : []).map(r=>r.id),
         })""")
         print("regelbanker:", banks)
-        assert banks["keeper"] >= 4, banks
+        assert banks["keeper"] >= 6, banks
+        # Jaktreglene og sårreglene er de to oppslagene man ellers
+        # må bla etter midt i en økt.
+        for need in ("chases", "wounds", "insanity", "spells"):
+            assert need in banks["ids"], (need, banks["ids"])
         assert banks["skills"] >= 50, banks
-        # Hver seksjon må si om den er sitat eller skrevet ut.
+        # Hver seksjon må si hvilken bok den kommer fra, med et av de
+        # fire merkene — ellers vises ingen kilde i regelboksen.
         assert not banks["unsourced"], banks
+        assert not banks["badtag"], banks
 
         await pg.evaluate("setView('reference')"); await pg.wait_for_timeout(500)
         ref=await pg.evaluate("""() => ({
@@ -95,6 +112,8 @@ async def main():
         # Søk skal nå også finne formler og ferdigheter.
         for q, want in (("dominate", "Formlene i dette scenarioet"),
                         ("drukne", "Vann, drukning og et skip som synker"),
+                        ("bevegelsespoeng", "Jakt — når noen stikker av"),
+                        ("døende", "Sår, døende og førstehjelp"),
                         ("psychology", "Psychology")):
             await pg.evaluate("(q) => { state.query = q; render(); }", q)
             await pg.wait_for_timeout(250)

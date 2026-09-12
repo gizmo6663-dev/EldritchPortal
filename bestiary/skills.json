@@ -89,13 +89,19 @@
       "difficulty": [
         "Regular difficulty: if the artillery is well maintained and used in favorable conditions.",
         "Hard difficulty: if the artillery is poorly maintained or used in a rush and/or while under fire."
-      ]
+      ],
+      "pushing": "bringing the weapon to bear without a full crew, or firing faster than the detachment can safely serve it — the Keeper raises the difficulty level instead where no crew is present."
     },
     {
       "name": "Charm",
       "base": "15%",
       "description": "Charm takes many forms, including physical attraction, seduction, flattery or simply warmth of personality. Charm may be used to compel someone to act in a certain way, but not in a manner completely contrary to that person’s normal behavior. Charm is opposed by the Charm or Psychology skills. Charm may be used for bargaining, to haggle the price of an item or service down. If successful, the seller is won over and they may well reduce the price a little.",
-      "difficulty": [],
+      "difficulty": [
+        "The difficulty level is based on the opposing factor — in this case the matching social skill (Charm, Fast Talk, Intimidate or Persuade) or Psychology, whichever is higher for the target.",
+        "Regular difficulty: the opposing skill is below 50.",
+        "Hard difficulty: the opposing skill is 50 or above.",
+        "Extreme difficulty: the opposing skill is 90 or above."
+      ],
       "pushing": "overtly flattering the target with affec tion; presenting an expensive gift; building trust by impart ing a secret.",
       "pushed_failure": "the target takes offence and will have nothing further to do with you; the target is associated in some way with your enemies and, while they may play along with you, they also inform on you; a third party intercedes to prevent you from chatting up their girl.",
       "insane": "If an insane investigator fails a pushed roll, he or she falls head over heels in love with their target and will act as if the target had successfully used a Dominate spell (see Chapter 12: Grimoire) upon them."
@@ -103,10 +109,14 @@
     {
       "name": "Climb",
       "base": "20%",
-      "description": "This skill allows a character to climb trees, walls and other vertical surfaces with or without ropes and climbing gear. The skill also encompasses rappeling. Conditions such as firmness of surface, available handholds, wind, visibility, rain, etc., may all affect the difficulty level. Failing this skill on the first roll indicates that the climb is perhaps beyond the investigator’s capability. Failing a pushed roll is likely to indicate a fall with resultant damage. One successful Climb roll should allow the investigator to complete the climb in almost all cases (rather than requiring Interpersonal Skills: -205796-204887 Disambiguation The relative values in the Charm, Fast Talk, Intimidate, and Persuade skills serve to define a character and how they interact with people. It is not for the player to nominate which one of these four skills they are using in a given situation. Instead the player should describe what their investigator is doing and saying, and it is then up to the Keeper to decide which of the four skills is appropriate. T If the investigator is threatening violence or acting aggressively, the skill is Intimidate. T If the investigator is attempting to befriend or seduce, the skill is Charm. T If the investigator is using rational arguments and debate over a prolonged time, the skill is Persuade. T If the investigator is acting quickly to deceive, con, or trick, the skill is Fast Talk. When Used on Player Characters Each player (normally) has only one investigator through which they act in the game; it would therefore not be fair to allow one player to dictate the actions of another player’s investigator. However, if one player wishes to put pressure on another player’s investigator to do their bidding, they might use violence (combat rules) or their investigator’s social skills. The former could inflict damage and ultimately death; the latter is subtler. When one of these four skills is successfully used on an investigator (either by an NPC or another investigator), the player is not compelled to follow the wishes of the other party. If the player refuses to act in accordance with the wishes of the character who is coercing them, the latter can inflict one penalty die on one dice roll (of the coercer’s choice) made by the player of the coerced investigator. This penalty die need not be applied to the very next dice roll, but does not last indefinitely. Only one penalty die can be held by one character against any other single character at a time. repeated rolls). A challenging or longer climb should have",
-      "difficulty": [],
+      "description": "This skill allows a character to climb trees, walls and other vertical surfaces with or without ropes and climbing gear. The skill also encompasses rappeling. Conditions such as firmness of surface, available handholds, wind, visibility, rain, etc., may all affect the difficulty level. Failing this skill on the first roll indicates that the climb is perhaps beyond the investigator’s capability. Failing a pushed roll is likely to indicate a fall with resultant damage. One successful Climb roll should allow the investigator to complete the climb in almost all cases (rather than requiring repeated rolls). A challenging or longer climb should have an increased difficulty level.",
+      "difficulty": [
+        "Regular difficulty: plenty of handholds; perhaps a rope or drainpipe to climb.",
+        "Hard difficulty: few handholds, or surfaces slick with rain."
+      ],
       "pushed_failure": "fall and suffer damage (1D6 damage per ten feet onto grass, or 1D10 damage per 10 feet onto concrete); lose a valuable possession as it falls from your pocket (you may not notice this until later); become stranded, unable to go up or down.",
-      "insane": "If an insane investigator fails a pushed roll, he or she holds on for dear life and screams at the top of their lungs for as long as they can."
+      "insane": "If an insane investigator fails a pushed roll, he or she holds on for dear life and screams at the top of their lungs for as long as they can.",
+      "pushing": "reassessing the climb; taking a longer route; straining one’s reach."
     },
     {
       "name": "Computer Use",
@@ -183,11 +193,14 @@
       "name": "Dodge",
       "base": "halfDEX%",
       "description": "Allows an investigator to instinctively evade blows, thrown missiles and so forth. A character may attempt to use dodge any number of times in a combat round (but only once against a specific attack; see Chapter 6: Combat). Dodge can increase through experience, like other skills. If an attack can be seen, a character can try to dodge it. It is impossible to dodge bullets because they cannot be seen when in mo tion; the best a character can do is to take evasive action that results in being harder to hit (“diving for cover”). The Dodge skill is mostly used in combat as part of an opposed roll and so no difficulty level is set. Note: as a combat skill, this cannot be pushed.",
-      "difficulty": [],
+      "difficulty": [
+        "As a combat skill, Dodge is used in an opposed roll and no difficulty level is set. It cannot be pushed."
+      ],
       "aliases": [
         "unnvikelse",
         "unnvik"
-      ]
+      ],
+      "pushing": "Cannot be pushed."
     },
     {
       "name": "Drive Auto",
@@ -233,7 +246,12 @@
       "name": "Fast Talk",
       "base": "05%",
       "description": "Brawl (25%): includes all unarmed fighting and basic weapons that anyone could pick up and make use of, such as Fast Talk is specifically limited to verbal trickery, deception, and misdirection, such as bamboozling a bouncer to let you inside a club, getting someone to sign a form they haven’t read, making a policeman look the other way, and so on. The skill is opposed by Psychology or Fast Talk. After a brief period (usually after the fast talker has left the scene) the target will realize that they have been conned. The effect of Fast Talk is always temporary, though it will last longer if a higher level of success is achieved. Fast Talk may be used to haggle the price of an item or service down. If successful, the seller momentarily thinks that they have struck a good deal; however, if the buyer returns and attempts to purchase another item, the seller may refuse further haggling and even increase the price in order to re coup what they lost on the previous sale!",
-      "difficulty": [],
+      "difficulty": [
+        "The difficulty level is based on the opposing factor — in this case the matching social skill (Charm, Fast Talk, Intimidate or Persuade) or Psychology, whichever is higher for the target.",
+        "Regular difficulty: the opposing skill is below 50.",
+        "Hard difficulty: the opposing skill is 50 or above.",
+        "Extreme difficulty: the opposing skill is 90 or above."
+      ],
       "pushing": "getting up close and personal to the target; talking outlandishly, aiming to confuse the target. Remember this is Fast Talk, so if the investigator begins to take an alternative approach, the Keeper may ask for a different skill to be used; if threats are used, it may become Intimidate, or if a protracted discussion ensues, it may be",
       "pushed_failure": "cause great offence leading to violence, outrage, or criminal proceedings. If an insane investigator fails a pushed roll, he or she begins hurling random abusive phrases at people."
     },
@@ -241,21 +259,27 @@
       "name": "Fighting",
       "base": "varies%",
       "description": "Fighting skill denotes a character’s skill in melee combat. You may spend skill points to purchase any skill specialization. The generic \"Fighting\" skill cannot be purchased. Choose fighting specializations appropriate to your investigator’s occupation and history. Those starting with a Fighting (Brawl) skill of 50% or higher may wish to choose a type of formal training as part of their background to account for his or her skill level. A myriad of fighting styles exist. Martial arts are simply a way of developing a person’s Fighting skill. Decide how the character learned to fight, whether it be formal military training, martial arts classes, or learned the hard way as a result of street-fighting. The term brawl might feel too crude for a skilled martial artist and could be replaced (with \"Karate\" for example) if a player so wished. Note: as a combat skill, this cannot be pushed. Fighting specializations: Axe (15%): use this skill for larger wood axes. A small hatch et can be used with the basic brawling skill. If thrown, use Throw skill. clubs (up to cricket bats or baseball bats), knives, and many improvised weapons, such as bottles and chair legs. To determine the damage done with an improvised weapon, the Keeper should refer to the weapon chart and pick something comparable. Chainsaw (10%): the first gasoline-powered, mass-pro duced chainsaw appeared in 1927; however, earlier versions existed. Flail (10%): nunchaku, morning stars, and similar medieval weapons. Garrote (15%): any length of material used to strangle. Requires the victim to make a Fighting Maneuver to escape, or suffer 1D6 damage per round. Spear (20%): lances and spears. If thrown, use Throw skill. Sword (20%): all blades over two feet in length. Whip (05%): bolas and whips. Note: Thrown knives use the Throw skill. Weapons and their skill categories are listed in Table XVII: Weapons (pages 401-405). The above specializations may not cover all weapons, but where possible try to fit other weapons into one of the above categories. Chainsaw is included as a weapon because of its use in numerous films, but players should note that the chance of a fumble is dou bled and that they risk killing their investigator (or losing a limb) should this happen.",
-      "difficulty": [],
+      "difficulty": [
+        "As a combat skill, Fighting is used in an opposed roll and no difficulty level is set. It cannot be pushed."
+      ],
       "aliases": [
         "brawl",
         "slåsskamp",
         "nærkamp"
-      ]
+      ],
+      "pushing": "Cannot be pushed."
     },
     {
       "name": "Firearms",
       "base": "varies%",
       "description": "Covers all manner of firearms, as well as bows and crossbows. You may spend skill points to purchase any skill specialization. The generic \"Firearms\" skill cannot be purchased. Choose specializations appropriate to your investigator’s occupation and history. Note: as a combat skill, this cannot be pushed. Firearms specializations: Bow (15%): use of bows and crossbows, ranging from medieval longbows to modern, high-powered compound bows. Handgun (20%): use for all pistol-like firearms when firing discrete shots. For machine pistols (MAC-11, Uzi pistol, etc.) in Modern era games, use the Submachine Gun skill when firing bursts. Heavy Weapons (10%): use for grenade launchers, anti-tank rockets, etc. Flamethrower (10%): weapons projecting a stream of ig nited flammable liquid or gas. May either be carried by the operator or mounted on a vehicle. Machine Gun (10%): weapons firing bursts from a bipod or tripod mounted weapon. If single shots are fired from a bipod, use Rifle skill. The differences between assault rifle, submachine gun and light machine gun are tenuous today. Rifle/Shotgun (25%): with this skill any type of rifle (whether lever-action, bolt-action or semi-automatic) or scatter-gun can be fired. Since the load from a shotgun expands in a spreading pattern, the user’s chance to hit does not decrease with range, but the damage dealt does. When an assault rifle fires a single shot (or multiple singles) use this skill. Submachine Gun (15%): use this skill when firing any machine pistol or submachine gun; also for assault rifles set on burst. Note: Thrown knives use the Throw skill. Firearms are listed in the Table XVII: Weapons (pages 401-405).",
-      "difficulty": [],
+      "difficulty": [
+        "As a combat skill, Firearms is used in an opposed roll and no difficulty level is set. It cannot be pushed."
+      ],
       "aliases": [
         "skytevåpen"
-      ]
+      ],
+      "pushing": "Cannot be pushed."
     },
     {
       "name": "First Aid",
@@ -293,7 +317,12 @@
       "name": "Intimidate",
       "base": "15%",
       "description": "Intimidation can take many forms, including physical force, psychological manipulation, and threats. It is used to fright en or compel a person to act in a certain way. Intimidate is opposed by Intimidate or Psychology. Backing up intimidation with a weapon or some other powerful threat or incentive may reduce the difficulty level. When Pushing an Intimidation roll, one possible consequence of failure is carrying out one’s threat, perhaps beyond the level of that which was intended. Intimidate may be used to force down the price of an item or service. If successful, the seller may reduce the price, or hand the item over free of charge, but depending on the situation they may later report the incident to the police or to members of the local organized crime gang.",
-      "difficulty": [],
+      "difficulty": [
+        "The difficulty level is based on the opposing factor — in this case the matching social skill (Charm, Fast Talk, Intimidate or Persuade) or Psychology, whichever is higher for the target.",
+        "Regular difficulty: the opposing skill is below 50.",
+        "Hard difficulty: the opposing skill is 50 or above.",
+        "Extreme difficulty: the opposing skill is 90 or above."
+      ],
       "pushing": "Causing actual physical harm to the target or to something or someone that the target cares about. Remember that this is Intimidation; if the investigator begins to take an alternative approach, the Keeper may ask for a different skill to be used. If the threats are retracted and the investigator then tries to befriend the target, it may become Charm; or if a protracted and unthreatening discussion ensues, it may become Persuade. Switching from one to the other to gain a second roll still constitutes a Pushed roll.",
       "pushed_failure": "accidentally pulling the trigger of the gun you’re waving in the target’s face; the target’s mind snaps, resulting in violence or inane babbling, after which no more can be gained; the target simply laughs in your face and won’t break no matter what you do; the target somehow turns the tables and intimidates the intimidator.",
       "insane": "If an insane investigator fails a pushed roll, he or she becomes intensely fearful of the target and does their bidding."
@@ -314,7 +343,10 @@
       "name": "Language (Own)",
       "base": "EDU%",
       "description": "When choosing this skill, the exact language must be specified and written next to the skill. In infancy and early childhood, most humans use a single language. The tongue chosen by the player for the Own Language automatically starts as equal to the investigator’s EDU characteristic; thereafter the investigator understands, speaks, reads, and writes at that percentage or higher (if further skill points are added during investigator creation).",
-      "difficulty": [],
+      "difficulty": [
+        "Regular difficulty: to read or write at the level of an educated speaker.",
+        "Hard difficulty: to grasp obscure, archaic or highly technical usage."
+      ],
       "pushing": "see Language (Other) skill, above.",
       "aliases": [
         "language (own)",
@@ -397,16 +429,15 @@
     {
       "name": "Lore",
       "base": "01%",
-      "description": "[Uncommon] This skill represents a character’s expert understanding of a subject that falls outside the normal bounds of human knowledge. Specializations of Lore should be specific and unusual, such as:",
+      "description": "[Uncommon] This skill represents a character’s expert understanding of a subject that falls outside the normal bounds of human knowledge. Specializations of Lore should be specific and unusual, such as Dream Lore, Necronomicon Lore, UFO Lore, Vampire Lore, Werewolf Lore or Yaddithian Lore. Where the Keeper wishes to test an investigator’s knowledge of something that falls within the bounds of one of these fields of Lore, but the investigator lacks the relevant Lore specialization, the Keeper may allow for another (more general) skill to be used but require a higher level of success. Lore skills are also used as a shorthand method of communicating the knowledge of a non-player character to the Keeper. In the main, knowledge is represented by the EDU characteristic and specific skills, such as History or Cthulhu Mythos. The Keeper should decide when the Lore skill should be incorporated into the game — usually only when a particular area of specialist knowledge is central to the campaign.",
       "difficulty": [
-        "Dream Lore",
-        "Necronomicon Lore (e.g. history of)",
-        "UFO Lore",
-        "Vampire Lore i Werewolf Lore i Yaddithian Lore"
+        "Regular difficulty: to recall what is common knowledge within that body of lore.",
+        "Hard difficulty: to recall something obscure, or to use a more general skill (such as History) in place of the Lore specialization the investigator lacks."
       ],
       "aliases": [
         "lore"
-      ]
+      ],
+      "pushing": "taking more time; consulting a rarer source or another expert."
     },
     {
       "name": "Mechanical Repair",
@@ -429,8 +460,12 @@
     {
       "name": "Medicine",
       "base": "01%",
-      "description": "The user diagnoses and treats accidents, injuries, diseases, poisonings, etc., and makes public health recommenda tions. If an era has no good treatment for a malady, the effort is limited, uncertain, or inconclusive. The Medicine Where the Keeper wishes to test an investigator’s knowledge of something that falls within the bounds of one of these fields of Lore, but the investigator lacks the relevant Lore specialization, the Keeper may for allow for another (more general) skill to be used but require a higher level of success. For example, if the Keeper were testing a mod ern-day investigator’s knowledge of alien abductions in the 1980s, he or she could ask for either a Regular success using UFO Lore or a Hard success using History. Lore skills are also used as a shorthand method of com municating the knowledge of a non-player character to the Keeper. In the main, knowledge is represented by the EDU characteristic and specific skills, such as History or Cthulhu Mythos. The Keeper should decide when the Lore skill should be incorporated into the game—usually only when a particular area of specialist knowledge is central to the campaign being played.",
-      "difficulty": []
+      "description": "The user diagnoses and treats accidents, injuries, diseases, poisonings, etc., and makes public health recommendations. If an era has no good treatment for a malady, the effort is limited, uncertain, or inconclusive. The Medicine skill grants knowledge of a wide variety of drugs and potions, natural and man-made, and understanding of the side effects and contraindications. Treatment using the Medicine skill takes a minimum of one hour and can be delivered any time after damage is taken, but if this is not performed on the same day, the difficulty level is increased (requiring a Hard success). A person treated successfully with Medicine recovers 1D3 hit points (in addition to any First Aid they have received), except in the case of a dying character, who must initially receive successful First Aid to stabilize them before a Medicine roll is made. A character is limited to one treatment of First Aid and Medicine until further damage is taken (except in the case of a dying character who may require stabilizing with First Aid multiple times). Successful use of Medicine can rouse an unconscious person to consciousness. In treating Major Wounds, successful use of the Medicine skill provides the patient a Bonus die on their weekly recovery roll. The Keeper may grant automatic success for medical treatment in a contemporary, well-equipped hospital.",
+      "difficulty": [
+        "Regular difficulty: diagnosis and treatment of standard medical ailments, with access to equipment (at least a doctor’s bag containing drugs and instruments) and a suitable environment.",
+        "Hard difficulty: diagnosis and treatment in a dirty and unsafe environment, with the minimum of equipment."
+      ],
+      "pushing": "consulting with colleagues; conducting further research; trying something experimental or more risky; performing some form of clinical experiment."
     },
     {
       "name": "Natural World",
@@ -484,9 +519,15 @@
       "name": "Persuade",
       "base": "10%",
       "description": "Use Persuade to convince a target about a particular idea, concept, or belief through reasoned argument, debate and discussion. Persuade may be employed without reference to truth. The successful application of Persuade takes time: at least half an hour. If you want to persuade someone quickly, you should use Fast Talk. Depending on the goal expressed by the player, if the investigator takes sufficient time, the effect may linger indef Intimidate; or if the investigator is relying on befriending the target, it may become Charm. Switching from one to the other to gain a second roll still constitutes a Pushed roll.",
-      "difficulty": [],
+      "difficulty": [
+        "The difficulty level is based on the opposing factor — in this case the matching social skill (Charm, Fast Talk, Intimidate or Persuade) or Psychology, whichever is higher for the target.",
+        "Regular difficulty: the opposing skill is below 50.",
+        "Hard difficulty: the opposing skill is 50 or above.",
+        "Extreme difficulty: the opposing skill is 90 or above."
+      ],
       "pushed_failure": "the target takes great offence and refuses to have any more to do with you; your bribe worked and the target signed the forms—however in the cold light of morning they feel they have been duped, and now their solicitor has employed a private eye to find out what you’re up to, or is suing you for malpractice; the target doesn’t like your big talk and, from out of nowhere, they pull a knife on you; you persuaded the security guard to turn a blind eye to your robbery—however they lose their job and, wracked with guilt, they commit sui cide (the full implications of your actions hit you and you lose Sanity for causing the death of an innocent).",
-      "insane": "If an insane investigator fails a pushed roll, they may be found later on a street corner trying to convince passersby of their argument or bizarre point of view."
+      "insane": "If an insane investigator fails a pushed roll, they may be found later on a street corner trying to convince passersby of their argument or bizarre point of view.",
+      "pushing": "getting close and personal to advance your argument or appeal to the target’s reason; demonstrating through logical reasoning and examples, in detail; using carefully preplanned suggestion techniques to make the target as receptive as possible; putting on a grand show (staging, fireworks, free gifts, free drinks, bribes) to push your point of view front-and-center for a group of people. Remember that this is Persuade: if the investigator changes approach the Keeper may ask for a different skill — threats become Intimidate, befriending becomes Charm. Switching between them to gain a second roll still constitutes a pushed roll."
     },
     {
       "name": "Pilot",
@@ -535,7 +576,8 @@
         "Hard difficulty: determine the spoken commu nication of a person whose mouth is occasionally obscured and/or is some distance away (e.g. in a large crowd of people)."
       ],
       "pushed_failure": "the target becomes aware that you are watching them intently, and takes offense and confronts you; the drunken man across the bar is angered, mistakenly thinking that you are looking at him, and punches you; you are so intent on the target that you miss what is happening in your close proximity (someone steals your case, or you walk into a lamp post).",
-      "insane": "If an insane investigator fails a pushed roll, there is plenty of scope for imagining all manner of strange and bizarre things being said."
+      "insane": "If an insane investigator fails a pushed roll, there is plenty of scope for imagining all manner of strange and bizarre things being said.",
+      "pushing": "putting yourself in an obvious position and staring unsubtly at the target(s); filming the target (and thus likely to be observed filming the target)."
     },
     {
       "name": "Ride",
