@@ -83,13 +83,21 @@ async def main():
                       ['grunnbok','pulp','scenario','eget'].indexOf(x)===-1))
                   .map(s=>r.id+': '+s)), [])), []),
             ids: (state.keeperRules ? state.keeperRules.rules : []).map(r=>r.id),
+            unchecked: [state.keeperRules, state.talentRules]
+              .filter(Boolean)
+              .reduce((a,bank)=>a.concat((bank.rules||[])
+                .filter(r=>/ikke kontrollert/.test(r.source||''))
+                .map(r=>r.id)), []),
         })""")
         print("regelbanker:", banks)
         assert banks["keeper"] >= 6, banks
         # Jaktreglene og sårreglene er de to oppslagene man ellers
         # må bla etter midt i en økt.
-        for need in ("chases", "wounds", "insanity", "spells"):
+        for need in ("chases", "wounds", "insanity", "spells", "villain-luck"):
             assert need in banks["ids"], (need, banks["ids"])
+        # Begge regelbøkene finnes som tekst nå, så ingen boks skal
+        # fortsatt påstå at kilden ikke er kontrollert.
+        assert not banks["unchecked"], banks["unchecked"]
         assert banks["skills"] >= 50, banks
         # Hver seksjon må si hvilken bok den kommer fra, med et av de
         # fire merkene — ellers vises ingen kilde i regelboksen.
@@ -114,6 +122,7 @@ async def main():
                         ("drukne", "Vann, drukning og et skip som synker"),
                         ("bevegelsespoeng", "Jakt — når noen stikker av"),
                         ("døende", "Sår, døende og førstehjelp"),
+                        ("mook", "Skurkens Luck, og mooks"),
                         ("psychology", "Psychology")):
             await pg.evaluate("(q) => { state.query = q; render(); }", q)
             await pg.wait_for_timeout(250)

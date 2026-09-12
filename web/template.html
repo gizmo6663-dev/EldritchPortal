@@ -3700,11 +3700,10 @@ function openRuleBox(rule, highlight) {
       if (i > 0) secs.unshift(secs.splice(i, 1)[0]);
     }
     // Merket sier hvilken BOK avsnittet kommer fra, og kan settes
-    // sammen med « + ». Pulp-merket sier uttrykkelig fra om at den
-    // boka ikke er kontrollert, for den finnes ikke som tekst her.
+    // sammen med « + ». Begge regelbøkene er lest opp mot teksten sin.
     const SRC_PART = {
       "grunnbok": "grunnboka",
-      "pulp": "Pulp Cthulhu (ikke kontrollert)",
+      "pulp": "Pulp Cthulhu",
       "scenario": "scenarioet",
       "eget": "til dette bordet",
     };

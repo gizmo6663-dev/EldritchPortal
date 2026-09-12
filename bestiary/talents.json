@@ -384,13 +384,6 @@
       "id": "tal-sharp-witted"
     },
     {
-      "name": "skill (an Extreme success)",
-      "description": "the goal has been partially achieved.",
-      "group": "Insane talent",
-      "kind": "insane",
-      "id": "tal-skill-an-extreme-success"
-    },
-    {
       "name": "Smooth Talker",
       "description": "gain a bonus die to Charm rolls.",
       "group": "Fysisk talent",

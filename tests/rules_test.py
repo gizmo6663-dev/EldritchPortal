@@ -260,7 +260,9 @@ async def main():
         await mob.screenshot(path=f"{OUT}/taktikk-mobil.png")
 
         rounds=[r for _,r in seq]
-        ok=(r['weapons']==28 and r['talents']==60 and r['tactics']>=20
+        # 40 pulp-talenter + 19 insane talents = 59. Var 60 til
+        # «skill (an Extreme success)» viste seg å være en parsefeil.
+        ok=(r['weapons']==28 and r['talents']==59 and r['tactics']>=20
             and imp['impaled'] and imp['damage']>=8
             and mal['malfunction'] and not mal['hit']
             and tl['known']>0 and nt>0

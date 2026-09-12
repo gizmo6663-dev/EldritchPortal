@@ -2,14 +2,19 @@
   "version": 1,
   "title": "Regler bak talentene",
   "source": "Pulp Cthulhu og Call of Cthulhu 7e (Chaosium)",
-  "note": "Talentreglene her er fra Pulp Cthulhu, som jeg IKKE har som tekst i denne økta. De er skrevet ned fra kjennskap til reglene, ikke lest av fra boka, og de bør kontrolleres mot den før de avgjør noe viktig. Seksjoner merket «grunnbok» er derimot lest av fra Call of Cthulhu 7e.",
+  "note": "Talentreglene her er fra Pulp Cthulhu, og er nå lest opp mot boka. Seksjoner merket «grunnbok» er fra Call of Cthulhu 7e. Der en regel finnes i begge bøkene, og de er uenige, gjelder Pulp Cthulhu.",
   "rules": [
     {
       "id": "psychic-powers",
       "title": "Psykiske krefter",
-      "source": "Pulp Cthulhu — ikke kontrollert mot boka",
+      "source": "Pulp Cthulhu kapittel 6: Psychic Skills (s. 83–85), og talentlista i kapittel 2 (s. 25)",
       "intro": "Talentet Psychic Power gir én psykisk kraft, og den er en ferdighet som alle andre — poeng må legges i den fra yrket eller fra personlige interesser. Startverdien er 00 %.\n\nÅ bruke en psykisk kraft koster magic points, på samme måte som formler. Har helten ikke nok igjen, slås et CON-slag: klarer hen det, holder hen seg våken og resten av kostnaden tas rett fra HP; ryker slaget, faller hen bevisstløs og kraften virker ikke.\n\nEt mislykket slag betyr at ingenting skjer — kostnaden i magic points er betalt og tapt. For de rundt ser det ut som at personen nøler et øyeblikk. Slaget kan pushes med en rimelig begrunnelse.\n\nVanskegrad: Regular når man har god tid i rolige omgivelser, Hard midt i dramatisk handling, for eksempel i en kamp.",
       "sections": [
+        {
+          "title": "Ved dette bordet — Skjoldvår",
+          "source": "pulp + eget",
+          "body": "BOKA BEGRENSER HVEM SOM KAN VÆRE PSYKISK: bare arketypen Mystic, og yrkene Occultist og Yogi, har muligheten — og da etter Keeperens skjønn. Boka anbefaler også at det er ÉN psykisk helt om gangen i et spill, fordi psykiske ferdigheter ellers kan velte balansen.\n\nSKJOLDVÅR ER ROGUE OG SPION, ikke Mystic. Etter boka skulle hun altså ikke hatt Telekinesis. Karakterarket sier at hun har det, og det er ditt bord — så her gjelder arket. Jeg sier det bare fordi du ba meg sjekke hva som faktisk står, og fordi det forklarer hvorfor hun er den eneste i gruppa med noe slikt.\n\nHUSK AT DET ER EN FERDIGHET som starter på 00 %. Står det ikke et tall på arket hennes, er det ingenting hun kan gjøre med den — poeng må legges i den fra yrket eller fra personlige interesser. Sjekk arket før økta, og avtal et tall hvis det mangler.\n\nBOKA FRARÅDER Å GI PSYKISKE ANGREP til helter — de er ment for monstre og skurker. Telekinesis som våpen (kastede gjenstander, 1D4–1D6) og som rustning er derimot helt vanlig bruk, og står under Telekinesis."
+        },
         {
           "title": "Telekinesis",
           "body": "Flytter gjenstander med tankekraft. Helten kan bevege enhver livløs ting som et gjennomsnittsmenneske lett kunne løftet og kastet, for 1 magic point per gjenstand.\n\nUTENFOR KAMP: et Telekinesis-slag og 1 magic point flytter gjenstanden inntil 5 meter, normalt i hvilken retning man vil.\n\nI KAMP: et kombinert Telekinesis- og Throw-slag, og 1 magic point. Slaget må være lik eller under BEGGE ferdighetene for å telle som et avstandsangrep, og kan ikke pushes. Målet kan unnvike hvis det er klar over angrepet (motsatt slag mot den psykiskes). Skaden følger gjenstanden — vanligvis 1D4 til 1D6 for noe smått eller middels stort.\n\nSOM FORSVAR: telekinese kan brukes som usynlig rustning. Ett Telekinesis-slag per angrep, og 1 magic point gir 1 poeng rustning — 10 magic points gir 10 poeng. Slaget kan ikke pushes når det brukes slik.\n\nVALGFRITT: vil man flytte noe større enn ett menneske klarer, for eksempel en bil, settes kostnaden i magic points til hvor mange folk det realistisk ville tatt, og vanskegraden heves til Extreme. Gjenstanden kan ikke kastes eller løftes høyt, bare dras sakte inntil 3 meter.",
@@ -40,7 +45,7 @@
     {
       "id": "weird-science",
       "title": "Weird Science og dingser",
-      "source": "Pulp Cthulhu — ikke kontrollert mot boka",
+      "source": "Pulp Cthulhu kapittel 6: Weird Science (s. 86–87)",
       "intro": "Talentet Weird Science lar helten bygge og reparere weird science-innretninger. Talentet Gadget gir én ferdig dings ved spillets start. Hvor mye slikt som finnes i spillet, er Keeperens avgjørelse — i lavere pulp-nivå bør dingser stort sett ligge hos skurker og monstre.\n\nEn dings bør gjøre ÉN ting. En innretning bygget for å frakte folk til månen, frakter folk til månen — ikke til Jupiter.",
       "sections": [
         {
@@ -68,7 +73,7 @@
     {
       "id": "luck-spends",
       "title": "Å bruke Luck",
-      "source": "Pulp Cthulhu — ikke kontrollert mot boka",
+      "source": "Pulp Cthulhu kapittel 4: Using Luck (s. 60–62)",
       "intro": "Flere talenter koster Luck å bruke. Dette er hele lista over hva en pulp-helt kan kjøpe med Luck-poengene sine.",
       "sections": [
         {
@@ -93,7 +98,7 @@
         },
         {
           "title": "Halvere Sanity-tap",
-          "body": "Koster dobbelt så mye Luck som tapet. Etter et mislykket Sanity-slag kan tapet halveres ved å bruke Luck lik det dobbelte. Mister helten 8 Sanity, koster det 16 Luck å gjøre det om til 4.",
+          "body": "Koster dobbelt så mye Luck som tapet. Etter et mislykket Sanity-slag kan tapet halveres ved å bruke Luck lik det dobbelte. Mister helten 8 Sanity, koster det 16 Luck å gjøre det om til 4.\n\nRESILIENT-TALENTET kommer I TILLEGG, og legges på ETTER halveringen: det lar helten skrubbe bort Sanity-tap for 1 Luck per poeng. Boka regner det slik: 20 poeng tap → 40 Luck halverer til 10 → Resilient tar 5 til for 10 Luck → 5 poeng tapt, 50 Luck brukt.\nIngen i gruppa har Resilient, så dette gjelder bare hvis noen bytter talent eller får et nytt.",
           "source": "pulp"
         },
         {
@@ -106,30 +111,30 @@
     {
       "id": "dive-for-cover",
       "title": "Å dykke i dekning",
-      "source": "Call of Cthulhu 7e, kapittel 6",
+      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu kapittel 4: Suppressing Fire (s. 65)",
       "intro": "Skytevåpen kan ikke unnvikes på vanlig vis. Det målet kan gjøre, er å kaste seg i dekning — og det gjør ikke skuddet borte, det gjør det bare vanskeligere. Dette er en av reglene folk oftest tar feil av.",
       "sections": [
         {
           "title": "Slik det spilles",
           "body": "ET MÅL SOM VET at det blir skutt på, kan kaste seg i dekning: bak noe, ned på gulvet, eller i full fart til siden.\n\nDET KREVER ET UNNVIKELSE-SLAG. LYKKES DET, blir målet vanskeligere å treffe, og ANGRIPEREN FÅR ÉN STRAFFETERNING. Skuddet forsvinner IKKE — det slås fortsatt, bare med straffeterningen på.\n\nEN STRAFFETERNING er en ekstra TIERTERNING: slå én til, behold enerterningen, og bruk det VERSTE av de to tier-resultatene.\n\nPRISEN BETALES UANSETT: den som dykker i dekning mister sitt NESTE angrep, enten unnvikelsen gikk eller ikke. Har figuren alt angrepet denne runden, mister den angrepet sitt NESTE runde. Fram til den får angripe igjen, er det eneste den kan gjøre å unnvike videre angrep. Har en skapning flere angrep per runde, mister den ALLE sammen, ikke bare ett.\n\nBRYTER NOEN DEKNINGEN — om så bare for å skyte et skudd — kan hen bli tatt av en annen som holder på turen sin.\n\nTalentet NIMBLE fjerner kostnaden: helten mister ikke angrepet sitt når hen dykker i dekning mot skytevåpen.\n\nI KAMPTRACKEREN: velg «Dykk i dekning» som forsvar. Går unnvikelsen, ber appen om den ekstra tierterningen og regner ut hva slaget teller som. Tilstanden «Mister neste angrep» settes uansett — har figuren Nimble, fjerner du den bare igjen.",
-          "source": "grunnbok"
+          "source": "grunnbok + pulp"
         },
         {
           "title": "Undertrykkende ild",
           "body": "En skytter med automatvåpen kan hose ned et område uten å peke ut ett mål. Alle i området får valget om å dykke i dekning, og de som gjør det kan ikke skyte tilbake. Helter velger selv; alle andre antas å kaste seg ned. Deretter trekker Keeperen målet eller målene tilfeldig blant hele gruppa — også blant dem som kom seg i dekning, som da er vanskeligere å treffe.",
-          "source": "grunnbok"
+          "source": "grunnbok + pulp"
         },
         {
           "title": "Liggende",
           "body": "Den som ligger flatt er et mindre mål: skytevåpen mot en liggende figur får en straffeterning, med mindre det skytes på klosshold. Nærkampangrep mot en liggende får derimot en bonusterning.\n\nÅ ligge er også et stødig skytestativ: en liggende figur får en bonusterning på Firearms-slag. Man kan reise seg når man lykkes med å unnvike eller slå tilbake, eller bruke sin egen tur på å komme seg opp og så handle.",
-          "source": "grunnbok"
+          "source": "grunnbok + pulp"
         }
       ]
     },
     {
       "id": "manoeuvres",
       "title": "Manøvrer og Build",
-      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
+      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu kapittel 4: Knockouts (s. 65)",
       "intro": "En manøver er alt som ikke er å gjøre skade: gripe, avvæpne, kaste noen i bakken, dra en bevisstløs venn ut av veien. Build avgjør om det i det hele tatt lar seg gjøre.",
       "sections": [
         {
@@ -140,14 +145,14 @@
         {
           "title": "Knockout",
           "body": "Pulp Cthulhu: en figur kan si fra at hen forsøker å slå motstanderen bevisstløs. På sin tur i DEX-rekkefølgen, eller som et overraskelsesangrep, behandles det som en manøver med et stumpt angrep — knyttneve, kølle, geværkolbe. Lykkes manøveren, er motstanderen ute, og tar bare 1 i skade.\n\nDet virker på alt som har en skalle eller et tilsvarende sårbart punkt: mennesker, deep ones, ghouls. Ikke på en shoggoth.",
-          "source": "grunnbok + pulp"
+          "source": "pulp"
         }
       ]
     },
     {
       "id": "multiple-shots",
       "title": "Flere skudd i samme runde",
-      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
+      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu kapittel 4: Dual-Wielding (s. 71)",
       "intro": "Talentet RAPID FIRE fjerner straffeterningen for flere håndvåpenskudd i samme runde.",
       "sections": [
         {
@@ -158,20 +163,20 @@
         {
           "title": "To våpen samtidig",
           "body": "Valgfri regel i Pulp Cthulhu: hvem som helst kan skyte eller slå med to våpen, ett i hver hånd. Alle angrepene, også det første, får en straffeterning.\n\nFumlesjansen øker også: kreves 50 eller mer for å lykkes, fumler man på 96–100; kreves under 50, fumler man på 90–100. En våpenfeil inntreffer likevel bare innenfor våpenets egen feilgrense.\n\nÅ ha to våpen endrer ikke evnen til å slå tilbake — man slår tilbake med ett av dem.",
-          "source": "grunnbok + pulp"
+          "source": "pulp"
         }
       ]
     },
     {
       "id": "sanity-and-mythos",
       "title": "Sanity og Cthulhu Mythos",
-      "source": "Call of Cthulhu 7e kapittel 8, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
+      "source": "Call of Cthulhu 7e kapittel 8, og Pulp Cthulhu kapittel 2 (s. 25) og kapittel 4 (s. 65)",
       "intro": "Talentene HARDENED og MYTHOS KNOWLEDGE griper begge inn i Sanity-reglene.",
       "sections": [
         {
           "title": "Hardened",
           "body": "Helten mister ikke Sanity av å angripe andre mennesker, av å se stygge skader, eller av å se lik. Mythos-syner rammer fortsatt som før.",
-          "source": "grunnbok + pulp"
+          "source": "pulp"
         },
         {
           "title": "Mythos Knowledge",
@@ -181,7 +186,25 @@
         {
           "title": "Pulp-helter og sår",
           "body": "Pulp-helter bruker ikke major wound-regelen. De dør av ett slag som er lik eller større enn maks HP. Er slaget på halve maks HP eller mer OG tar dem til null, ligger de for døden. Ellers besvimer de på null. Et slag på halve maks HP eller mer krever CON-slag for å holde seg våken — og der kan Luck brukes (se «Å bruke Luck»).",
-          "source": "grunnbok + pulp"
+          "source": "pulp"
+        }
+      ]
+    },
+    {
+      "id": "pulp-combat-tweaks",
+      "title": "Der pulp endrer kampreglene",
+      "source": "Pulp Cthulhu kapittel 4: Combat (s. 63–65), mot Call of Cthulhu 7e kapittel 6",
+      "intro": "Pulp Cthulhu bruker grunnbokas kampregler, med noen få endringer. Dette er de som faktisk kommer til å dukke opp i dette scenarioet — de andre pulp-endringene har egne bokser (knockout, to våpen, dekning, Luck, sår).",
+      "sections": [
+        {
+          "title": "Å komme seg ut av nærkamp — ENDRET",
+          "source": "pulp",
+          "body": "DETTE ER ANNERLEDES ENN I GRUNNBOKA, og det er lett å ta feil av.\n\nGRUNNBOKA: man kan bruke handlingen sin til å flykte fra nærkamp, så lenge man har en vei ut og ikke holdes fast. Ingen slag.\n\nPULP: det kreves et UNNVIKELSE-SLAG på ens egen tur, MOTSATT mot angriperens Fighting. Vinner den som vil vekk, kommer hen seg ut av nærkampen. Taper hen, har motstanderen presset kampen og holdt hen fast — og hen må prøve igjen neste runde.\n\nVED BORDET: dette betyr at man ikke bare kan gå fra polyppen eller fra skapningen. Noen må dekke tilbaketrekningen, eller så må de slå for det. Si det før finalen, så det ikke kommer som en overraskelse når noen prøver å løpe.\n\nUNNVIKELSE I GRUPPA, rett fra kortene:\n  Dagrun 50 % (25/10) · Beefcake 38 % (19/7) · Walther 32 % (16/6) — han har ingenting skrevet, så det er halve DEX · Franz 27 % (13/5) · Skjoldvår 23 % (11/4).\nIngen av dem er gode nok til å regne med å komme seg løs. Mot polyppens tentakler på 85 % er et motsatt slag nesten tapt på forhånd — så tilbaketrekningen må dekkes av noe annet enn terningen: røyk, ild, syre, eller en manøver fra Beefcake."
+        },
+        {
+          "title": "Å skyte gjennom dekning",
+          "source": "pulp",
+          "body": "Står målet delvis i dekning, kan skytteren velge å SKYTE GJENNOM dekningen i stedet for å vente på et blink.\n\nDA: én STRAFFETERNING for den delvise skjulingen, PLUSS en rustningsverdi for det man skyter gjennom. Boka gir to eksempler: en lav murvegg gir rustning 10, et tynt tregjerde bare 1.\n\nPÅ ET SKIP: en trelugardør eller en stol er 1–3. En stållugardør eller et skott er så høyt at det ikke er verdt å prøve. En stabel kasser i lasterommet: 3–5, alt etter hva som er i dem.\n\nER MÅLET HELT SKJULT hele runden, kan man fortsatt skyte i blinde. Sjansen avhenger av hvor stort rommet er: er gjemmestedet lite, hever du vanskegraden ETT hakk; er det stort, hever du mer, eller lar bare en kritisk suksess treffe.\n\nHVORFOR DETTE ER NYTTIG HER: skapningen gjemmer seg hele tiden, og spillerne kommer til å spørre om de kan skyte gjennom en dør. Nå har du et tall i stedet for et skjønn."
         }
       ]
     }

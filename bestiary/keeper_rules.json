@@ -1,12 +1,12 @@
 {
   "version": 1,
   "title": "Regler ved bordet",
-  "note": "Oppslag man ellers må bla etter midt i en økt. Hver seksjon sier hvilken bok den kommer fra: «grunnboka» er Call of Cthulhu 7e, som jeg har som tekst og har lest av; «Pulp Cthulhu» har jeg IKKE som tekst, så de seksjonene er skrevet ned fra kjennskap til reglene og bør kontrolleres mot boka; «scenarioet» er Slow Boat to China; «eget» er skrevet av meg til dette bordet. Der de to bøkene er uenige, gjelder Pulp Cthulhu — dette er et pulp-scenario.",
+  "note": "Oppslag man ellers må bla etter midt i en økt. Hver seksjon sier hvilken bok den kommer fra: «grunnboka» er Call of Cthulhu 7e og «Pulp Cthulhu» er pulp-boka — begge finnes som tekst her, og hver seksjon er lest opp mot sin egen bok. «scenarioet» er Slow Boat to China; «eget» er skrevet av meg til dette bordet. Der de to bøkene er uenige, gjelder Pulp Cthulhu — dette er et pulp-scenario, og de stedene er merket særskilt.",
   "rules": [
     {
       "id": "insanity",
       "title": "Galskap — når Sanity ryker",
-      "source": "Call of Cthulhu 7e kapittel 8, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
+      "source": "Call of Cthulhu 7e kapittel 8, og Pulp Cthulhu kapittel 5: Pulp Sanity (s. 74–76)",
       "sourced": "blandet",
       "intro": "Beefcake og Walther har begge SAN 45. Polyppen koster 1D3/1D20 for alle om bord. Dette kommer til å skje, sannsynligvis til begge, midt i finalen — og da vil du ikke bla.\n\nRekkefølgen er alltid den samme: et Sanity-slag ryker, tapet trekkes, og hvis tapet var stort nok kommer først et galskapsanfall, deretter en lengre, roligere periode med underliggende galskap, og til slutt tilfriskning.",
       "sections": [
@@ -230,13 +230,23 @@
     {
       "id": "wounds",
       "title": "Sår, døende og førstehjelp",
-      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu — pulp-delen er ikke kontrollert mot boka",
+      "source": "Call of Cthulhu 7e kapittel 6, og Pulp Cthulhu kapittel 4: Game System (s. 65–68)",
       "intro": "Kamptrackeren regner ut selve skaden og sier om det ble major wound eller døende. Det den IKKE gjør, er å fortelle deg hva som skjer etterpå — hvem som kan reddes, hvor fort, og av hvem. Det står her.",
       "sections": [
         {
           "title": "Pulp eller grunnbok?",
           "source": "eget",
-          "body": "PULP-HELTER TAR IKKE MAJOR WOUND. Det er den store forskjellen, og den er alt bygd inn i kamptrackeren — sjekk bare at pulp-haken står på alle fem heltene. Reglene under er grunnbokas, og de gjelder for NPC-er og fiender uten videre. FOR HELTENE: bruk dem til døende og førstehjelp, men vit at Pulp Cthulhu har egne, raskere regler for å komme seg etter skade. Jeg har ikke den boka som tekst og vil ikke finne på tall — slå opp skadekapittelet i Pulp Cthulhu før du bruker ukesslagene på en helt."
+          "body": "PULP-HELTER TAR IKKE MAJOR WOUND, og de kommer seg mye raskere. Begge deler står nå med tall i egne seksjoner under, hentet fra Pulp Cthulhu.\n\nREGLENE FRA GRUNNBOKA under gjelder NPC-er og fiender uten videre — skipslegen, mannskapet, Bates. For de fem heltene bruker du pulp-seksjonene.\n\nKamptrackeren regner allerede major wound riktig for hver enkelt figur. Sjekk bare at pulp-haken står på alle fem."
+        },
+        {
+          "title": "Pulp: helter kommer seg raskere",
+          "source": "pulp",
+          "body": "DETTE ER DEN STORE FORSKJELLEN, og den gjør at gruppa tåler et helt annet tempo enn vanlige etterforskere.\n\nNATURLIG LEGING: +2 HP PER DAG, ikke 1. Talentet QUICK HEALER gjør det til +3.\n  SKJOLDVÅR OG DAGRUN HAR QUICK HEALER — de ligger på +3 per dag.\n  Walther, Beefcake og Franz ligger på +2.\nDet er verdt å skrive opp, for over elleve døgn til sjøs er forskjellen elleve hit points.\n\nFØRSTEHJELP OG MEDICINE GIR 1D4 HP, ikke 1 og 1D3. Det er en stor endring: Walther med Medicine 61 gir i snitt to og en halv gang så mye som i grunnboka.\n\nETTER Å HA VÆRT DØENDE fortsetter den naturlige helingen på +2 per dag til helten er tilbake på maks. Den kan støttes med pleie: ETT MEDICINE-SLAG PER DAG av den som steller pasienten; lykkes det, blir dagens leging +3 i stedet for +2.\n  BONUSTERNING på det slaget ved pleie på et moderne, velutstyrt sykehus.\n  STRAFFETERNING om man må stelle en kamerat under uhygieniske forhold — og et krengende skip midt i Stillehavet er uhygieniske forhold.\n\nFUMLER LEGEN Medicine-slaget, kan Keeperen la det sette pasienten tilbake: ingen HP den dagen. Ryker et PUSHET Medicine-slag, kan pasienten MISTE 1D3 HP i stedet for å få noen.\n\nÅ OVERLEVE noe som var nær døden koster Sanity: et Sanity-slag, 0/1.\n\nSKADER SKAL MERKES I ROLLESPILLET, ikke i tallene. Brukne bein, en hånd som mangler — spill det ut. Men tenk deg om før du legger på flere straffeterninger: pulp-helter tar sånt på haka, børster seg av og gjør seg klare til neste runde."
+        },
+        {
+          "title": "Pulp: døende, og de tre Luck-utveiene",
+          "source": "pulp",
+          "body": "EN DØENDE HELT i pulp: skriv «D» i HP-feltet i stedet for et tall. Førstehjelp stabiliserer som i grunnboka, men her er forskjellene:\n\nET VELLYKKET MEDICINE-SLAG ETTERPÅ gir 1D4 HP — og en EKSTREM suksess gir fulle 4.\n\nET MISLYKKET FIRST AID-SLAG KAN PUSHES — men ryker det pushede slaget, DØR pasienten. Og FUMLER man førstehjelpen, kan hen ikke reddes uansett hva man gjør etterpå. Det er en hard regel, og den bør sies høyt før noen prøver.\n\nTRE UTVEIER MED LUCK, og de er grunnen til at en pulp-helt sjelden dør:\n  • «DET ER BARE EN SKRAMME!» — 20 Luck gir 1D6 HP med én gang.\n  • UNNGÅ EN SIKKER DØD — har helten 30 Luck eller mer, kan ALLE brukes: hen får 1D6+1 HP og dukker opp igjen i neste scene. Spilleren forteller selv hvordan. Etterpå står hen på null Luck resten av økta.\n  • HOLDE SEG VÅKEN — 1 Luck, så 2, 4, 8.\nSe regelboksen «Å bruke Luck» for hele lista.\n\nLUCK I GRUPPA: Walther 85, Dagrun 80, Franz 75, Beefcake 65, Skjoldvår 60. Alle fem har nok til «Unngå en sikker død» ÉN gang — men bare én, og bare hvis de ikke har brukt opp Luck på slag tidligere i økta. Det er et reelt valg, og det er verdt å minne dem på at poengene har to bruksområder."
         },
         {
           "title": "Major wound og null HP",
@@ -257,6 +267,29 @@
           "title": "Ved dette bordet",
           "source": "eget",
           "body": "HVEM KAN REDDE HVEM — tallene fra kortene:\n  FIRST AID: Walther 50 (25/10) · Skjoldvår 50 (25/10) · Beefcake 50 (25/10) · Dagrun 37 (18/7) · Franz har ingenting skrevet og står på grunnverdien 30 (15/6).\n  MEDICINE: bare Walther, 61 (30/12). Ingen andre i gruppa har det i det hele tatt — grunnverdien er 1 %.\n\nDET BETYR TO TING. For det første: fire av fem kan stabilisere en døende, og det er gode nyheter. For det andre: dør Walther, kan INGEN i gruppa ta neste steg og fjerne «døende» — da må de få vedkommende til skipslegen, og de har bare time-slagene å gå på. Det er en reell trussel, og den er verdt å bruke.\n\nREGELEN OM AT TO KAN SAMARBEIDE om First Aid er den beste nyheten gruppa har: to med 50 % gir 75 % til sammen. Minn dem på den første gang noen blir døende.\n\nSKIPETS LEGE er en NPC de kan nå. Men husk: han kan ikke stabilisere en døende — noen må gi førstehjelp FØRST, på stedet, i den runden det skjer. Å bære noen til sykestua uten førstehjelp betyr at hen slår CON hver runde hele veien.\n\nMAKS HP, og hvor major wound-grensa går (halve maks, rundet opp):\n  Beefcake 29 → 15 · Skjoldvår 24 → 12 · Walther 21 → 11 · Dagrun 21 → 11 · Franz 18 → 9.\nFranz er den skjøreste: ett slag på 9 setter ham i bakken. Polyppens tentakkel gjør 1D10 og IGNORERER RUSTNING, og det er 2D6 tentakler per runde. Ni eller ti i skade fra én eneste tentakkel setter Franz i bakken. Det er ikke en kamp gruppa skal stå og ta imot.\n\nÅ BRUKE LUCK FOR Å HOLDE SEG VÅKEN: 1 Luck for å være våken ut inneværende runde, deretter 2, 4, 8 — betalt på starten av hver runde. En våken figur er et mer fristende mål, så det er et blandet gode. Se regelboksen «Å bruke Luck»."
+        }
+      ]
+    },
+    {
+      "id": "villain-luck",
+      "title": "Skurkens Luck, og mooks",
+      "source": "Pulp Cthulhu kapittel 4: Dirty Tricks og Mooks (s. 62–63)",
+      "intro": "Dette er svaret på «kampene er over på to runder» — begge veier. Mooks gjør at heltene meier ned smårollene, og NPC-ens Luck gjør at skapningen IKKE går ned på to runder.\n\nSKAPNINGEN HAR LUCK 90. Bates har Luck 45. De tallene står på kortene, og de er ikke pynt — de er en ressurs du bruker.",
+      "sections": [
+        {
+          "title": "Mooks — smårollene går ned fort",
+          "source": "pulp",
+          "body": "EN MOOK er en NPC med helt gjennomsnittlige verdier: matroser, havnearbeidere, en tilfeldig passasjer, en zombie i mengden. Har noen verdier over gjennomsnittet, er hen som regel viktig for handlingen og IKKE en mook.\n\nREGELEN: en mook blir AUTOMATISK slått ut når hen er nede på HALVE sine hit points. Ikke null — halve.\n\nHVA DET GJØR: heltene skjærer gjennom smårollene og kommer fram til det som faktisk er farlig. Det er hele poenget med pulp. Bruk det bevisst når du kjører zombie-varianten: tjue zombier høres avskrekkende ut, men som mooks går de ned på ett godt treff hver, og da blir scenen spennende i stedet for lang.\n\nGJENNOMSNITTLIG MOOK, fra boka, om du trenger en på stående fot:\n  STR 40 · CON 50 · SIZ 50 · DEX 45 · INT 30 · APP 30 · POW 30 · EDU 40\n  HP 10 (altså ute på 5) · MP 6 · SAN 30 · DB 0 · Build 0 · Move 7\n  Ett angrep per runde. Brawl 35 % (17/7), skade 1D3. Dodge 25 % (12/5).\n  Rustning: ingen. Luck: ingen.\n  Våpen om de har noe: hagle 40 % (20/8) 4D6/2D6/1D6 · Thompson 30 % (16/6) 1D10+2 · .32 auto 40 % (20/8) 1D8.\n\nMANNSKAPET PÅ COOLIDGE er mooks. Bates er det IKKE — han er navngitt, dominert og viktig."
+        },
+        {
+          "title": "Skurkens Luck — fire skitne triks",
+          "source": "pulp",
+          "body": "VIKTIGE NPC-ER kan bruke Luck akkurat som heltene. Skapningen har 90 poeng. Bruk dem.\n\n1. JUSTERE ET SLAG — 1 for 1. Etter at du har slått, kan du bruke Luck for å flytte resultatet poeng for poeng. Dette er det du griper til når skapningen MÅ treffe, eller MÅ unnvike. Tjue poeng flytter et slag langt.\n\n2. KJØPE ET ANGREP TIL — 10 Luck. Skapningen kan kjøpe seg et ekstra nærkampangrep i runden. Ni ganger på en full beholdning, men i praksis to–tre ganger i en kamp, og det dobler trusselen den runden.\n\n3. SE BORT FRA EN FUMLE ELLER VÅPENFEIL — 10 Luck. Slaget er fortsatt bommet, men våpenet knekker ikke og geværet låser seg ikke.\n\n4. «LOOK OUT MASTER!» — ALLE Luck-poengene. Treffer en helt en viktig skurk, kan skurken brenne HELE Luck-beholdningen for å få en mook innen to meter til å kaste seg foran angrepet. Mooken dør eller slås ut øyeblikkelig. Skurken står så uten Luck resten av scenarioet.\n  PÅ COOLIDGE: dette er scenen der Bates kaster seg foran skapningen. Den er gratis dramatikk, og den koster skapningen alt — så spar den til du virkelig trenger at den slipper unna."
+        },
+        {
+          "title": "Bruk det med måte",
+          "source": "pulp + eget",
+          "body": "BOKA ADVARER SELV: NPC-ers bruk av Luck kan fort virke som deus ex machina og undergrave den indre logikken i spillet. Det skal aldri komme i konflikt med det som gir mening i fiksjonen.\n\nMITT RÅD FOR AKKURAT DETTE BORDET: si det høyt. «Den bruker Luck på det.» Da er det ikke juks — da er det en ressurs skapningen har, på lik linje med heltenes, og spillerne kan telle den ned. Skriv 90 på en lapp og stryk ut etter hvert.\n\nDET GJØR OGSÅ NOE ANNET: når spillerne ser at tallet synker, vet de at den blir mer sårbar for hver runde de holder ut. Det gjør en lang kamp til noe som går et sted, i stedet for en kamp som bare varer."
         }
       ]
     }
