@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 6
+VERSION = 7
 
 # --------------------------------------------------------------- meta
 
@@ -347,12 +347,30 @@ data["timeline"] = [
 # -------------------------------------------------------------- scener
 
 
-def beat(bid, title, act, body, refs=None):
+def beat(bid, title, act, body, refs=None, lines=None, roleplay=None):
     b = {"id": bid, "title": title, "act": act, "description": body,
          "done": False}
     if refs:
         b["connects_to"] = refs
+    if lines:
+        b["dialogue"] = lines
+    if roleplay:
+        b["roleplay"] = roleplay
     return b
+
+
+def say(who, line, note=None, source="bok"):
+    """Én replikk til en scene.
+
+    source="bok" er ordrett fra Slow Boat to China; source="forslag" er
+    skrevet for denne oppsetningen, der boka ikke gir noe. Skillet står
+    i appen, slik at Keeperen vet hva som er kanon og hva som er
+    påfunn.
+    """
+    d = {"who": who, "line": line, "source": source}
+    if note:
+        d["note"] = note
+    return d
 
 
 data["beats"] = [
@@ -851,6 +869,790 @@ def clue(cid, title, where, desc, roll="", refs=None):
     if refs:
         c["connects_to"] = refs
     return c
+
+
+# ------------------------------------------------------------------
+# REPLIKKER OG ROLLESPILL
+#
+# Slow Boat to China trykker «sample phrases» for de fleste NPCene, og
+# et knippe replikker inne i selve scenene. De står her ordrett,
+# oversatt, merket med kilde «bok». Der boka ikke gir noe — og scenen
+# likevel lever av å bli spilt — står forslag merket «forslag».
+#
+# roleplay-teksten er ikke et sammendrag av scenen. Den sier hvordan
+# den skal spilles: hvem som snakker først, hva NPCen vil ha ut av
+# samtalen, hvilket slag som avgjør noe, og hva som skal skje hvis
+# spillerne går en annen vei enn ventet.
+# ------------------------------------------------------------------
+
+SCENE_PLAY = {
+    "beat-up-the-gangway": {
+        "dialogue": [
+            say("Chad Peterson",
+                "«Chad Peterson fra New York, en fornøyelse å gjøre "
+                "Deres bekjentskap.»",
+                "Til alle han kolliderer med på landgangen. Han er "
+                "grundig full og gjentar seg selv."),
+            say("Virginia Ridley",
+                "«Unnskyld meg. Jeg må gjøre meg klar til middag.»",
+                "Hennes vei ut av enhver samtale den første dagen. Sagt "
+                "med et anstrengt smil."),
+            say("Dr. Soong",
+                "«Dette er min tjener, Wang Ma. Han vil svare på "
+                "spørsmålene Deres. Ha meg unnskyldt.»",
+                "Soong presenterer seg selv, men ikke Wang Ma — han "
+                "presenterer tjeneren som noe man henvender seg til."),
+            say("Dr. Soong", "«Han er litt tilbakeholden.»",
+                "Hvis noen snakker til Wang Ma og bare får et grynt."),
+            say("Wang Ma", "«Mester Soong sier nei.»"),
+            say("Wang Ma", "«Mester Soong sier ikke.»"),
+            say("Kaptein Nelson",
+                "«God aften. Jeg håper De nyter reisen?»",
+                "Varm stemme med en underlig aksent — han er norsk, "
+                "men vokste opp på Martinique og snakker utmerket "
+                "kolonifransk.", "bok"),
+            say("Førstestyrmann Schramm", "«Selvfølgelig, jeg skal se "
+                "til det med en gang.»",
+                "Smiler og nikker mye. Han mener det, men han har "
+                "tretti andre ting å gjøre.", "bok"),
+            say("En stuert", "«Mr. Peterson. Denne veien, sir. "
+                "Champagnen står alt på rommet.»",
+                "Stuertene smisker for ham og loser ham bestemt bort "
+                "samtidig.", "forslag"),
+        ],
+        "roleplay": (
+            "Dette er den eneste scenen der spillerne møter Chad "
+            "Peterson i live, og de vet ikke at det er poenget. Gi ham "
+            "plass: la ham avbryte, la ham grave ut hånda mot feil "
+            "person, la ham gjenta navnet sitt. Når han blir funnet som "
+            "en tom dress neste morgen, skal spillerne kunne høre "
+            "stemmen hans.\n\n"
+            "Virginia er irritert og holder munn. Spill henne som "
+            "noen som allerede har bestemt seg for ikke å lage en "
+            "scene foran folk — det gjør sammenbruddet hennes dagen "
+            "etter mye større.\n\n"
+            "Soong presenterer seg selv og ikke tjeneren. La spillerne "
+            "merke forskjellen. Prøver de å snakke med Wang Ma, får de "
+            "et grynt, og Soong svarer for ham. Det er ikke "
+            "uhøflighet fra Soongs side — det er en mann som er vant "
+            "til at folk henvender seg til feil person.\n\n"
+            "Ikke bruk terninger her. Landgangen er en scene der alle "
+            "får si navnet sitt og vise hvem de er. Trenger du et slag, "
+            "la det være Spot Hidden på den store kassa merket "
+            "«Funeral Supplies»."
+        ),
+    },
+
+    "beat-cabin-mates": {
+        "dialogue": [
+            say("Takishi Suroda", "«Du der — hva er det du har der?»",
+                "Han spør om alt. Hver gang."),
+            say("Takishi Suroda",
+                "«Der er du jo! Hvor har du gjemt deg hen?»",
+                "Sagt til en helt han har snakket med én gang."),
+            say("Phyllis Barnes",
+                "«Jeg er i musikkrommet hvis noen trenger meg.»"),
+            say("En av de irske politirekruttene",
+                "«Shanghai-politiet. Tre års kontrakt, dobbelt "
+                "betaling, og ingen som spør hvor du kommer fra. Du "
+                "skulle søkt selv.»",
+                "Fire unge irer på mellomdekket. De drikker og snakker "
+                "høyt om hva de skal gjøre med pengene.", "forslag"),
+            say("Olaf Gustavsen, marinegast",
+                "«Jeg har ikke sovet i en seng som ikke beveger seg "
+                "på fire år. Det er sengene på land jeg ikke klarer.»",
+                "Tredjeklasses lugarkamerat, på vei tilbake til Pearl "
+                "Harbor.", "forslag"),
+            say("Lo Mai", "«Doktorens folk. Vi holder oss for oss "
+                "selv.»",
+                "Kort, høflig, avvisende. Tcho-tcho-ene svarer ikke på "
+                "mer enn det som blir spurt om.", "forslag"),
+        ],
+        "roleplay": (
+            "Boka gir ingen replikker til denne scenen, men den er "
+            "verdt å spille, fordi den er gratis: hver lugarkamerat er "
+            "en relasjon spillerne får uten at du må rigge noe.\n\n"
+            "Gi hver spiller ÉN lugarkamerat med ett kjennetegn og én "
+            "replikk. Ikke mer. Poenget er at de skal kjenne igjen "
+            "navnet når det dukker opp igjen på dag ni.\n\n"
+            "Suroda er den viktigste: han deler trolig lugar med en av "
+            "de mannlige heltene, og han forsvinner som det første "
+            "offeret den 10. desember. Jo mer irriterende han er nå, "
+            "jo verre er det når senga hans står urørt.\n\n"
+            "Franz og Skjoldvår har begge Stealth over 60 og vil merke "
+            "at Lo Mai og tcho-tcho-ene beveger seg annerledes enn "
+            "andre passasjerer. Gi dem en Spot Hidden eller Psychology "
+            "som gir følelsen, ikke fakta."
+        ),
+    },
+
+    "beat-the-empty-suit": {
+        "dialogue": [
+            say("Albert Hallander",
+                "«Jeg var bare på vei forbi, jeg skulle ha gått rett "
+                "videre.»",
+                "Han lyver. Det var ingen lyd, og døra var låst — han "
+                "dirket den opp."),
+            say("Albert Hallander",
+                "«Jeg vet ingenting, det sverger jeg på.»"),
+            say("Virginia Ridley",
+                "«De finner ham, ikke sant? De må bare finne ham.»",
+                "Etter skriket. Hun klamrer seg til den første som "
+                "virker kompetent."),
+            say("Charles Astor", "«Noe må gjøres.»",
+                "Han står i korridoren og er ubehagelig til stede."),
+            say("Matros Hank Henson",
+                "«Ingen inn, sir. Ordre fra styrmannen. Jeg er lei "
+                "for det.»",
+                "Han holder døra og mener alvor. Han er også tjueto år "
+                "gammel og redd.", "forslag"),
+            say("Dr. Hartman, skipslege",
+                "«Jeg har sett mange ting i denne jobben. Jeg har "
+                "aldri sett klær legge seg sammen.»",
+                "Sagt lavt, til en av heltene, når ingen andre hører.",
+                "forslag"),
+        ],
+        "roleplay": (
+            "Scenen har to lag: det som ligger i stolen, og Hallander "
+            "som lyver om hvorfor han er der.\n\n"
+            "Spill Hallander som en som gjerne roter til hele bildet "
+            "heller enn å innrømme et tyveriforsøk. Han er i sjokk "
+            "(Psychology ser det), han lyver dårlig (en ny Psychology "
+            "avslører det), men han gir seg ikke på første spørsmål. "
+            "Intimidate eller Persuade får ham til å snakke — og her er "
+            "Beefcakes Intimidate 99 og Skjoldvårs APP 99 begge "
+            "riktige svar. La det gå fort når de bruker dem.\n\n"
+            "Men han har faktisk ikke sett noe. Poenget med Hallander "
+            "er ikke informasjonen, det er at gruppa bruker en halv "
+            "dag på ham. Når han til slutt tilstår tyveriet og blir "
+            "arrestert, har de knekt feil mann, og det skal føles som "
+            "en seier helt til det ikke gjør det.\n\n"
+            "Virginia skal ikke være hysterisk lenge. La henne gå fra "
+            "skrik til iskald konsentrasjon i løpet av et minutt — hun "
+            "er en kvinne som skyter leirduer for å roe nervene. Det "
+            "gjør henne til en alliert i stedet for et problem."
+        ),
+    },
+
+    "beat-anyone-seen-the-purser": {
+        "dialogue": [
+            say("En matros til en annen",
+                "«Har du sett Dungass? Han gikk runden i går kveld, og "
+                "siden har ingen sett ham.»",
+                "Den samme samtalen går igjen hele dagen, i ulike "
+                "varianter. Listen-slag for å fange den opp.",
+                "forslag"),
+            say("Mannskapets konsensus",
+                "«Han har gått på flaska igjen. Han sover den ut et "
+                "sted under dekk. Det går rykter om trøbbel med kona.»",
+                "Det de sier til en helt som blir venn med dem. De "
+                "mener det oppriktig.", "forslag"),
+            say("Førstestyrmann Schramm",
+                "«Jeg hørte deg ikke der ute!»",
+                "Han er ikke på kontoret. Han er på kontoret."),
+            say("Martin Aimesworthy",
+                "«Det er da ikke noe bry. La meg ta meg av det.»",
+                "Han hjelper gjerne — og han vet mer om hvem som går "
+                "hvor på dette skipet enn noen annen."),
+        ],
+        "roleplay": (
+            "Dette er den hardeste opplysningen i hele scenarioet, og "
+            "den kommer gratis hvis noen tenker på å spørre etter "
+            "passasjerlista: Señor Guiterrez de Almacan står ikke "
+            "oppført noe sted.\n\n"
+            "Ikke gi den bort. Krev et Hard Persuade — eller la "
+            "Aimesworthy gi den til noen som har vært hyggelig mot ham. "
+            "Det er hele grunnen til at Aimesworthy finnes.\n\n"
+            "Spill mannskapets forklaring om fylla helt oppriktig. De "
+            "lyver ikke; de tar bare feil. Det gjør at spillerne må "
+            "vurdere en kilde som er ærlig og gal samtidig, og det er "
+            "en bedre ferdighet å øve på enn å avsløre løgnere.\n\n"
+            "Aimesworthy er verdt å bygge en relasjon til: om Bates "
+            "blir tatt eller drept, er det HAN skapningen dominerer "
+            "neste gang. Jo mer spillerne liker ham, jo verre blir det."
+        ),
+    },
+
+    "beat-passenger-reactions": {
+        "dialogue": [
+            say("Charles Astor",
+                "«Chip var en god venn av meg, en nær venn, og han "
+                "ville aldri gjort noe slikt.»"),
+            say("Charles Astor", "«Jeg forstår det ikke. Jeg bare "
+                "forstår det ikke.»"),
+            say("Charles Astor", "«Noe må gjøres.»",
+                "Gjentas til alle som ikke kommer seg unna."),
+            say("Miles Hardaway", "«Si meg, fortell litt om deg selv.»",
+                "Han spør ikke for å bli kjent. Han spør for å skrive."),
+            say("Miles Hardaway", "«Kan jeg få et sitat?»"),
+            say("Phyllis Barnes",
+                "«Selvmord? Sludder. Jeg har sett mannen flere ganger "
+                "siden.»",
+                "Hun mener det. Hun har faktisk sett skapningen i "
+                "Petersons skikkelse."),
+            say("Phyllis Barnes",
+                "«Vel, jeg hjelper gjerne, men jeg vet ikke om det er "
+                "så mye jeg kan gjøre.»"),
+            say("Pater Alvarez",
+                "«Jeg ville undersøkt sjøfolkene. Er selvmordet "
+                "i virkeligheten et drap, kan det være dem.»",
+                "Han tilbyr en teori og spør tre spørsmål tilbake."),
+        ],
+        "roleplay": (
+            "Dette er scenen der skipet blir et samfunn i stedet for en "
+            "kulisse. Kjør den som en runde: tre–fire korte samtaler "
+            "på rad, hver med én ting å ta med seg, og ikke la noen av "
+            "dem vare lenger enn et par minutter.\n\n"
+            "ASTOR er en snobb som faktisk sørger. Begge deler samtidig. "
+            "Han vil ikke ha noe med folk under spesialklasse å gjøre — "
+            "og Beefcake har Credit Rating 3. Det er en ekte vegg, og "
+            "den åpner seg bare hvis Skjoldvår (APP 99) eller Franz "
+            "(Credit Rating 60) tar samtalen. Blir han venn, legger han "
+            "inn et godt ord hos kapteinen, og det er verdt mye senere.\n\n"
+            "HARDAWAY er en plage som spillerne kommer til å ville bli "
+            "kvitt. Han er også offer nummer to. Gi ham én scene der "
+            "han er nesten sympatisk — en journalist som faktisk vil "
+            "vite hva som skjedde — før han forsvinner.\n\n"
+            "PHYLLIS sier det sanneste i hele akten, og hun er den "
+            "minst troverdige kilden om bord: hun lyver om annet "
+            "(«voldsomme slagsmål blant kineserne»), hun er åpenlyst "
+            "fremmedfiendtlig, og ingen vil tro henne. La spillerne "
+            "gjøre feilen med å avskrive henne. Når hun blir drept den "
+            "13., skal de huske at hun hadde rett."
+        ),
+    },
+
+    "beat-the-stolen-book": {
+        "dialogue": [
+            say("Dr. Soong",
+                "«Hendelsen er høyst uheldig. Beklagelig og uheldig.»",
+                "Han sier det om et drap på en mann som har tjent ham i "
+                "årevis. Understatement er hans måte å bære det på."),
+            say("Dr. Soong",
+                "«Jeg så Mr. Peterson gå ut fra lugaren min. Klokka var "
+                "omtrent seks om morgenen, søndag den sjette.»",
+                "Han sier det rolig, og venter på at heltene skal "
+                "regne ut hva det betyr. Peterson var alt død da.",
+                "forslag"),
+            say("Dr. Soong",
+                "«Boka er ikke verdifull slik De mener verdifull. Den "
+                "er farlig. Det er en forskjell, og jeg håper De aldri "
+                "får lære den.»",
+                "Hans eneste øyeblikk av åpenhet i hele akten.",
+                "forslag"),
+            say("Lo Mai",
+                "«Wang Ma var ikke redd. Han visste hva han gikk mot.»",
+                "Lo Mai trer inn i Wang Mas plass uten et ord om sorg.",
+                "forslag"),
+        ],
+        "roleplay": (
+            "Fristelsen her er å la Soong forklare alt. Ikke gjør det. "
+            "Boka er tydelig på det: bruk ham til å peke i riktig "
+            "retning, ikke til å redde dagen, og han er gammel og "
+            "skrøpelig.\n\n"
+            "Gi ham én opplysning per samtale, og la ham alltid "
+            "svare med et spørsmål tilbake. Han er en mann som har "
+            "forsket på Mythos i tjue år og som vet nøyaktig hvor "
+            "farlig det er å si for mye til folk som ikke er "
+            "forberedt.\n\n"
+            "Den harde nøtten er tidspunktet: han så Peterson SEKS OM "
+            "MORGENEN SØNDAG, etter at Peterson var meldt død. Si det "
+            "én gang, rolig, uten å understreke det. La spillerne "
+            "finne ut av det selv. Om ingen biter på, kan Soong nevne "
+            "det igjen en dag senere, som om han hadde glemt at han "
+            "hadde sagt det.\n\n"
+            "Wang Ma er drept. Soong sørger ikke foran fremmede, men "
+            "Psychology (Skjoldvår 60, Walther 50) ser at mannen er i "
+            "stykker. Det er en åpning for spillere som behandler ham "
+            "som et menneske og ikke som en oppslagsbok."
+        ),
+    },
+
+    "beat-looking-for-bunny": {
+        "dialogue": [
+            say("Bunny Bates",
+                "«Hvorfor jeg skal til Japan? Pass dine egne saker.»",
+                "Hans standardsvar på alt, før domineringen tar helt "
+                "tak."),
+            say("Bunny Bates",
+                "«Herregud, hva tar du meg for, en tyster? Pass dine "
+                "egne saker.»"),
+            say("Bunny Bates", "«Stemmen inni.»",
+                "Babler når han er tatt. Gjentar det.", "bok"),
+            say("Bunny Bates",
+                "«Englekoret har befalt meg.»",
+                "Det andre han sier. Han vet ikke hva han mener med "
+                "det.", "bok"),
+            say("Bunny Bates",
+                "«Jeg stjal ei bok. Jeg drepte en kineser. Jeg har "
+                "gjort verre. Vil du høre om det?»",
+                "Skriftemålet den 17. Historiene henger ikke sammen, "
+                "og han blander inn ting han umulig kan ha gjort.",
+                "forslag"),
+        ],
+        "roleplay": (
+            "Bates er ikke en skurk. Han er et verktøy noen holder i, "
+            "og det er hele poenget med ham.\n\n"
+            "Første gang: spill ham som en gangster. Kjepphøy, kort, "
+            "avvisende. «Pass dine egne saker.» Han slåss desperat for "
+            "å komme seg unna og stikker ved første anledning — ikke "
+            "la ham stå og ta imot, se kortet «Motstandere som ikke "
+            "står og tar imot».\n\n"
+            "Andre gang: noe har gått i stykker. Han snakker om "
+            "stemmen inni og om englekoret, og han mener det. Blir han "
+            "tatt, får spillerne nesten ingenting ut av ham så lenge "
+            "Dominate står på.\n\n"
+            "MEN: skapningen må kaste Dominate på nytt HVER NATT, med "
+            "et motsatt POW-slag. Klarer spillerne å styrke viljen "
+            "hans — Hard Persuade eller Hard Psychoanalysis — får han "
+            "en bonusterning mot den. Det er en ekte utvei, og den "
+            "belønner en helt annen type spill enn å banke ham. Si det "
+            "ikke rett ut, men la et Psychology-slag antyde at det er "
+            "en mann inni der som kjemper imot.\n\n"
+            "Skriftemålet den 17. er hans eneste time som seg selv. "
+            "Spill det uten skrekkeffekter: en redd mann som forteller "
+            "sannheten og blandet løgn til en prest, fordi han ikke "
+            "lenger kan holde det inne. En time senere er han borte "
+            "for godt."
+        ),
+    },
+
+    "beat-honolulu-and-beyond": {
+        "dialogue": [
+            say("Etterforsker William Ranta",
+                "«Avskjedsbrevet er ekte. Håndskriften stemmer. Mannen "
+                "hoppet, og klærne er en tilfeldighet.»",
+                "Han har vært om bord i to timer og skal hjem til "
+                "middag.", "forslag"),
+            say("Etterforsker Ranta",
+                "«De har sett ham SIDEN han døde. Ja vel. Og hvor "
+                "mange hadde De drukket?»",
+                "Til helter som insisterer. Han er ikke ondsinnet — han "
+                "er ferdig.", "forslag"),
+            say("Charles Astor",
+                "«Tusen dollar. Kontant. Til den som gir meg noe jeg "
+                "kan bruke.»",
+                "Etter Honolulu. Han sier det høyt, i salongen, så alle "
+                "hører det."),
+            say("Kaptein Nelson",
+                "«Hva i helvete er det som foregår her!»",
+                "Når karantenen holder skipet i havn og politiet "
+                "kommer om bord."),
+        ],
+        "roleplay": (
+            "Dette er scenen der spillerne mister tilliten til at "
+            "systemet skal ordne opp, og det er en scene, ikke en "
+            "kunngjøring. Spill Ranta ut.\n\n"
+            "Han skal ikke være dum eller korrupt. Han skal være en "
+            "kompetent mann med for lite tid, som tar de rimeligste "
+            "konklusjonene i verden ut fra det han faktisk har: et "
+            "ekte avskjedsbrev, en savnet forvalter med kjent "
+            "drikkeproblem, og en gjeng passasjerer som påstår de har "
+            "sett en død mann gå i korridoren.\n\n"
+            "La spillerne legge fram alt de har. La ham høre på. Og "
+            "la ham så dra. Det er verre enn å bli avvist.\n\n"
+            "Astors belønning på tusen dollar gjør noe med skipet: nå "
+            "leter alle. Passasjerer begynner å angi hverandre, "
+            "mannskapet blir mistenksomt, og heltene får konkurranse. "
+            "Bruk det til å skape trøbbel i dagene etterpå.\n\n"
+            "Etter dette er det ingen voksen igjen å hente hjelp fra. "
+            "Si det aldri høyt. La dem merke det."
+        ),
+    },
+
+    "beat-missing-people": {
+        "dialogue": [
+            say("En helt som deler lugar med Suroda",
+                "Senga er urørt. Kofferten står åpen. Barberkosten er "
+                "fortsatt våt.",
+                "Ikke en replikk — et bilde å beskrive. Suroda gikk ut "
+                "etter middag og kom aldri tilbake.", "forslag"),
+            say("Førstestyrmann Schramm",
+                "«Folk går i land i Honolulu og glemmer å si fra. Det "
+                "skjer hver eneste tur.»",
+                "Den offisielle forklaringen på Suroda. Den holder helt "
+                "til neste person forsvinner.", "forslag"),
+            say("Martin Aimesworthy",
+                "«Det er tre nå, sir. Jeg har talt. Ingen andre "
+                "teller.»",
+                "Sagt lavt, til en helt han stoler på. Dette er "
+                "øyeblikket han velger side.", "forslag"),
+            say("Kaptein Nelson",
+                "«Ingenting av dette forlater dette rommet. Er det "
+                "forstått? Jeg har seks hundre og syttiåtte "
+                "passasjerer om bord.»",
+                "Han er ikke i ledtog med noen. Han er en mann som vet "
+                "hva panikk gjør med et skip midt i Stillehavet.",
+                "forslag"),
+        ],
+        "roleplay": (
+            "Forsvinningene er scenarioets klokke, og klokka går "
+            "uansett hva spillerne gjør. Det er viktig at de merker "
+            "det.\n\n"
+            "Ikke presenter dem som mysterier å løse. Presenter dem som "
+            "tomrom: en urørt seng, en stol ingen setter seg i ved "
+            "middagsbordet, et navn som ikke svarer når det ropes opp. "
+            "Gi ETT bilde per forsvinning og gå videre.\n\n"
+            "Rekkefølgen har mening. Suroda er en plage ingen savner. "
+            "Hardaway er en plage alle savner litt. Phyllis er et godt "
+            "menneske som hadde rett. Den femte skal Keeperen velge — "
+            "og den skal være noen spillerne har brukt tid på. En av "
+            "heltene er et fullt legitimt valg.\n\n"
+            "Aimesworthy som teller de forsvunne fordi ingen andre "
+            "gjør det, er scenens beste øyeblikk. Spar det til etter "
+            "at minst én spiller har vært grei mot ham."
+        ),
+    },
+
+    "beat-soong-requests-help": {
+        "dialogue": [
+            say("Dr. Soong",
+                "«Jeg er over sytti år gammel, og jeg er ikke redd for "
+                "å dø. Jeg er redd for hva som skjer med den boka hvis "
+                "jeg dør før den er tilbake.»",
+                "Hans måte å be om hjelp uten å be om hjelp.",
+                "forslag"),
+            say("Dr. Soong",
+                "«Jeg sender mine folk ned på mellomdekket. De ser "
+                "ting jeg ikke ser. De vil ikke ha selskap.»",
+                "Han tilbyr en arbeidsdeling, ikke en allianse.",
+                "forslag"),
+            say("Dr. Soong",
+                "«De spør hva som står i den. Jeg spør Dem hvorfor De "
+                "vil vite det.»",
+                "Hans standardsvar når noen graver i Mythos-innholdet.",
+                "forslag"),
+        ],
+        "roleplay": (
+            "Dette er det nærmeste scenarioet kommer en oppdragsgiver, "
+            "og boka advarer eksplisitt mot å la Soong svare på alt "
+            "eller redde dagen.\n\n"
+            "Praktisk regel: Soong svarer på ÉTT spørsmål per samtale, "
+            "og bare hvis spørsmålet er godt. Resten er «Jeg vet ikke» "
+            "eller et motspørsmål. Han er ikke hemmelighetsfull av "
+            "vrangvilje — han vet at kunnskap om dette har kostet ham "
+            "en kone og to sønner.\n\n"
+            "Står gruppa fast, er han verktøyet ditt: da gir du dem ETT "
+            "dytt i riktig retning gjennom ham, og så trekker han seg "
+            "tilbake igjen. Bruk ham sparsomt, ellers blir scenarioet "
+            "hans og ikke deres.\n\n"
+            "Franz har Cthulhu Mythos 10. Det er nok til at Soong "
+            "kjenner igjen noe i ham — og behandler ham annerledes enn "
+            "de andre. Spill den forskjellen tydelig ved bordet. Det er "
+            "en belønning Franz ikke visste han hadde."
+        ),
+    },
+
+    "beat-distant-music": {
+        "dialogue": [
+            say("En førsteklasses passasjer",
+                "«En hjemsøkt opera. Det er det eneste jeg kan "
+                "sammenligne det med.»"),
+            say("En annen passasjer",
+                "«En dødsmesse fra helvete. Jeg lyver ikke.»"),
+            say("En passasjer ved frokosten",
+                "«Jeg hadde en underlig drøm. Full av musikk som ikke "
+                "var av denne verden.»",
+                "Det første hintet, dager før noen hører det våkne."),
+            say("Phyllis Barnes",
+                "«Jeg kjenner hvert instrument som finnes om bord på "
+                "dette skipet. Dette er ikke ett av dem.»",
+                "Hun er musikklærer. Hun er den eneste som kan si noe "
+                "presist om lyden — og hun går for å finne den. Det "
+                "dreper henne.", "forslag"),
+        ],
+        "roleplay": (
+            "Musikken er scenarioets tikking, og den skal bygges over "
+            "flere dager før noen hører den selv.\n\n"
+            "Dag 13: andrehåndsberetninger ved frokosten. Ingen to "
+            "stemmer overens. La spillerne høre tre ulike beskrivelser "
+            "av det samme, fra folk som ikke snakker med hverandre.\n\n"
+            "Dag 14: den høres over hele skipet om natta. Listen-slag "
+            "fanger den opp; et Hard Listen plasserer den under dekk. "
+            "Musikkrommet står tomt — sjekk det, for spillerne kommer "
+            "til å gjøre det.\n\n"
+            "Beskriv den aldri to ganger likt. Én natt er den et orgel. "
+            "Neste natt er den et kor. Den tredje er den noe som puster "
+            "i takt. Det er ikke uklarhet for uklarhetens skyld: hver "
+            "gang et nytt offer lades inn i maskinen, blir lyden "
+            "klarere og mer feil.\n\n"
+            "Franz har Night Vision og Stealth 60. Han er den naturlige "
+            "til å gå nedover mot lyden om natta. La ham gjøre det "
+            "alene én gang, og la ham komme tilbake med noe de andre "
+            "ikke kan bekrefte."
+        ),
+    },
+
+    "beat-meeting-the-captain": {
+        "dialogue": [
+            say("Kaptein Nelson",
+                "«God aften. Jeg håper De nyter reisen?»",
+                "Alltid slik han begynner. Også når det ikke er en "
+                "hyggelig samtale."),
+            say("Kaptein Nelson",
+                "«Hva i helvete er det som foregår her!»",
+                "Når han har mistet tålmodigheten, og det skjer bare "
+                "én gang."),
+            say("Kaptein Nelson",
+                "«De har vært til stede på tre av fire steder der noe "
+                "har gått galt. Forklar meg det, og gjør det kort.»",
+                "Avhørene er raske og direkte. Han har ikke tid til "
+                "historier.", "forslag"),
+            say("Kaptein Nelson",
+                "«Jeg spilte poker i tjuefem år før jeg fikk dette "
+                "skipet. Jeg vet når noen bløffer. Prøv igjen.»",
+                "Psychology 70 %, Fast Talk 95 %. Han er bedre på dette "
+                "enn noen av heltene.", "forslag"),
+        ],
+        "roleplay": (
+            "Nelson er ikke en hindring. Han er en dyktig mann som gjør "
+            "jobben sin, og det er nettopp derfor han er farlig for "
+            "gruppa.\n\n"
+            "Han har Psychology 70 og Fast Talk 95. Prøver noen å lure "
+            "ham med Fast Talk og lettvinte fakta, kjøper han det ikke "
+            "— og de blir diskré fulgt av stuerter resten av turen. "
+            "Lugaren deres blir gjennomsøkt mens de sitter i avhør.\n\n"
+            "Avhørene skal være korte. To–tre spørsmål per helt, "
+            "enkeltvis eller i små grupper. Still dem raskt, avbryt "
+            "lange svar, og gå videre. Det gjør ham mer skremmende enn "
+            "en lang scene ville gjort.\n\n"
+            "Sannheten er et reelt valg her. Forteller de alt, tror han "
+            "dem ikke — men han noterer, og han er en mann som "
+            "revurderer når fakta endrer seg. Lyver de godt nok, "
+            "slipper de unna nå og har en fiende senere.\n\n"
+            "Har de blitt venn med Astor, legger Astor inn et godt ord. "
+            "Det er den konkrete uttellingen for å ha spilt den "
+            "ubehagelige middagsscenen tidligere, og den bør merkes."
+        ),
+    },
+
+    "beat-searching-the-ship": {
+        "dialogue": [
+            say("James Hawthorne, kenneljente",
+                "«Krypene. De kommer og de går. De marsjerer, som en "
+                "hær.»",
+                "Mumler. Vanskelig å forstå. Krever at noen roer "
+                "vedkommende ned, eller et Psychoanalysis-slag.",
+                "bok"),
+            say("James Hawthorne",
+                "«Jeg hører dem. Om natta. De er på vei for å spise "
+                "meg.»",
+                "Skriker og løper inn i kroken sin ved synet av en "
+                "edderkopp eller en kakerlakk.", "bok"),
+            say("En matros",
+                "«Lasterom fire? Nei, sir. Ikke alene. Spør noen "
+                "andre.»",
+                "Overtroen om han som falt i 1929 — se taktikkortet.",
+                "forslag"),
+        ],
+        "roleplay": (
+            "Hawthorne er scenarioets tristeste scene, og den skal "
+            "spilles som en omsorgsscene og ikke som et avhør.\n\n"
+            "Kenneljenta på sytten har sett skapningen løse seg opp i "
+            "et lasterom, og det har gjort henne varig gal. Hun er "
+            "skvetten, øynene søker langs gulvet hele tiden, og hun "
+            "mumler. Psychology sier at hun er dypt redd og "
+            "sannsynligvis gal.\n\n"
+            "Det koster TID å få noe ut av henne — tid brukt på å roe "
+            "henne ned, eller et Psychoanalysis-slag. Gruppa har ingen "
+            "med Psychoanalysis. Da er det tiden som gjelder, og det er "
+            "en god ting: la dem sitte der i en time med spillets ur "
+            "gående.\n\n"
+            "Det hun sier er sant, og det høres ut som galskap. Det er "
+            "hele poenget.\n\n"
+            "VIKTIG: kommer gruppa seg ikke ned i lasterommene før sent "
+            "i turen, er Hawthorne borte — tatt av Bates og ofret til "
+            "pipene. La dem finne kroken hennes tom, med tegninger på "
+            "veggen. Det er en straff de har fortjent, og den svir mer "
+            "enn et monster."
+        ),
+    },
+
+    "beat-the-tcho-tcho": {
+        "dialogue": [
+            say("«Chad Peterson» til tcho-tcho-ene",
+                "«Beskyttelse, og alt kjøttet dere klarer å spise.»",
+                "Skapningens tilbud, overhørt fra mørket i lasterom 6."),
+            say("Sheng Tsin, siste overlevende",
+                "«Sheng Tsin. Deres tjener nå og alltid.»",
+                "Bukker. Hvis heltene driver bort eller dreper "
+                "hunting horror-en, og bare én tcho-tcho er igjen."),
+            say("Lo Mai",
+                "«Vi tjener doktoren. Vi har en gjeld. Det er alt De "
+                "trenger å vite.»",
+                "Hvis noen spør hvorfor de følger Soong.", "forslag"),
+            say("«Chad Peterson», avslørt",
+                "Ingenting. Skapningen kan ikke lage lyd i sin egen "
+                "skikkelse — den kommuniserer skriftlig.",
+                "Et vesentlig poeng: i det øyeblikket masken ryker, "
+                "blir den stum.", "bok"),
+        ],
+        "roleplay": (
+            "Denne scenen har to helt ulike utfall, og begge er gode. "
+            "Ikke bestem på forhånd — la spillerne tippe vekta.\n\n"
+            "Først: la dem se på. Tcho-tcho-ene åpner ei tønne merket "
+            "«Hawaiian Botanical Specimens» og koker innholdet. "
+            "Sanity-slag (1/1D4). Så kommer «Peterson» ned leideren og "
+            "framsetter tilbudet sitt.\n\n"
+            "HVIS TCHO-TCHO-ENE SIER JA og heltene bryter inn: "
+            "«Peterson» flykter ved første tegn til trøbbel, "
+            "sannsynligvis mens de nye allierte angriper. Trenges den "
+            "opp i et hjørne, faller den fra hverandre til tusen "
+            "insekter — 1D4 skade til alle rundt, og Sanity-slag "
+            "(1D3/2D6) for å se det.\n\n"
+            "HVIS DE SIER NEI: skapningen tilkaller en hunting horror "
+            "på stedet for å drepe dem alle. Griper ikke heltene inn, "
+            "dør alle tcho-tcho-ene. Gjør de det, får de Sheng Tsin — "
+            "en livsgjeld, en tolk, en kokk, og en mulig "
+            "erstatningskarakter.\n\n"
+            "Spill tcho-tcho-ene som folk, ikke som monstre. De veier "
+            "et tilbud fra en fremmed mot en gjeld til en gammel mann. "
+            "At de kanskje er kannibaler, er noe spillerne får vite i "
+            "samme scene — la de to tingene ligge ved siden av "
+            "hverandre uten å løse dem opp."
+        ),
+    },
+
+    "beat-bunny-takes-a-hostage": {
+        "dialogue": [
+            say("Bunny Bates",
+                "«Stemmene! De sa jeg måtte! De sa det, og jeg gjorde "
+                "det!»",
+                "Skriker det ut over spisesalen på første klasse, med "
+                "en arm om halsen på den første han fikk tak i."),
+            say("Bunny Bates",
+                "«Slipp meg av båten. NÅ. Ellers dreper jeg henne, jeg "
+                "sverger på at jeg gjør det.»",
+                "Han mener det. Han er utvilsomt drapslysten og fra "
+                "forstanden."),
+            say("Bunny Bates",
+                "«Jeg skriftet. Jeg skriftet til presten og det hjalp "
+                "ikke. Ingenting hjelper.»",
+                "Til en helt som prøver å nå inn til ham — og et hint "
+                "om hvor åpningen ligger.", "forslag"),
+            say("Kaptein Nelson",
+                "«Ingen skyter i min spisesal. Ingen.»",
+                "Han står i døra og mener det, uansett hva som står på "
+                "spill.", "forslag"),
+        ],
+        "roleplay": (
+            "Dette er en avledning, og spillerne vet det ikke. Det gjør "
+            "den til scenarioets vondeste valg: hvert minutt brukt på "
+            "Bates, er et minutt skapningen spiller på pipene.\n\n"
+            "La scenen ta tid. Beskriv salen: hvite duker, "
+            "syvretters, seks hundre mennesker som ikke vet hva de skal "
+            "gjøre med hendene sine. Gisselet skal helst være noen de "
+            "kjenner — Virginia, Aimesworthy, eller en av heltene.\n\n"
+            "Han kan tas med MAKT eller med KLØKT. Kløkt er et Extreme "
+            "Persuade eller Fast Talk, eller et Hard Psychoanalysis. "
+            "Det er harde slag, og gruppa har Persuade 50 på to "
+            "personer — Extreme er 10. La dem vite at det finnes, uten "
+            "å love at det går.\n\n"
+            "MAKT er lettere og koster mer. Dagrun med hagle på DEX 99 "
+            "har skuddet. Beefcake kan ta ham med et grep hvis han "
+            "kommer nær nok. Men Bates er et menneske, han er et offer, "
+            "og han har nettopp skriftet. Sørg for at det står klart "
+            "for bordet FØR de bestemmer seg.\n\n"
+            "Uansett utfall: i det øyeblikket det er over, roper noen "
+            "fra dekket. Havet åpner seg."
+        ),
+    },
+
+    "beat-the-final-test": {
+        "dialogue": [
+            say("En passasjer på promenadedekket",
+                "«Vannet. Se på vannet.»",
+                "Det første noen sier. Havet trekker seg ned i en "
+                "trakt bredere enn skipet er langt.", "forslag"),
+            say("Kaptein Nelson over høyttaleren",
+                "«Alle mann til livbåtstasjonene. Dette er ikke en "
+                "øvelse. Alle mann til livbåtstasjonene.»",
+                "Stemmen er rolig hele veien igjennom. Det er verre.",
+                "forslag"),
+            say("Dr. Soong",
+                "«Stopp musikken. Ikke drep den — stopp musikken. Den "
+                "vil dra hjem igjen.»",
+                "Om han fortsatt lever. Den viktigste opplysningen i "
+                "hele finalen, gitt av en mann som knapt kan stå.",
+                "forslag"),
+            say("Pater Alvarez",
+                "«Jeg har lest om noe slikt. Jeg trodde det var en "
+                "lignelse.»",
+                "Hvis han er i live og til stede. Han vet nok til å ha "
+                "mareritt, og ikke nok til å hjelpe.", "forslag"),
+        ],
+        "roleplay": (
+            "Tre utveier, og spillerne må finne minst én av dem selv:\n"
+            "  1. ØDELEGG PIPENE (50 HP, 3 rustning). Polyppen snur og "
+            "drar tilbake dit den kom fra.\n"
+            "  2. BIND POLYPPEN med Bind Flying Polyp — krever "
+            "formelen, og et motsatt slag mot POW 80.\n"
+            "  3. SLÅSS. Rustning 4, og bare minste mulige skade fra "
+            "fysiske våpen. Dette er den dårligste utveien, og gruppa "
+            "kommer til å prøve den først.\n\n"
+            "Polyppen bruker TI RUNDER på å rive seg gjennom skroget "
+            "ned til lasterom 7. Det er klokka di, og den skal være "
+            "synlig: tell den ned høyt. «Sju runder igjen.» «Fem.»\n\n"
+            "Alle om bord slår Sanity (1D3/1D20). Beefcake og Walther "
+            "har SAN 45 — regn med at minst én av dem knekker midt i "
+            "finalen. Ha en plan for hva en midlertidig gal Beefcake "
+            "gjør i et rom fullt av folk.\n\n"
+            "Ikke la dette bli et rent kampoppgjør. Alt som gjør scenen "
+            "til noe mer enn treffslag, gjør den bedre: folk i vannet, "
+            "en livbåt som henger skjevt, en dør som er kilt fast med "
+            "seksti mennesker bak. Se kampjusteringskortene — særlig "
+            "«Gi kampen en klokke» og «La rommet ta skade».\n\n"
+            "Coolidge går nesten helt sikkert ned. La spillerne kjempe "
+            "for hvem som kommer i båtene, ikke for om skipet "
+            "overlever."
+        ),
+    },
+
+    "beat-conclusion": {
+        "dialogue": [
+            say("En overlevende i livbåten",
+                "«Hva var det? Bare si meg hva det var.»",
+                "Ingen har et svar som hjelper.", "forslag"),
+            say("En journalist i Honolulu eller Shanghai",
+                "«Kilder om bord beskriver en monsterbølge. "
+                "Rederiet avviser alle spørsmål.»",
+                "Slik verden forklarer det. Det står i avisene innen "
+                "en uke.", "forslag"),
+            say("Sheng Tsin", "«Deres tjener nå og alltid.»",
+                "Om han lever, følger han dem videre. Han mener det "
+                "bokstavelig.", "bok"),
+            say("Skapningen, skriftlig",
+                "Et telegram uten avsender, levert på hotellet i "
+                "Shanghai. Én setning, skrevet med en hånd som ikke "
+                "er en hånd.",
+                "Om den slapp unna med en Gate. Den kan ikke snakke — "
+                "men den kan skrive, og den husker navn.", "forslag"),
+        ],
+        "roleplay": (
+            "Gi hver spiller ett spørsmål å svare på i båten, før du "
+            "sier noe om hva som skjer videre:\n"
+            "  • Hva tok du med deg?\n"
+            "  • Hvem så du sist?\n"
+            "  • Hva kommer du til å si når noen spør?\n\n"
+            "Svarene deres er epilogen. Du trenger ikke skrive den.\n\n"
+            "Overlevende plukkes opp i løpet av noen timer. Avisene "
+            "skriver om en monsterbølge, og rederiet avviser alt. "
+            "Ingen av heltene blir trodd, og det er riktig slik — det "
+            "er prisen for å ha vært der.\n\n"
+            "Slapp skapningen unna gjennom en Gate til Shanghai, "
+            "slutter den seg til Eight Fortunes Mutual Aid Society, og "
+            "den har et regnskap å gjøre opp. Den kan ikke snakke. Den "
+            "kan skrive. Et telegram uten avsender er en perfekt "
+            "siste scene, og en perfekt første scene i neste "
+            "scenario."
+        ),
+    },
+}
+
+for _b in data["beats"]:
+    _extra = SCENE_PLAY.get(_b["id"])
+    if _extra:
+        _b.update(_extra)
 
 
 data["clues"] = [

@@ -64,6 +64,51 @@ async def main():
         await pg2.evaluate("setView('npcs')"); await pg2.wait_for_timeout(300)
         n = await pg2.evaluate("(()=>{state.query='polyp';render();return document.querySelectorAll('.entry').length;})()")
         print("npc search 'polyp' ->", n, "rows")
+        # --- REPLIKKER OG ROLLESPILL I SCENENE
+        d=await pg.evaluate("""() => { const b=state.scenario.beats;
+            return {scenes: b.length,
+                    withLines: b.filter(x=>(x.dialogue||[]).length).length,
+                    withPlay: b.filter(x=>x.roleplay).length,
+                    lines: b.reduce((n,x)=>n+(x.dialogue||[]).length,0),
+                    fromBook: b.reduce((n,x)=>n+(x.dialogue||[])
+                                 .filter(y=>y.source==='bok').length,0),
+                    badSource: b.reduce((a,x)=>a.concat((x.dialogue||[])
+                                 .filter(y=>y.source!=='bok'&&y.source!=='forslag')
+                                 .map(y=>x.id+': '+y.source)), [])}; }""")
+        print("replikker:", d)
+        assert d["withLines"] == d["scenes"], d
+        assert d["withPlay"] == d["scenes"], d
+        assert d["fromBook"] > 30, d
+        assert not d["badSource"], d
+
+        await pg.evaluate("setView('beats')"); await pg.wait_for_timeout(400)
+        await pg.evaluate("""() => openItem(state.scenario.beats
+            .find(x=>x.id==='beat-up-the-gangway'),'beats')""")
+        await pg.wait_for_timeout(400)
+        scene=await pg.evaluate("""() => ({
+            labels: [...document.querySelectorAll('#modal-body .section-label')]
+                      .map(x=>x.textContent),
+            lines: document.querySelectorAll('#modal-body .line').length,
+            book: document.querySelectorAll('#modal-body .line:not(.suggested)').length,
+            sugg: document.querySelectorAll('#modal-body .line.suggested').length,
+            first: document.querySelector('#modal-body .line-say').textContent,
+        })""")
+        print("scenekort:", scene["labels"], scene["lines"], "replikker")
+        assert "Replikker" in scene["labels"], scene
+        assert "Slik spilles scenen" in scene["labels"], scene
+        assert scene["book"] > 0 and scene["sugg"] > 0, scene
+        assert "Chad Peterson fra New York" in scene["first"], scene
+        await pg.evaluate("closeAllModals()")
+
+        # Replikkene skal kunne søkes opp.
+        await pg.evaluate("""() => { state.query='englekoret'; render(); }""")
+        await pg.wait_for_timeout(300)
+        found=await pg.evaluate(
+            "() => [...document.querySelectorAll('#main .entry-title')].map(x=>x.textContent)")
+        print("søk på en replikk:", found)
+        assert found == ["På jakt etter Bunny Bates"], found
+        await pg.evaluate("""() => { state.query=''; render(); }""")
+
         # --- HALV OG FEMTEDEL OVERALT DER FERDIGHETER VISES
         steps=await pg.evaluate("""() => ({
             calc: [stepsLabel(65), stepsLabel('75%'), stepsLabel(25),

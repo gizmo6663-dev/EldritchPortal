@@ -325,7 +325,7 @@ Notater lagres av seg selv to sekunder etter siste tastetrykk, og flushes når a
 | `player_pitch`, `keeper_summary` | Åpningstekst til spillerne, og hva som egentlig foregår |
 | `keeper_brief` | `{title, body}` — korte kort med det viktigste å vite på forhånd |
 | `timeline` | `{id, day, when, title, description, tag}` — grupperes per dag |
-| `beats` | `{id, act, title, description}` — scener, grupperes per akt |
+| `beats` | `{id, act, title, description, dialogue, roleplay}` — scener, grupperes per akt. `dialogue` er `[{who, line, note, source}]` der `source` er `"bok"` eller `"forslag"` |
 | `clues` | `{id, title, where, roll, description}` |
 | `npcs` | `{id, name, category, role, description, traits, quotes, stats, combat, skills, spells, special, sanity_loss, possessions, notes}` |
 | `locations` | `{id, title, deck, description}` |
@@ -394,7 +394,7 @@ CHROMIUM_PATH=/sti/til/chromium python3 tests/editor_weapons_test.py  # våpen l
 
 Den inneholder Keeper-delen av appen:
 
-- **Scenario** — bibliotek, tidslinje per dag, scener per akt, spor med terningslag, NPC-statblokker, steder, handouts og regeloppslag
+- **Scenario** — bibliotek, tidslinje per dag, scener per akt med replikker og rollespillhjelp, spor med terningslag, NPC-statblokker, steder, handouts og regeloppslag
 - **Roller** — spillere, NPCer og fiender i én liste, med filtrering per type. Alt kan opprettes, redigeres, dupliseres og slettes: karakteristikker, angrep, ferdigheter og fritekst
 - **Fiendebank** — 73 skapninger med statblokker, som kan legges i rollelisten eller sendes rett i en kamp. 24 av dem har egne mekanismer lagt inn: tellere som rulles hver runde, regenerering, svake punkter og regler for hvilke våpen som i det hele tatt biter
 - **Kamp** — huk av deltakere, skriv inn initiativet de slo, start kampen. Rundeteller, HP-sporing, tilstander, logg, og en angrepsflyt som tar deg fra våpen til mål til ferdig utregnet skade
@@ -545,6 +545,20 @@ Talentboka bygges slik:
 python3 scenarios/build_talents.py pulp.txt
 python3 web/build.py
 ```
+
+---
+
+## Replikker og rollespill
+
+Hver av de 17 scenene har to felter til: `dialogue` og `roleplay`.
+
+`dialogue` er en liste med `{who, line, note, source}`. **`source` skiller kanon fra påfunn** — `"bok"` er ordrett fra *Slow Boat to China*, oversatt; `"forslag"` er skrevet for denne oppsetningen fordi boka ikke gir noe der. I appen får de to solid gullstrek og «fra boka», eller stiplet strek og «forslag», så Keeperen alltid vet hva hen leser.
+
+`A Slow Boat to China` har **80 replikker, 45 av dem fra boka**. Boka trykker «sample phrases» for fjorten NPCer, pluss et knippe replikker inne i scenene — Chad Petersons presentasjon på landgangen, Dr. Soongs *«Hendelsen er høyst uheldig»*, Bates' *«englekoret har befalt meg»*, skapningens tilbud til tcho-tcho-ene, Sheng Tsins ed. Alle er med.
+
+`roleplay` er ikke et sammendrag av scenen. Den sier hvordan den skal spilles: hvem som snakker først, hva NPCen vil ha ut av samtalen, hvilket slag som avgjør noe, og hva som skal skje hvis spillerne går en annen vei enn ventet. Den peker også på gruppas egne tall der det er relevant — at Astor ikke vil snakke med Beefcakes Credit Rating 3, at gruppa ikke har Psychoanalysis og derfor må bruke tid på Hawthorne i stedet.
+
+Replikkene er søkbare: husker du bare en setning noen sa, finner søket scenen.
 
 ---
 

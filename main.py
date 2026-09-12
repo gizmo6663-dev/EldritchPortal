@@ -6657,6 +6657,45 @@ try:
                 body_box.add_widget(mklbl(aside, color=DIM, size=11,
                                           wrap=True))
 
+            # Replikker: det boka faktisk trykker, pluss forslag der
+            # den ikke gir noe. Kilden står på hver replikk.
+            lines = it.get('dialogue') or []
+            if lines:
+                body_box.add_widget(mksep(6))
+                body_box.add_widget(mklbl("REPLIKKER", color=GOLD,
+                                          size=11, bold=True, h=22))
+                for d in lines:
+                    src = d.get('source', 'bok')
+                    frame = RBox(orientation='vertical', bg_color=BG2,
+                                 radius=dp(8),
+                                 border_color=(GOLD if src == 'bok'
+                                               else GSOFT),
+                                 border_width=(2.4 if src == 'bok'
+                                               else 1.2),
+                                 padding=dp(8), spacing=dp(2),
+                                 size_hint_y=None)
+                    frame.bind(minimum_height=frame.setter('height'))
+                    tag = "fra boka" if src == 'bok' else "forslag"
+                    frame.add_widget(mklbl(
+                        f"{d.get('who', '')}  ·  {tag}",
+                        color=(GOLD if src == 'bok' else DIM),
+                        size=10, bold=True, wrap=True))
+                    frame.add_widget(mklbl(d.get('line', ''), color=TXT,
+                                           size=12, wrap=True))
+                    if d.get('note'):
+                        frame.add_widget(mklbl(d['note'], color=DIM,
+                                               size=10, wrap=True))
+                    body_box.add_widget(frame)
+
+            play = (it.get('roleplay', '') or '').strip()
+            if play:
+                body_box.add_widget(mksep(6))
+                body_box.add_widget(mklbl("SLIK SPILLES SCENEN",
+                                          color=GOLD, size=11, bold=True,
+                                          h=22))
+                body_box.add_widget(mklbl(play, color=TXT, size=11,
+                                          wrap=True))
+
             # Egne notater på elementet – lagres på samme sted som
             # resten av fremdriften.
             if item is not None and it.get('id'):

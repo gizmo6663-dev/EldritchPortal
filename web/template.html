@@ -534,6 +534,36 @@ textarea.field { resize: vertical; line-height: 1.6; }
   border-radius: 0 4px 4px 0;
 }
 
+/* ---------------------- replikker i en scene -------------------- */
+
+.lines { display: flex; flex-direction: column; gap: 10px; margin-bottom: 6px; }
+.line {
+  border-left: 3px solid var(--brass-dim);
+  padding: 2px 0 2px 12px;
+}
+/* Det boka ikke sier, skal se ut som noe annet enn det den sier. */
+.line.suggested { border-left-style: dotted; border-left-color: var(--rule); }
+.line p { margin: 0; }
+.line-who {
+  display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
+  font-family: var(--ui); font-size: 11px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--brass-dim);
+}
+.line-src {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  color: var(--faint); text-transform: none;
+  border: 1px solid var(--rule-soft); border-radius: 999px;
+  padding: 1px 6px;
+}
+.line-say {
+  font-family: var(--body); font-size: 16px; font-style: italic;
+  color: var(--parchment); margin-top: 3px; line-height: 1.5;
+}
+.line-note {
+  font-family: var(--body); font-size: 13px; color: var(--muted);
+  margin-top: 3px;
+}
+
 /* ---------------------------- terning -------------------------- */
 
 .dice { display: flex; align-items: center; gap: 6px; }
@@ -1397,10 +1427,15 @@ function el(tag, props, children) {
 
 function matches(item, query) {
   if (!query) return true;
-  const hay = [item.title, item.name, item.description, item.where,
-               item.day, item.when, item.act, item.deck, item.role,
-               item.category, item.roll, item.userNotes]
-    .filter(Boolean).join(" ").toLowerCase();
+  const bits = [item.title, item.name, item.description, item.where,
+                item.day, item.when, item.act, item.deck, item.role,
+                item.category, item.roll, item.userNotes, item.roleplay];
+  // Replikkene skal også kunne søkes opp — husker du bare en setning
+  // noen sa, skal den finne scenen.
+  (item.dialogue || []).forEach((d) => {
+    bits.push(d.who, d.line, d.note);
+  });
+  const hay = bits.filter(Boolean).join(" ").toLowerCase();
   return hay.indexOf(query.toLowerCase()) !== -1;
 }
 
@@ -1805,6 +1840,35 @@ function openItem(item, section) {
       body.appendChild(el("p", { class: "prose tight", text: item.aside }));
     }
     if (item.body) body.appendChild(el("p", { class: "prose", text: item.body }));
+
+    // Replikker fra boka, og forslag der boka ikke gir noe.
+    if (item.dialogue && item.dialogue.length) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Replikker" }));
+      const box = el("div", { class: "lines" });
+      item.dialogue.forEach((d) => {
+        const row = el("div", { class: "line" + (d.source === "forslag"
+                                                 ? " suggested" : "") });
+        row.appendChild(el("p", { class: "line-who" }, [
+          el("span", { text: d.who || "" }),
+          el("span", { class: "line-src",
+                       text: d.source === "forslag" ? "forslag" : "fra boka" }),
+        ]));
+        row.appendChild(el("p", { class: "line-say", text: d.line || "" }));
+        if (d.note) {
+          row.appendChild(el("p", { class: "line-note", text: d.note }));
+        }
+        box.appendChild(row);
+      });
+      body.appendChild(box);
+    }
+
+    if (item.roleplay) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Slik spilles scenen" }));
+      body.appendChild(el("p", { class: "prose", text: item.roleplay }));
+    }
+
     const refs = crossRefs(item);
     if (refs) body.appendChild(refs);
     if (item.id) body.appendChild(noteEditor(item));
@@ -2447,7 +2511,9 @@ function viewTimeline(root) {
 function viewBeats(root) {
   root.appendChild(el("h1", { text: "Scener" }));
   root.appendChild(el("p", { class: "lede",
-    text: "Hver scene i full lengde — nok til å kjøre den rett herfra." }));
+    text: "Hver scene i full lengde, med replikkene boka gir og " +
+          "forslag der den ikke gir noen — nok til å kjøre scenen rett " +
+          "herfra." }));
   root.appendChild(searchBar("Søk i scener…"));
   root.appendChild(el("div", { style: "height:12px" }));
   root.appendChild(filterToolbar("beats"));

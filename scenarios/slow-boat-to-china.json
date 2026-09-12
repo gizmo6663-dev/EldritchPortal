@@ -1,6 +1,6 @@
 {
   "id": "slow-boat-to-china",
-  "version": 6,
+  "version": 7,
   "title": "A Slow Boat to China",
   "system": "Pulp Cthulhu / Call of Cthulhu 7e",
   "source": "Pulp Cthulhu, kapittel 13 (Chaosium)",
@@ -396,7 +396,62 @@
         "clue-green-metal-box",
         "clue-funeral-supplies",
         "npc-chad-peterson"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Chad Peterson",
+          "line": "«Chad Peterson fra New York, en fornøyelse å gjøre Deres bekjentskap.»",
+          "source": "bok",
+          "note": "Til alle han kolliderer med på landgangen. Han er grundig full og gjentar seg selv."
+        },
+        {
+          "who": "Virginia Ridley",
+          "line": "«Unnskyld meg. Jeg må gjøre meg klar til middag.»",
+          "source": "bok",
+          "note": "Hennes vei ut av enhver samtale den første dagen. Sagt med et anstrengt smil."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«Dette er min tjener, Wang Ma. Han vil svare på spørsmålene Deres. Ha meg unnskyldt.»",
+          "source": "bok",
+          "note": "Soong presenterer seg selv, men ikke Wang Ma — han presenterer tjeneren som noe man henvender seg til."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«Han er litt tilbakeholden.»",
+          "source": "bok",
+          "note": "Hvis noen snakker til Wang Ma og bare får et grynt."
+        },
+        {
+          "who": "Wang Ma",
+          "line": "«Mester Soong sier nei.»",
+          "source": "bok"
+        },
+        {
+          "who": "Wang Ma",
+          "line": "«Mester Soong sier ikke.»",
+          "source": "bok"
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«God aften. Jeg håper De nyter reisen?»",
+          "source": "bok",
+          "note": "Varm stemme med en underlig aksent — han er norsk, men vokste opp på Martinique og snakker utmerket kolonifransk."
+        },
+        {
+          "who": "Førstestyrmann Schramm",
+          "line": "«Selvfølgelig, jeg skal se til det med en gang.»",
+          "source": "bok",
+          "note": "Smiler og nikker mye. Han mener det, men han har tretti andre ting å gjøre."
+        },
+        {
+          "who": "En stuert",
+          "line": "«Mr. Peterson. Denne veien, sir. Champagnen står alt på rommet.»",
+          "source": "forslag",
+          "note": "Stuertene smisker for ham og loser ham bestemt bort samtidig."
+        }
+      ],
+      "roleplay": "Dette er den eneste scenen der spillerne møter Chad Peterson i live, og de vet ikke at det er poenget. Gi ham plass: la ham avbryte, la ham grave ut hånda mot feil person, la ham gjenta navnet sitt. Når han blir funnet som en tom dress neste morgen, skal spillerne kunne høre stemmen hans.\n\nVirginia er irritert og holder munn. Spill henne som noen som allerede har bestemt seg for ikke å lage en scene foran folk — det gjør sammenbruddet hennes dagen etter mye større.\n\nSoong presenterer seg selv og ikke tjeneren. La spillerne merke forskjellen. Prøver de å snakke med Wang Ma, får de et grynt, og Soong svarer for ham. Det er ikke uhøflighet fra Soongs side — det er en mann som er vant til at folk henvender seg til feil person.\n\nIkke bruk terninger her. Landgangen er en scene der alle får si navnet sitt og vise hvem de er. Trenger du et slag, la det være Spot Hidden på den store kassa merket «Funeral Supplies»."
     },
     {
       "id": "beat-cabin-mates",
@@ -408,7 +463,45 @@
         "npc-almacan",
         "npc-takishi-suroda",
         "npc-phyllis-barnes"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Takishi Suroda",
+          "line": "«Du der — hva er det du har der?»",
+          "source": "bok",
+          "note": "Han spør om alt. Hver gang."
+        },
+        {
+          "who": "Takishi Suroda",
+          "line": "«Der er du jo! Hvor har du gjemt deg hen?»",
+          "source": "bok",
+          "note": "Sagt til en helt han har snakket med én gang."
+        },
+        {
+          "who": "Phyllis Barnes",
+          "line": "«Jeg er i musikkrommet hvis noen trenger meg.»",
+          "source": "bok"
+        },
+        {
+          "who": "En av de irske politirekruttene",
+          "line": "«Shanghai-politiet. Tre års kontrakt, dobbelt betaling, og ingen som spør hvor du kommer fra. Du skulle søkt selv.»",
+          "source": "forslag",
+          "note": "Fire unge irer på mellomdekket. De drikker og snakker høyt om hva de skal gjøre med pengene."
+        },
+        {
+          "who": "Olaf Gustavsen, marinegast",
+          "line": "«Jeg har ikke sovet i en seng som ikke beveger seg på fire år. Det er sengene på land jeg ikke klarer.»",
+          "source": "forslag",
+          "note": "Tredjeklasses lugarkamerat, på vei tilbake til Pearl Harbor."
+        },
+        {
+          "who": "Lo Mai",
+          "line": "«Doktorens folk. Vi holder oss for oss selv.»",
+          "source": "forslag",
+          "note": "Kort, høflig, avvisende. Tcho-tcho-ene svarer ikke på mer enn det som blir spurt om."
+        }
+      ],
+      "roleplay": "Boka gir ingen replikker til denne scenen, men den er verdt å spille, fordi den er gratis: hver lugarkamerat er en relasjon spillerne får uten at du må rigge noe.\n\nGi hver spiller ÉN lugarkamerat med ett kjennetegn og én replikk. Ikke mer. Poenget er at de skal kjenne igjen navnet når det dukker opp igjen på dag ni.\n\nSuroda er den viktigste: han deler trolig lugar med en av de mannlige heltene, og han forsvinner som det første offeret den 10. desember. Jo mer irriterende han er nå, jo verre er det når senga hans står urørt.\n\nFranz og Skjoldvår har begge Stealth over 60 og vil merke at Lo Mai og tcho-tcho-ene beveger seg annerledes enn andre passasjerer. Gi dem en Spot Hidden eller Psychology som gir følelsen, ikke fakta."
     },
     {
       "id": "beat-the-empty-suit",
@@ -421,7 +514,45 @@
         "clue-empty-clothes",
         "clue-hallanders-lie",
         "npc-albert-hallander"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Albert Hallander",
+          "line": "«Jeg var bare på vei forbi, jeg skulle ha gått rett videre.»",
+          "source": "bok",
+          "note": "Han lyver. Det var ingen lyd, og døra var låst — han dirket den opp."
+        },
+        {
+          "who": "Albert Hallander",
+          "line": "«Jeg vet ingenting, det sverger jeg på.»",
+          "source": "bok"
+        },
+        {
+          "who": "Virginia Ridley",
+          "line": "«De finner ham, ikke sant? De må bare finne ham.»",
+          "source": "bok",
+          "note": "Etter skriket. Hun klamrer seg til den første som virker kompetent."
+        },
+        {
+          "who": "Charles Astor",
+          "line": "«Noe må gjøres.»",
+          "source": "bok",
+          "note": "Han står i korridoren og er ubehagelig til stede."
+        },
+        {
+          "who": "Matros Hank Henson",
+          "line": "«Ingen inn, sir. Ordre fra styrmannen. Jeg er lei for det.»",
+          "source": "forslag",
+          "note": "Han holder døra og mener alvor. Han er også tjueto år gammel og redd."
+        },
+        {
+          "who": "Dr. Hartman, skipslege",
+          "line": "«Jeg har sett mange ting i denne jobben. Jeg har aldri sett klær legge seg sammen.»",
+          "source": "forslag",
+          "note": "Sagt lavt, til en av heltene, når ingen andre hører."
+        }
+      ],
+      "roleplay": "Scenen har to lag: det som ligger i stolen, og Hallander som lyver om hvorfor han er der.\n\nSpill Hallander som en som gjerne roter til hele bildet heller enn å innrømme et tyveriforsøk. Han er i sjokk (Psychology ser det), han lyver dårlig (en ny Psychology avslører det), men han gir seg ikke på første spørsmål. Intimidate eller Persuade får ham til å snakke — og her er Beefcakes Intimidate 99 og Skjoldvårs APP 99 begge riktige svar. La det gå fort når de bruker dem.\n\nMen han har faktisk ikke sett noe. Poenget med Hallander er ikke informasjonen, det er at gruppa bruker en halv dag på ham. Når han til slutt tilstår tyveriet og blir arrestert, har de knekt feil mann, og det skal føles som en seier helt til det ikke gjør det.\n\nVirginia skal ikke være hysterisk lenge. La henne gå fra skrik til iskald konsentrasjon i løpet av et minutt — hun er en kvinne som skyter leirduer for å roe nervene. Det gjør henne til en alliert i stedet for et problem."
     },
     {
       "id": "beat-anyone-seen-the-purser",
@@ -432,7 +563,34 @@
       "connects_to": [
         "clue-manifest-gap",
         "npc-martin-dungass"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "En matros til en annen",
+          "line": "«Har du sett Dungass? Han gikk runden i går kveld, og siden har ingen sett ham.»",
+          "source": "forslag",
+          "note": "Den samme samtalen går igjen hele dagen, i ulike varianter. Listen-slag for å fange den opp."
+        },
+        {
+          "who": "Mannskapets konsensus",
+          "line": "«Han har gått på flaska igjen. Han sover den ut et sted under dekk. Det går rykter om trøbbel med kona.»",
+          "source": "forslag",
+          "note": "Det de sier til en helt som blir venn med dem. De mener det oppriktig."
+        },
+        {
+          "who": "Førstestyrmann Schramm",
+          "line": "«Jeg hørte deg ikke der ute!»",
+          "source": "bok",
+          "note": "Han er ikke på kontoret. Han er på kontoret."
+        },
+        {
+          "who": "Martin Aimesworthy",
+          "line": "«Det er da ikke noe bry. La meg ta meg av det.»",
+          "source": "bok",
+          "note": "Han hjelper gjerne — og han vet mer om hvem som går hvor på dette skipet enn noen annen."
+        }
+      ],
+      "roleplay": "Dette er den hardeste opplysningen i hele scenarioet, og den kommer gratis hvis noen tenker på å spørre etter passasjerlista: Señor Guiterrez de Almacan står ikke oppført noe sted.\n\nIkke gi den bort. Krev et Hard Persuade — eller la Aimesworthy gi den til noen som har vært hyggelig mot ham. Det er hele grunnen til at Aimesworthy finnes.\n\nSpill mannskapets forklaring om fylla helt oppriktig. De lyver ikke; de tar bare feil. Det gjør at spillerne må vurdere en kilde som er ærlig og gal samtidig, og det er en bedre ferdighet å øve på enn å avsløre løgnere.\n\nAimesworthy er verdt å bygge en relasjon til: om Bates blir tatt eller drept, er det HAN skapningen dominerer neste gang. Jo mer spillerne liker ham, jo verre blir det."
     },
     {
       "id": "beat-passenger-reactions",
@@ -443,7 +601,54 @@
       "connects_to": [
         "npc-miles-hardaway",
         "npc-charles-astor"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Charles Astor",
+          "line": "«Chip var en god venn av meg, en nær venn, og han ville aldri gjort noe slikt.»",
+          "source": "bok"
+        },
+        {
+          "who": "Charles Astor",
+          "line": "«Jeg forstår det ikke. Jeg bare forstår det ikke.»",
+          "source": "bok"
+        },
+        {
+          "who": "Charles Astor",
+          "line": "«Noe må gjøres.»",
+          "source": "bok",
+          "note": "Gjentas til alle som ikke kommer seg unna."
+        },
+        {
+          "who": "Miles Hardaway",
+          "line": "«Si meg, fortell litt om deg selv.»",
+          "source": "bok",
+          "note": "Han spør ikke for å bli kjent. Han spør for å skrive."
+        },
+        {
+          "who": "Miles Hardaway",
+          "line": "«Kan jeg få et sitat?»",
+          "source": "bok"
+        },
+        {
+          "who": "Phyllis Barnes",
+          "line": "«Selvmord? Sludder. Jeg har sett mannen flere ganger siden.»",
+          "source": "bok",
+          "note": "Hun mener det. Hun har faktisk sett skapningen i Petersons skikkelse."
+        },
+        {
+          "who": "Phyllis Barnes",
+          "line": "«Vel, jeg hjelper gjerne, men jeg vet ikke om det er så mye jeg kan gjøre.»",
+          "source": "bok"
+        },
+        {
+          "who": "Pater Alvarez",
+          "line": "«Jeg ville undersøkt sjøfolkene. Er selvmordet i virkeligheten et drap, kan det være dem.»",
+          "source": "bok",
+          "note": "Han tilbyr en teori og spør tre spørsmål tilbake."
+        }
+      ],
+      "roleplay": "Dette er scenen der skipet blir et samfunn i stedet for en kulisse. Kjør den som en runde: tre–fire korte samtaler på rad, hver med én ting å ta med seg, og ikke la noen av dem vare lenger enn et par minutter.\n\nASTOR er en snobb som faktisk sørger. Begge deler samtidig. Han vil ikke ha noe med folk under spesialklasse å gjøre — og Beefcake har Credit Rating 3. Det er en ekte vegg, og den åpner seg bare hvis Skjoldvår (APP 99) eller Franz (Credit Rating 60) tar samtalen. Blir han venn, legger han inn et godt ord hos kapteinen, og det er verdt mye senere.\n\nHARDAWAY er en plage som spillerne kommer til å ville bli kvitt. Han er også offer nummer to. Gi ham én scene der han er nesten sympatisk — en journalist som faktisk vil vite hva som skjedde — før han forsvinner.\n\nPHYLLIS sier det sanneste i hele akten, og hun er den minst troverdige kilden om bord: hun lyver om annet («voldsomme slagsmål blant kineserne»), hun er åpenlyst fremmedfiendtlig, og ingen vil tro henne. La spillerne gjøre feilen med å avskrive henne. Når hun blir drept den 13., skal de huske at hun hadde rett."
     },
     {
       "id": "beat-the-stolen-book",
@@ -457,7 +662,34 @@
         "npc-wang-ma",
         "npc-bunny-bates",
         "clue-blood-on-the-crate"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Dr. Soong",
+          "line": "«Hendelsen er høyst uheldig. Beklagelig og uheldig.»",
+          "source": "bok",
+          "note": "Han sier det om et drap på en mann som har tjent ham i årevis. Understatement er hans måte å bære det på."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«Jeg så Mr. Peterson gå ut fra lugaren min. Klokka var omtrent seks om morgenen, søndag den sjette.»",
+          "source": "forslag",
+          "note": "Han sier det rolig, og venter på at heltene skal regne ut hva det betyr. Peterson var alt død da."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«Boka er ikke verdifull slik De mener verdifull. Den er farlig. Det er en forskjell, og jeg håper De aldri får lære den.»",
+          "source": "forslag",
+          "note": "Hans eneste øyeblikk av åpenhet i hele akten."
+        },
+        {
+          "who": "Lo Mai",
+          "line": "«Wang Ma var ikke redd. Han visste hva han gikk mot.»",
+          "source": "forslag",
+          "note": "Lo Mai trer inn i Wang Mas plass uten et ord om sorg."
+        }
+      ],
+      "roleplay": "Fristelsen her er å la Soong forklare alt. Ikke gjør det. Boka er tydelig på det: bruk ham til å peke i riktig retning, ikke til å redde dagen, og han er gammel og skrøpelig.\n\nGi ham én opplysning per samtale, og la ham alltid svare med et spørsmål tilbake. Han er en mann som har forsket på Mythos i tjue år og som vet nøyaktig hvor farlig det er å si for mye til folk som ikke er forberedt.\n\nDen harde nøtten er tidspunktet: han så Peterson SEKS OM MORGENEN SØNDAG, etter at Peterson var meldt død. Si det én gang, rolig, uten å understreke det. La spillerne finne ut av det selv. Om ingen biter på, kan Soong nevne det igjen en dag senere, som om han hadde glemt at han hadde sagt det.\n\nWang Ma er drept. Soong sørger ikke foran fremmede, men Psychology (Skjoldvår 60, Walther 50) ser at mannen er i stykker. Det er en åpning for spillere som behandler ham som et menneske og ikke som en oppslagsbok."
     },
     {
       "id": "beat-looking-for-bunny",
@@ -468,7 +700,39 @@
       "connects_to": [
         "npc-bunny-bates",
         "npc-hunting-horror"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Bunny Bates",
+          "line": "«Hvorfor jeg skal til Japan? Pass dine egne saker.»",
+          "source": "bok",
+          "note": "Hans standardsvar på alt, før domineringen tar helt tak."
+        },
+        {
+          "who": "Bunny Bates",
+          "line": "«Herregud, hva tar du meg for, en tyster? Pass dine egne saker.»",
+          "source": "bok"
+        },
+        {
+          "who": "Bunny Bates",
+          "line": "«Stemmen inni.»",
+          "source": "bok",
+          "note": "Babler når han er tatt. Gjentar det."
+        },
+        {
+          "who": "Bunny Bates",
+          "line": "«Englekoret har befalt meg.»",
+          "source": "bok",
+          "note": "Det andre han sier. Han vet ikke hva han mener med det."
+        },
+        {
+          "who": "Bunny Bates",
+          "line": "«Jeg stjal ei bok. Jeg drepte en kineser. Jeg har gjort verre. Vil du høre om det?»",
+          "source": "forslag",
+          "note": "Skriftemålet den 17. Historiene henger ikke sammen, og han blander inn ting han umulig kan ha gjort."
+        }
+      ],
+      "roleplay": "Bates er ikke en skurk. Han er et verktøy noen holder i, og det er hele poenget med ham.\n\nFørste gang: spill ham som en gangster. Kjepphøy, kort, avvisende. «Pass dine egne saker.» Han slåss desperat for å komme seg unna og stikker ved første anledning — ikke la ham stå og ta imot, se kortet «Motstandere som ikke står og tar imot».\n\nAndre gang: noe har gått i stykker. Han snakker om stemmen inni og om englekoret, og han mener det. Blir han tatt, får spillerne nesten ingenting ut av ham så lenge Dominate står på.\n\nMEN: skapningen må kaste Dominate på nytt HVER NATT, med et motsatt POW-slag. Klarer spillerne å styrke viljen hans — Hard Persuade eller Hard Psychoanalysis — får han en bonusterning mot den. Det er en ekte utvei, og den belønner en helt annen type spill enn å banke ham. Si det ikke rett ut, men la et Psychology-slag antyde at det er en mann inni der som kjemper imot.\n\nSkriftemålet den 17. er hans eneste time som seg selv. Spill det uten skrekkeffekter: en redd mann som forteller sannheten og blandet løgn til en prest, fordi han ikke lenger kan holde det inne. En time senere er han borte for godt."
     },
     {
       "id": "beat-honolulu-and-beyond",
@@ -479,7 +743,34 @@
       "connects_to": [
         "npc-charles-astor",
         "npc-takishi-suroda"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Etterforsker William Ranta",
+          "line": "«Avskjedsbrevet er ekte. Håndskriften stemmer. Mannen hoppet, og klærne er en tilfeldighet.»",
+          "source": "forslag",
+          "note": "Han har vært om bord i to timer og skal hjem til middag."
+        },
+        {
+          "who": "Etterforsker Ranta",
+          "line": "«De har sett ham SIDEN han døde. Ja vel. Og hvor mange hadde De drukket?»",
+          "source": "forslag",
+          "note": "Til helter som insisterer. Han er ikke ondsinnet — han er ferdig."
+        },
+        {
+          "who": "Charles Astor",
+          "line": "«Tusen dollar. Kontant. Til den som gir meg noe jeg kan bruke.»",
+          "source": "bok",
+          "note": "Etter Honolulu. Han sier det høyt, i salongen, så alle hører det."
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«Hva i helvete er det som foregår her!»",
+          "source": "bok",
+          "note": "Når karantenen holder skipet i havn og politiet kommer om bord."
+        }
+      ],
+      "roleplay": "Dette er scenen der spillerne mister tilliten til at systemet skal ordne opp, og det er en scene, ikke en kunngjøring. Spill Ranta ut.\n\nHan skal ikke være dum eller korrupt. Han skal være en kompetent mann med for lite tid, som tar de rimeligste konklusjonene i verden ut fra det han faktisk har: et ekte avskjedsbrev, en savnet forvalter med kjent drikkeproblem, og en gjeng passasjerer som påstår de har sett en død mann gå i korridoren.\n\nLa spillerne legge fram alt de har. La ham høre på. Og la ham så dra. Det er verre enn å bli avvist.\n\nAstors belønning på tusen dollar gjør noe med skipet: nå leter alle. Passasjerer begynner å angi hverandre, mannskapet blir mistenksomt, og heltene får konkurranse. Bruk det til å skape trøbbel i dagene etterpå.\n\nEtter dette er det ingen voksen igjen å hente hjelp fra. Si det aldri høyt. La dem merke det."
     },
     {
       "id": "beat-missing-people",
@@ -491,7 +782,34 @@
         "loc-hold-7",
         "loc-hold-4",
         "npc-bunny-bates"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "En helt som deler lugar med Suroda",
+          "line": "Senga er urørt. Kofferten står åpen. Barberkosten er fortsatt våt.",
+          "source": "forslag",
+          "note": "Ikke en replikk — et bilde å beskrive. Suroda gikk ut etter middag og kom aldri tilbake."
+        },
+        {
+          "who": "Førstestyrmann Schramm",
+          "line": "«Folk går i land i Honolulu og glemmer å si fra. Det skjer hver eneste tur.»",
+          "source": "forslag",
+          "note": "Den offisielle forklaringen på Suroda. Den holder helt til neste person forsvinner."
+        },
+        {
+          "who": "Martin Aimesworthy",
+          "line": "«Det er tre nå, sir. Jeg har talt. Ingen andre teller.»",
+          "source": "forslag",
+          "note": "Sagt lavt, til en helt han stoler på. Dette er øyeblikket han velger side."
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«Ingenting av dette forlater dette rommet. Er det forstått? Jeg har seks hundre og syttiåtte passasjerer om bord.»",
+          "source": "forslag",
+          "note": "Han er ikke i ledtog med noen. Han er en mann som vet hva panikk gjør med et skip midt i Stillehavet."
+        }
+      ],
+      "roleplay": "Forsvinningene er scenarioets klokke, og klokka går uansett hva spillerne gjør. Det er viktig at de merker det.\n\nIkke presenter dem som mysterier å løse. Presenter dem som tomrom: en urørt seng, en stol ingen setter seg i ved middagsbordet, et navn som ikke svarer når det ropes opp. Gi ETT bilde per forsvinning og gå videre.\n\nRekkefølgen har mening. Suroda er en plage ingen savner. Hardaway er en plage alle savner litt. Phyllis er et godt menneske som hadde rett. Den femte skal Keeperen velge — og den skal være noen spillerne har brukt tid på. En av heltene er et fullt legitimt valg.\n\nAimesworthy som teller de forsvunne fordi ingen andre gjør det, er scenens beste øyeblikk. Spar det til etter at minst én spiller har vært grei mot ham."
     },
     {
       "id": "beat-soong-requests-help",
@@ -502,7 +820,28 @@
       "connects_to": [
         "npc-dr-soong",
         "npc-tcho-tcho"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Dr. Soong",
+          "line": "«Jeg er over sytti år gammel, og jeg er ikke redd for å dø. Jeg er redd for hva som skjer med den boka hvis jeg dør før den er tilbake.»",
+          "source": "forslag",
+          "note": "Hans måte å be om hjelp uten å be om hjelp."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«Jeg sender mine folk ned på mellomdekket. De ser ting jeg ikke ser. De vil ikke ha selskap.»",
+          "source": "forslag",
+          "note": "Han tilbyr en arbeidsdeling, ikke en allianse."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«De spør hva som står i den. Jeg spør Dem hvorfor De vil vite det.»",
+          "source": "forslag",
+          "note": "Hans standardsvar når noen graver i Mythos-innholdet."
+        }
+      ],
+      "roleplay": "Dette er det nærmeste scenarioet kommer en oppdragsgiver, og boka advarer eksplisitt mot å la Soong svare på alt eller redde dagen.\n\nPraktisk regel: Soong svarer på ÉTT spørsmål per samtale, og bare hvis spørsmålet er godt. Resten er «Jeg vet ikke» eller et motspørsmål. Han er ikke hemmelighetsfull av vrangvilje — han vet at kunnskap om dette har kostet ham en kone og to sønner.\n\nStår gruppa fast, er han verktøyet ditt: da gir du dem ETT dytt i riktig retning gjennom ham, og så trekker han seg tilbake igjen. Bruk ham sparsomt, ellers blir scenarioet hans og ikke deres.\n\nFranz har Cthulhu Mythos 10. Det er nok til at Soong kjenner igjen noe i ham — og behandler ham annerledes enn de andre. Spill den forskjellen tydelig ved bordet. Det er en belønning Franz ikke visste han hadde."
     },
     {
       "id": "beat-distant-music",
@@ -513,7 +852,32 @@
       "connects_to": [
         "loc-hold-7",
         "clue-music-below-decks"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "En førsteklasses passasjer",
+          "line": "«En hjemsøkt opera. Det er det eneste jeg kan sammenligne det med.»",
+          "source": "bok"
+        },
+        {
+          "who": "En annen passasjer",
+          "line": "«En dødsmesse fra helvete. Jeg lyver ikke.»",
+          "source": "bok"
+        },
+        {
+          "who": "En passasjer ved frokosten",
+          "line": "«Jeg hadde en underlig drøm. Full av musikk som ikke var av denne verden.»",
+          "source": "bok",
+          "note": "Det første hintet, dager før noen hører det våkne."
+        },
+        {
+          "who": "Phyllis Barnes",
+          "line": "«Jeg kjenner hvert instrument som finnes om bord på dette skipet. Dette er ikke ett av dem.»",
+          "source": "forslag",
+          "note": "Hun er musikklærer. Hun er den eneste som kan si noe presist om lyden — og hun går for å finne den. Det dreper henne."
+        }
+      ],
+      "roleplay": "Musikken er scenarioets tikking, og den skal bygges over flere dager før noen hører den selv.\n\nDag 13: andrehåndsberetninger ved frokosten. Ingen to stemmer overens. La spillerne høre tre ulike beskrivelser av det samme, fra folk som ikke snakker med hverandre.\n\nDag 14: den høres over hele skipet om natta. Listen-slag fanger den opp; et Hard Listen plasserer den under dekk. Musikkrommet står tomt — sjekk det, for spillerne kommer til å gjøre det.\n\nBeskriv den aldri to ganger likt. Én natt er den et orgel. Neste natt er den et kor. Den tredje er den noe som puster i takt. Det er ikke uklarhet for uklarhetens skyld: hver gang et nytt offer lades inn i maskinen, blir lyden klarere og mer feil.\n\nFranz har Night Vision og Stealth 60. Han er den naturlige til å gå nedover mot lyden om natta. La ham gjøre det alene én gang, og la ham komme tilbake med noe de andre ikke kan bekrefte."
     },
     {
       "id": "beat-meeting-the-captain",
@@ -523,7 +887,34 @@
       "done": false,
       "connects_to": [
         "npc-captain-nelson"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Kaptein Nelson",
+          "line": "«God aften. Jeg håper De nyter reisen?»",
+          "source": "bok",
+          "note": "Alltid slik han begynner. Også når det ikke er en hyggelig samtale."
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«Hva i helvete er det som foregår her!»",
+          "source": "bok",
+          "note": "Når han har mistet tålmodigheten, og det skjer bare én gang."
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«De har vært til stede på tre av fire steder der noe har gått galt. Forklar meg det, og gjør det kort.»",
+          "source": "forslag",
+          "note": "Avhørene er raske og direkte. Han har ikke tid til historier."
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«Jeg spilte poker i tjuefem år før jeg fikk dette skipet. Jeg vet når noen bløffer. Prøv igjen.»",
+          "source": "forslag",
+          "note": "Psychology 70 %, Fast Talk 95 %. Han er bedre på dette enn noen av heltene."
+        }
+      ],
+      "roleplay": "Nelson er ikke en hindring. Han er en dyktig mann som gjør jobben sin, og det er nettopp derfor han er farlig for gruppa.\n\nHan har Psychology 70 og Fast Talk 95. Prøver noen å lure ham med Fast Talk og lettvinte fakta, kjøper han det ikke — og de blir diskré fulgt av stuerter resten av turen. Lugaren deres blir gjennomsøkt mens de sitter i avhør.\n\nAvhørene skal være korte. To–tre spørsmål per helt, enkeltvis eller i små grupper. Still dem raskt, avbryt lange svar, og gå videre. Det gjør ham mer skremmende enn en lang scene ville gjort.\n\nSannheten er et reelt valg her. Forteller de alt, tror han dem ikke — men han noterer, og han er en mann som revurderer når fakta endrer seg. Lyver de godt nok, slipper de unna nå og har en fiende senere.\n\nHar de blitt venn med Astor, legger Astor inn et godt ord. Det er den konkrete uttellingen for å ha spilt den ubehagelige middagsscenen tidligere, og den bør merkes."
     },
     {
       "id": "beat-searching-the-ship",
@@ -537,7 +928,28 @@
         "loc-boilers",
         "loc-hold-1",
         "loc-hold-7"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "James Hawthorne, kenneljente",
+          "line": "«Krypene. De kommer og de går. De marsjerer, som en hær.»",
+          "source": "bok",
+          "note": "Mumler. Vanskelig å forstå. Krever at noen roer vedkommende ned, eller et Psychoanalysis-slag."
+        },
+        {
+          "who": "James Hawthorne",
+          "line": "«Jeg hører dem. Om natta. De er på vei for å spise meg.»",
+          "source": "bok",
+          "note": "Skriker og løper inn i kroken sin ved synet av en edderkopp eller en kakerlakk."
+        },
+        {
+          "who": "En matros",
+          "line": "«Lasterom fire? Nei, sir. Ikke alene. Spør noen andre.»",
+          "source": "forslag",
+          "note": "Overtroen om han som falt i 1929 — se taktikkortet."
+        }
+      ],
+      "roleplay": "Hawthorne er scenarioets tristeste scene, og den skal spilles som en omsorgsscene og ikke som et avhør.\n\nKenneljenta på sytten har sett skapningen løse seg opp i et lasterom, og det har gjort henne varig gal. Hun er skvetten, øynene søker langs gulvet hele tiden, og hun mumler. Psychology sier at hun er dypt redd og sannsynligvis gal.\n\nDet koster TID å få noe ut av henne — tid brukt på å roe henne ned, eller et Psychoanalysis-slag. Gruppa har ingen med Psychoanalysis. Da er det tiden som gjelder, og det er en god ting: la dem sitte der i en time med spillets ur gående.\n\nDet hun sier er sant, og det høres ut som galskap. Det er hele poenget.\n\nVIKTIG: kommer gruppa seg ikke ned i lasterommene før sent i turen, er Hawthorne borte — tatt av Bates og ofret til pipene. La dem finne kroken hennes tom, med tegninger på veggen. Det er en straff de har fortjent, og den svir mer enn et monster."
     },
     {
       "id": "beat-the-tcho-tcho",
@@ -549,7 +961,34 @@
         "npc-tcho-tcho",
         "npc-hunting-horror",
         "loc-hold-6"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "«Chad Peterson» til tcho-tcho-ene",
+          "line": "«Beskyttelse, og alt kjøttet dere klarer å spise.»",
+          "source": "bok",
+          "note": "Skapningens tilbud, overhørt fra mørket i lasterom 6."
+        },
+        {
+          "who": "Sheng Tsin, siste overlevende",
+          "line": "«Sheng Tsin. Deres tjener nå og alltid.»",
+          "source": "bok",
+          "note": "Bukker. Hvis heltene driver bort eller dreper hunting horror-en, og bare én tcho-tcho er igjen."
+        },
+        {
+          "who": "Lo Mai",
+          "line": "«Vi tjener doktoren. Vi har en gjeld. Det er alt De trenger å vite.»",
+          "source": "forslag",
+          "note": "Hvis noen spør hvorfor de følger Soong."
+        },
+        {
+          "who": "«Chad Peterson», avslørt",
+          "line": "Ingenting. Skapningen kan ikke lage lyd i sin egen skikkelse — den kommuniserer skriftlig.",
+          "source": "bok",
+          "note": "Et vesentlig poeng: i det øyeblikket masken ryker, blir den stum."
+        }
+      ],
+      "roleplay": "Denne scenen har to helt ulike utfall, og begge er gode. Ikke bestem på forhånd — la spillerne tippe vekta.\n\nFørst: la dem se på. Tcho-tcho-ene åpner ei tønne merket «Hawaiian Botanical Specimens» og koker innholdet. Sanity-slag (1/1D4). Så kommer «Peterson» ned leideren og framsetter tilbudet sitt.\n\nHVIS TCHO-TCHO-ENE SIER JA og heltene bryter inn: «Peterson» flykter ved første tegn til trøbbel, sannsynligvis mens de nye allierte angriper. Trenges den opp i et hjørne, faller den fra hverandre til tusen insekter — 1D4 skade til alle rundt, og Sanity-slag (1D3/2D6) for å se det.\n\nHVIS DE SIER NEI: skapningen tilkaller en hunting horror på stedet for å drepe dem alle. Griper ikke heltene inn, dør alle tcho-tcho-ene. Gjør de det, får de Sheng Tsin — en livsgjeld, en tolk, en kokk, og en mulig erstatningskarakter.\n\nSpill tcho-tcho-ene som folk, ikke som monstre. De veier et tilbud fra en fremmed mot en gjeld til en gammel mann. At de kanskje er kannibaler, er noe spillerne får vite i samme scene — la de to tingene ligge ved siden av hverandre uten å løse dem opp."
     },
     {
       "id": "beat-bunny-takes-a-hostage",
@@ -560,7 +999,34 @@
       "connects_to": [
         "npc-bunny-bates",
         "beat-the-final-test"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "Bunny Bates",
+          "line": "«Stemmene! De sa jeg måtte! De sa det, og jeg gjorde det!»",
+          "source": "bok",
+          "note": "Skriker det ut over spisesalen på første klasse, med en arm om halsen på den første han fikk tak i."
+        },
+        {
+          "who": "Bunny Bates",
+          "line": "«Slipp meg av båten. NÅ. Ellers dreper jeg henne, jeg sverger på at jeg gjør det.»",
+          "source": "bok",
+          "note": "Han mener det. Han er utvilsomt drapslysten og fra forstanden."
+        },
+        {
+          "who": "Bunny Bates",
+          "line": "«Jeg skriftet. Jeg skriftet til presten og det hjalp ikke. Ingenting hjelper.»",
+          "source": "forslag",
+          "note": "Til en helt som prøver å nå inn til ham — og et hint om hvor åpningen ligger."
+        },
+        {
+          "who": "Kaptein Nelson",
+          "line": "«Ingen skyter i min spisesal. Ingen.»",
+          "source": "forslag",
+          "note": "Han står i døra og mener det, uansett hva som står på spill."
+        }
+      ],
+      "roleplay": "Dette er en avledning, og spillerne vet det ikke. Det gjør den til scenarioets vondeste valg: hvert minutt brukt på Bates, er et minutt skapningen spiller på pipene.\n\nLa scenen ta tid. Beskriv salen: hvite duker, syvretters, seks hundre mennesker som ikke vet hva de skal gjøre med hendene sine. Gisselet skal helst være noen de kjenner — Virginia, Aimesworthy, eller en av heltene.\n\nHan kan tas med MAKT eller med KLØKT. Kløkt er et Extreme Persuade eller Fast Talk, eller et Hard Psychoanalysis. Det er harde slag, og gruppa har Persuade 50 på to personer — Extreme er 10. La dem vite at det finnes, uten å love at det går.\n\nMAKT er lettere og koster mer. Dagrun med hagle på DEX 99 har skuddet. Beefcake kan ta ham med et grep hvis han kommer nær nok. Men Bates er et menneske, han er et offer, og han har nettopp skriftet. Sørg for at det står klart for bordet FØR de bestemmer seg.\n\nUansett utfall: i det øyeblikket det er over, roper noen fra dekket. Havet åpner seg."
     },
     {
       "id": "beat-the-final-test",
@@ -573,7 +1039,34 @@
         "npc-crawling-one",
         "loc-hold-7",
         "ref-dealing-with-the-polyp"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "En passasjer på promenadedekket",
+          "line": "«Vannet. Se på vannet.»",
+          "source": "forslag",
+          "note": "Det første noen sier. Havet trekker seg ned i en trakt bredere enn skipet er langt."
+        },
+        {
+          "who": "Kaptein Nelson over høyttaleren",
+          "line": "«Alle mann til livbåtstasjonene. Dette er ikke en øvelse. Alle mann til livbåtstasjonene.»",
+          "source": "forslag",
+          "note": "Stemmen er rolig hele veien igjennom. Det er verre."
+        },
+        {
+          "who": "Dr. Soong",
+          "line": "«Stopp musikken. Ikke drep den — stopp musikken. Den vil dra hjem igjen.»",
+          "source": "forslag",
+          "note": "Om han fortsatt lever. Den viktigste opplysningen i hele finalen, gitt av en mann som knapt kan stå."
+        },
+        {
+          "who": "Pater Alvarez",
+          "line": "«Jeg har lest om noe slikt. Jeg trodde det var en lignelse.»",
+          "source": "forslag",
+          "note": "Hvis han er i live og til stede. Han vet nok til å ha mareritt, og ikke nok til å hjelpe."
+        }
+      ],
+      "roleplay": "Tre utveier, og spillerne må finne minst én av dem selv:\n  1. ØDELEGG PIPENE (50 HP, 3 rustning). Polyppen snur og drar tilbake dit den kom fra.\n  2. BIND POLYPPEN med Bind Flying Polyp — krever formelen, og et motsatt slag mot POW 80.\n  3. SLÅSS. Rustning 4, og bare minste mulige skade fra fysiske våpen. Dette er den dårligste utveien, og gruppa kommer til å prøve den først.\n\nPolyppen bruker TI RUNDER på å rive seg gjennom skroget ned til lasterom 7. Det er klokka di, og den skal være synlig: tell den ned høyt. «Sju runder igjen.» «Fem.»\n\nAlle om bord slår Sanity (1D3/1D20). Beefcake og Walther har SAN 45 — regn med at minst én av dem knekker midt i finalen. Ha en plan for hva en midlertidig gal Beefcake gjør i et rom fullt av folk.\n\nIkke la dette bli et rent kampoppgjør. Alt som gjør scenen til noe mer enn treffslag, gjør den bedre: folk i vannet, en livbåt som henger skjevt, en dør som er kilt fast med seksti mennesker bak. Se kampjusteringskortene — særlig «Gi kampen en klokke» og «La rommet ta skade».\n\nCoolidge går nesten helt sikkert ned. La spillerne kjempe for hvem som kommer i båtene, ikke for om skipet overlever."
     },
     {
       "id": "beat-conclusion",
@@ -583,7 +1076,34 @@
       "done": false,
       "connects_to": [
         "ref-sanity-awards"
-      ]
+      ],
+      "dialogue": [
+        {
+          "who": "En overlevende i livbåten",
+          "line": "«Hva var det? Bare si meg hva det var.»",
+          "source": "forslag",
+          "note": "Ingen har et svar som hjelper."
+        },
+        {
+          "who": "En journalist i Honolulu eller Shanghai",
+          "line": "«Kilder om bord beskriver en monsterbølge. Rederiet avviser alle spørsmål.»",
+          "source": "forslag",
+          "note": "Slik verden forklarer det. Det står i avisene innen en uke."
+        },
+        {
+          "who": "Sheng Tsin",
+          "line": "«Deres tjener nå og alltid.»",
+          "source": "bok",
+          "note": "Om han lever, følger han dem videre. Han mener det bokstavelig."
+        },
+        {
+          "who": "Skapningen, skriftlig",
+          "line": "Et telegram uten avsender, levert på hotellet i Shanghai. Én setning, skrevet med en hånd som ikke er en hånd.",
+          "source": "forslag",
+          "note": "Om den slapp unna med en Gate. Den kan ikke snakke — men den kan skrive, og den husker navn."
+        }
+      ],
+      "roleplay": "Gi hver spiller ett spørsmål å svare på i båten, før du sier noe om hva som skjer videre:\n  • Hva tok du med deg?\n  • Hvem så du sist?\n  • Hva kommer du til å si når noen spør?\n\nSvarene deres er epilogen. Du trenger ikke skrive den.\n\nOverlevende plukkes opp i løpet av noen timer. Avisene skriver om en monsterbølge, og rederiet avviser alt. Ingen av heltene blir trodd, og det er riktig slik — det er prisen for å ha vært der.\n\nSlapp skapningen unna gjennom en Gate til Shanghai, slutter den seg til Eight Fortunes Mutual Aid Society, og den har et regnskap å gjøre opp. Den kan ikke snakke. Den kan skrive. Et telegram uten avsender er en perfekt siste scene, og en perfekt første scene i neste scenario."
     }
   ],
   "clues": [
