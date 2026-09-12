@@ -1639,6 +1639,15 @@
         "subcategory": "handgun",
         "weaponId": "colt_1911"
       }
+    ],
+    "spells": [
+      "spell-dominate",
+      "spell-mindblast",
+      "spell-mental-suggestion",
+      "spell-consume-likeness",
+      "spell-graveyard-kiss",
+      "spell-gate",
+      "spell-pipes-of-madness"
     ]
   },
   {

@@ -137,6 +137,7 @@ try:
         _BUNDLE_DIR = os.path.dirname(os.path.abspath(sys.argv[0]))
     BUNDLED_WEAPONS = os.path.join(_BUNDLE_DIR, "weapons.json")
     BUNDLED_CHARS   = os.path.join(_BUNDLE_DIR, "characters.json")
+    BUNDLED_SPELLS  = os.path.join(_BUNDLE_DIR, "bestiary", "spells.json")
     UI_BG_TEXTURE_PATH = os.path.join(_BUNDLE_DIR, "bght.png")
     # Også prøv en ekstern versjon — hvis den finnes OG er lesbar,
     # bruk den (lar brukeren overstyre med egen fil hvis mulig).
@@ -965,6 +966,34 @@ try:
         ("weapons","Våpen"), ("talents","Pulp Talents"),
         ("backstory","Bakgrunn"), ("notes","Notater"),
     ]
+    def spell_cost_text(s):
+        """Kostnaden til en formel på én linje.
+
+        Tall får enheten hengt på; tekststrenger skriver den selv, så
+        «10 MP per seks timer» ikke blir «10 per seks timer MP».
+        """
+        bits = []
+        mp = s.get('cost_mp')
+        if mp:
+            bits.append(f"{mp} magic point" + ("s" if mp != 1 else "")
+                        if isinstance(mp, int) else str(mp))
+        san = s.get('cost_san')
+        if san:
+            bits.append(f"{san} Sanity" if isinstance(san, int)
+                        or re.fullmatch(r'[\dD+]+', str(san))
+                        else str(san))
+        pow_ = s.get('cost_pow')
+        if pow_:
+            bits.append(str(pow_) if 'POW' in str(pow_) else f"{pow_} POW")
+        extra = [x for x in (s.get('casting_time'),
+                             ("motsatt " + s['opposed']) if s.get('opposed')
+                             else None,
+                             s.get('range')) if x]
+        line = " · ".join(bits) or "Ingen kostnad"
+        if extra:
+            line += "\n" + " · ".join(extra)
+        return line
+
     def steps_of(value):
         """«65» -> «32/13»: halv og femtedel, som på karakterarket.
 
@@ -6584,6 +6613,25 @@ try:
             fl.add_widget(dim)
             fl.add_widget(overlay)
 
+        def _spell_bank(self):
+            """Formelbanken, lest én gang og husket.
+
+            Ligger i bestiary/spells.json ved siden av appen. Mangler
+            den, viser kortet bare id-ene — det er bedre enn å krasje.
+            """
+            cached = getattr(self, '_spells_cache', None)
+            if cached is not None:
+                return cached
+            bank = {}
+            try:
+                with open(BUNDLED_SPELLS, 'r', encoding='utf-8') as f:
+                    for s in json.load(f).get('spells', []):
+                        bank[s['id']] = s
+            except Exception as e:
+                log(f"Fant ingen formelbank: {e}")
+            self._spells_cache = bank
+            return bank
+
         def _scen_show_detail(self, title, desc, item=None):
             """Vis full beskrivelse som overlay."""
             # Lukk en eventuell åpen overlay slik at kryssreferanse-
@@ -7581,11 +7629,29 @@ try:
                     body.add_widget(mklbl(
                         f"• {t}", color=TXT, size=11, wrap=True))
 
-            # Formler
+            # Formler. På kortene ligger de som id-er inn i
+            # bestiary/spells.json, så teksten bare finnes ett sted.
             spells = npc.get('spells', '')
             if spells and spells != '-':
                 _section("FORMLER")
-                body.add_widget(mklbl(spells, color=TXT, size=11, wrap=True))
+                bank = self._spell_bank()
+                if isinstance(spells, (list, tuple)):
+                    for sid in spells:
+                        s = bank.get(sid)
+                        if not s:
+                            body.add_widget(mklbl(f"• {sid}", color=TXT,
+                                                  size=11, wrap=True))
+                            continue
+                        body.add_widget(mklbl(f"• {s['name']}", color=GOLD,
+                                              size=12, bold=True, wrap=True))
+                        body.add_widget(mklbl(spell_cost_text(s), color=DIM,
+                                              size=10, wrap=True))
+                        if s.get('effect'):
+                            body.add_widget(mklbl(s['effect'], color=TXT,
+                                                  size=11, wrap=True))
+                else:
+                    body.add_widget(mklbl(str(spells), color=TXT,
+                                          size=11, wrap=True))
 
             # Spesialevner
             special = (npc.get('special', '') or '').strip()

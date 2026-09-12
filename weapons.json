@@ -774,6 +774,183 @@
         "pulp",
         "eksperimentell"
       ]
+    },
+    {
+      "id": "pistol-32",
+      "name": "Colt .32 auto",
+      "category": "firearms",
+      "subcategory": "handgun",
+      "skill": "Firearms (Handgun)",
+      "damage": "1D8",
+      "uses_db": false,
+      "can_impale": true,
+      "range": "10 meter",
+      "attacks": "3",
+      "ammo": "8",
+      "malfunction": "100",
+      "description": "Bunny Bates bærer en .32 auto. Liten, lett å skjule.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "revolver-44",
+      "name": "Revolver .44",
+      "category": "firearms",
+      "subcategory": "handgun",
+      "skill": "Firearms (Handgun)",
+      "damage": "1D10+2",
+      "uses_db": false,
+      "can_impale": true,
+      "range": "15 meter",
+      "attacks": "1",
+      "ammo": "6",
+      "malfunction": "100",
+      "description": "Alex Hubbard har en .44 i bagasjen, sammen med rifla.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "nunchaku",
+      "name": "Nunchaku",
+      "category": "melee",
+      "subcategory": "blunt",
+      "skill": "Fighting (Flail)",
+      "damage": "1D8-1",
+      "uses_db": true,
+      "can_impale": false,
+      "range": "berøring",
+      "attacks": "1",
+      "description": "Dr. Soong kan bruke dem, tross alderen.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "blowgun",
+      "name": "Blåserør",
+      "category": "archaic",
+      "subcategory": "bow",
+      "skill": "Firearms (Bow)",
+      "damage": "1D2 + gift",
+      "uses_db": false,
+      "can_impale": false,
+      "range": "15 meter",
+      "attacks": "1",
+      "ammo": "1",
+      "description": "Wang Ma og tcho-tcho-ene. Selve pilen gjør nesten ingenting — det er giften som teller. CON-slag eller lammelse.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "nightstick",
+      "name": "Batong",
+      "category": "melee",
+      "subcategory": "blunt",
+      "skill": "Fighting (Brawl)",
+      "damage": "1D6",
+      "uses_db": true,
+      "can_impale": false,
+      "range": "berøring",
+      "attacks": "1",
+      "description": "Albert Hallander og sikkerhetsvaktene om bord.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "crowbar",
+      "name": "Brekkjern",
+      "category": "melee",
+      "subcategory": "blunt",
+      "skill": "Fighting (Brawl)",
+      "damage": "1D8",
+      "uses_db": true,
+      "can_impale": false,
+      "range": "berøring",
+      "attacks": "1",
+      "description": "Finnes over hele skipet. Scenarioet nevner det uttrykkelig: med brekkjern blir en vanntett skottdør Hard STR i stedet for Extreme STR.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "fire-axe",
+      "name": "Brannøks",
+      "category": "melee",
+      "subcategory": "edged",
+      "skill": "Fighting (Axe)",
+      "damage": "1D8+2",
+      "uses_db": true,
+      "can_impale": true,
+      "range": "berøring",
+      "attacks": "1",
+      "description": "Henger i glasskap i korridorene. Det tyngste håndvåpenet heltene kan skaffe seg uten å bryte seg inn i lasterom 7.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "hydrochloric-acid",
+      "name": "Saltsyre (glassballong)",
+      "category": "heavy",
+      "subcategory": "incendiary",
+      "skill": "Throw",
+      "damage": "1D10 per runde",
+      "uses_db": false,
+      "can_impale": false,
+      "range": "kastet, 1/5 STR i meter",
+      "attacks": "1",
+      "ignores_armor": true,
+      "description": "Seksten glassballonger med farlige kjemikalier står i lasterom 7. Scenarioet sier uttrykkelig at saltsyre gjør 1D10 per runde mot polyppen OG ignorerer rustning. Det er det kraftigste våpenet om bord — men bare for dem som har vært nede i lasterom 7 før finalen.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
+    },
+    {
+      "id": "naval-battery",
+      "name": "Skipskanoner (tilkalt krigsskip)",
+      "category": "heavy",
+      "subcategory": "explosive",
+      "skill": "—",
+      "damage": "10D10",
+      "uses_db": false,
+      "can_impale": false,
+      "range": "fra horisonten",
+      "attacks": "1",
+      "description": "For høyt pulp: raske helter med militær bakgrunn kan tilkalle britiske, amerikanske eller japanske krigsskip som ligger utenfor. Ett eller to salver ødelegger polyppen eller sårer den nok til at den trekker seg. Krever radiorommet, noen som kan signalere, og en kaptein som lar seg overbevise.",
+      "era": [
+        "1920s",
+        "1930s"
+      ],
+      "availability": "om bord",
+      "tags": []
     }
   ]
 }

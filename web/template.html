@@ -916,6 +916,14 @@ table.skills .steps { margin-left: 10px; }
 .dmgnum b { font-size: 26px; color: var(--signal); margin-right: 6px; }
 .pickrow.dimmed { opacity: 0.5; }
 
+/* Magic points mot det en formel koster. */
+.mpok    { color: var(--verdigris) !important; }
+.mpshort { color: var(--signal) !important; }
+.callout.short { background: rgba(198,80,74,0.12); border-color: var(--signal); }
+.callout.short .eyebrow { color: var(--signal); }
+/* Verdiene i formelkortet er hele setninger, ikke tall. */
+.stat dd.spellval { font-size: 11px; line-height: 1.35; font-family: var(--ui); }
+
 /* Spor som peker feil vei. Villspor er skiltrødt, halvsannheter
    messing — de er ikke like farlige, og skal ikke se like farlige ut. */
 .pointtag {
@@ -1073,6 +1081,7 @@ table.skills .steps { margin-left: 10px; }
 <script type="application/json" id="bundled-talent-rules">/*__TALENT_RULES__*/</script>
 <script type="application/json" id="bundled-keeper-rules">/*__KEEPER_RULES__*/</script>
 <script type="application/json" id="bundled-skills">/*__SKILLS__*/</script>
+<script type="application/json" id="bundled-spells">/*__SPELLS__*/</script>
 
 <script>
 "use strict";
@@ -1186,6 +1195,7 @@ const state = {
   hideDone: false,
   cluePoints: "alle",   // hvilken vei sporene peker: alle|sant|delvis|villspor
   streamOn: { timeline: true, beats: true, clues: true, locations: true },
+  spellBook: null,    // formelbanken
   charFilter: "all",  // all | pc | npc | enemy
 };
 
@@ -2309,8 +2319,20 @@ function openCharacter(pc) {
           text: "Trykk på et talent for å se hva det gjør." }));
       }
 
+      // Formler som id-er slås opp og blir klikkbare kort; er feltet
+      // fritekst, faller det gjennom til lista under.
+      const sps = spellsOf(c);
+      if (sps.length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Formler" }));
+        const box = el("div", { class: "stack" });
+        sps.forEach((s) => box.appendChild(spellRow(s)));
+        body.appendChild(box);
+      }
+
       [["weapons", "Våpen og utstyr"],
-       ["armor", "Rustning"], ["spells", "Formler"],
+       ["armor", "Rustning"],
+       ...(sps.length ? [] : [["spells", "Formler"]]),
        ["sanity_loss", "Sanity-tap"], ["backstory", "Bakgrunn"],
        ["notes", "Notater"]].forEach((pair) => {
         if (!c[pair[0]]) return;
@@ -2374,6 +2396,7 @@ const VIEWS = [
   { key: "npcs",       label: "NPCer",      group: "Spill" },
   { key: "locations",  label: "Steder",     group: "Oppslag" },
   { key: "handouts",   label: "Handouts",   group: "Oppslag" },
+  { key: "spells",     label: "Formler",    group: "Oppslag" },
   { key: "reference",  label: "Regler",     group: "Oppslag" },
   { key: "combat",     label: "Kamp",       group: "Bordet" },
   { key: "tactics",    label: "Taktikk",    group: "Bordet" },
@@ -2401,6 +2424,9 @@ function navBadge(key) {
   if (key === "characters") return state.characters.length || "";
   if (key === "bestiary") {
     return (state.bestiary && state.bestiary.creatures.length) || "";
+  }
+  if (key === "spells") {
+    return (state.spellBook && state.spellBook.spells.length) || "";
   }
   if (key === "tactics") {
     const t = (state.scenario && state.scenario.tactics) || [];
@@ -2716,6 +2742,165 @@ function streamRow(item, section) {
   const body = row.querySelector(".entry-body");
   if (body) body.insertBefore(streamBadge(section), body.firstChild);
   return row;
+}
+
+/* ==================================================================
+   FORMLER
+
+   En formel er ikke bare en beskrivelse — den er en pris. Det man
+   trenger midt i en scene er hva den koster, hva som avgjør den, og om
+   den som skal kaste den har nok igjen. Derfor står kostnaden alltid
+   øverst, og i kamp regnes den mot kasterens magic points.
+   ================================================================== */
+
+function spellCost(s) {
+  const bits = [];
+  // Tall får enheten hengt på; tekststrenger skriver den selv, så
+  // «10 MP per seks timer» ikke blir «10 per seks timer MP».
+  if (s.cost_mp) {
+    bits.push(typeof s.cost_mp === "number"
+      ? s.cost_mp + (s.cost_mp === 1 ? " magic point" : " magic points")
+      : String(s.cost_mp));
+  }
+  if (s.cost_san) {
+    bits.push(typeof s.cost_san === "number" || /^[\dD+]+$/.test(s.cost_san)
+      ? s.cost_san + " Sanity" : String(s.cost_san));
+  }
+  if (s.cost_pow) {
+    bits.push(/POW/i.test(String(s.cost_pow))
+      ? String(s.cost_pow) : s.cost_pow + " POW");
+  }
+  return bits.join(" · ") || "Ingen kostnad";
+}
+
+/* Første tall i kostnaden, når det finnes ett. Brukes til å si om
+   kasteren har nok — «5 / 10 / 15 etter hvor farlig» gir 5, altså det
+   billigste, og da sier vi fra om at det varierer. */
+function spellMpNeeded(s) {
+  const m = String(s.cost_mp || "").match(/\d+/);
+  return m ? parseInt(m[0], 10) : 0;
+}
+function spellMpVaries(s) {
+  return /[\/–-]|etter|valgfritt|per/i.test(String(s.cost_mp || ""));
+}
+
+function spellRow(s) {
+  const bits = [el("span", { class: "entry-title", text: s.name })];
+  bits.push(el("span", { class: "entry-sub", text: spellCost(s) }));
+  const meta = [s.casting_time, s.opposed ? "Motsatt " + s.opposed : null,
+                s.range].filter(Boolean).join(" · ");
+  if (meta) bits.push(el("span", { class: "entry-sub", text: meta }));
+  if (s.who) bits.push(el("span", { class: "entry-sub", text: s.who }));
+  return el("button", {
+    class: "entry pickrow", type: "button",
+    onclick: () => openSpell(s),
+  }, [
+    el("span", { class: "tick", style: "border-color:transparent" }),
+    el("span", { class: "entry-body" }, bits),
+    el("span", { class: "entry-open",
+                 text: s.in_combat ? "I KAMP" : "ÅPNE" }),
+  ]);
+}
+
+function openSpell(s, caster) {
+  openModal(s.name, spellCost(s), (body) => {
+    // Har vi en kaster, sier vi med én gang om det går an.
+    if (caster) {
+      const need = spellMpNeeded(s);
+      const has = parseInt(caster.mp, 10);
+      if (need && !isNaN(has)) {
+        const ok = has >= need;
+        body.appendChild(el("div", {
+          class: "callout " + (ok ? "" : "short") }, [
+          el("p", { class: "eyebrow", text: caster.name }),
+          el("p", { text: ok
+            ? "Har " + has + " magic points — nok til " + need +
+              (spellMpVaries(s) ? " (det billigste alternativet)" : "") + "."
+            : "Har bare " + has + " magic points, trenger " + need +
+              ". Resten må tas fra HIT POINTS, én for én — det er skade, "
+              + "ikke et slag." }),
+        ]));
+      }
+    }
+
+    const rows = [["Kostnad", spellCost(s)],
+                  ["Kastetid", s.casting_time],
+                  ["Avgjøres av", s.opposed ? "Motsatt " + s.opposed + "-slag"
+                                            : "Ingen motstand"],
+                  ["Rekkevidde", s.range],
+                  ["Varighet", s.duration]];
+    const dl = el("div", { class: "statgrid" });
+    rows.forEach(([k, v]) => {
+      if (!v) return;
+      dl.appendChild(el("div", { class: "stat" }, [
+        el("dt", { text: k }), el("dd", { class: "spellval", text: String(v) }),
+      ]));
+    });
+    body.appendChild(dl);
+
+    if (s.effect) {
+      body.appendChild(el("div", { class: "section-label", text: "Virkning" }));
+      body.appendChild(el("p", { class: "prose", text: s.effect }));
+    }
+    if (s.at_table) {
+      body.appendChild(el("div", { class: "section-label",
+                                   text: "Ved bordet" }));
+      body.appendChild(el("p", { class: "prose", text: s.at_table }));
+    }
+    if (s.alt_names) {
+      body.appendChild(el("p", { class: "caveat",
+        text: "Andre navn: " + s.alt_names }));
+    }
+    body.appendChild(el("p", { class: "caveat",
+      text: "Kilde: " + (s.source === "scenario" ? "scenarioet"
+            : s.source === "grunnbok" ? "grunnboka"
+            : s.source) + (s.page ? ", " + s.page : "") }));
+  }, []);
+}
+
+function viewSpells(root) {
+  root.appendChild(el("h1", { text: "Formler" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Hva de koster, hva som avgjør dem, og hvem som kan kaste " +
+          "dem. Formler merket I KAMP kan velges som handling i " +
+          "kamptrackeren." }));
+  root.appendChild(searchBar("Søk i formler…"));
+  root.appendChild(el("div", { style: "height:12px" }));
+
+  const all = (state.spellBook && state.spellBook.spells) || [];
+  if (!all.length) {
+    root.appendChild(emptyBox("Ingen formelbank lastet."));
+    return;
+  }
+  const q = state.query.toLowerCase();
+  const hit = all.filter((s) => !q ||
+    [s.name, s.alt_names, s.effect, s.at_table, s.who, spellCost(s)]
+      .filter(Boolean).join(" ").toLowerCase().indexOf(q) !== -1);
+  if (!hit.length) { root.appendChild(emptyBox("Ingen treff.")); return; }
+
+  // Skurkens formler først — det er dem man trenger fortest.
+  const groups = [
+    ["Skapningens formler", (s) => /Crawling One/.test(s.who || "")],
+    ["Det heltene kan lære", (s) => /Heltene/.test(s.who || "")],
+    ["Andre", () => true],
+  ];
+  const used = new Set();
+  groups.forEach(([label, test]) => {
+    const rows = el("div", { class: "stack" });
+    let n = 0;
+    hit.forEach((s) => {
+      if (used.has(s.id) || !test(s)) return;
+      used.add(s.id); rows.appendChild(spellRow(s)); n += 1;
+    });
+    if (!n) return;
+    const sec = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: label }), el("span", { text: String(n) }),
+      ]),
+    ]);
+    sec.appendChild(rows);
+    root.appendChild(sec);
+  });
 }
 
 function viewStream(root) {
@@ -3058,6 +3243,22 @@ function openSkillList() {
 // Slår opp en ferdighet på navn. Karakterarkene bruker egne
 // skrivemåter — «Mech. Repair», «Science (Biology)» — så både alias og
 // spesialiseringer må finne fram til grunnoppslaget.
+let spellIndex = {};
+
+/* Formler på en rolle er lagret som id-er, slik at teksten bare finnes
+   ett sted. Godtar også navn, for håndskrevne kort. */
+function spellsOf(c) {
+  if (!c || !c.spells) return [];
+  const list = Array.isArray(c.spells) ? c.spells
+             : String(c.spells).split(/[,;]/).map((x) => x.trim());
+  return list.map((x) => spellIndex[x] || spellIndex[String(x).toLowerCase()])
+             .filter(Boolean);
+}
+
+function lookupSpell(x) {
+  return spellIndex[x] || spellIndex[String(x || "").toLowerCase()] || null;
+}
+
 function lookupSkill(name) {
   const raw = String(name || "").trim().toLowerCase();
   if (skillIndex[raw]) return skillIndex[raw];
@@ -5480,6 +5681,17 @@ function openAttackFlow(attacker) {
         body.appendChild(ustack);
       }
 
+      // Formler står ved siden av våpnene, ikke i en annen fane. Den
+      // som kaster, skal ikke måtte lete etter prisen sin.
+      const spells = spellsInCombat(attacker);
+      if (spells.length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Formler" }));
+        const sstack = el("div", { class: "stack" });
+        spells.forEach((s) => sstack.appendChild(spellAttackRow(attacker, s)));
+        body.appendChild(sstack);
+      }
+
       body.appendChild(el("div", { class: "section-label", text: "Annet" }));
       const other = el("div", { class: "stack" });
       other.appendChild(plainRow("Manøver", manoeuvreOption().note,
@@ -5493,6 +5705,138 @@ function openAttackFlow(attacker) {
         "VELG", () => pickWeaponForAttack(attacker)));
       body.appendChild(other);
     }, []);
+}
+
+/* Formlene denne kan bruke som en handling i kamp. Leses fra rollen
+   bak kampdeltakeren, så en kopi i kamplista har dem også. */
+function spellsInCombat(combatant) {
+  const c = charBehind(combatant) || combatant;
+  return spellsOf(c).filter((s) => s.in_combat);
+}
+
+/* En formel gjort om til noe angrepsflyten forstår. Motsatt POW-slag
+   er ikke et treffslag, så den settes opp som et opposed-angrep der
+   begge sider slår POW×5. */
+function spellAsAttack(caster, s) {
+  const pow = parseInt((charBehind(caster) || caster).pow, 10);
+  return {
+    name: s.name,
+    spellId: s.id,
+    skill: s.opposed === "POW" && !isNaN(pow) ? (pow * 5) + "%" : "",
+    damage: "",
+    category: "spell",
+    uses_db: false,
+    can_impale: false,
+    note: spellCost(s),
+  };
+}
+
+function spellAttackRow(caster, s) {
+  const need = spellMpNeeded(s);
+  const has = parseInt((charBehind(caster) || caster).mp, 10);
+  const short = need && !isNaN(has) && has < need;
+  const meta = [spellCost(s),
+                s.opposed ? "motsatt " + s.opposed : null,
+                s.casting_time].filter(Boolean).join(" · ");
+
+  const bits = [el("span", { class: "entry-title", text: s.name }),
+                el("span", { class: "entry-sub", text: meta })];
+  if (!isNaN(has)) {
+    bits.push(el("span", {
+      class: "entry-sub " + (short ? "mpshort" : "mpok"),
+      text: short
+        ? "Har " + has + " MP — mangler " + (need - has) + ", resten tas fra HP"
+        : "Har " + has + " MP" }));
+  }
+  return el("button", {
+    class: "entry pickrow", type: "button",
+    onclick: () => {
+      // Vis kortet først, med kostnaden regnet mot kasteren, og la
+      // Keeperen gå videre derfra.
+      openSpell(s, charBehind(caster) || caster);
+      const foot = document.getElementById("modal-foot");
+      if (foot) {
+        foot.appendChild(el("button", {
+          class: "btn primary", type: "button", text: "Bruk mot et mål",
+          onclick: () => { closeModal();
+                           pickTarget(caster, spellAsAttack(caster, s)); },
+        }));
+        foot.appendChild(el("button", {
+          class: "btn small", type: "button", text: "Trekk fra kostnaden",
+          title: "Trekker magic points fra kasteren",
+          onclick: () => { closeModal(); spendSpellCost(caster, s); },
+        }));
+      }
+    },
+  }, [
+    el("span", { class: "tick", style: "border-color:transparent" }),
+    el("span", { class: "entry-body" }, bits),
+    el("span", { class: "entry-open", text: "FORMEL" }),
+  ]);
+}
+
+/* Alle tallene i en kostnad som varierer: «5 / 10 / 15 etter hvor
+   farlig» gir [5, 10, 15], så Keeperen kan velge nivå i stedet for at
+   appen gjetter på det billigste. */
+function spellMpOptions(s) {
+  const all = String(s.cost_mp || "").match(/\d+/g) || [];
+  return [...new Set(all.map(Number))].sort((a, b) => a - b);
+}
+
+/* Trekker magic points, og videre fra hit points når de tar slutt —
+   det er grunnbokas regel, og den er skade, ikke et slag. Varierer
+   kostnaden, spør vi hvilket nivå som ble brukt. */
+async function spendSpellCost(caster, s, amount) {
+  const c = charBehind(caster) || caster;
+  const opts = spellMpOptions(s);
+
+  if (amount === undefined && (opts.length > 1 || spellMpVaries(s))) {
+    openModal(s.name, "Hvor mye ble brukt?", (body) => {
+      body.appendChild(el("p", { class: "prose", text: String(s.cost_mp) }));
+      const row = el("div", { class: "respchips" });
+      opts.forEach((n) => row.appendChild(el("button", {
+        class: "chip resp", type: "button", text: n + " MP",
+        onclick: () => { closeModal(); spendSpellCost(caster, s, n); },
+      })));
+      const free = el("input", { class: "field", type: "number", min: "1",
+                                 placeholder: "eller skriv inn antall" });
+      body.appendChild(row);
+      body.appendChild(el("div", { style: "height:10px" }));
+      body.appendChild(free);
+      body.appendChild(el("div", { style: "height:10px" }));
+      body.appendChild(el("button", {
+        class: "btn primary", type: "button", text: "Trekk",
+        onclick: () => {
+          const n = parseInt(free.value, 10);
+          if (!n || n < 1) { toast("Skriv inn et antall"); return; }
+          closeModal(); spendSpellCost(caster, s, n);
+        },
+      }));
+    }, []);
+    return;
+  }
+
+  const need = amount !== undefined ? amount : spellMpNeeded(s);
+  if (!need) { toast("Ingen fast kostnad å trekke"); return; }
+  const has = parseInt(c.mp, 10) || 0;
+  const fromMp = Math.min(has, need);
+  const fromHp = need - fromMp;
+  c.mp = String(has - fromMp);
+  if (caster !== c) caster.mp = c.mp;
+  if (fromHp) {
+    caster.hp = Math.max(0, (caster.hp || 0) - fromHp);
+    if (state.combat) state.combat.log.push(
+      caster.name + " kaster " + s.name + ": " + fromMp + " MP og " +
+      fromHp + " HP (magic points tok slutt).");
+  } else if (state.combat) {
+    state.combat.log.push(
+      caster.name + " kaster " + s.name + ": " + fromMp + " MP.");
+  }
+  await saveCharacters();
+  if (state.combat) await saveCombat();
+  render();
+  toast(fromHp ? "Trakk " + fromMp + " MP og " + fromHp + " HP"
+               : "Trakk " + fromMp + " MP");
 }
 
 // Rollen bak en kampdeltaker, til å slå opp ferdigheter i.
@@ -6885,6 +7229,7 @@ function render() {
         "Søk i spor…");
       break;
     case "npcs":      viewNpcs(root); break;
+    case "spells":    viewSpells(root); break;
     case "locations":
       viewList(root, "locations", "Steder",
         "Skipet dekk for dekk, og hva som ligger i hvert lasterom.",
@@ -6980,6 +7325,16 @@ function loadBestiary() {
       (x.aliases || []).forEach((a) => {
         if (!skillIndex[a.toLowerCase()]) skillIndex[a.toLowerCase()] = x;
       });
+    });
+  }
+
+  const sp = loadBundled("bundled-spells");
+  state.spellBook = (sp && Array.isArray(sp.spells)) ? sp : null;
+  spellIndex = {};
+  if (state.spellBook) {
+    state.spellBook.spells.forEach((x) => {
+      spellIndex[x.id] = x;
+      spellIndex[x.name.toLowerCase()] = x;
     });
   }
 

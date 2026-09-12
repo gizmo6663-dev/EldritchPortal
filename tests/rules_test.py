@@ -262,7 +262,9 @@ async def main():
         rounds=[r for _,r in seq]
         # 40 pulp-talenter + 19 insane talents = 59. Var 60 til
         # «skill (an Extreme success)» viste seg å være en parsefeil.
-        ok=(r['weapons']==28 and r['talents']==59 and r['tactics']>=20
+        # Våpenbanken vokser når scenarioet krever det; den skal bare
+        # aldri krympe, så terskelen er nedre grense, ikke et fasttall.
+        ok=(r['weapons']>=37 and r['talents']==59 and r['tactics']>=20
             and imp['impaled'] and imp['damage']>=8
             and mal['malfunction'] and not mal['hit']
             and tl['known']>0 and nt>0
