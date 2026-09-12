@@ -615,6 +615,11 @@ textarea.field { resize: vertical; line-height: 1.6; }
 }
 .savestate.saved { color: var(--verdigris); }
 
+/* Når alt sist ble skrevet. Står ved siden av synk-merket, så man
+   kan se med ett blikk at ingenting ligger og venter. */
+.saved-chip { color: var(--verdigris); border-color: rgba(90,156,126,0.35); }
+.saved-chip.dirty { color: var(--brass); border-color: var(--brass-dim); }
+
 .libcard {
   border: 1px solid var(--rule-soft); border-radius: 8px;
   background: var(--ink-2); padding: 14px 16px;
@@ -923,6 +928,22 @@ table.skills .steps { margin-left: 10px; }
   color: var(--signal); border: 1px solid rgba(198,80,74,0.45);
   background: rgba(198,80,74,0.10);
 }
+/* Merkelapp som sier hvilken del av scenarioet en rad i Økta kom
+   fra. Fargene følger de samme som fanene ellers bruker. */
+.streamtag {
+  display: inline-block; margin-bottom: 3px;
+  font-family: var(--mono); font-size: 8.5px; letter-spacing: 0.16em;
+  padding: 1px 6px; border-radius: 3px;
+  border: 1px solid var(--rule-soft); color: var(--faint);
+}
+.streamtag.timeline  { color: var(--tide);       border-color: rgba(110,139,168,0.4); }
+.streamtag.beats     { color: var(--brass);      border-color: var(--brass-dim); }
+.streamtag.clues     { color: var(--verdigris);  border-color: rgba(90,156,126,0.4); }
+.streamtag.locations { color: var(--muted); }
+/* Rader som henger under en tidslinjehendelse rykkes inn, så det
+   synes at de hører til den. */
+.entry.linked { margin-left: 18px; border-left-style: dashed; }
+
 .pointtag.delvis {
   color: var(--brass); border: 1px solid var(--brass-dim);
   background: var(--brass-glow);
@@ -1018,6 +1039,10 @@ table.skills .steps { margin-left: 10px; }
         <button class="btn small" id="dice-roll" type="button">Slå d100</button>
         <span class="dice-out" id="dice-out" aria-live="polite">—</span>
       </div>
+      <button class="btn small" id="save-now" type="button"
+              title="Skriver alt som ligger og venter, med én gang">
+        Lagre nå</button>
+      <span class="chip saved-chip" id="save-chip">Ikke lagret ennå</span>
       <span class="chip" id="sync-chip">…</span>
     </div>
   </header>
@@ -1095,6 +1120,7 @@ const store = {
   },
   async set(key, value) {
     lsSet(key, value);
+    if (typeof markSaved === "function") markSaved();
     if (remote) {
       try {
         await remote.doc("state/" + key.replace(/\//g, "_")).set({ value });
@@ -1159,6 +1185,7 @@ const state = {
   query: "",
   hideDone: false,
   cluePoints: "alle",   // hvilken vei sporene peker: alle|sant|delvis|villspor
+  streamOn: { timeline: true, beats: true, clues: true, locations: true },
   charFilter: "all",  // all | pc | npc | enemy
 };
 
@@ -1476,13 +1503,96 @@ function matches(item, query) {
   return hay.indexOf(query.toLowerCase()) !== -1;
 }
 
+/* Alle utsatte skrivinger melder seg inn her, slik at de kan tvinges
+   ut før fanen forsvinner. Uten dette ligger de siste 600–800 ms med
+   tasting og venter på en timer som aldri får løpe ferdig når man
+   lukker fanen eller bytter app. */
+const pendingWrites = new Set();
+let lastSavedAt = null;
+
 function debounce(fn, ms) {
   let t = null;
-  return function () {
-    const args = arguments;
+  let lastArgs = null;
+  const wrapped = function () {
+    lastArgs = arguments;
     clearTimeout(t);
-    t = setTimeout(() => fn.apply(null, args), ms);
+    pendingWrites.add(wrapped);
+    markDirty();
+    t = setTimeout(() => {
+      t = null;
+      pendingWrites.delete(wrapped);
+      fn.apply(null, lastArgs);
+    }, ms);
   };
+  // Skriv nå, og glem timeren. Kalles av flushWrites().
+  wrapped.flush = function () {
+    if (t === null) return false;
+    clearTimeout(t);
+    t = null;
+    pendingWrites.delete(wrapped);
+    fn.apply(null, lastArgs);
+    return true;
+  };
+  wrapped.pending = () => t !== null;
+  return wrapped;
+}
+
+/* Tvinger ut alt som ligger og venter. Returnerer hvor mange
+   skrivinger som faktisk ble utført. */
+function flushWrites() {
+  let n = 0;
+  [...pendingWrites].forEach((w) => { if (w.flush()) n += 1; });
+  return n;
+}
+
+/* Noe ligger og venter. Sies med én gang, så man aldri er i tvil om
+   det man nettopp skrev har rukket ned. */
+function saveStreamPrefs() {
+  lsSet("streamOn", state.streamOn);
+}
+
+function loadStreamPrefs() {
+  const saved = lsGet("streamOn");
+  if (saved && typeof saved === "object") {
+    STREAM_SECTIONS.forEach(([k]) => {
+      if (typeof saved[k] === "boolean") state.streamOn[k] = saved[k];
+    });
+  }
+}
+
+function markDirty() {
+  const c = document.getElementById("save-chip");
+  if (c) {
+    c.textContent = "Ulagrede endringer";
+    c.className = "chip saved-chip dirty";
+  }
+}
+
+function markSaved() {
+  lastSavedAt = new Date();
+  const el2 = document.getElementById("save-chip");
+  if (el2) {
+    el2.textContent = "Lagret " + lastSavedAt.toLocaleTimeString(
+      "nb-NO", { hour: "2-digit", minute: "2-digit" });
+    el2.className = "chip saved-chip";
+  }
+}
+
+/* Siste sjanse før fanen blir borte. visibilitychange er den eneste
+   som er til å stole på på mobil — beforeunload fyrer ikke alltid når
+   iOS parkerer en fane. localStorage-skrivingen i store.set er
+   synkron, så den rekker gjennom; db-skrivingen kan bli avbrutt, men
+   da har vi fortsatt den lokale kopien. */
+function armFailsafe() {
+  const flush = () => { if (flushWrites()) markSaved(); };
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") flush();
+  });
+  window.addEventListener("pagehide", flush);
+  window.addEventListener("beforeunload", flush);
+  // Og et nett under alt sammen, for den som lar appen stå åpen i
+  // timevis midt i en økt.
+  setInterval(flush, 20000);
 }
 
 /* ---------------------------- terning --------------------------- */
@@ -2259,6 +2369,7 @@ const VIEWS = [
   { key: "overview",   label: "Oversikt",   group: "Spill" },
   { key: "timeline",   label: "Tidslinje",  group: "Spill" },
   { key: "beats",      label: "Scener",     group: "Spill" },
+  { key: "stream",     label: "Økta",       group: "Spill" },
   { key: "clues",      label: "Spor",       group: "Spill" },
   { key: "npcs",       label: "NPCer",      group: "Spill" },
   { key: "locations",  label: "Steder",     group: "Oppslag" },
@@ -2274,6 +2385,18 @@ const VIEWS = [
 ];
 
 function navBadge(key) {
+  // «Økta» viser samlet framdrift over alle delene den inneholder.
+  if (key === "stream") {
+    const d = state.scenario;
+    if (!d) return "";
+    let done = 0, all = 0;
+    STREAM_SECTIONS.forEach(([k]) => {
+      const items = d[k] || [];
+      all += items.length;
+      done += items.filter((x) => x[FLAGS[k]]).length;
+    });
+    return all ? done + "/" + all : "";
+  }
   // Disse er uavhengige av hvilket scenario som er aktivt.
   if (key === "characters") return state.characters.length || "";
   if (key === "bestiary") {
@@ -2559,6 +2682,165 @@ function viewOverview(root) {
 }
 
 /* --------------------------- tidslinje -------------------------- */
+
+/* ==================================================================
+   ØKTA — tidslinje, scener, spor og steder i én strøm
+
+   Fire faner å bla mellom er tre for mange når man sitter midt i en
+   scene og skal finne én ting. Her ligger alt sammen, gruppert etter
+   dag, med det som hører sammen samlet: hver dag på tidslinja drar med
+   seg scenene og sporene den peker på gjennom connects_to.
+
+   Det som ikke hører til noen dag — steder, og spor som kan dukke opp
+   når som helst — står i egne bolker til slutt.
+   ================================================================== */
+
+const STREAM_SECTIONS = [
+  ["timeline", "Tidslinje"],
+  ["beats", "Scener"],
+  ["clues", "Spor"],
+  ["locations", "Steder"],
+];
+
+function streamBadge(section) {
+  const label = { timeline: "TIDSLINJE", beats: "SCENE",
+                  clues: "SPOR", locations: "STED" }[section];
+  return el("span", { class: "streamtag " + section, text: label });
+}
+
+/* Samme rad som ellers, men med en merkelapp som sier hvilken del av
+   scenarioet den kom fra — ellers mister man oversikten i en blandet
+   liste. */
+function streamRow(item, section) {
+  const row = entryRow(item, section);
+  const body = row.querySelector(".entry-body");
+  if (body) body.insertBefore(streamBadge(section), body.firstChild);
+  return row;
+}
+
+function viewStream(root) {
+  root.appendChild(el("h1", { text: "Økta" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Tidslinje, scener, spor og steder i én strøm, dag for dag. " +
+          "Det som henger sammen, står sammen." }));
+  root.appendChild(searchBar("Søk i alt som skjer…"));
+  root.appendChild(el("div", { style: "height:12px" }));
+
+  const sc = state.scenario;
+  const on = state.streamOn;
+
+  // Hvilke deler som vises. Slås av og på, og valget huskes.
+  const chips = el("div", { class: "respchips", style: "margin-bottom:14px" });
+  STREAM_SECTIONS.forEach(([key, label]) => {
+    const n = (sc[key] || []).length;
+    if (!n) return;
+    chips.appendChild(el("button", {
+      class: "chip resp" + (on[key] ? " on" : ""), type: "button",
+      text: label + " " + n,
+      onclick: () => { on[key] = !on[key]; saveStreamPrefs(); render(); },
+    }));
+  });
+  chips.appendChild(el("button", {
+    class: "chip resp" + (state.hideDone ? " on" : ""), type: "button",
+    text: state.hideDone ? "Skjuler avkryssede" : "Skjul avkryssede",
+    onclick: () => { state.hideDone = !state.hideDone; render(); },
+  }));
+  root.appendChild(chips);
+
+  const pick = (key) => on[key] ? visible(sc[key] || [], key) : [];
+  const tl = pick("timeline");
+  const beats = pick("beats");
+  const clues = pick("clues");
+  const locs = pick("locations");
+
+  if (!tl.length && !beats.length && !clues.length && !locs.length) {
+    root.appendChild(emptyBox("Ingen treff."));
+    return;
+  }
+
+  // Alt som allerede er vist under en dag, skal ikke gjentas nedenfor.
+  const shown = new Set();
+  const byId = {};
+  [...(sc.beats || []), ...(sc.clues || [])].forEach((x) => { byId[x.id] = x; });
+  const okBeat = new Set(beats.map((x) => x.id));
+  const okClue = new Set(clues.map((x) => x.id));
+
+  let blocks = 0;
+  function block(title, count, rows) {
+    if (!rows.children.length) return;
+    blocks += 1;
+    const sec = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: title }),
+        el("span", { text: String(count) }),
+      ]),
+    ]);
+    sec.appendChild(rows);
+    root.appendChild(sec);
+  }
+
+  // --- dag for dag, med det tidslinja peker på rett under
+  const days = [];
+  const byDay = {};
+  tl.forEach((it) => {
+    const key = it.day || "(udatert)";
+    if (!byDay[key]) { byDay[key] = []; days.push(key); }
+    byDay[key].push(it);
+  });
+
+  days.forEach((day) => {
+    const rows = el("div", { class: "stack" });
+    let n = 0;
+    byDay[day].forEach((it) => {
+      rows.appendChild(streamRow(it, "timeline"));
+      n += 1;
+      shown.add(it.id);
+      (it.connects_to || []).forEach((ref) => {
+        if (shown.has(ref)) return;
+        const linked = byId[ref];
+        if (!linked) return;
+        const sect = okBeat.has(ref) ? "beats"
+                   : okClue.has(ref) ? "clues" : null;
+        if (!sect) return;
+        const r = streamRow(linked, sect);
+        r.classList.add("linked");
+        rows.appendChild(r);
+        shown.add(ref);
+        n += 1;
+      });
+    });
+    block(day, n, rows);
+  });
+
+  // --- resten, som ikke henger på en bestemt dag
+  const restBeats = beats.filter((x) => !shown.has(x.id));
+  if (restBeats.length) {
+    const rows = el("div", { class: "stack" });
+    restBeats.forEach((x) => rows.appendChild(streamRow(x, "beats")));
+    block("Scener uten fast dag", restBeats.length, rows);
+  }
+  const restClues = clues.filter((x) => !shown.has(x.id));
+  if (restClues.length) {
+    const rows = el("div", { class: "stack" });
+    restClues.forEach((x) => rows.appendChild(streamRow(x, "clues")));
+    block("Spor som kan dukke opp når som helst", restClues.length, rows);
+  }
+  if (locs.length) {
+    const byDeck = {}; const decks = [];
+    locs.forEach((l) => {
+      const k = l.deck || "Andre steder";
+      if (!byDeck[k]) { byDeck[k] = []; decks.push(k); }
+      byDeck[k].push(l);
+    });
+    decks.forEach((dk) => {
+      const rows = el("div", { class: "stack" });
+      byDeck[dk].forEach((l) => rows.appendChild(streamRow(l, "locations")));
+      block(dk, byDeck[dk].length, rows);
+    });
+  }
+
+  if (!blocks) root.appendChild(emptyBox("Ingen treff."));
+}
 
 function viewTimeline(root) {
   root.appendChild(el("h1", { text: "Tidslinje" }));
@@ -2951,6 +3233,91 @@ function viewNotes(root) {
 
 /* --------------------------- sesjoner --------------------------- */
 
+/* ------------------ eksport av økter ---------------------------
+
+   En økt er ikke bare sammendraget man skrev. Den er også hvor langt
+   gruppa faktisk kom: hvilke spor de fant, hvilke scener de spilte,
+   hva som ble utløst. Derfor tar «Eksporter alt» med en status til
+   slutt, slik at fila er noe man kan lese neste gang uten å ha appen
+   åpen ved siden av.                                            */
+
+function slugify(s) {
+  return String(s).toLowerCase()
+    .replace(/[æ]/g, "ae").replace(/[ø]/g, "o").replace(/[å]/g, "a")
+    .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "sesjon";
+}
+
+function sessionFileName() {
+  const base = slugify((state.scenario && state.scenario.title) || "okter");
+  return base + "-okter-" + new Date().toISOString().slice(0, 10) + ".md";
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text)
+    .then(() => toast("Kopiert til utklippstavla"))
+    .catch(() => toast("Kunne ikke kopiere"));
+}
+
+function oneSessionMarkdown(s) {
+  const head = "## " + (s.title || "Uten navn") +
+               (s.date ? "  \n*" + s.date + "*" : "");
+  const body = (s.summary || "").trim() || "*(ingenting skrevet)*";
+  return head + "\n\n" + body + "\n";
+}
+
+/* Hva gruppa har krysset av, seksjon for seksjon. */
+function progressMarkdown() {
+  const sc = state.scenario;
+  if (!sc) return "";
+  const out = [];
+  const blocks = [
+    ["timeline", "triggered", "Utløst på tidslinja"],
+    ["beats", "done", "Scener spilt"],
+    ["clues", "found", "Spor funnet"],
+    ["locations", "visited", "Steder besøkt"],
+  ];
+  blocks.forEach(([key, flag, label]) => {
+    const all = sc[key] || [];
+    const hit = all.filter((x) => x[flag]);
+    if (!all.length) return;
+    out.push("### " + label + " (" + hit.length + " av " + all.length + ")");
+    if (!hit.length) { out.push("*(ingen ennå)*"); return; }
+    hit.forEach((x) => {
+      let line = "- " + (x.title || x.name || "?");
+      const w = [x.day, x.when, x.where, x.deck].filter(Boolean).join(" · ");
+      if (w) line += " — " + w;
+      // Villspor merkes også her, så leseren ikke tror gruppa er
+      // nærmere svaret enn de er.
+      if (x.points === "villspor") line += "  **[villspor]**";
+      else if (x.points === "delvis") line += "  **[halvsant]**";
+      const n = (state.progress.itemNotes || {})[x.id];
+      if (n) line += "\n  > " + String(n).replace(/\n/g, "\n  > ");
+      out.push(line);
+    });
+    out.push("");
+  });
+  return out.join("\n");
+}
+
+function sessionsMarkdown(withProgress) {
+  const sc = state.scenario || {};
+  const out = ["# " + (sc.title || "Spilløkter")];
+  if (sc.system) out.push("*" + sc.system + "*");
+  out.push("", "Eksportert " +
+    new Date().toLocaleString("nb-NO", { dateStyle: "long",
+                                         timeStyle: "short" }), "");
+  (state.progress.sessions || []).forEach((s) => {
+    out.push(oneSessionMarkdown(s));
+  });
+  const notes = (state.progress.notes || "").trim();
+  if (notes) out.push("## Løpende notater", "", notes, "");
+  if (withProgress) {
+    const p = progressMarkdown();
+    if (p) out.push("---", "", "# Hvor langt dere er kommet", "", p);
+  }
+  return out.join("\n");
+}
+
 function viewSessions(root) {
   root.appendChild(el("h1", { text: "Sesjoner" }));
   root.appendChild(el("p", { class: "lede",
@@ -2961,6 +3328,7 @@ function viewSessions(root) {
     el("button", {
       class: "btn primary", type: "button", text: "Ny sesjon",
       onclick: async () => {
+        flushWrites();
         state.progress.sessions.push({
           title: "Sesjon " + (state.progress.sessions.length + 1),
           date: new Date().toISOString().slice(0, 10),
@@ -2971,14 +3339,19 @@ function viewSessions(root) {
       },
     }),
     state.progress.sessions.length ? el("button", {
-      class: "btn small", type: "button", text: "Kopier alt som tekst",
+      class: "btn small", type: "button", text: "Eksporter alt",
+      title: "Alle sesjoner som én tekstfil, med hvor langt dere er kommet",
+      onclick: async () => {
+        flushWrites();
+        await downloadText(sessionFileName(), sessionsMarkdown(true),
+                           "text/markdown;charset=utf-8");
+      },
+    }) : null,
+    state.progress.sessions.length ? el("button", {
+      class: "btn small", type: "button", text: "Kopier alt",
       onclick: () => {
-        const text = state.progress.sessions.map((s) =>
-          (s.title || "") + " — " + (s.date || "") + "\n" + (s.summary || "")
-        ).join("\n\n");
-        navigator.clipboard.writeText(text)
-          .then(() => toast("Kopiert til utklippstavla"))
-          .catch(() => toast("Kunne ikke kopiere"));
+        flushWrites();
+        copyText(sessionsMarkdown(true));
       },
     }) : null,
   ]));
@@ -3010,6 +3383,16 @@ function viewSessions(root) {
     panel.appendChild(el("div", { style: "height:10px" }));
     panel.appendChild(summary);
     panel.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
+      el("button", { class: "btn small", type: "button", text: "Eksporter",
+        title: "Bare denne økta, som tekstfil",
+        onclick: async () => {
+          save.flush();
+          await downloadText(
+            slugify(s.title || ("sesjon-" + (i + 1))) + ".md",
+            oneSessionMarkdown(s), "text/markdown;charset=utf-8");
+        } }),
+      el("button", { class: "btn small", type: "button", text: "Kopier",
+        onclick: () => { save.flush(); copyText(oneSessionMarkdown(s)); } }),
       el("button", { class: "btn danger small", type: "button", text: "Slett",
         onclick: () => confirmThen("Slett sesjon?",
           "«" + (s.title || "Uten navn") + "» blir borte.", async () => {
@@ -6417,7 +6800,12 @@ function confirmThen(title, message, action) {
 }
 
 async function download(filename, data) {
-  const text = JSON.stringify(data, null, 2);
+  return downloadText(filename, JSON.stringify(data, null, 2),
+                      "application/json");
+}
+
+async function downloadText(filename, text, mime) {
+  mime = mime || "text/plain;charset=utf-8";
 
   // Publisert som artifact går nedlasting gjennom verten — en vanlig
   // lenke gjør ingenting der. Åpnet som lokal fil finnes ikke verten,
@@ -6440,8 +6828,7 @@ async function download(filename, data) {
     return;
   }
 
-  const url = URL.createObjectURL(
-    new Blob([text], { type: "application/json" }));
+  const url = URL.createObjectURL(new Blob([text], { type: mime }));
   const a = document.createElement("a");
   a.href = url; a.download = filename;
   document.body.appendChild(a); a.click(); a.remove();
@@ -6489,6 +6876,7 @@ function render() {
 
   switch (state.view) {
     case "overview":  viewOverview(root); break;
+    case "stream":    viewStream(root); break;
     case "timeline":  viewTimeline(root); break;
     case "beats":     viewBeats(root); break;
     case "clues":
@@ -6517,6 +6905,18 @@ function render() {
 
 async function boot() {
   setupDice();
+  armFailsafe();
+  document.getElementById("save-now").addEventListener("click", async () => {
+    const n = flushWrites();
+    // Skriv fremdrift og roster på nytt uansett, så knappen betyr det
+    // samme enten man har tastet noe eller ikke.
+    await saveProgress();
+    await saveCharacters();
+    if (state.combat) await saveCombat();
+    markSaved();
+    toast(n ? "Lagret " + n + " endring" + (n === 1 ? "" : "er")
+            : "Alt var lagret fra før");
+  });
   document.getElementById("modal-close").addEventListener("click", closeModal);
   document.getElementById("scrim").addEventListener("mousedown", (e) => {
     if (e.target.id === "scrim") closeModal();
@@ -6528,6 +6928,7 @@ async function boot() {
   });
 
   loadBestiary();
+  loadStreamPrefs();
 
   // Tegn med lokale data først, slik at siden er brukbar med én gang.
   await loadLibrary();
