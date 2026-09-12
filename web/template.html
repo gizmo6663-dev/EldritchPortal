@@ -911,6 +911,33 @@ table.skills .steps { margin-left: 10px; }
 .dmgnum b { font-size: 26px; color: var(--signal); margin-right: 6px; }
 .pickrow.dimmed { opacity: 0.5; }
 
+/* Spor som peker feil vei. Villspor er skiltrødt, halvsannheter
+   messing — de er ikke like farlige, og skal ikke se like farlige ut. */
+.pointtag {
+  align-self: start;
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.14em;
+  padding: 1px 7px; border-radius: 999px; margin-top: 4px;
+  display: inline-block;
+}
+.pointtag.villspor {
+  color: var(--signal); border: 1px solid rgba(198,80,74,0.45);
+  background: rgba(198,80,74,0.10);
+}
+.pointtag.delvis {
+  color: var(--brass); border: 1px solid var(--brass-dim);
+  background: var(--brass-glow);
+}
+.misdirect {
+  border: 1px solid var(--rule); border-left-width: 3px;
+  border-radius: 6px; padding: 10px 12px; margin-bottom: 14px;
+  background: var(--ink);
+}
+.misdirect.villspor { border-left-color: var(--signal); }
+.misdirect.villspor .eyebrow { color: var(--signal); }
+.misdirect.delvis { border-left-color: var(--brass-dim); }
+.misdirect.delvis .eyebrow { color: var(--brass); }
+.misdirect p:last-child { margin-bottom: 0; }
+
 /* Tellere for skapninger med egne mekanismer. */
 .cb-special { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
 .resbox {
@@ -1131,6 +1158,7 @@ const state = {
   view: "overview",
   query: "",
   hideDone: false,
+  cluePoints: "alle",   // hvilken vei sporene peker: alle|sant|delvis|villspor
   charFilter: "all",  // all | pc | npc | enemy
 };
 
@@ -1437,7 +1465,8 @@ function matches(item, query) {
   if (!query) return true;
   const bits = [item.title, item.name, item.description, item.where,
                 item.day, item.when, item.act, item.deck, item.role,
-                item.category, item.roll, item.userNotes, item.roleplay];
+                item.category, item.roll, item.userNotes, item.roleplay,
+                item.truth];
   // Replikkene skal også kunne søkes opp — husker du bare en setning
   // noen sa, skal den finne scenen.
   (item.dialogue || []).forEach((d) => {
@@ -1845,6 +1874,20 @@ function openItem(item, section) {
     .map((k) => item[k]).filter(Boolean).join(" · ");
 
   openModal(item.title || item.name || "?", subtitle, (body) => {
+    // Peker sporet feil vei, skal det stå før alt annet — ellers
+    // rekker Keeperen å lese det opp som om det var til å stole på.
+    if (item.points && item.points !== "sant") {
+      body.appendChild(el("div", { class: "misdirect " + item.points }, [
+        el("p", { class: "eyebrow",
+                  text: item.points === "villspor"
+                        ? "Villspor — peker feil vei"
+                        : "Halvsannhet — stemmer, men fører feil" }),
+        item.truth
+          ? el("p", { class: "prose tight", text: item.truth })
+          : el("p", { class: "prose tight",
+                      text: "Ingen forklaring lagt inn." }),
+      ]));
+    }
     if (item.roll) {
       body.appendChild(el("div", { class: "callout" }, [
         el("p", { class: "eyebrow", text: "Slag" }),
@@ -2349,6 +2392,11 @@ function entryRow(item, section, tag) {
   if (item.roll) {
     bodyBits.push(el("span", { class: "entry-sub", text: "Slag: " + item.roll }));
   }
+  if (item.points && item.points !== "sant") {
+    bodyBits.push(el("span", {
+      class: "pointtag " + item.points,
+      text: item.points === "villspor" ? "VILLSPOR" : "HALVSANT" }));
+  }
   if (item.userNotes) {
     bodyBits.push(el("span", { class: "entry-note", text: item.userNotes }));
   }
@@ -2375,6 +2423,25 @@ function filterToolbar(section) {
     }),
     el("span", { class: "chip", text: done + " av " + items.length + " avkrysset" }),
   ]);
+  // Spor kan i tillegg filtreres på hvilken vei de peker. Å kunne slå
+  // opp «hva er det de tror akkurat nå som er feil» midt i en økt er
+  // hele poenget med å merke dem.
+  if (section === "clues" && items.some((x) => x.points)) {
+    const counts = { sant: 0, delvis: 0, villspor: 0 };
+    items.forEach((x) => { counts[x.points || "sant"] += 1; });
+    const row = el("div", { class: "respchips", style: "margin-top:-6px" });
+    [["alle", "Alle", items.length],
+     ["sant", "Peker riktig", counts.sant],
+     ["delvis", "Halvsanne", counts.delvis],
+     ["villspor", "Villspor", counts.villspor]].forEach(([key, label, n]) => {
+      row.appendChild(el("button", {
+        class: "chip resp" + (state.cluePoints === key ? " on" : ""),
+        type: "button", text: label + " " + n,
+        onclick: () => { state.cluePoints = key; render(); },
+      }));
+    });
+    return el("div", {}, [bar, row]);
+  }
   return bar;
 }
 
@@ -2382,6 +2449,8 @@ function visible(items, section) {
   const flag = FLAGS[section];
   return items.filter((it) => {
     if (state.hideDone && flag && it[flag]) return false;
+    if (section === "clues" && state.cluePoints && state.cluePoints !== "alle"
+        && (it.points || "sant") !== state.cluePoints) return false;
     return matches(it, state.query);
   });
 }

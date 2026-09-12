@@ -104,6 +104,50 @@ async def main():
         assert not banks["unsourced"], banks
         assert not banks["badtag"], banks
 
+        # --- SPOR SOM PEKER FEIL VEI
+        await pg.evaluate("setView('clues')"); await pg.wait_for_timeout(400)
+        cl = await pg.evaluate("""() => {
+            const c = state.scenario.clues || [];
+            return {
+              n: c.length,
+              utenRetning: c.filter(x => !x.points).map(x => x.id),
+              utenSannhet: c.filter(x => x.points && x.points !== 'sant'
+                                         && !x.truth).map(x => x.id),
+              villspor: c.filter(x => x.points === 'villspor').length,
+              delvis: c.filter(x => x.points === 'delvis').length,
+              merker: [...document.querySelectorAll('#main .pointtag')].length,
+            };
+        }""")
+        print("spor:", cl)
+        # Hvert spor må si hvilken vei det peker, og alt som peker feil
+        # må si hva det egentlig er — ellers er merkingen verdiløs.
+        assert not cl["utenRetning"], cl["utenRetning"]
+        assert not cl["utenSannhet"], cl["utenSannhet"]
+        assert cl["villspor"] >= 8, cl
+        assert cl["delvis"] >= 4, cl
+        assert cl["merker"] == cl["villspor"] + cl["delvis"], cl
+
+        # Filteret skal kunne isolere villsporene.
+        only = await pg.evaluate("""() => { state.cluePoints = 'villspor';
+            render();
+            return [...document.querySelectorAll('#main .entry-title')]
+                     .map(x => x.textContent).length; }""")
+        await pg.wait_for_timeout(250)
+        print("filtrert til villspor ->", only, "rader")
+        assert only == cl["villspor"], (only, cl)
+        await pg.evaluate("() => { state.cluePoints = 'alle'; render(); }")
+
+        # Sannheten bak et villspor skal stå i kortet, ikke bare i dataene.
+        box = await pg.evaluate("""() => {
+            const c = state.scenario.clues.find(x => x.points === 'villspor');
+            openItem(c, 'clues');
+            const m = document.querySelector('#modal-body .misdirect');
+            return m ? m.textContent.slice(0, 40) : null; }""")
+        await pg.wait_for_timeout(250)
+        print("villspor-ramme:", box)
+        assert box and "Villspor" in box, box
+        await pg.evaluate("closeAllModals()")
+
         await pg.evaluate("setView('reference')"); await pg.wait_for_timeout(500)
         ref=await pg.evaluate("""() => ({
             groups: [...document.querySelectorAll('#main .day-head h3')]

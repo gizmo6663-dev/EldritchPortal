@@ -1,6 +1,6 @@
 {
   "id": "slow-boat-to-china",
-  "version": 7,
+  "version": 8,
   "title": "A Slow Boat to China",
   "system": "Pulp Cthulhu / Call of Cthulhu 7e",
   "source": "Pulp Cthulhu, kapittel 13 (Chaosium)",
@@ -1112,6 +1112,7 @@
       "title": "Et 50-pipers orgel fra Portland",
       "where": "Pier 42 under lasting / lasterom 7",
       "description": "En diger kasse merket «Wm. Wood Pipe Organ Co., Inc. of Portland, Oregon». Ingen om bord har bestilt et orgel; skipet har allerede instrumenter i musikkrommet. Kassa skal til lasterom 7, som er dobbeltlåst.",
+      "points": "sant",
       "found": false,
       "connects_to": [
         "loc-hold-7"
@@ -1122,6 +1123,7 @@
       "title": "Orgelkassa er åpnet mange ganger",
       "where": "Lasterom 7",
       "description": "Skruene som holder sidepanelet på venstre side, er skrudd ut og inn igjen gang på gang. Noen kommer seg inn i den — ofte.",
+      "points": "sant",
       "found": false,
       "roll": "Spot Hidden",
       "connects_to": [
@@ -1134,6 +1136,7 @@
       "title": "Blod på panelet",
       "where": "Lasterom 7",
       "description": "Blodflekker på trepanelet på venstre side av orgelkassa — søl fra ofrene som helles ned i pipene. Tørt eller ferskt, alt etter hvor sent heltene kommer hit.",
+      "points": "sant",
       "found": false,
       "roll": "Hard Spot Hidden uten lyskilde; vanlig vanskegrad med lys",
       "connects_to": [
@@ -1145,6 +1148,7 @@
       "title": "Den grønne metallkassa",
       "where": "Pier 42 under lasting / lasterom 7",
       "description": "En to meter høy grønn metallkasse, levert på kaia under væpnet vakt og stuet i lasterom 7. Låst: Hard Locksmith, eller Hard STR for å bryte den opp. Inni ligger ingeniørtegninger for energiinnretningen, sammen med notater om montering, materialer, kostnader og konstruksjon — dekket av håndskrevne okkulte symboler.",
+      "points": "sant",
       "found": false,
       "roll": "Mechanical Repair eller Science (Engineering) for å kjenne igjen konstruksjonstegninger; Cthulhu Mythos pluss to timers studium for å forstå at innretningen skal tilkalle vesener fra hinsides stjernene for å fange essensen deres",
       "connects_to": [
@@ -1155,8 +1159,10 @@
       "id": "clue-funeral-supplies",
       "title": "Kassa merket «Funeral Supplies»",
       "where": "Pier 42 under lasting / lasterom 6",
-      "description": "En stor kasse merket «Funeral Supplies». Den inneholder liket av en tcho-tcho som døde i San Francisco, og som sendes hjem på dr. Soongs regning. Et blindspor — men et godt et.",
+      "description": "En stor kasse merket «Funeral Supplies». Et lik om bord, betalt av dr. Soong, stuet sammen med femti tønner ingen vil snakke om. Heltene kommer til å bite på denne.",
+      "points": "villspor",
       "found": false,
+      "truth": "Kassa inneholder liket av en tcho-tcho som døde i San Francisco, og som sendes hjem til Burma på dr. Soongs regning. Det er nøyaktig det det ser ut som, og det har ingenting med drapene å gjøre. Kassa er der for å gi mistanken mot Soong noe å feste seg i. La heltene bryte den opp — la dem gjøre det foran tcho-tcho-ene.",
       "roll": "Spot Hidden",
       "connects_to": [
         "loc-hold-6",
@@ -1168,6 +1174,7 @@
       "title": "De tomme klærne",
       "where": "Petersons lugar, A-dekk",
       "description": "Sokker og sko på gulvet foran en stol; dress, vest, skjorte og undertrøye tredd inn i hverandre som en russisk dukke. En underlig, vond lukt. Som om kroppen inni hadde smeltet bort uten å forstyrre en eneste fold.",
+      "points": "sant",
       "found": false,
       "connects_to": [
         "beat-the-empty-suit"
@@ -1178,6 +1185,7 @@
       "title": "Brevet stemmer ikke",
       "where": "Petersons lugar (tatt som bevis samme kveld)",
       "description": "Brevet passer dårlig med Petersons lettlivede fasade og røffe liv. Håndskriften stemmer rimelig godt — men han skrev alltid «Charles Chadwick Peterson», «Charles Peterson» eller «C. C. P.». Aldri bare «Chad». Uttrykket «hollow millionaire» sikter til arvinger som ble ruinert i krakket i 1929; Petersons familie kom stort sett helskinnet gjennom, så det er ikke engang sant.",
+      "points": "sant",
       "found": false,
       "roll": "Art/Craft (Calligraphy eller lignende) eller Hard Spot Hidden for å se forskjellene mot en kjent skriftprøve — som kan skaffes fra Virginia Ridley, eller ved å vise brevet til Charles Astor",
       "connects_to": [
@@ -1190,7 +1198,9 @@
       "title": "Hallanders historie holder ikke",
       "where": "Korridoren på første klasse, A-dekk",
       "description": "Han sier han hørte en lyd og kom inn gjennom en ulåst dør. Det var ingen lyd, og døra var låst — han dirket den opp for å rane lugaren, og fant stolen kokende av kakerlakker.",
+      "points": "delvis",
       "found": false,
+      "truth": "Løgnen er ekte, og heltene har helt rett i at han lyver. Men han lyver om TYVERIET, ikke om et drap. Han brøt seg inn for å rane lugaren og fikk sjokk av kakerlakkene. Han vil helst rote det til nok til å slippe unna med det, og et hardt press får ham til å tilstå — innbruddet. Heltene får en arrestasjon, ikke en morder. Det ENE ekte i historien hans er kakerlakkene: han så massen som var Peterson.",
       "roll": "Psychology for å se at han er i sjokk; Intimidate eller Persuade for å få ham til å snakke; en ny Psychology for å avsløre løgnene",
       "connects_to": [
         "npc-albert-hallander"
@@ -1201,6 +1211,7 @@
       "title": "Almacan står ikke på passasjerlisten",
       "where": "Forvalterens kontor",
       "description": "Señor Guiterrez de Almacan finnes ingen steder blant de betalende passasjerene — ikke på første klasse, ikke noe sted. Det var dette som kostet overproviantforvalter Dungass livet.",
+      "points": "sant",
       "found": false,
       "roll": "Hard Persuade for å få se passasjerlisten",
       "connects_to": [
@@ -1213,6 +1224,7 @@
       "title": "Peterson er sett etter at han døde",
       "where": "Hvor som helst om bord",
       "description": "Dr. Soong så Chad Peterson gå ut av lugaren sin rundt kl. 06.00 søndag 6. desember — etter det antatte selvmordet. Phyllis Barnes har sett ham flere ganger og kaller selvmordet «sludder». Hun nevner også at hun kom godt overens med ham første kvelden, men at han neste morgen ikke ante hvem hun var.",
+      "points": "sant",
       "found": false,
       "connects_to": [
         "npc-dr-soong",
@@ -1224,7 +1236,9 @@
       "title": "Virginias kvinneintuisjon",
       "where": "Virginia Ridley, første klasse",
       "description": "Hun så Chad i korridoren rundt kl. 21.30 den 5. desember, etter middagen. Noe ved ham plaget henne — gangen hans, eller klærne; han virket fortvilet eller ulykkelig. Hun avfeier det som ren intuisjon, og er ivrig etter å fortelle det til alle som spør. Hun har også fått et ekte brev fra ham samme morgen: «Virginia, hver dag vet jeg at jeg tok det rette valget. Bli med meg til sjøs! Din kjære Chad.»",
+      "points": "delvis",
       "found": false,
+      "truth": "Hun avfeier det selv som «kvinneintuisjon», og det er det ikke. Hun så skapningen. Klokka 19.00 spiste hun middag med den ekte Peterson; skikkelsen i korridoren kl. 21.30 var alt noe annet, og det hun ikke kunne sette ord på, var at gangen og holdningen var feil. Brevet hun fikk neste morgen er derimot EKTE — skrevet av Peterson før han døde — og det er selve beviset mot avskjedsbrevet. Ikke la henne snakke seg selv ned.",
       "connects_to": [
         "npc-virginia-ridley",
         "clue-suicide-note-wrong"
@@ -1235,6 +1249,7 @@
       "title": "Den hule rotta",
       "where": "Lasterommene",
       "description": "Et rotteskinn, helt og mykt, perfekt garvet, uten hull eller sår ut over de naturlige. Alt kjøtt og alle organer borte; små knokler rasler inni. Det ser ut som det er spist opp innenfra.",
+      "points": "sant",
       "found": false,
       "roll": "Spot Hidden for å finne det; Science (Biology eller Zoology) eller Art/Craft (Leatherwork) for å vite at det er umulig å flå et dyr slik",
       "connects_to": [
@@ -1247,6 +1262,7 @@
       "title": "Musikken kommer nedenfra",
       "where": "Hvor som helst om bord, sent på natta",
       "description": "Fjern, dempet, kirkeaktig musikk — hjemsøkt og ualminnelig tungsindig. Musikkrommet står tomt. Den blir høyere og klarere for hvert offer.",
+      "points": "sant",
       "found": false,
       "roll": "Listen for å høre den; Hard Listen for å plassere den på de nederste dekkene",
       "connects_to": [
@@ -1259,6 +1275,7 @@
       "title": "Kenneljenta har sett noe",
       "where": "Lasterom 5",
       "description": "James Hawthorne, 17 år, er skvetten, mumlende, med blikket stadig søkende langs gulvet. Han skriker og stikker inn i hiet sitt så snart han ser en edderkopp eller en kakerlakk. Beroliget snakker han om «krypene» — han har sett dem komme og gå, marsjere som en hær, og han hører dem pile rundt inne i skipet. Han er sikker på at de kommer for å spise ham. Han så skapningen oppløse seg, og det har gjort ham ubotelig gal.",
+      "points": "sant",
       "found": false,
       "roll": "Psychology for å se at han er livredd og trolig gal; tid brukt på å roe ham, eller Psychoanalysis, for å forstå hva han sier",
       "connects_to": [
@@ -1271,6 +1288,7 @@
       "title": "Liket i ballasttanken",
       "where": "Lasterom 4",
       "description": "Phyllis Barnes, i forråtnelse i en ballasttank. Å åpne den øvre luka slipper ut en sky av avskyelig gass.",
+      "points": "sant",
       "found": false,
       "roll": "CON roll eller kast opp av stanken; Sanity roll 0/1D2 når liket oppdages",
       "connects_to": [
@@ -1283,7 +1301,9 @@
       "title": "Det kalde bålet i baugrommet",
       "where": "Lasterom 1",
       "description": "Restene av et lite bål laget av oppbrukne kasser, minst et døgn gammelt. Asken er kald og inneholder forkullede beinbiter — restene av et improvisert tcho-tcho-måltid. I nærheten: den utbrente asken fra en opiumspipe.",
+      "points": "villspor",
       "found": false,
+      "truth": "Forkullede knokler og opium i et mørkt lasterom peker rett mot kannibaler og narkotika, og det er meningen. Tcho-tcho-ene møtes her fordi det er stille — de røyker, de spiser, og de holder seg for seg selv. Ingen av dem har drept noen om bord. Søker heltene her om natta, treffer de på dem, og det går ikke pent for seg med mindre de kan vise at de jobber for dr. Soong.",
       "roll": "Spot Hidden for å finne begge deler; Know eller Science (Chemistry eller Pharmacy) for å kjenne igjen opiumen",
       "connects_to": [
         "loc-hold-1",
@@ -1295,7 +1315,9 @@
       "title": "Bates' skriftemål",
       "where": "Kapellet, 17. desember",
       "description": "Bates skrifter for pater Alvarez — eller for en helt som er prest — og tilstår tyveriet av Soongs bok, drapet på Wang Ma, og enhver annen forbrytelse om bord han kommer på. Han tror han er i ferd med å bli gal, og snakker om «stemmer» som «fikk ham til det». Historiene hans stemmer ikke med hverandre, og tilstanden hans forverres synlig. Etterpå flykter han og blir dominert på nytt.",
+      "points": "delvis",
       "found": false,
+      "truth": "Alt han tilstår, har han faktisk gjort: han stjal boka, han drepte Wang Ma, han bar ofrene ned i lasterom 7. Fellen er at han er en gangster med rulleblad, og at heltene da har en helt tilfredsstillende morder. Stopper de der, vinner skapningen — for «stemmene» han snakker om er Dominate, kastet på nytt hver natt, og drapene fortsetter etter at han er i arresten. Blir han tatt eller drept, flytter skapningen domineringen over på stuerten Martin Aimesworthy og alt går videre som før.",
       "connects_to": [
         "npc-bunny-bates",
         "npc-father-alvarez"
@@ -1306,10 +1328,135 @@
       "title": "Mønsteret i ansiktene",
       "where": "Keeperens spor — for helter som setter det sammen",
       "description": "Hver eneste umulige observasjon er en person som nylig har dødd eller forsvunnet. Dungass forsvinner og blir aldri funnet. Peterson dør og blir stadig sett. En adelsmann som ikke står på noen liste, dukker opp fra ingensteds. Ett vesen bærer dem alle — og det trenger 48 timer i en ny skikkelse før det kan snakke. Det var derfor «Peterson» ikke kunne svare sin egen forlovede, og måtte forlate skikkelsen.",
+      "points": "sant",
       "found": false,
       "roll": "Cthulhu Mythos, eller rett og slett godt detektivarbeid",
       "connects_to": [
         "npc-crawling-one"
+      ]
+    },
+    {
+      "id": "clue-tcho-tcho-suspicion",
+      "title": "Tcho-tcho-ene oppfører seg mistenkelig",
+      "where": "Mellomdekket, lasterom 1 og 6",
+      "description": "Seks av dr. Soongs arbeidere holder seg for seg selv, snakker et språk ingen kjenner igjen, og møtes nede i baugrommet om natta. De overvåket lastingen av femti tønner. Lederen deres ble drept samme natt boka forsvant. Alt peker mot dem.",
+      "points": "villspor",
+      "found": false,
+      "truth": "Scenarioet sier det rett ut: tcho-tcho-ene og gjelden deres til dr. Soong er et VILLSPOR, lagt inn for å føre mistenksomme helter til feil konklusjon. De er stort sett nøytrale, og kan faktisk hjelpe heltene gjennom Soong.\n\nDe er heller ikke uskyldige lam — de er kannibaler, de røyker opium, og de liker ikke inntrengere. Men de har ikke drept noen om bord.\n\nVIL DU AT DE SKAL BLI FARLIGE, sier boka at de kan bytte side til skapningen underveis, og da har den et lite mannskap til å stjele, villede og drepe for seg. Det er ditt valg — men ta det bevisst, ikke fordi spillerne presser på.",
+      "roll": "Ingen slag — de er der hele veien, og heltene finner dem selv",
+      "connects_to": [
+        "npc-tcho-tcho",
+        "npc-dr-soong",
+        "loc-hold-1",
+        "loc-hold-6"
+      ]
+    },
+    {
+      "id": "clue-hawaiian-barrels",
+      "title": "De femti tønnene",
+      "where": "Pier 42 under lasting / lasterom 6",
+      "description": "Femti tønner merket «Hawaiian Botanical Specimens», lastet under oppsyn av tcho-tcho-en Lo Mai og betalt av dr. Soong. Ingen vil si hva som er i dem.",
+      "points": "villspor",
+      "found": false,
+      "truth": "BOKA LAR DEG BESTEMME. Som skrevet er det urter og medisinske prøver — nøyaktig det etiketten sier, og et rent blindspor.\n\nVil du gi tcho-tcho-ene tenner, kan tønnene inneholde menneskelik: mat. Da er det en scene i det: heltene ligger på lur i lasterom 6, ser dem åpne en tønne og koke innholdet, og slår Sanity 1/1D4.\n\nUANSETT HVA DU VELGER: det har ingenting med drapene eller orgelet å gjøre. Velger du lik, har du gitt heltene en grufull oppdagelse som fører dem lenger BORT fra skapningen. Det er et kraftig virkemiddel, og det koster dem dager.",
+      "roll": "Spot Hidden på kaia for å se hvem som passer på dem",
+      "connects_to": [
+        "loc-hold-6",
+        "npc-tcho-tcho"
+      ]
+    },
+    {
+      "id": "clue-phyllis-lie",
+      "title": "«Voldelige slagsmål blant kineserne»",
+      "where": "Phyllis Barnes, spesialklasse",
+      "description": "Musikklæreren forteller gjerne, og til hvem som helst, at hun har sett voldelige slagsmål blant de kinesiske passasjerene mer enn én gang. Hun sier det med overbevisning.",
+      "points": "villspor",
+      "found": false,
+      "truth": "HUN LYVER. Boka er tydelig: hun er rasist og fremmedfiendtlig, særlig mot kinesere, og hun dikter opp slagsmålene for å gjøre seg selv litt mer interessant.\n\nDette er det giftigste villsporet i scenarioet, fordi kilden ellers er pålitelig — den samme kvinnen sier helt korrekt at Petersons selvmord er «sludder», og at hun har sett ham etterpå. Spillerne har ingen grunn til å tro at hun lyver om det ene og ikke om det andre.\n\nHun er også et av de fem ofrene. Dør hun før løgnen blir avslørt, står den uimotsagt resten av turen.",
+      "roll": "Psychology for å kjenne igjen en historie som blir fortalt for fortellerens skyld",
+      "connects_to": [
+        "npc-phyllis-barnes",
+        "npc-tcho-tcho"
+      ]
+    },
+    {
+      "id": "clue-alvarez-suspects-sailors",
+      "title": "Pateren peker på mannskapet",
+      "where": "Pater Alvarez, tredje klasse",
+      "description": "«Jeg ville undersøkt sjøfolkene. Er selvmordet i virkeligheten et drap, kan de være ansvarlige.» Sagt av en jesuitt som Roma har sendt ut for å granske det overnaturlige, og som faktisk vet litt om Mythos.",
+      "points": "villspor",
+      "found": false,
+      "truth": "Dette er bokas egen replikk for ham, og den er ment å lede feil. Han gjetter — han vet ingenting på dette tidspunktet, og han sier lite om seg selv.\n\nDET IRRITERENDE ER AT HAN NESTEN HAR RETT: Hallander ER mannskap, og han HAR brutt seg inn i lugaren. Peker heltene mistanken mot sjøfolkene, finner de en ekte forbryter — feil forbryter.\n\nAlvarez blir et ekte bindeledd 17. desember, når Bates skrifter for ham. Da er han verdt å høre på. Før det er han en klok mann som gjetter i blinde.",
+      "connects_to": [
+        "npc-father-alvarez",
+        "npc-albert-hallander"
+      ]
+    },
+    {
+      "id": "clue-astor-insists",
+      "title": "Astor nekter å tro på selvmordet",
+      "where": "Charles Astor, første klasse",
+      "description": "«Chip var en nær venn av meg, og han ville aldri gjort noe slikt.» Astor er høylytt, påtrengende og sikker i sin sak: Peterson ble dyttet. Etter Honolulu legger han 1 000 dollar kontant på bordet for opplysninger som fører fram.",
+      "points": "delvis",
+      "found": false,
+      "truth": "Han har rett i at det ikke var selvmord, og han har rett av helt feil grunn — han bygger utelukkende på at vennen hans ikke var typen. Han tror på et alminnelig drap med en alminnelig morder, og dyttet Peterson ut av en koøye.\n\nVERDIEN HANS ER PRAKTISK, ikke oppklarende: han kan bekrefte Petersons håndskrift, han kan legge inn et godt ord hos kapteinen, og de tusen dollarene er en grunn for tredje klasse og mellomdekket til å begynne å snakke. Bruk ham som døråpner.\n\nMerk at belønningen også setter halve skipet i gang med å finne på ting for penger.",
+      "connects_to": [
+        "npc-charles-astor",
+        "clue-suicide-note-wrong"
+      ]
+    },
+    {
+      "id": "clue-honolulu-verdict",
+      "title": "Politiets konklusjon i Honolulu",
+      "where": "Om bord, 11. desember",
+      "description": "Etterforsker William Ranta slår fast: avskjedsbrevet er ekte, Peterson hoppet fra balkongen sin, og de tomme klærne er en tilfeldighet. Dungass var full og falt over bord. Wang Mas drapsmann rømte i land i Honolulu. Suroda har hoppet av og har kanskje noe med drapet å gjøre. Saken er i praksis lukket.",
+      "points": "villspor",
+      "found": false,
+      "truth": "ALLE FIRE KONKLUSJONENE ER FEIL. Brevet er forfalsket, Peterson ble spist, Dungass ble spist, ingen rømte i land — skipet lå i karantene og ingen lektere la til — og Suroda var det første offeret, tappet i lasterom 7 kvelden før.\n\nRANTA VIL BARE LUKKE SAKEN FORT. Det står rett ut i boka: han lar slike detaljer ligge.\n\nVED BORDET er dette scenarioets viktigste villspor, fordi det er OFFISIELT. Etter 11. desember har heltene hele skipets ledelse mot seg hvis de fortsetter å grave. Det er også øyeblikket der spillerne skjønner at ingen kommer til å hjelpe dem.",
+      "roll": "Helter som insisterer på at de har sett Peterson etter dødsfallet, blir raskt avfeid",
+      "connects_to": [
+        "beat-honolulu-and-beyond",
+        "npc-crawling-one"
+      ]
+    },
+    {
+      "id": "clue-jumper-rumour",
+      "title": "Ryktet om at han hoppet",
+      "where": "Korridoren på første klasse, og videre over hele skipet",
+      "description": "Praten går fort: Peterson var en «jumper». Den drukne millionæren som gikk over bord. Ryktet er i gang før liket — eller mangelen på et — er undersøkt av noen.",
+      "points": "villspor",
+      "found": false,
+      "truth": "Ryktet oppstår av seg selv, uten at skapningen løfter en finger, og det gjør halve jobben for den. Mannskapet dyrker det fordi et selvmord er lettere å håndtere enn et uforklarlig dødsfall, og de holder resultatene av sin egen undersøkelse for seg selv for ikke å skremme passasjerene.\n\nBRUK DET SOM MOTSTAND: hver gang heltene spør noen om Peterson, er dette svaret de får først.",
+      "connects_to": [
+        "beat-the-empty-suit"
+      ]
+    },
+    {
+      "id": "clue-hubbard-the-hunter",
+      "title": "Storviltjegeren med våpenkofferten",
+      "where": "Alex Hubbard, første klasse",
+      "description": "En hensynsløs, territoriell mann som skryter av å ha drept alt som er verdt en sjøreise. I bagasjen hans ligger en Winchester-rifle med kikkert og en hagle. Han oppsøker Virginia Ridley påfallende ofte etter at forloveden hennes forsvant.",
+      "points": "villspor",
+      "found": false,
+      "truth": "Han er nøyaktig så ubehagelig som han virker, og fullstendig uskyldig. Han er på vei til Siam for å skyte et svart pygmé-neshorn, og det eneste han er ute etter om bord, er Virginia — han «trøster» henne i håp om å vinne henne.\n\nHAN SER SKYLDIG UT fordi han er bevæpnet, kald og sirkler rundt enka. Spillere elsker en slik mistenkt.\n\nHAN HAR ÉN EKTE NYTTE: han eier de beste våpnene om bord utenom skipets eget skap, og han kan skyte. Får heltene ham med seg i finalen, har de en rifle ekstra.",
+      "roll": "Spot Hidden eller en samtale med stuertene for å få vite hva han har med seg",
+      "connects_to": [
+        "npc-alex-hubbard",
+        "npc-virginia-ridley"
+      ]
+    },
+    {
+      "id": "clue-other-faces",
+      "title": "De tre ansiktene ingen kan forklare",
+      "where": "Keeperens spor — brukes når heltene nærmer seg",
+      "description": "Skapningen har fem menneskeskikkelser, og heltene kjenner bare to av dem. De tre andre er en spansk guvernør fra erobringstiden, en navaho-jente ved navn Haseye Adikai, og en arret, eldre kinesisk kvinne ved navn Du Zeming.",
+      "points": "sant",
+      "found": false,
+      "roll": "Cthulhu Mythos, eller et Library Use-slag i skipets bibliotek for å finne ut hvem Guiterrez de Almacan var",
+      "connects_to": [
+        "npc-crawling-one",
+        "npc-almacan",
+        "clue-manifest-gap"
       ]
     }
   ],

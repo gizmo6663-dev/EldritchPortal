@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 7
+VERSION = 8
 
 # --------------------------------------------------------------- meta
 
@@ -861,9 +861,31 @@ data["beats"] = [
 # --------------------------------------------------------------- spor
 
 
-def clue(cid, title, where, desc, roll="", refs=None):
+# Hvert spor sier hvilken vei det peker, så Keeperen ser med én gang
+# om et funn er til å stole på:
+#
+#   sant      Peker mot skapningen. Følg det.
+#   villspor  Peker et annet sted. Enten lyver kilden, eller så er
+#             funnet ekte, men har ingenting med saken å gjøre.
+#   delvis    Sant så langt det rekker, men fører til feil slutning
+#             hvis heltene stopper der.
+#
+# «truth» står bare på villspor og delvis, og sier hva det EGENTLIG er.
+# Det er Keeper-tekst, ikke noe spillerne skal få vite uten videre.
+DIRECTIONS = ("sant", "villspor", "delvis")
+
+
+def clue(cid, title, where, desc, roll="", refs=None,
+         points="sant", truth=""):
+    if points not in DIRECTIONS:
+        raise SystemExit("ukjent retning %r på %s" % (points, cid))
+    if points != "sant" and not truth:
+        raise SystemExit("%s er merket «%s» uten å si hva det egentlig "
+                         "er — fyll ut truth=" % (cid, points))
     c = {"id": cid, "title": title, "where": where, "description": desc,
-         "found": False}
+         "points": points, "found": False}
+    if truth:
+        c["truth"] = truth
     if roll:
         c["roll"] = roll
     if refs:
@@ -1689,10 +1711,17 @@ data["clues"] = [
          ["loc-hold-7"]),
     clue("clue-funeral-supplies", "Kassa merket «Funeral Supplies»",
          "Pier 42 under lasting / lasterom 6",
-         "En stor kasse merket «Funeral Supplies». Den inneholder liket "
-         "av en tcho-tcho som døde i San Francisco, og som sendes hjem "
-         "på dr. Soongs regning. Et blindspor — men et godt et.",
-         "Spot Hidden", ["loc-hold-6", "npc-tcho-tcho"]),
+         "En stor kasse merket «Funeral Supplies». Et lik om bord, "
+         "betalt av dr. Soong, stuet sammen med femti tønner ingen vil "
+         "snakke om. Heltene kommer til å bite på denne.",
+         "Spot Hidden", ["loc-hold-6", "npc-tcho-tcho"],
+         points="villspor",
+         truth="Kassa inneholder liket av en tcho-tcho som døde i San "
+               "Francisco, og som sendes hjem til Burma på dr. Soongs "
+               "regning. Det er nøyaktig det det ser ut som, og det har "
+               "ingenting med drapene å gjøre. Kassa er der for å gi "
+               "mistanken mot Soong noe å feste seg i. La heltene bryte "
+               "den opp — la dem gjøre det foran tcho-tcho-ene."),
     clue("clue-empty-clothes", "De tomme klærne",
          "Petersons lugar, A-dekk",
          "Sokker og sko på gulvet foran en stol; dress, vest, skjorte og "
@@ -1722,7 +1751,16 @@ data["clues"] = [
          "Psychology for å se at han er i sjokk; Intimidate eller "
          "Persuade for å få ham til å snakke; en ny Psychology for å "
          "avsløre løgnene",
-         ["npc-albert-hallander"]),
+         ["npc-albert-hallander"],
+         points="delvis",
+         truth="Løgnen er ekte, og heltene har helt rett i at han lyver. "
+               "Men han lyver om TYVERIET, ikke om et drap. Han brøt seg "
+               "inn for å rane lugaren og fikk sjokk av kakerlakkene. Han "
+               "vil helst rote det til nok til å slippe unna med det, og "
+               "et hardt press får ham til å tilstå — innbruddet. Heltene "
+               "får en arrestasjon, ikke en morder. Det ENE ekte i "
+               "historien hans er kakerlakkene: han så massen som var "
+               "Peterson."),
     clue("clue-manifest-gap", "Almacan står ikke på passasjerlisten",
          "Forvalterens kontor",
          "Señor Guiterrez de Almacan finnes ingen steder blant de "
@@ -1748,7 +1786,16 @@ data["clues"] = [
          "som spør. Hun har også fått et ekte brev fra ham samme morgen: "
          "«Virginia, hver dag vet jeg at jeg tok det rette valget. Bli "
          "med meg til sjøs! Din kjære Chad.»",
-         "", ["npc-virginia-ridley", "clue-suicide-note-wrong"]),
+         "", ["npc-virginia-ridley", "clue-suicide-note-wrong"],
+         points="delvis",
+         truth="Hun avfeier det selv som «kvinneintuisjon», og det er "
+               "det ikke. Hun så skapningen. Klokka 19.00 spiste hun "
+               "middag med den ekte Peterson; skikkelsen i korridoren "
+               "kl. 21.30 var alt noe annet, og det hun ikke kunne sette "
+               "ord på, var at gangen og holdningen var feil. Brevet hun "
+               "fikk neste morgen er derimot EKTE — skrevet av Peterson "
+               "før han døde — og det er selve beviset mot "
+               "avskjedsbrevet. Ikke la henne snakke seg selv ned."),
     clue("clue-rat-pelt", "Den hule rotta", "Lasterommene",
          "Et rotteskinn, helt og mykt, perfekt garvet, uten hull eller "
          "sår ut over de naturlige. Alt kjøtt og alle organer borte; små "
@@ -1790,7 +1837,15 @@ data["clues"] = [
          "nærheten: den utbrente asken fra en opiumspipe.",
          "Spot Hidden for å finne begge deler; Know eller Science "
          "(Chemistry eller Pharmacy) for å kjenne igjen opiumen",
-         ["loc-hold-1", "npc-tcho-tcho"]),
+         ["loc-hold-1", "npc-tcho-tcho"],
+         points="villspor",
+         truth="Forkullede knokler og opium i et mørkt lasterom peker "
+               "rett mot kannibaler og narkotika, og det er meningen. "
+               "Tcho-tcho-ene møtes her fordi det er stille — de "
+               "røyker, de spiser, og de holder seg for seg selv. Ingen "
+               "av dem har drept noen om bord. Søker heltene her om "
+               "natta, treffer de på dem, og det går ikke pent for seg "
+               "med mindre de kan vise at de jobber for dr. Soong."),
     clue("clue-bates-confession", "Bates' skriftemål",
          "Kapellet, 17. desember",
          "Bates skrifter for pater Alvarez — eller for en helt som er "
@@ -1800,7 +1855,17 @@ data["clues"] = [
          "ham til det». Historiene hans stemmer ikke med hverandre, og "
          "tilstanden hans forverres synlig. Etterpå flykter han og blir "
          "dominert på nytt.",
-         "", ["npc-bunny-bates", "npc-father-alvarez"]),
+         "", ["npc-bunny-bates", "npc-father-alvarez"],
+         points="delvis",
+         truth="Alt han tilstår, har han faktisk gjort: han stjal boka, "
+               "han drepte Wang Ma, han bar ofrene ned i lasterom 7. "
+               "Fellen er at han er en gangster med rulleblad, og at "
+               "heltene da har en helt tilfredsstillende morder. Stopper "
+               "de der, vinner skapningen — for «stemmene» han snakker "
+               "om er Dominate, kastet på nytt hver natt, og drapene "
+               "fortsetter etter at han er i arresten. Blir han tatt "
+               "eller drept, flytter skapningen domineringen over på "
+               "stuerten Martin Aimesworthy og alt går videre som før."),
     clue("clue-consume-likeness-pattern", "Mønsteret i ansiktene",
          "Keeperens spor — for helter som setter det sammen",
          "Hver eneste umulige observasjon er en person som nylig har "
@@ -1812,6 +1877,192 @@ data["clues"] = [
          "egen forlovede, og måtte forlate skikkelsen.",
          "Cthulhu Mythos, eller rett og slett godt detektivarbeid",
          ["npc-crawling-one"]),
+
+    # ---------------------------------------------------------------
+    # VILLSPOR OG HALVSANNHETER
+    #
+    # Boka legger ut disse med vilje. De stod ikke i appen før, og uten
+    # dem blir etterforskningen en rett linje — som er akkurat det
+    # scenarioet ikke vil ha.
+    # ---------------------------------------------------------------
+
+    clue("clue-tcho-tcho-suspicion", "Tcho-tcho-ene oppfører seg mistenkelig",
+         "Mellomdekket, lasterom 1 og 6",
+         "Seks av dr. Soongs arbeidere holder seg for seg selv, snakker "
+         "et språk ingen kjenner igjen, og møtes nede i baugrommet om "
+         "natta. De overvåket lastingen av femti tønner. Lederen deres "
+         "ble drept samme natt boka forsvant. Alt peker mot dem.",
+         "Ingen slag — de er der hele veien, og heltene finner dem selv",
+         ["npc-tcho-tcho", "npc-dr-soong", "loc-hold-1", "loc-hold-6"],
+         points="villspor",
+         truth="Scenarioet sier det rett ut: tcho-tcho-ene og gjelden "
+               "deres til dr. Soong er et VILLSPOR, lagt inn for å føre "
+               "mistenksomme helter til feil konklusjon. De er stort "
+               "sett nøytrale, og kan faktisk hjelpe heltene gjennom "
+               "Soong.\n\nDe er heller ikke uskyldige lam — de er "
+               "kannibaler, de røyker opium, og de liker ikke "
+               "inntrengere. Men de har ikke drept noen om bord.\n\n"
+               "VIL DU AT DE SKAL BLI FARLIGE, sier boka at de kan bytte "
+               "side til skapningen underveis, og da har den et lite "
+               "mannskap til å stjele, villede og drepe for seg. Det er "
+               "ditt valg — men ta det bevisst, ikke fordi spillerne "
+               "presser på."),
+
+    clue("clue-hawaiian-barrels", "De femti tønnene",
+         "Pier 42 under lasting / lasterom 6",
+         "Femti tønner merket «Hawaiian Botanical Specimens», lastet "
+         "under oppsyn av tcho-tcho-en Lo Mai og betalt av dr. Soong. "
+         "Ingen vil si hva som er i dem.",
+         "Spot Hidden på kaia for å se hvem som passer på dem",
+         ["loc-hold-6", "npc-tcho-tcho"],
+         points="villspor",
+         truth="BOKA LAR DEG BESTEMME. Som skrevet er det urter og "
+               "medisinske prøver — nøyaktig det etiketten sier, og et "
+               "rent blindspor.\n\nVil du gi tcho-tcho-ene tenner, kan "
+               "tønnene inneholde menneskelik: mat. Da er det en scene i "
+               "det: heltene ligger på lur i lasterom 6, ser dem åpne en "
+               "tønne og koke innholdet, og slår Sanity 1/1D4.\n\n"
+               "UANSETT HVA DU VELGER: det har ingenting med drapene "
+               "eller orgelet å gjøre. Velger du lik, har du gitt "
+               "heltene en grufull oppdagelse som fører dem lenger BORT "
+               "fra skapningen. Det er et kraftig virkemiddel, og det "
+               "koster dem dager."),
+
+    clue("clue-phyllis-lie", "«Voldelige slagsmål blant kineserne»",
+         "Phyllis Barnes, spesialklasse",
+         "Musikklæreren forteller gjerne, og til hvem som helst, at hun "
+         "har sett voldelige slagsmål blant de kinesiske passasjerene "
+         "mer enn én gang. Hun sier det med overbevisning.",
+         "Psychology for å kjenne igjen en historie som blir fortalt for "
+         "fortellerens skyld",
+         ["npc-phyllis-barnes", "npc-tcho-tcho"],
+         points="villspor",
+         truth="HUN LYVER. Boka er tydelig: hun er rasist og "
+               "fremmedfiendtlig, særlig mot kinesere, og hun dikter "
+               "opp slagsmålene for å gjøre seg selv litt mer "
+               "interessant.\n\nDette er det giftigste villsporet i "
+               "scenarioet, fordi kilden ellers er pålitelig — den samme "
+               "kvinnen sier helt korrekt at Petersons selvmord er "
+               "«sludder», og at hun har sett ham etterpå. Spillerne har "
+               "ingen grunn til å tro at hun lyver om det ene og ikke om "
+               "det andre.\n\nHun er også et av de fem ofrene. Dør hun "
+               "før løgnen blir avslørt, står den uimotsagt resten av "
+               "turen."),
+
+    clue("clue-alvarez-suspects-sailors", "Pateren peker på mannskapet",
+         "Pater Alvarez, tredje klasse",
+         "«Jeg ville undersøkt sjøfolkene. Er selvmordet i "
+         "virkeligheten et drap, kan de være ansvarlige.» Sagt av en "
+         "jesuitt som Roma har sendt ut for å granske det overnaturlige, "
+         "og som faktisk vet litt om Mythos.",
+         "",
+         ["npc-father-alvarez", "npc-albert-hallander"],
+         points="villspor",
+         truth="Dette er bokas egen replikk for ham, og den er ment å "
+               "lede feil. Han gjetter — han vet ingenting på dette "
+               "tidspunktet, og han sier lite om seg selv.\n\nDET "
+               "IRRITERENDE ER AT HAN NESTEN HAR RETT: Hallander ER "
+               "mannskap, og han HAR brutt seg inn i lugaren. Peker "
+               "heltene mistanken mot sjøfolkene, finner de en ekte "
+               "forbryter — feil forbryter.\n\nAlvarez blir et ekte "
+               "bindeledd 17. desember, når Bates skrifter for ham. Da "
+               "er han verdt å høre på. Før det er han en klok mann som "
+               "gjetter i blinde."),
+
+    clue("clue-astor-insists", "Astor nekter å tro på selvmordet",
+         "Charles Astor, første klasse",
+         "«Chip var en nær venn av meg, og han ville aldri gjort noe "
+         "slikt.» Astor er høylytt, påtrengende og sikker i sin sak: "
+         "Peterson ble dyttet. Etter Honolulu legger han 1 000 dollar "
+         "kontant på bordet for opplysninger som fører fram.",
+         "",
+         ["npc-charles-astor", "clue-suicide-note-wrong"],
+         points="delvis",
+         truth="Han har rett i at det ikke var selvmord, og han har rett "
+               "av helt feil grunn — han bygger utelukkende på at "
+               "vennen hans ikke var typen. Han tror på et alminnelig "
+               "drap med en alminnelig morder, og dyttet Peterson ut av "
+               "en koøye.\n\nVERDIEN HANS ER PRAKTISK, ikke "
+               "oppklarende: han kan bekrefte Petersons håndskrift, han "
+               "kan legge inn et godt ord hos kapteinen, og de tusen "
+               "dollarene er en grunn for tredje klasse og mellomdekket "
+               "til å begynne å snakke. Bruk ham som døråpner.\n\n"
+               "Merk at belønningen også setter halve skipet i gang med "
+               "å finne på ting for penger."),
+
+    clue("clue-honolulu-verdict", "Politiets konklusjon i Honolulu",
+         "Om bord, 11. desember",
+         "Etterforsker William Ranta slår fast: avskjedsbrevet er ekte, "
+         "Peterson hoppet fra balkongen sin, og de tomme klærne er en "
+         "tilfeldighet. Dungass var full og falt over bord. Wang Mas "
+         "drapsmann rømte i land i Honolulu. Suroda har hoppet av og har "
+         "kanskje noe med drapet å gjøre. Saken er i praksis lukket.",
+         "Helter som insisterer på at de har sett Peterson etter "
+         "dødsfallet, blir raskt avfeid",
+         ["beat-honolulu-and-beyond", "npc-crawling-one"],
+         points="villspor",
+         truth="ALLE FIRE KONKLUSJONENE ER FEIL. Brevet er forfalsket, "
+               "Peterson ble spist, Dungass ble spist, ingen rømte i "
+               "land — skipet lå i karantene og ingen lektere la til — "
+               "og Suroda var det første offeret, tappet i lasterom 7 "
+               "kvelden før.\n\nRANTA VIL BARE LUKKE SAKEN FORT. Det "
+               "står rett ut i boka: han lar slike detaljer ligge.\n\n"
+               "VED BORDET er dette scenarioets viktigste villspor, "
+               "fordi det er OFFISIELT. Etter 11. desember har heltene "
+               "hele skipets ledelse mot seg hvis de fortsetter å "
+               "grave. Det er også øyeblikket der spillerne skjønner at "
+               "ingen kommer til å hjelpe dem."),
+
+    clue("clue-jumper-rumour", "Ryktet om at han hoppet",
+         "Korridoren på første klasse, og videre over hele skipet",
+         "Praten går fort: Peterson var en «jumper». Den drukne "
+         "millionæren som gikk over bord. Ryktet er i gang før liket "
+         "— eller mangelen på et — er undersøkt av noen.",
+         "",
+         ["beat-the-empty-suit"],
+         points="villspor",
+         truth="Ryktet oppstår av seg selv, uten at skapningen løfter en "
+               "finger, og det gjør halve jobben for den. Mannskapet "
+               "dyrker det fordi et selvmord er lettere å håndtere enn "
+               "et uforklarlig dødsfall, og de holder resultatene av sin "
+               "egen undersøkelse for seg selv for ikke å skremme "
+               "passasjerene.\n\nBRUK DET SOM MOTSTAND: hver gang "
+               "heltene spør noen om Peterson, er dette svaret de får "
+               "først."),
+
+    clue("clue-hubbard-the-hunter", "Storviltjegeren med våpenkofferten",
+         "Alex Hubbard, første klasse",
+         "En hensynsløs, territoriell mann som skryter av å ha drept alt "
+         "som er verdt en sjøreise. I bagasjen hans ligger en "
+         "Winchester-rifle med kikkert og en hagle. Han oppsøker "
+         "Virginia Ridley påfallende ofte etter at forloveden hennes "
+         "forsvant.",
+         "Spot Hidden eller en samtale med stuertene for å få vite hva "
+         "han har med seg",
+         ["npc-alex-hubbard", "npc-virginia-ridley"],
+         points="villspor",
+         truth="Han er nøyaktig så ubehagelig som han virker, og "
+               "fullstendig uskyldig. Han er på vei til Siam for å skyte "
+               "et svart pygmé-neshorn, og det eneste han er ute etter "
+               "om bord, er Virginia — han «trøster» henne i håp om å "
+               "vinne henne.\n\nHAN SER SKYLDIG UT fordi han er bevæpnet, "
+               "kald og sirkler rundt enka. Spillere elsker en slik "
+               "mistenkt.\n\nHAN HAR ÉN EKTE NYTTE: han eier de beste "
+               "våpnene om bord utenom skipets eget skap, og han kan "
+               "skyte. Får heltene ham med seg i finalen, har de en "
+               "rifle ekstra."),
+
+    clue("clue-other-faces", "De tre ansiktene ingen kan forklare",
+         "Keeperens spor — brukes når heltene nærmer seg",
+         "Skapningen har fem menneskeskikkelser, og heltene kjenner bare "
+         "to av dem. De tre andre er en spansk guvernør fra "
+         "erobringstiden, en navaho-jente ved navn Haseye Adikai, og en "
+         "arret, eldre kinesisk kvinne ved navn Du Zeming.",
+         "Cthulhu Mythos, eller et Library Use-slag i skipets bibliotek "
+         "for å finne ut hvem Guiterrez de Almacan var",
+         ["npc-crawling-one", "npc-almacan", "clue-manifest-gap"],
+         points="sant",
+         truth=""),
 ]
 
 # --------------------------------------------------------------- NPCer

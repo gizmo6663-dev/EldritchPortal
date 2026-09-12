@@ -6617,6 +6617,26 @@ try:
                                   size_hint_y=None)
             body_box.bind(minimum_height=body_box.setter('height'))
 
+            # Peker sporet feil vei, står det aller først – ellers
+            # rekker man å lese det opp som om det holdt vann.
+            pts = it.get('points')
+            if pts and pts != 'sant':
+                vill = pts == 'villspor'
+                mbx = RBox(orientation='vertical', bg_color=INPUT,
+                           radius=dp(8),
+                           border_color=RED if vill else GOLD,
+                           border_width=2.4, padding=dp(10),
+                           spacing=dp(4), size_hint_y=None)
+                mbx.bind(minimum_height=mbx.setter('height'))
+                mbx.add_widget(mklbl(
+                    "VILLSPOR – PEKER FEIL VEI" if vill
+                    else "HALVSANT – STEMMER, MEN FØRER FEIL",
+                    color=RED if vill else GOLD, size=10, bold=True, h=16))
+                mbx.add_widget(mklbl(
+                    it.get('truth') or "Ingen forklaring lagt inn.",
+                    color=TXT, size=11, wrap=True))
+                body_box.add_widget(mbx)
+
             # Terningslag først – det er det man trenger raskest.
             if it.get('roll'):
                 rbx = RBox(orientation='vertical', bg_color=BG2,
