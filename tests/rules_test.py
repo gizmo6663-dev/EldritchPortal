@@ -189,6 +189,27 @@ async def main():
         print("trukket kort:", drawn)
         await pg.evaluate("closeAllModals()")
 
+        # Kategoritrekk: en hendelse midt i en rolig dag skal ikke gi et
+        # kort om beleiringstaktikk.
+        cats=await pg.evaluate("() => [...new Set(state.scenario.tactics.map(t=>t.category))]")
+        print("kategorier:", cats)
+        for c in [x for x in cats if x != "Keeper-notat"]:
+            await pg.evaluate("(c) => drawTactic(c)", c); await pg.wait_for_timeout(250)
+            got=await pg.evaluate("() => document.getElementById('modal-sub').textContent")
+            assert got==c, (c, got)
+            await pg.evaluate("closeAllModals()")
+        print("kategoritrekk: ok for", len([x for x in cats if x!="Keeper-notat"]), "kategorier")
+
+        # Ingen kort skal peke på en id som ikke finnes.
+        dead=await pg.evaluate('''() => { const d=state.scenario; const ids=new Set();
+            ['timeline','beats','clues','npcs','handouts','locations','reference','tactics']
+              .forEach(s=>(d[s]||[]).forEach(x=>ids.add(x.id)));
+            const out=[];
+            d.tactics.forEach(t=>(t.connects_to||[]).forEach(r=>{ if(!ids.has(r)) out.push(t.id+' -> '+r); }));
+            return out; }''')
+        print("døde kryssreferanser:", dead or "ingen")
+        assert not dead, dead
+
         # --- 5. ROTERING AV INITIATIV
         await pg.evaluate("""async () => {
             const pcs=state.characters.filter(c=>c.kind==='pc').slice(0,4);
@@ -239,7 +260,7 @@ async def main():
         await mob.screenshot(path=f"{OUT}/taktikk-mobil.png")
 
         rounds=[r for _,r in seq]
-        ok=(r['weapons']==28 and r['talents']==60 and r['tactics']==14
+        ok=(r['weapons']==28 and r['talents']==60 and r['tactics']>=20
             and imp['impaled'] and imp['damage']>=8
             and mal['malfunction'] and not mal['hit']
             and tl['known']>0 and nt>0

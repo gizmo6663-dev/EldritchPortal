@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 5
+VERSION = 6
 
 # --------------------------------------------------------------- meta
 
@@ -2352,167 +2352,428 @@ def tac(tid, title, category, mechanic, tactic, pressure, refs=None):
 
 
 data["tactics_note"] = (
-    "Gruppa er svært kompetent, og rene nærkampmonstre blir knust — "
-    "særlig av Beefcake. Kortene under angriper andre akser av "
-    "karakterarkene: lav POW og Sanity, smale ferdigheter, dårlig "
-    "Swim, og situasjoner der rå styrke er feil verktøy. Trekk ett når "
-    "en kamp går for lett."
+    "Gruppa er kompetent, og den er kompetent på få akser. Beefcake "
+    "slår 99 % for 1D3+1D6, Dagrun skyter på DEX 99, Franz har hagle "
+    "på 70 %. En kamp som avgjøres av skade alene, er over på to "
+    "runder — og det er ikke fordi motstanderne er for svake, men "
+    "fordi kampen ikke ber om noe annet enn skade.\n\n"
+    "Kortene under gjør tre ting. KAMPJUSTERING endrer hvordan en "
+    "kamp er satt opp, uten å blåse opp HP på noe. MOTSTANDER gir "
+    "fiender som stiller andre spørsmål enn «hvor hardt slår du». "
+    "HENDELSE er skipslivet: ting som skjer uansett hva jakten på "
+    "skapningen gjør, og som gir gruppa noe å tape og noe å vinne.\n\n"
+    "Ingenting her skal gjøre spillerne hjelpeløse. Hvert kort har et "
+    "punkt der det de er gode på faktisk avgjør — det er hele "
+    "poenget. Trekk ett når en kamp går for lett, eller når en dag om "
+    "bord trenger noe å skje."
 )
 
 data["tactics"] = [
-    # ---------------------------------------------------- motstandere
-    tac("tac-formless-spawn", "Formless Spawn", "Motstander",
-        "Som en flytende, seig masse er de immune mot vanlige fysiske "
-        "angrep. Beefcakes Fighting (Brawl) på 99 % og våpen gjør ingen "
-        "skade i det hele tatt.",
-        "De beveger seg umerkelig gjennom ventilasjonsanlegg og rør "
-        "under skipsdekkene. Walther må bruke Weird Science sammen med "
-        "Science (Pharmacy) for å koke sammen en kjemisk blanding — "
-        "syre eller ekstrem kulde — som endrer skapningens molekylære "
-        "struktur.",
-        "Slår ut gruppas beste våpen: nærkamp.",
+    # ================================================ KAMPJUSTERING
+    tac("tac-clock", "Gi kampen en klokke", "Kampjustering",
+        "En kamp uten annet mål enn å drepe, er ferdig når "
+        "skaderegnestykket sier det. Gruppa vinner det regnestykket.",
+        "Skriv et tall på en lapp før kampen begynner — 4, 6 eller 8 "
+        "runder — og bestem hva som skjer når det går ut. Livbåten "
+        "fires ned med feil person i. Brannen når lasterom 3. "
+        "Telegrafisten får sendt meldingen. Bates kutter over strupen "
+        "på gisselet.\n\n"
+        "Så krever du at noen bruker handlinger på oppgaven. Hver "
+        "runde en spiller bruker på å skru løs en luke eller bære en "
+        "bevisstløs person, er en runde hen ikke slår. Beefcake kan "
+        "bare gjøre én ting per runde, og med en klokke i rommet "
+        "koster det noe å velge slåssing.",
+        "Gjør handlingsøkonomien til det kampen handler om, i stedet "
+        "for terningskade.",
+        None),
+
+    tac("tac-room-width", "La rommet bestemme hvor mange som slåss",
+        "Kampjustering",
+        "Nesten ingenting om bord er et stort, åpent rom. En korridor "
+        "på A-dekk er drøyt en meter bred.",
+        "Bestem før kampen hvor mange som får være i kontakt samtidig. "
+        "I en korridor: to. I en lugardør: én. Ned en leider i et "
+        "lasterom: én om gangen, og den som klatrer har ikke hendene "
+        "ledige.\n\n"
+        "Står Beefcake fremst, er han en propp — og da er kampen "
+        "Franz' (HP 18, CON 30) og Skjoldvårs (Dodge 23 %) å overleve, "
+        "fordi fienden går rundt gjennom ventilasjonen eller neste "
+        "gang og tar dem bakfra. Står han bakerst, kommer han seg "
+        "ikke fram. Begge deler er gode kamper.",
+        "Gruppas skade er én person bred. Gjør rommet én person bredt.",
+        ["loc-first-class", "loc-hold-2"]),
+
+    tac("tac-withdraw", "Motstandere som ikke står og tar imot",
+        "Kampjustering",
+        "En fiende som blir stående til den dør, er et kappløp i "
+        "skade. Gruppa vinner det kappløpet.",
+        "La dem slåss i to runder og så trekke seg. Å komme seg ut av "
+        "nærkamp er et Dodge-slag på egen tur, motsatt mot angriperens "
+        "Fighting. Mot Beefcake (99 %) lykkes det nesten aldri — så la "
+        "dem trekke seg unna de andre, og hente forsterkninger.\n\n"
+        "Tre mook som slåss to runder, forsvinner rundt et hjørne og "
+        "kommer tilbake med to til, gir deg en kamp på seks–sju runder "
+        "uten at noen har fått ett eneste ekstra HP. Og det gir "
+        "spillerne noe å gjøre: jage, avskjære, blokkere.",
+        "Lengde uten oppblåste tall.",
+        None),
+
+    tac("tac-grapple", "Grep i stedet for skade", "Kampjustering",
+        "Dagrun har STR 25 og Build −1. Franz har CON 30 og HP 18. "
+        "Begge kan tas ut av en kamp uten at det slås ett eneste "
+        "skadeslag.",
+        "En manøver — gripe, avvæpne, kaste i bakken, dra vekk — går "
+        "mot Fighting, og Build avgjør om den lar seg gjøre. Én "
+        "Build høyere enn målet gir angriperen en straffeterning; to "
+        "høyere gjør manøveren umulig.\n\n"
+        "Det betyr at Beefcake (Build 2) ikke kan gripes av vanlige "
+        "folk i det hele tatt, mens Dagrun (Build −1) kan gripes av "
+        "hvem som helst. To mook som hver tar en arm på henne, "
+        "fjerner gruppas beste skytter for resten av kampen. Den som "
+        "er grepet får som regel ikke slått tilbake fysisk — men "
+        "slipper løs på et motsatt STR mot STR, og der er Beefcake "
+        "svaret.",
+        "Går utenom HP-økonomien helt.",
+        None),
+
+    tac("tac-numbers", "Mengde, ikke størrelse", "Kampjustering",
+        "Ett stort monster er ett mål, og Beefcake dreper ett mål. "
+        "Tolv svake er tolv turer med angrep.",
+        "Mot denne gruppa er seks matroser med batonger farligere enn "
+        "én skrekk. Hver av dem gjør 1D6 + db; Franz på 18 HP er nede "
+        "etter tre treff. Og hver av dem koster en hel runde av "
+        "Beefcakes å fjerne.\n\n"
+        "Motgiften skal være ekte: Beefcakes Intimidate 99 eller "
+        "Skjoldvårs APP 99 kan knekke en mobb av mennesker med ett "
+        "slag. La det virke. En kamp de vant med ett ord, er en de "
+        "husker.",
+        "Snur gruppas handlingsøkonomi mot dem selv.",
+        ["npc-other-crew"]),
+
+    tac("tac-darkness", "Mørket som ressurs, ikke bare straff",
+        "Kampjustering",
+        "Under dekk er lysene få, og dynamoen er gammel.",
+        "I mørket får Firearms en straffeterning, og Spot Hidden går "
+        "opp ett vanskegrads-hakk. Franz har NIGHT VISION og slipper "
+        "begge deler.\n\n"
+        "Slå ut lyset en runde av tre — dynamoen hikster, en lampe "
+        "går. Da er gruppas skjøreste medlem plutselig den eneste som "
+        "ser, og kampen kjempes på hans premisser. Det er en belønning "
+        "forkledd som en fare, og den bør spilles som en belønning: "
+        "spør Franz hva han ser, ikke de andre.",
+        "Flytter kampen dit den sterkeste er blind og den svakeste "
+        "ser.",
+        ["loc-bilges", "loc-boilers"]),
+
+    tac("tac-luck-drain", "Tapp Luck før den store kampen",
+        "Kampjustering",
+        "Luck: Walther 85, Dagrun 80, Franz 75, Beefcake 65, "
+        "Skjoldvår 60. I Pulp er det en mur av omkast.",
+        "En pulp-helt kjøper seg ut av nesten alt: justere et slag "
+        "1 for 1, se bort fra en fumle for 10, 1D6 HP tilbake for 20, "
+        "unngå en sikker død for alt over 30.\n\n"
+        "Den store kampen bør ikke være første sted de bruker av det. "
+        "Gi dem tre små problemer i døgnet før — et Swim-slag som "
+        "ryker, en dør som sitter fast, et skudd som fumler — der det "
+        "åpenbart er verdt å bruke 5–15 Luck. Da møter polyppen en "
+        "gruppe med 30 igjen i stedet for 80. Ikke ta Luck fra dem; "
+        "få dem til å ville bruke den.",
+        "Den mest effektive måten å gjøre en kamp farlig på uten å "
+        "røre et eneste tall på motstanderen.",
+        None),
+
+    tac("tac-breakable-room", "La rommet ta skade", "Kampjustering",
+        "En kamp i et maskinrom er ikke en kamp i et maskinrom hvis "
+        "bare folk kan treffes.",
+        "Gi rommet to–tre ting som kan gå i stykker, og si hva de er "
+        "FØR første slag. Da bruker spillerne dem også, og det er hele "
+        "poenget.\n\n"
+        "Maskinrommet: et bomskudd i en dampledning gir 2D6 til alle "
+        "innenfor tre meter, og rommet fylles. Lasterom 5: bingene "
+        "ryker, og tjue panikkslagne melkekyr beveger seg gjennom "
+        "kampen. Lasterom 6: en Packard river seg løs i krengningen. "
+        "Bunnrommet: vann og knekte høyspentkabler i samme rom.",
+        "Gir alle noe å gjøre som ikke er å slå treffslag.",
+        ["loc-boilers", "loc-hold-5", "loc-hold-6"]),
+
+    # =================================================== MOTSTANDERE
+    tac("tac-people-who-flee", "Folk som ikke vil dø for saken",
+        "Motstander",
+        "Menneskelige motstandere med noe å tape. De overgir seg, de "
+        "lyver, de stikker av.",
+        "Matroser betalt for å se en annen vei. Gangstere på et "
+        "ærend. Passasjerer overtalt til å hjelpe. De slåss én runde "
+        "og vil deretter ut.\n\n"
+        "Beefcakes Intimidate 99 og Skjoldvårs APP 99 og Persuade 50 "
+        "er enorme her, og skal bare virke. Men den som overgir seg, "
+        "er også et vitne, og vitner snakker. Kaptein Nelson får høre "
+        "at passasjerer på første klasse banker opp besetningen hans, "
+        "og fra da av er offiserene et problem i seg selv.",
+        "Belønner de sosiale ferdighetene, og gjør vold dyrt i stedet "
+        "for umulig.",
+        ["npc-captain-nelson", "npc-hugo-schramm", "npc-bunny-bates"]),
+
+    tac("tac-immune-with-answer",
+        "Noe som ikke kan slås — med utveien synlig", "Motstander",
+        "En ting der Brawl 99 gjør null skade.",
+        "Poenget er ikke å gjøre dem hjelpeløse, men å få dem til å se "
+        "et annet sted. Vis utveien i løpet av første runde: tingen "
+        "rygger for buelampa, for dampen, for saltvannet.\n\n"
+        "La Walther (INT 85, Science (Biology) 51, Weird Science) "
+        "eller Franz (Cthulhu Mythos 10) være den som ser det, og la "
+        "det være ett slag på Regular — ikke en gåte. De to spiller "
+        "sjelden hovedrollen i en kamp. Her gjør de det, og de andre "
+        "får jobben med å holde tingen unna mens de rigger.",
+        "Flytter kampen til de to som ellers aldri er svaret.",
         ["npc-crawling-one"]),
 
-    tac("tac-cultists", "Kultister med magi og tankekontroll",
+    tac("tac-sanity-damage", "Noe som tar Sanity i stedet for HP",
         "Motstander",
-        "Unngår direkte konfrontasjon og skjuler seg blant "
-        "passasjerene.",
-        "Sikt på Beefcake og Walthers svake punkt: lav POW (45) og lav "
-        "Sanity (45). Med Mental Suggestion eller Dominate kan Beefcake "
-        "snus mot sine egne. Da må Skjoldvår bruke Telekinesis for å "
-        "binde ham fast midlertidig, mens Dagrun setter Animal "
-        "Companion — hunden — på kultisten for å bryte konsentrasjonen.",
-        "Gjør gruppas hardeste slagkraft til et problem for dem selv.",
+        "Beefcake SAN 45. Walther SAN 45. Det er gruppas tynneste "
+        "vegg, og den står bak de to hardeste kroppene.",
+        "En ting som ikke gjør HP-skade i det hele tatt. Alle slår "
+        "Sanity hver runde den er synlig.\n\n"
+        "Walther har HARDENED — lik og stygge skader biter ikke på "
+        "ham, men Mythos gjør det; ikke la ham glemme forskjellen. "
+        "Beefcake på SAN 45 knekker først, og en midlertidig gal "
+        "Beefcake med Brawl 99 i en korridor med vennene sine er den "
+        "hardeste kampen i hele scenarioet. Å halvere tapet koster "
+        "dobbelt i Luck — se «Tapp Luck».",
+        "Den ene aksen der musklene er svakest.",
+        ["npc-flying-polyp"]),
+
+    tac("tac-hold-the-door", "Noe som må holdes ute, ikke drepes",
+        "Motstander",
+        "En beleiring. En dør, en luke, en trappeoppgang.",
+        "De har seks runder på å holde en dør mens noe gjøres bak dem. "
+        "Fienden kommer én og to om gangen. Spørsmålet er ikke om de "
+        "kan vinne kampen, men om de klarer å holde linja mens to av "
+        "dem er opptatt med noe annet.\n\n"
+        "Beefcake i døråpningen er nøyaktig riktig. Dagrun med hagle "
+        "opp trappa er nøyaktig riktig. La det være riktig — gi dem "
+        "seieren de har rigget til. Det er den typen kamp gruppa er "
+        "bygget for, og de skal få føle det minst én gang.",
+        "En kamp de åpenbart vinner, satt opp slik at det å vinne "
+        "krever at de deler seg.",
+        ["loc-hold-7", "loc-boilers"]),
+
+    tac("tac-they-studied-you", "En motstander som har sett dem før",
+        "Motstander",
+        "Femten døgn på et skip. Den som har slåss mot dem én gang, "
+        "vet hvordan de slåss.",
+        "Andre gangen kommer de forberedt. To mann som ikke gjør annet "
+        "enn å holde Dagrun. En som går for lampene, fordi de har "
+        "skjønt at én av dem ser i mørket. Et teppe eller et garn til "
+        "Beefcakes armer. En som blir stående ved døra for å stenge "
+        "retretten.\n\n"
+        "Si det høyt ved bordet: «de har åpenbart tenkt på dere». Å "
+        "bli tatt på alvor av fienden er en kompliment, og spillerne "
+        "hører den som en.",
+        "Gjør gruppas egen dyktighet til det som hever vanskegraden.",
         None),
 
-    tac("tac-deep-ones", "Deep Ones og hybrider", "Motstander",
-        "Kjemper alltid i flokk og trives i vann. Amfibiske angrep fra "
-        "flere kanter.",
-        "De forsøker å trekke karakterene over bord. Dagruns Swim på "
-        "30 % og Walthers lave SIZ (55) gjør dem til lette bytter i "
-        "vannet. Flokkene sirkler rundt skipet, slik at spillerne må "
-        "forsvare flere dekk samtidig og splitte ressursene sine.",
-        "Tvinger gruppa til å dele seg, og flytter kampen dit de er "
-        "dårligst.",
-        None),
+    tac("tac-hunter-with-a-rifle", "Noen som skyter bedre enn dem",
+        "Motstander",
+        "Gruppa er vant til å være de farligste i rommet på avstand.",
+        "Alex Hubbard har Rifle .45 på 80 % og skyter storvilt for å "
+        "leve. Havner han på feil side — betalt, lurt, eller bare "
+        "overbevist om at heltene er morderne — er han den eneste om "
+        "bord som kan treffe Dagrun før hun treffer ham.\n\n"
+        "Mot skytevåpen finnes ingen unnvikelse: bare å dykke i "
+        "dekning, og det koster neste handling. Dagrun og Skjoldvår "
+        "har NIMBLE og slipper den kostnaden — det er en av de "
+        "tydeligste gangene talentene deres betyr noe. La dem merke "
+        "det.",
+        "Angriper avstandsdominansen med noen som er bedre på samme "
+        "akse.",
+        ["npc-alex-hubbard"]),
 
-    tac("tac-star-vampires", "Star Vampires", "Motstander",
-        "Usynlige helt til de mater på et offer og fylles med blod. "
-        "Det gir massive straffeterninger for å treffe dem tidlig i "
-        "kampen.",
-        "Krever at gruppa bruker omgivelsene for å finne dem. Walther "
-        "kan bruke Keen Hearing til å lytte etter snikelydene, eller "
-        "Dagrun kan nøytralisere usynligheten ved å kaste mel, regnvann "
-        "eller maling fra lasten over dem — så Beefcake endelig kan "
-        "lande slagene sine.",
-        "Treffsjansen, ikke skaden, er flaskehalsen.",
-        None),
+    # ====================================================== HENDELSE
+    tac("tac-man-overboard", "Mann over bord", "Hendelse",
+        "Kl. 02.00, et rop fra båtdekket. En full passasjer på "
+        "første klasse over rekka.",
+        "Swim: Dagrun 30 %, Beefcake 25 %, resten står tomt. Skipet "
+        "bruker fire–seks minutter på å stoppe og snu. En livbøye er "
+        "Throw (Beefcake 55 %). Vannet holder fjorten grader, og den "
+        "som hopper etter, får CON-slag for kulden.\n\n"
+        "Redder de ham, skylder et navn på første klasse dem noe — og "
+        "navn på første klasse åpner dører Beefcakes Credit Rating 3 "
+        "aldri kommer til å åpne.",
+        "Treffer den ene ferdigheten ingen av dem har, om bord på et "
+        "skip.",
+        ["npc-background-passengers", "npc-charles-astor"]),
 
-    tac("tac-shamblers", "Dimensional Shamblers", "Motstander",
-        "Teleporterer inn og ut av vår dimensjon. De slår hardt og er "
-        "borte igjen neste runde.",
-        "Målet deres er ikke å drepe, men å kidnappe. De griper etter "
-        "dr. Soongs bok eller en nøkkelperson og feller over i en annen "
-        "dimensjon. Skjoldvår må være klar med Sleight of Hand (70 %) "
-        "for å nappe boka tilbake før skapningen forsvinner helt.",
-        "Kan ikke vinnes ved å stå og slåss — det handler om timing.",
-        ["handout-book-of-red-jade"]),
+    tac("tac-boiler-burst", "Kjelen", "Hendelse",
+        "En dampledning i maskinrommet ryker.",
+        "Skåldende damp, 1D6 per runde til alle i rommet, og skipet "
+        "mister fart. Mech. Repair: Walther 35 %, Franz 35 %, Dagrun "
+        "har Elec. Repair 40 %. Pushede slag er lov; en fumle gir "
+        "brannskader.\n\n"
+        "Det er ikke Mythos. Det er et gammelt skip. Men maskinsjefen "
+        "blir enten takknemlig eller ydmyket alt etter hvordan de "
+        "snakker til ham mens de gjør det — og en takknemlig "
+        "maskinsjef er en mann med nøkler.",
+        "Et problem ingen kan slå i stykker, under tidspress.",
+        ["loc-boilers", "npc-other-crew"]),
 
-    # ------------------------------------------------------ konflikter
-    tac("tac-blackout", "Total mørklegging", "Konflikt",
-        "Skipets strømforsyning kuttes under tyveriet. Synsbaserte "
-        "angrep får straffeterninger.",
-        "Skjoldvårs Stealth (70 %) og Walthers Keen Hearing gir dem et "
-        "massivt overtak til å navigere i mørket og felle fiender som "
-        "famler.",
-        "Snur kampen på hodet: den stille og den lyttende blir "
-        "hovedpersonene.",
-        None),
+    tac("tac-opium", "Opium i lasterom 3", "Hendelse",
+        "To matroser flytter kasser i kjølerommet midt på natta.",
+        "Det er ikke skapningen. Det er helt alminnelig smugling.\n\n"
+        "Gruppa kan ta pressmiddelet — en nøkkel til lasterommene og "
+        "en stille alliert — melde dem (og da lukker besetningen seg, "
+        "og ingen snakker med dem igjen), eller ta en andel. En nøkkel "
+        "til lasterommene er verdt mer enn penger, og de kommer til å "
+        "ville ha den før den 19.",
+        "Gir dem noe konkret å vinne, og et valg med ettervirkninger.",
+        ["loc-hold-3", "npc-albert-hallander"]),
 
-    tac("tac-hostages", "Gisselsituasjon", "Konflikt",
-        "Kultister bruker uskyldige passasjerer som levende skjold for "
-        "å sikre rømningsveien.",
-        "Walthers Rapid Fire og Beefcakes knusende styrke er for "
-        "farlige å bruke. Skjoldvår må infiltrere med Master of "
-        "Disguise i stedet.",
-        "Gjør gruppas to sterkeste angrep ubrukelige.",
-        ["beat-bunny-takes-a-hostage"]),
+    tac("tac-fever", "Feberen på mellomdekket", "Hendelse",
+        "Tre passasjerer ligger med feber akterut.",
+        "Walther (Medicine 61 %) ser at det er alminnelig influensa og "
+        "ikke pest. Men ryktet er alt i bevegelse, og et skip i panikk "
+        "blir liggende i karantene i Honolulu.\n\n"
+        "Om de roer det ned eller lar det løpe, avgjør hvor mange "
+        "mennesker som er på dekk den kvelden alt skjer. Et rolig skip "
+        "gir et fullt promenadedekk; et redd skip gir tomme korridorer "
+        "og låste lugardører.",
+        "Lar en ferdighet ingen kamp bruker, forme finalen.",
+        ["loc-steerage", "npc-erik-hartman"]),
 
-    tac("tac-bomb", "Tikkende bombe", "Konflikt",
-        "En sprengladning truer med å senke skipet midt på havet og "
-        "ødelegge alle spor.",
-        "Walther desarmerer bomben med Demolitions (41 %) og Mech. "
-        "Repair, mens Beefcake holder ståldørene inn til maskinrommet "
-        "mot det som presser på utenfra.",
-        "Klokka, ikke fienden, er motstanderen — og 41 % er tynt.",
-        None),
+    tac("tac-loose-cargo", "Løs last i storm", "Hendelse",
+        "18. og 19. desember er sjøen grov. I lasterom 6 river en "
+        "Packard seg fra surringene.",
+        "To tonn i bevegelse over et dekk som krenger. Build betyr "
+        "alt: Beefcake (Build 2, POWER LIFTER) kan faktisk stå imot "
+        "den; Dagrun (Build −1) blir knust. DEX-slag for å komme unna, "
+        "STR-slag for å holde igjen, Mech. Repair for å få kilene på "
+        "plass.\n\n"
+        "Bugattien i samme rom tilhører en passasjer som betaler godt "
+        "for å få den reddet — eller ødelegger dem sosialt om den går "
+        "tapt.",
+        "En scene der Beefcakes STR 99 er det eneste svaret, og alle "
+        "ser det.",
+        ["loc-hold-6"]),
 
-    tac("tac-decoy-book", "Falsk bok", "Konflikt",
-        "Tyven legger igjen en nesten identisk bok under flukten, "
-        "preparert med en farlig magisk felle — for eksempel en glyf.",
-        "Karakterene må bruke Spot Hidden, eller Walthers Psychology "
-        "(50 %), for å innse at kultisten ga fra seg boka mistenkelig "
-        "lett — før noen åpner den.",
-        "Straffer gruppa for å vinne for lett.",
-        ["handout-book-of-red-jade", "beat-the-stolen-book"]),
+    tac("tac-card-table", "Kortbordet", "Hendelse",
+        "Kasinokvelden. Brødrene Po gir Pai Gow.",
+        "En anklage om juks, et bord som går over ende. Beefcakes "
+        "Intimidate 99 avslutter det på ett øyeblikk — la det skje, og "
+        "ta betalt etterpå: han er nå passasjeren offiserene holder "
+        "øye med. Skjoldvår (APP 99, Psychology 60) kan gjøre det "
+        "samme uten en scene.\n\n"
+        "Forskjellen på de to løsningene skal være synlig i dagene "
+        "etterpå. Det er slik du lærer et bord at hvordan de løser noe "
+        "betyr noe, uten å straffe dem for å løse det.",
+        "Samme problem, to løsninger, ulik pris.",
+        ["npc-bunny-bates", "loc-amenities"]),
 
-    tac("tac-paranoia", "Paranoia blant mannskapet", "Konflikt",
-        "Kultistene har hjernevasket kapteinen og nøkkelmannskap. "
-        "Gruppa nektes adgang til broa og lasterommet.",
-        "Dagrun må bruke Persuade (50 %) for å overtale lojale sjømenn "
-        "til mytteri, mens Skjoldvår bruker Read Lips (57 %) for å "
-        "fange opp hva de hjernevaskede planlegger.",
-        "Volden er stengt av — det må løses sosialt.",
-        ["npc-captain-nelson"]),
+    tac("tac-animals-know", "Dyrene vet noe", "Hendelse",
+        "Lasterom 5: kennelene og de tjue melkekyrne.",
+        "En natt er hvert eneste dyr om bord helt stille. Neste natt "
+        "er de det ikke. Ingenting angriper.\n\n"
+        "Track (Dagrun 67 %) og Natural World finner ingenting. Dette "
+        "ER ikke et spor — det er stemning. Men spillerne vet ikke "
+        "det, og timene de bruker på det, er timer skipet fortsetter å "
+        "seile. Bruk det når gruppa har fått for god fart på "
+        "etterforskningen.",
+        "Kjøper deg tid uten å lyve for spillerne.",
+        ["loc-hold-5", "npc-james-hawthorne"]),
 
-    # --------------------------------------------------- miljøet ombord
-    tac("tac-storm", "Krengende skip og orkan", "Miljø",
-        "Skipet treffes av en voldsom storm under jakten på tyven. "
-        "Skroget kastes fra side til side av enorme bølger.",
-        "BALANSE: alle fysiske handlinger krever DEX-slag for å ikke "
-        "falle eller skli. Dagrun, med DEX 99 og talentet Nimble, "
-        "ignorerer det glatt og kan løpe langs vegger og rekkverk for å "
-        "kutte av rømningsveien.\n\n"
-        "LØST GODS: tunge maskindeler og kasser glir tvers over dekket "
-        "og truer med å knuse folk mot skottene. Skjoldvår kan fryse "
-        "dem i lufta med Telekinesis.",
-        "Gjør selve gulvet til en motstander.",
-        None),
+    tac("tac-stowaway", "Blindpassasjeren", "Hendelse",
+        "En gutt på fjorten i lasterom 2, som lever av passasjerenes "
+        "bagasje.",
+        "Han har sett ting. Han er også vettskremt for å bli satt i "
+        "land i Honolulu, og lyver om alt sammen.\n\n"
+        "Det finnes ingen kamp i dette. Den som ender opp med å få "
+        "tilliten hans, får et par øyne som kommer inn der voksne "
+        "ikke kommer — under dekk, i bagasjerommene, i "
+        "ventilasjonssjaktene. Skjoldvår og Franz har begge Stealth "
+        "over 60 og vil kjenne ham igjen som en av sine.",
+        "En scene uten terninger som gir gruppa et verktøy de "
+        "beholder.",
+        ["loc-hold-2"]),
 
-    tac("tac-fire", "Røyk og brann i trange korridorer", "Miljø",
-        "En feilslått eksplosjon eller magisk feiltenning antenner det "
-        "tørre treverket i førsteklassekorridorene.",
-        "KVELNING: fast skade hver runde i den tette røyken uten "
-        "surstoff, og sikten for våpenbruk faller drastisk.\n\n"
-        "REDNINGSARBEID: Beefcake må bruke Power Lifter for å bryte opp "
-        "fastklemte dører. Walther vil helst jage boka, og gruppa må "
-        "bruke tid på å overtale ham til å bruke Medicine (61 %) på "
-        "alvorlig brannskadde passasjerer.",
-        "Skade som ikke kan slås tilbake, og et moralsk valg på toppen.",
-        None),
+    tac("tac-telegram", "Telegrammet", "Hendelse",
+        "Telegrafisten har en melding til en av heltene. Fra land.",
+        "Noe personlig. En gjeld. En søster. En arrestordre. Skriv det "
+        "på en lapp og gi den til én spiller uten å si noe til de "
+        "andre.\n\n"
+        "Det koster ingenting mekanisk og kjøper deg en hel kveld med "
+        "rollespill. Franz er hitman og har en fortid; Skjoldvår er "
+        "spion og har en arbeidsgiver; Dagrun er dusørjeger og har "
+        "noen som skylder henne penger. Alle tre tåler et telegram som "
+        "river opp noe.",
+        "Gir én spiller en scene som er hens alene.",
+        ["npc-other-crew"]),
 
-    tac("tac-flooding", "Oversvømt lasterom og strømfare", "Miljø",
-        "Fienden saboterer skroget under vannlinjen for å stoppe "
-        "forfølgerne. Lasterommet fylles raskt med mørkt, iskaldt "
-        "sjøvann.",
-        "DRUKNING: enormt press på Dagruns Swim (30 %) og Beefcakes "
-        "Swim (25 %) mens de leter etter boka blant flytende vrakgods i "
-        "bekmørket.\n\n"
-        "STRØM: knekte høyspentkabler slår gnister over vannflata. "
-        "Spillerne må kortslutte skipets strømtilførsel fra et tørt "
-        "punkt før hele rommet blir en dødelig felle.",
-        "Treffer to ferdigheter gruppa nesten ikke har.",
-        ["loc-hold-7", "loc-bilges"]),
+    tac("tac-old-death", "Han som falt i 1929", "Hendelse",
+        "En matros falt ned i lasterom 4 for tre år siden og døde.",
+        "Besetningen er overtroisk om det rommet og går ikke dit "
+        "alene. Det er ikke overnaturlig. Det er en arbeidsulykke og "
+        "en gammel historie som fortelles i lugarene.\n\n"
+        "Nytten er dobbel: den forklarer hvorfor ingen vil følge "
+        "heltene ned dit, og den gjør at når noe FAKTISK er galt i "
+        "lasterom 4 — og det er det, den 13. desember — så tror ingen "
+        "på dem.",
+        "Bygger et alibi for skipets likegyldighet, lenge før den "
+        "trengs.",
+        ["loc-hold-4", "npc-phyllis-barnes"]),
 
-    tac("tac-synergy", "Hvorfor dette virker", "Keeper-notat",
+    # ================================================== KEEPER-NOTAT
+    tac("tac-why", "Hvorfor dette virker", "Keeper-notat",
         "Gruppa er vant til at én person løser problemet.",
-        "Ved å kombinere ukonvensjonelle monstre, taktiske "
-        "begrensninger og miljøfarer tvinger du spillerne til å rotere "
-        "på hvem som er helten. Beefcake kan ikke slå i stykker en "
-        "oversvømmelse, og Walther kan ikke skyte seg gjennom "
-        "bekmørke. De må stole på hverandres pulp-talenter og smale "
-        "ferdigheter for å komme fram til Kina.",
-        "Prinsippet bak alle kortene over.",
+        "Alle kortene over gjør én av tre ting: de begrenser hvor "
+        "mange handlinger som teller (klokke, romstørrelse, grep), de "
+        "flytter spørsmålet vekk fra skade (Sanity, beleiring, "
+        "immunitet med synlig utvei), eller de gir skipet et eget liv "
+        "som ikke venter på at noen skal løse det (hendelsene).\n\n"
+        "Ingen av dem gir motstanderne flere HP. Det er med vilje: en "
+        "kamp der spillerne treffer og treffer uten at noe skjer, "
+        "føles ikke vanskelig — den føles kjedelig. En kamp der de "
+        "treffer akkurat like hardt som før, men må velge hva de "
+        "bruker treffet på, føles vanskelig og gøy på samme tid.",
+        "Prinsippet bak alt over.",
+        None),
+
+    tac("tac-spotlight", "Én scene hver, før det er over",
+        "Keeper-notat",
+        "Fem spillere, femten døgn. Alle skal ha minst én scene der "
+        "arket deres er svaret.",
+        "BEEFCAKE: noe tungt som må holdes, løftes eller brytes, der "
+        "STR 99 og Build 2 er det eneste som virker. Løs last i storm, "
+        "en dør som er kilt fast, en mann som holder på å bli dratt "
+        "over bord.\n\n"
+        "DAGRUN: et skudd bare DEX 99 kan ta — langt, i bevegelse, med "
+        "noen i veien. Eller et spor bare Track 67 finner.\n\n"
+        "WALTHER: en diagnose. Noe som ser overnaturlig ut og ikke er "
+        "det, eller motsatt. Medicine 61 og INT 85 skal én gang gi "
+        "svaret ingen andre kunne gitt.\n\n"
+        "SKJOLDVÅR: et rom hun kommer inn i på APP 99 alene, der de "
+        "andre ville blitt stoppet i døra. Eller en samtale lest på "
+        "leppene tvers over salongen (Read Lips 57).\n\n"
+        "FRANZ: en mørk korridor der NIGHT VISION gjør ham til den "
+        "eneste som ser, eller et ord på et språk ingen andre kjenner "
+        "(LINGUIST), eller det ene øyeblikket Cthulhu Mythos 10 gir "
+        "ham et navn på det de ser.",
+        "Det som gjør en hard kveld til en god kveld.",
+        None),
+
+    tac("tac-off-the-crawling-one",
+        "Skipet venter ikke på at de skal finne skapningen",
+        "Keeper-notat",
+        "Jakten på skapningen og boka til dr. Soong er plottet, men "
+        "det er ikke det eneste som skjer om bord.",
+        "678 passasjerer og 315 mann besetning har femten døgn å fylle. "
+        "Kjør minst én HENDELSE per spilledøgn, uavhengig av hvor "
+        "etterforskningen står — også, og særlig, når den står "
+        "stille.\n\n"
+        "Nytten er tredelt. Den skjuler hva som er spor og hva som er "
+        "støy, slik at spillerne må vurdere i stedet for å følge en "
+        "snor. Den gir dem venner og fiender om bord som betyr noe i "
+        "finalen. Og den gjør skipet til et sted i stedet for en "
+        "kulisse — som er halve grunnen til at scenarioet foregår på "
+        "et skip i det hele tatt.",
+        "Tar tyngden av jakten uten å ta bort plottet.",
         None),
 ]
 

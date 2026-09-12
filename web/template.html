@@ -5710,6 +5710,9 @@ function addCombatantDialog() {
 
 const TACTIC_TONE = {
   "Motstander": "villain",
+  "Kampjustering": "event",
+  "Hendelse": "voyage",
+  // eldre scenariofiler
   "Konflikt": "event",
   "Miljø": "voyage",
   "Keeper-notat": null,
@@ -5735,11 +5738,25 @@ function viewTactics(root) {
     ]));
   }
 
-  root.appendChild(el("div", { class: "row", style: "margin-bottom:14px" }, [
+  // Én knapp per kategori. Trenger du en hendelse midt i en rolig
+  // dag, vil du ikke trekke et kort om beleiringstaktikk.
+  const cats = [];
+  cards.forEach((t) => {
+    const c = t.category || "Annet";
+    if (c !== "Keeper-notat" && cats.indexOf(c) === -1) cats.push(c);
+  });
+  const draw = el("div", { class: "row", style: "margin-bottom:14px" }, [
     el("button", { class: "btn primary", type: "button",
-                   text: "Trekk et tilfeldig kort",
+                   text: "Trekk et kort",
                    onclick: () => drawTactic() }),
-  ]));
+  ]);
+  cats.forEach((c) => {
+    draw.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Trekk " + c.toLowerCase(),
+      onclick: () => drawTactic(c),
+    }));
+  });
+  root.appendChild(draw);
 
   root.appendChild(searchBar("Søk i taktikk…"));
   root.appendChild(el("div", { style: "height:14px" }));
@@ -5841,14 +5858,19 @@ function openTactic(t) {
 
 // Trekker et kort som ikke er brukt ennå. Er alle brukt, trekkes det
 // fra hele bunken igjen.
-function drawTactic() {
+function drawTactic(category) {
   const cards = (state.scenario && state.scenario.tactics) || [];
-  const combatish = cards.filter((t) => t.category !== "Keeper-notat");
-  if (!combatish.length) { toast("Ingen taktikkort i dette scenarioet"); return; }
-  let pool = combatish.filter((t) => !t.used);
-  if (!pool.length) pool = combatish;
-  const pick = pool[Math.floor(Math.random() * pool.length)];
-  openTactic(pick);
+  const usable = cards.filter((t) => t.category !== "Keeper-notat" &&
+    (!category || t.category === category));
+  if (!usable.length) {
+    toast(category ? "Ingen kort i «" + category + "»"
+                   : "Ingen taktikkort i dette scenarioet");
+    return;
+  }
+  // Ubrukte først. Er alle brukt, trekkes det fra hele bunken igjen.
+  let pool = usable.filter((t) => !t.used);
+  if (!pool.length) pool = usable;
+  openTactic(pool[Math.floor(Math.random() * pool.length)]);
 }
 
 /* -------------------------- bibliotek --------------------------- */

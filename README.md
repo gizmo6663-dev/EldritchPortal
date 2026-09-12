@@ -550,13 +550,22 @@ python3 web/build.py
 
 ## Trusler og taktikk
 
-Et scenario kan ha en `tactics`-seksjon: kort med **forslag** til hvordan en kamp kan gjøres vanskeligere. Det er bevisst ikke en hendelsesrekke — rekkefølge og bruk er Keeperens.
+Et scenario kan ha en `tactics`-seksjon: kort med **forslag** til hvordan en kveld kan gjøres vanskeligere eller mer levende. Det er bevisst ikke en hendelsesrekke — rekkefølge og bruk er Keeperens.
 
-Hvert kort har `mechanic` (hva som skjer), `tactic` (hvordan det spilles) og `pressure` (én linje om hvorfor det biter på akkurat denne gruppa). Kortene grupperes i **Motstander**, **Konflikt** og **Miljø**, kan krysses av som brukt, og kan noteres i kamploggen.
+Hvert kort har `mechanic` (hva som skjer), `tactic` (hvordan det spilles) og `pressure` (én linje om hvorfor det biter på akkurat denne gruppa). Kortene kan krysses av som brukt og noteres i kamploggen.
 
-I kampvisningen finnes **Trekk taktikk**, som henter et tilfeldig kort blant dem du ikke har brukt ennå. Det er ment for øyeblikket der en kamp går for lett.
+`A Slow Boat to China` har **27 kort** i fire grupper:
 
-`A Slow Boat to China` har 14 slike kort, laget for en gruppe som er sterk i nærkamp: de angriper lav POW og Sanity, smale ferdigheter, dårlig Swim, og situasjoner der rå styrke er feil verktøy.
+| Gruppe | Hva det er |
+|---|---|
+| **Kampjustering** (8) | Hvordan en kamp settes opp, uten å blåse opp HP på noe: gi kampen en klokke, la rommet bestemme hvor mange som kan slåss, motstandere som trekker seg og kommer tilbake, grep i stedet for skade, mengde framfor størrelse, mørket som ressurs, tapp Luck før finalen, la rommet ta skade |
+| **Motstander** (6) | Fiender som stiller andre spørsmål enn «hvor hardt slår du»: folk som overgir seg, noe som ikke kan slås men har en synlig utvei, noe som tar Sanity i stedet for HP, en beleiring, en fiende som har studert gruppa, og noen som skyter bedre enn dem |
+| **Hendelse** (10) | Skipslivet, uavhengig av hovedplottet: mann over bord, kjelehavari, smugling i lasterom 3, feber på mellomdekket, løs last i storm, kortbordet, dyrene i lasterom 5, en blindpassasjer, et telegram hjemmefra, og en gammel arbeidsulykke ingen vil snakke om |
+| **Keeper-notat** (3) | Prinsippet bak kortene, én spotlight-scene til hver spiller, og hvorfor skipet bør ha et liv utenfor jakten |
+
+Ingen av kortene gir motstanderne flere HP. En kamp der spillerne treffer og treffer uten at noe skjer, føles ikke vanskelig — den føles kjedelig. Kortene begrenser i stedet hvor mange handlinger som teller, eller flytter spørsmålet vekk fra skade.
+
+I taktikkvisningen finnes **Trekk et kort**, som henter et tilfeldig kort blant dem du ikke har brukt ennå, pluss én knapp per gruppe — trenger du en hendelse midt i en rolig dag, vil du ikke trekke et kort om beleiringstaktikk. **Trekk taktikk** finnes også i kampvisningen.
 
 ---
 
