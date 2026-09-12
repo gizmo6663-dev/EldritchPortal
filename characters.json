@@ -703,14 +703,13 @@
     "skills": {
       "Electrical Repair": "40",
       "Fast Talk": "40",
-      "Marine Engineering": "20",
-      "Mechanical Repair": "40",
-      "Navigation": "40",
+      "Mechanical Repair": "20",
       "Pilot (Ship)": "20",
       "Psychology": "25",
       "Spot Hidden": "35",
       "Stealth": "40",
-      "Throw": "45"
+      "Throw": "45",
+      "Navigate": "40"
     },
     "attacks": [
       {

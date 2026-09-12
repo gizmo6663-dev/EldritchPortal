@@ -481,6 +481,37 @@ Reglene som ligger i bunnen er Call of Cthulhu 7e med Pulp Cthulhu-tilleggene:
 
 Manøver (grep, avvæpning, kast) og knockout-forsøk ligger i samme flyt, med Build-forskjellen vist som veiledning.
 
+### Regler ved bordet
+
+`Regler`-fanen har tre grupper: scenarioets egne oppslag, **regelbokser** fra bøkene, og **hele ferdighetslista**. Søkefeltet går på tvers av alle tre — søker du «dominate» får du både scenarioets slagoversikt og formelboksen.
+
+Regelboksene ligger i `bestiary/keeper_rules.json` og `bestiary/talent_rules.json`, i samme form: `{id, title, source, sections: [{title, source, body}]}`.
+
+| Boks | Dekker |
+|---|---|
+| **Galskap — når Sanity ryker** | Hva som utløser midlertidig og varig galskap, begge galskapsanfall-tabellene i sin helhet (1D10 sanntid og 1D10 sammendrag), pulp-forskjellene, og hva SAN 45 på to av spillerne betyr i praksis |
+| **Formlene i dette scenarioet** | Dominate, Mindblast, Mental Suggestion, Consume Likeness, Graveyard Kiss, Gate, Pipes of Madness og Bind Flying Polyp — med tallene scenarioet faktisk bruker |
+| **Vann, drukning og et skip som synker** | Når Swim slås, hvor lenge man holder pusten, kaldt vann som klokke, og hele slutten med livbåter og Sanity-belønninger |
+| **Fall, ild, elektrisitet og syre** | Tallene taktikkortene forutsetter: fallskade, damp fra en brukket ledning, høyspent i et oversvømt rom, saltsyren i lasterom 7 |
+
+Pluss de sju talentboksene fra før: psykiske krefter, weird science, Luck-bruk, å dykke i dekning, manøvrer og Build, flere skudd, og Sanity mot Mythos.
+
+**Hver seksjon sier hvor den kommer fra.** `ordrett fra boka` er sitat fra en bok som finnes som tekst i prosjektet; `skrevet ut fra reglene` er skrevet ut fra regelverket fordi kapittelet ikke finnes i noen tekstutgave her; `fra scenarioet` er Slow Boat to China selv. Etiketten står ved siden av seksjonstittelen, ikke i en fotnote.
+
+### Ferdighetsoppslag
+
+`bestiary/skills.json` er hele ferdighetskapitlet fra Call of Cthulhu 7e — 53 ferdigheter med bokas egen beskrivelse, og eksemplene den gir på hva et Regular- og Hard-slag betyr for akkurat den ferdigheten.
+
+**Ferdighetsnavnene på et karakterkort er klikkbare.** Oppslaget tåler skrivemåtene som faktisk står på arkene: `Mech. Repair` finner *Mechanical Repair*, `Science (Biology)` finner *Science*, `Fighting (Brawl)` finner *Fighting*. Alle ferdighetene på alle 27 rollene i prosjektet har et oppslag — det er en test på det.
+
+Fila bygges med:
+
+```bash
+python3 scenarios/parse_skills.py coc.txt bestiary/skills.json
+```
+
+Boka er satt i to spalter, og konverteringen fletter dem sammen. Skriptet håndterer tre følger av det: sidetall og kolumnetitler midt i teksten, orddelingsbindestreker som falt bort (`deter mine` → `determine`, men bare når det sammensatte ordet finnes ellers i boka og er klart vanligere der), og to oppslag som støter i hverandre slik at begge tekstene havner under den andre.
+
 ### Halv og femtedel overalt
 
 Et Hard-slag krever halve ferdigheten, et Extreme en femtedel. Begge står nå ved siden av verdien overalt der en rolles ferdigheter vises, akkurat som på karakterarket — så man slipper å regne i hodet når Keeperen ber om et hardt slag.

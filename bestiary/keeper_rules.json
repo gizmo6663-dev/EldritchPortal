@@ -1,0 +1,148 @@
+{
+  "version": 1,
+  "title": "Regler ved bordet",
+  "note": "Oppslag man ellers må bla etter midt i en økt. Hver boks sier hvor den kommer fra, og om teksten er hentet ordrett ut av en bok jeg har som tekst, eller skrevet ut fra reglene og merket som det.",
+  "rules": [
+    {
+      "id": "insanity",
+      "title": "Galskap — når Sanity ryker",
+      "source": "Pulp Cthulhu s. 75–78, og Call of Cthulhu 7e kapittel 8",
+      "sourced": "blandet",
+      "intro": "Beefcake og Walther har begge SAN 45. Polyppen koster 1D3/1D20 for alle om bord. Dette kommer til å skje, sannsynligvis til begge, midt i finalen — og da vil du ikke bla.\n\nRekkefølgen er alltid den samme: et Sanity-slag ryker, tapet trekkes, og hvis tapet var stort nok kommer et galskapsanfall. Etter anfallet ligger en lengre, roligere periode med latent galskap.",
+      "sections": [
+        {
+          "title": "Hva som utløser hva",
+          "source": "reconstructed",
+          "body": "MIDLERTIDIG GALSKAP: mister helten 5 eller flere Sanity på ett enkelt slag, blir hen midlertidig gal. Tilstanden varer 1D10 timer. Anfallet som starter den, varer 1D10 RUNDER hvis andre helter er til stede — se neste seksjon.\n\nVARIG GALSKAP: mister helten en femtedel eller mer av startverdien sin i Sanity i løpet av én spilløkt, blir hen varig gal. Det varer måneder i spilltid, og krever behandling.\n\nMISTER HELTEN MER SANITY — om så ett eneste poeng — mens hen fortsatt er gal, kommer et nytt galskapsanfall oppå det gamle.\n\nSANITY-TAKET er 99 minus Cthulhu Mythos. Franz har Mythos 10 og kan derfor aldri komme over 89.\n\n(Denne seksjonen er skrevet ut fra reglene; kapittel 8 i regelboka er ikke i utgaven jeg har som tekst. Tallene stemmer med det Pulp Cthulhu forutsetter.)"
+        },
+        {
+          "title": "Galskapsanfall i sanntid — 1D10",
+          "source": "verbatim",
+          "body": "Brukes når andre helter er til stede. Varer 1D10 RUNDER. Velg, eller slå 1D10:\n\n1 AMNESI: helten slutter å tenke på seg selv som en helt, og mister evnen til å bruke pulp-talentene sine i 1D10 runder.\n\n2 GAL PLAN: i 1D10 runder forfølger helten en irrasjonell eller dårlig gjennomtenkt plan. Planen må enten hjelpe fienden eller øke faren for helten selv eller de andre.\n\n3 RASERI: en rød tåke senker seg, og helten eksploderer i ukontrollert vold og ødeleggelse mot omgivelsene, allierte og fiender om hverandre, i 1D10 runder.\n\n4 SKRYT: helten må skryte, godte seg eller forkynne planene sine høyt i 1D10 runder: «Så, før vennene mine og jeg utsletter hver eneste ghoul i dette hiet, la meg bare fortelle deg dette…»\n\n5 SLAPP AV: helten er overbevist om at trusselen er ubetydelig, og lener seg tilbake i 1D10 runder. Kanskje tenner hen en god sigar, eller skåler med lommelerka.\n\n6 FLYKT I PANIKK: helten må komme seg så langt vekk som mulig, med hvilket middel som helst — også om det betyr å ta det eneste kjøretøyet og la alle andre bli igjen. Hen reiser i 1D10 runder.\n\n7 VIS DEG FRAM: helten blir en oppmerksomhetssyk galning i 1D10 runder, og gjør gjerne dumdristige ting.\n\n8 ALTER EGO: personligheten byttes fullstendig ut i 1D10 runder. Alter egoet er speilvendt: der den ene er vennlig, er den andre kald; der den ene er egoistisk, er den andre uselvisk. Keeperen kan bruke dette til å varsle hva slags monster akkurat denne helten blir om hen noen gang synker ned i varig galskap.\n\n9 FOBI: helten får en ny fobi. Slå 1D100 på fobitabellen, eller velg. Selv om kilden til fobien ikke er til stede, innbiller helten seg at den er der de neste 1D10 rundene.\n\n10 MANI: helten får en ny mani. Slå 1D100 på manitabellen, eller velg. Helten søker å hengi seg til den nye manien de neste 1D10 rundene."
+        },
+        {
+          "title": "Galskapsanfall som sammendrag — 1D10",
+          "source": "verbatim",
+          "body": "Brukes når helten er alene, eller når alle til stede blir gale samtidig. Da spiller du ikke ut timene — du forteller hva som skjedde, og hvor helten kommer til seg selv. Typisk 1D10 timer.\n\n1 AMNESI: helten kommer til seg selv på et ukjent sted, uten å vite hvem hen er, og uten pulp-talentene sine. Minnene kommer sakte tilbake. Talentene kommer bare tilbake i en krise — definert som at noens liv står i fare. Da slås Luck; lykkes det, er talentene tilbake. Ellers kan hen prøve igjen om 1D10 runder.\n\n2 RANET: helten kommer til seg selv 1D10 timer senere, ranet, men uskadd. Bar hen på en Treasured Possession fra bakgrunnen sin, slås Luck for om den ble stjålet. Alt annet av verdi er automatisk borte.\n\n3 MØRBANKET: helten kommer til seg selv 1D10 timer senere, forslått og blå. HP halveres i forhold til før anfallet. Hen er ikke ranet. Hvordan skaden oppsto, bestemmer Keeperen.\n\n4 VOLD: helten eksploderer i vold og ødeleggelse. Når hen kommer til seg selv, er handlingene kanskje synlige, kanskje husket, kanskje ingen av delene. Hvem eller hva hen har gått løs på, og om noen døde, bestemmer Keeperen.\n\n5 IDEOLOGI OG TRO: se på bakgrunnsfeltet for Ideology/Beliefs. Helten utlever det i ekstrem, forrykt og demonstrativ form. En vanlig følge er en variant av storhetsvanvidd, der talentene og troen begynner å tære på menneskeligheten og på skillet mellom rett og galt.\n\n6 VIKTIGE PERSONER: se på bakgrunnsfeltet for Significant People og hvorfor forholdet betyr så mye. I løpet av timene som gikk, har helten gjort sitt beste for å komme nær den personen og gjøre noe med forholdet.\n\n7 INNLAGT ELLER PÅGREPET: helten kommer til seg selv på en lukket psykiatrisk avdeling eller i en politicelle. Hen husker kanskje etter hvert hva som førte dit.\n\n8 FLYKTET I PANIKK: når helten kommer til seg selv, er hen langt borte — og gjerne et bemerkelsesverdig sted. Hvordan hen kom dit, er ukjent for hen selv.\n\n9 FOBI: helten får en ny fobi, og kommer til seg selv 1D10 timer senere etter å ha tatt alle tenkelige forholdsregler for å unngå den.\n\n10 MANI: helten får en ny mani, og kommer til seg selv 1D10 timer senere. Hele anfallet har gått med til å hengi seg til den. Om det er synlig for andre, bestemmer Keeperen og spilleren."
+        },
+        {
+          "title": "Pulp-forskjellene",
+          "source": "verbatim",
+          "body": "Pulp Cthulhu bruker de samme grunnreglene for Sanity som Call of Cthulhu, men galskapen arter seg annerledes: når helter blir gale, kan de oppdage merkelige nye krefter — INSANE TALENTS — og krefter som brukes for mye, driver helten dypere inn i galskapen.\n\nDet insane talentet skal velges som et SVAR på situasjonen helten står i. Galskap kommer alltid av en konkret, traumatisk hendelse; tenk på utløseren når du velger.\n\nVARIG GALSKAP OG BAKGRUNNEN: en helt kommer seg ut av varig galskap blant annet ved å bruke tid på et nøkkelelement i bakgrunnen sin. Det gir en bonusterning til Sanity-slaget. Spiller spilleren scenen overbevisende, kan Keeperen gi en bonusterning TIL. I høyt pulp-nivå kan Keeperen også bare fjerne varig galskap i utviklingsfasen.\n\nNULL SANITY er varig galskap. I pulp skal en slik helt ikke forsvinne stille inn på en anstalt: hen går ut i en flammende finale, eller kommer tilbake senere som skurk. Keeperen overtar rollen."
+        },
+        {
+          "title": "Ved dette bordet",
+          "source": "eget",
+          "body": "Walther har HARDENED: han mister ikke Sanity av å angripe mennesker, av stygge skader eller av lik. Mythos-syner rammer ham som alle andre. Ikke la det gli sammen.\n\nBeefcake har SAN 45 og Brawl 99. Et raseri-anfall (slag 3 i sanntidstabellen) i en korridor med vennene hans er den farligste enkelthendelsen i hele scenarioet. Ha svaret klart: hvem griper ham, og med hvilken Build?\n\nFranz har SAN 90 og Mythos 10 — han er den stødigste, og den eneste som kan sette navn på det de ser.\n\nÅ HALVERE ET SANITY-TAP koster dobbelt så mye Luck som tapet. Åtte poeng koster seksten Luck. Se regelboksen «Å bruke Luck»."
+        }
+      ]
+    },
+    {
+      "id": "spells",
+      "title": "Formlene i dette scenarioet",
+      "source": "Slow Boat to China, og Call of Cthulhu 7e kapittel 12",
+      "sourced": "blandet",
+      "intro": "Skapningen har åtte formler i verktøykassa, og scenarioet nevner dem uten å forklare noen av dem. Tallene som betyr noe ved bordet, står i selve scenarioteksten og er gjengitt her. Selve formelbeskrivelsene er skrevet ut fra reglene — grimoiren er kapittel 12 i regelboka, som ikke er i utgaven jeg har som tekst.\n\nGENERELT OM Å KASTE: en formel koster magic points, og ofte Sanity. Har kasteren ikke nok magic points igjen, kan resten tas fra HP — men det krever et CON-slag for å holde seg våken.",
+      "sections": [
+        {
+          "title": "Dominate",
+          "source": "scenario + reconstructed",
+          "body": "Skapningens viktigste verktøy. Den bruker den på Bunny Bates fra 7. desember, og på Martin Aimesworthy i stedet om Bates blir tatt eller drept.\n\nMOTSATT POW-SLAG mot skapningens POW 100. Vinner skapningen, styrer den offeret.\n\nMÅ KASTES PÅ NYTT HVER NATT for å holde kontrollen — nytt motsatt POW-slag hver gang. Det er hullet spillerne kan utnytte.\n\nÅ BRYTE DEN: klarer heltene å styrke offerets vilje — Hard Persuade eller Hard Psychoanalysis — får offeret en BONUSTERNING mot slaget. Gruppa har Persuade 50 på to personer og null Psychoanalysis, så dette er en reell utfordring og ikke en gratis utvei.\n\nDen som er dominert, husker det som «stemmer». Bates babler om «stemmen inni» og «englekoret har befalt meg» — det er sånn det oppleves innenfra."
+        },
+        {
+          "title": "Mindblast",
+          "source": "scenario + reconstructed",
+          "body": "Brukt under tyveriet av boka den 7. desember.\n\nMOTSATT POW-SLAG mot POW 100. Taper offeret, står hen lammet og forvirret — ute av stand til å handle — i et antall runder Keeperen bestemmer, typisk noen få.\n\nDet er et angrep som ikke gjør HP-skade i det hele tatt, og derfor et som gruppas rustning, HP og våpen ikke hjelper mot. Bruk det når en kamp går for lett; det er samme tanke som taktikkortet «Noe som tar Sanity i stedet for HP»."
+        },
+        {
+          "title": "Mental Suggestion",
+          "source": "reconstructed",
+          "body": "Mildere enn Dominate: kasteren planter ÉN handling eller idé hos offeret, som utfører den og tror den var hens egen.\n\nMotsatt POW-slag. Koster magic points og litt Sanity.\n\nMed POW 100 er skapningen overlegen alle i gruppa — Franz har POW 90 og er den eneste som er i nærheten. Bruk det til å få en helt til å gå feil vei, åpne feil dør, eller la være å se på noe, heller enn til å ta full kontroll. Det er mer ubehagelig, og det er vanskeligere å oppdage."
+        },
+        {
+          "title": "Consume Likeness",
+          "source": "scenario",
+          "body": "Skapningens signatur. Den kan ta skikkelsen til ethvert menneske den dreper og spiser.\n\nEN NY SKIKKELSE BRUKER 48 TIMER på å utvikle stemmebånd. Det er grunnen til at den måtte forlate Petersons skikkelse da Virginia ventet at han skulle snakke.\n\nI EGEN SKIKKELSE kan den ikke lage lyd i det hele tatt, og må kommunisere skriftlig. Telegrammer er typisk.\n\nÅ SPISE noen etterlater bare skinn, hår og knokkelbiter — derav det hule rotteskinnet i lasterommene, og de tomme klærne i Petersons stol.\n\nDen kan bytte mellom alle sine menneskeskikkelser i løpet av ÉN kamprunde."
+        },
+        {
+          "title": "Graveyard Kiss (pulp-varianten)",
+          "source": "scenario",
+          "body": "Valgfri, for høyt pulp-nivå. Vekker lik som zombier.\n\nSkapningens variant krever at den legger en del av insektmassen sin inn i munnen på liket. Vekkede zombier kan så lage flere: insekter hopper fra munnen deres og inn i munnen på dem de dreper.\n\nSom skrevet har skapningen FEM zombier — de fem ofrene. Vanlige zombier er lite utfordring for en pulp-helt, så øk antallet om du bruker dette. I teorien kan hele skipet gå.\n\nZombiene er også en utmerket erstatning for Bates i gisselscenen, om han alt er ute av bildet."
+        },
+        {
+          "title": "Gate",
+          "source": "scenario + reconstructed",
+          "body": "Skapningens fluktplan: en port til Shanghai, der den slutter seg til Eight Fortunes Mutual Aid Society.\n\nEn Gate koster mye — magic points etter avstand, og Sanity. Den tar tid å åpne, og den kan brukes igjen av andre som vet hvor den er.\n\nVED BORDET: dette er ikke en formel spillerne kan hindre med et slag. Det er en tidsfrist. Rekker de ikke å stoppe skapningen før den kommer seg til lasterom 7 og får åpnet porten, slipper den unna — og da har du en hovedskurk med et regnskap å gjøre opp i neste scenario."
+        },
+        {
+          "title": "Pipes of Madness",
+          "source": "scenario + reconstructed",
+          "body": "Virkningen selve maskinen har på alle innenfor 30 METER når skapningen spiller.\n\nMusikken tvinger fram et Sanity-slag hos alle som hører den. De som ryker, mister forstanden midlertidig — se regelboksen «Galskap». I praksis betyr det at lasterom 7 er et rom man ikke kan stå i og tenke klart.\n\nMERK: dette er en ANNEN ting enn det maskinen gjør mot Mythos-vesener. Mot dem sender den ut bølger som trekker dem til seg — og gjør dem rasende, fordi maskinen ikke virker som den skal."
+        },
+        {
+          "title": "Bind Flying Polyp",
+          "source": "scenario",
+          "body": "Finnes i Book of Red Jade. Den ene formelen spillerne selv kan komme til å kaste.\n\nKASTEREN kan ikke være i kamp med vesenet, og må være innenfor 90 meter.\n\nMOTSATT POW-SLAG mot polyppens POW 80. Dette slaget KAN IKKE PUSHES.\n\nKOSTER 1 Sanity point.\n\nBONUSTERNING: kasteren kan investere magic points tilsvarende en femtedel av vesenets POW — altså 16 — for å få en bonusterning. Men hen vet ikke polyppens POW, så det er et sjansespill. Et vellykket Cthulhu Mythos-slag gir riktig antall. Franz har Mythos 10, og det er hans øyeblikk.\n\nLYKKES DET, faller polyppen under kasterens kommando og kan beordres ned i dypet igjen."
+        }
+      ]
+    },
+    {
+      "id": "water",
+      "title": "Vann, drukning og et skip som synker",
+      "source": "Call of Cthulhu 7e kapittel 6, og Slow Boat to China",
+      "sourced": "reconstructed",
+      "intro": "Hele sluttspillet foregår på et skip som går ned. Dagrun har Swim 30 %, Beefcake 25 %, og de tre andre har ingenting skrevet. Dette kommer til å avgjøre hvem som overlever.\n\nSeksjonene under er skrevet ut fra reglene — kapittel 6 er ikke i utgaven av regelboka jeg har som tekst. Tallene er de vanlige; juster dem gjerne, men vær konsekvent gjennom hele finalen.",
+      "sections": [
+        {
+          "title": "Når slår man Swim?",
+          "source": "verbatim",
+          "body": "Bokas egen regel, fra ferdighetsbeskrivelsen: «Slå bare Swim i kriser eller fare, eller når Keeperen finner det passende. Et mislykket pushet Swim-slag kan koste hit points. Det kan også føre til at personen blir dratt med av strømmen.»\n\nVANLIG VANSKEGRAD: å svømme i en rask strøm.\nHARD: å svømme mot en rask strøm fullt påkledd, eller i dårlig vær.\n\nÅ holde seg flytende i rolig vann krever ikke slag i det hele tatt. Det er når skipet krenger, når bølgene går, og når klærne og skoene blir tunge, at slaget kommer."
+        },
+        {
+          "title": "Å drukne",
+          "source": "reconstructed",
+          "body": "Den som havner under vann og ikke kommer seg opp, holder pusten i et antall runder lik CON delt på 5. Franz har CON 30 og klarer seks runder; Beefcake har CON 75 og klarer femten.\n\nEtter det kreves et CON-slag hver runde for å holde ut. Første mislykkede slag betyr at hen puster inn vann og begynner å drukne: 1D6 skade per runde til hen kommer opp eller dør.\n\nEn bevisstløs person i vann drukner uten slag.\n\nÅ REDDE NOEN: en Swim-slag på Hard vanskegrad for å få en panisk person med seg opp. Den som drukner, klamrer seg fast — er redningsmannens Build lavere enn den druknendes, går begge under. Dagrun (Build −1) kan ikke redde Beefcake (Build 2).\n\nFørstehjelp på en som er trukket opp: et First Aid-slag gjenoppliver. Boka nevner det uttrykkelig som noe First Aid dekker."
+        },
+        {
+          "title": "Kaldt vann",
+          "source": "reconstructed",
+          "body": "Stillehavet utenfor Japan i desember holder rundt fjorten grader. Det er ikke iskaldt, men det er langt under kroppstemperatur.\n\nCON-slag etter ti minutter i vannet, og deretter hvert tiende minutt. Hvert mislykket slag gir 1 HP og en straffeterning på alt fysisk til personen er tørr og varm igjen. Etter en halvtime begynner de som ikke er kommet opp å miste bevisstheten.\n\nDETTE ER KLOKKA I FINALEN. Livbåtene tar tid å fire ned. Si tallene høyt: «Det er gått ti minutter.»"
+        },
+        {
+          "title": "Skipet som går ned",
+          "source": "scenario + reconstructed",
+          "body": "Polyppen river et hull i skroget. Coolidge tar inn vann og krenger, og det er bare et spørsmål om tid.\n\nBoka sier: SPØR HELTENE HVA DE VIL GJØRE. Løper de til livbåtene og tenker bare på seg selv, eller hjelper de så mange som mulig — leter etter innesperrede passasjerer, får kvinner og barn i båtene?\n\nSVARET ER VERDT SANITY:\n  +1D10 for å prøve å redde så mange som mulig fra å drukne\n  −1D10+2 for å forlate skipet uten tanke på andre\n\nEt krengende dekk er glatt og skrått: Hard DEX for å løpe, vanlig for å gå. Dører under vannlinjen kan ikke åpnes mot vanntrykket — Extreme STR, eller finn en annen vei. En livbåt tar tid å fire ned, og går skjevt hvis bare én ende fires.\n\nOverlevende plukkes opp i løpet av noen timer."
+        }
+      ]
+    },
+    {
+      "id": "hazards",
+      "title": "Fall, ild, elektrisitet og syre",
+      "source": "Call of Cthulhu 7e kapittel 6",
+      "sourced": "reconstructed",
+      "intro": "Taktikkortene sender deg mot dampledninger, oversvømte lasterom og brann i trange korridorer. Her er tallene, så du slipper å finne på dem midt i en kamp.\n\nSkrevet ut fra reglene; kapittel 6 er ikke i utgaven jeg har som tekst.",
+      "sections": [
+        {
+          "title": "Fall",
+          "source": "reconstructed",
+          "body": "1D6 skade per tre meter fall. Et Jump-slag halverer skaden — scenarioet bruker akkurat denne regelen når noen klatrer i skroget og faller (3D6, halvert med Jump).\n\nEt fall ned i et lasterom fra lukekarmen er typisk seks–ni meter: 2D6 til 3D6.\n\nDen som faller på noe hardt og kantete — en Packard, en traktor — kan få en ekstra terning etter Keeperens skjønn."
+        },
+        {
+          "title": "Ild og damp",
+          "source": "reconstructed",
+          "body": "Å bli utsatt for åpen ild: 1D6 per runde, og klærne kan ta fyr. En fakkel som treffer: 1D6.\n\nSKÅLDENDE DAMP fra en brukket ledning i maskinrommet: 2D6 til alle innenfor tre meter i det den ryker, og deretter 1D6 per runde så lenge man blir i rommet. Rommet fylles og sikten går.\n\nRøyk: CON-slag hver runde for å holde seg ved bevissthet, med økende vanskegrad.\n\nBRANN SPRER SEG. Gi den en klokke, som taktikkortet sier: så mange runder før den når neste rom."
+        },
+        {
+          "title": "Elektrisitet",
+          "source": "reconstructed",
+          "body": "Et støt fra skipets høyspentanlegg: 1D10 og et CON-slag for ikke å bli slått ut. Vann i rommet gjør at hele flaten leder — alle som står i vannet tar skaden.\n\nDette er verdt å merke seg mot polyppen: den tar FULL skade fra elektriske angrep, og bare minste mulige fra fysiske. En knekt høyspentkabel i et oversvømt lasterom er et bedre våpen enn noe gruppa bærer på."
+        },
+        {
+          "title": "Syre",
+          "source": "scenario",
+          "body": "Saltsyren i glassballongene i lasterom 7 gjør 1D10 PER RUNDE og IGNORERER RUSTNING. Scenarioet sier det uttrykkelig som en av måtene å skade polyppen på.\n\nDet er det eneste kjemiske våpenet om bord, det står oppgitt i klartekst, og spillerne finner det bare hvis de har vært nede i lasterom 7 før finalen. Det er en belønning for å ha utforsket — ikke gi den bort."
+        }
+      ]
+    }
+  ]
+}

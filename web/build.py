@@ -23,6 +23,8 @@ WEAPONS_FILE = os.path.join(ROOT, "weapons.json")
 TALENTS_FILE = os.path.join(BESTIARY_DIR, "talents.json")
 ABILITIES_FILE = os.path.join(BESTIARY_DIR, "abilities.json")
 TALENT_RULES_FILE = os.path.join(BESTIARY_DIR, "talent_rules.json")
+KEEPER_RULES_FILE = os.path.join(BESTIARY_DIR, "keeper_rules.json")
+SKILLS_FILE = os.path.join(BESTIARY_DIR, "skills.json")
 
 SKELETON = """<!doctype html>
 <html lang="nb">
@@ -61,7 +63,8 @@ def main():
     if os.path.isdir(BESTIARY_DIR):
         for name in sorted(os.listdir(BESTIARY_DIR)):
             if not name.endswith(".json") or name in (
-                    "talents.json", "abilities.json", "talent_rules.json"):
+                    "talents.json", "abilities.json", "talent_rules.json",
+                    "keeper_rules.json", "skills.json"):
                 continue
             with open(os.path.join(BESTIARY_DIR, name),
                       encoding="utf-8") as fh:
@@ -85,10 +88,15 @@ def main():
     if os.path.exists(ABILITIES_FILE):
         with open(ABILITIES_FILE, encoding="utf-8") as fh:
             abilities = json.load(fh)
-    talent_rules = {"rules": []}
-    if os.path.exists(TALENT_RULES_FILE):
-        with open(TALENT_RULES_FILE, encoding="utf-8") as fh:
-            talent_rules = json.load(fh)
+    def load(path, empty):
+        if not os.path.exists(path):
+            return empty
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh)
+
+    talent_rules = load(TALENT_RULES_FILE, {"rules": []})
+    keeper_rules = load(KEEPER_RULES_FILE, {"rules": []})
+    skills = load(SKILLS_FILE, {"skills": []})
 
     page = template.replace("/*__SCENARIOS__*/", embed(scenarios))
     page = page.replace("/*__BESTIARY__*/", embed(bestiary))
@@ -96,6 +104,8 @@ def main():
     page = page.replace("/*__TALENTS__*/", embed(talents))
     page = page.replace("/*__ABILITIES__*/", embed(abilities))
     page = page.replace("/*__TALENT_RULES__*/", embed(talent_rules))
+    page = page.replace("/*__KEEPER_RULES__*/", embed(keeper_rules))
+    page = page.replace("/*__SKILLS__*/", embed(skills))
 
     app_path = os.path.join(HERE, "app.html")
     with open(app_path, "w", encoding="utf-8") as fh:
@@ -116,7 +126,9 @@ def main():
           f"{len(weapons.get('weapons', []))} våpen, "
           f"{len(talents.get('talents', []))} talenter og "
           f"{len(abilities.get('entries', []))} spesialregelsett og "
-          f"{len(talent_rules.get('rules', []))} regelbokser bygget inn")
+          f"{len(talent_rules.get('rules', [])) + len(keeper_rules.get('rules', []))} "
+          f"regelbokser og {len(skills.get('skills', []))} "
+          f"ferdighetsoppslag bygget inn")
 
 
 if __name__ == "__main__":

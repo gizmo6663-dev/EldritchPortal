@@ -64,6 +64,73 @@ async def main():
         await pg2.evaluate("setView('npcs')"); await pg2.wait_for_timeout(300)
         n = await pg2.evaluate("(()=>{state.query='polyp';render();return document.querySelectorAll('.entry').length;})()")
         print("npc search 'polyp' ->", n, "rows")
+        # --- REGELBOKSER OG FERDIGHETSOPPSLAG
+        banks=await pg.evaluate("""() => ({
+            keeper: state.keeperRules ? state.keeperRules.rules.length : 0,
+            talent: state.talentRules ? state.talentRules.rules.length : 0,
+            skills: state.skillBook ? state.skillBook.skills.length : 0,
+            unsourced: (state.keeperRules ? state.keeperRules.rules : [])
+              .reduce((a,r)=>a.concat((r.sections||[])
+                .filter(s=>!s.source).map(s=>r.id+': '+s.title)), []),
+        })""")
+        print("regelbanker:", banks)
+        assert banks["keeper"] >= 4, banks
+        assert banks["skills"] >= 50, banks
+        # Hver seksjon må si om den er sitat eller skrevet ut.
+        assert not banks["unsourced"], banks
+
+        await pg.evaluate("setView('reference')"); await pg.wait_for_timeout(500)
+        ref=await pg.evaluate("""() => ({
+            groups: [...document.querySelectorAll('#main .day-head h3')]
+                      .map(x=>x.textContent),
+            boxes: [...document.querySelectorAll('#main .pickrow .entry-title')]
+                      .map(x=>x.textContent),
+        })""")
+        print("regelfanen:", ref["groups"])
+        assert ref["groups"] == ["Dette scenarioet", "Regelbok", "Ferdigheter"], ref
+        for t in ("Galskap — når Sanity ryker", "Formlene i dette scenarioet",
+                  "Vann, drukning og et skip som synker"):
+            assert t in ref["boxes"], (t, ref["boxes"])
+
+        # Søk skal nå også finne formler og ferdigheter.
+        for q, want in (("dominate", "Formlene i dette scenarioet"),
+                        ("drukne", "Vann, drukning og et skip som synker"),
+                        ("psychology", "Psychology")):
+            await pg.evaluate("(q) => { state.query = q; render(); }", q)
+            await pg.wait_for_timeout(250)
+            rows=await pg.evaluate(
+                "() => [...document.querySelectorAll('#main .entry-title')].map(x=>x.textContent)")
+            assert want in rows, (q, rows)
+            print(f"  søk «{q}» -> {want}")
+        await pg.evaluate("() => { state.query=''; render(); }")
+
+        # Ferdighetsnavnene på et karakterkort skal være klikkbare.
+        chars2=json.load(open(os.path.join(REPO,"characters.json")))
+        await pg.evaluate("""async (l) => { state.characters = l.map(normalizeChar);
+            await saveCharacters(); render(); }""", chars2)
+        unlinked=await pg.evaluate("""(l) => { const out=[];
+            l.map(normalizeChar).forEach(c => {
+              Object.keys(c.skills||{}).forEach(k => {
+                if (!lookupSkill(k)) out.push(c.name + ' :: ' + k); });
+            }); return [...new Set(out)]; }""", chars2)
+        print("ferdigheter uten oppslag:", unlinked or "ingen")
+        assert not unlinked, unlinked
+
+        await pg.evaluate("setView('characters')"); await pg.wait_for_timeout(300)
+        await pg.evaluate("() => openCharacter(state.characters.find(c=>c.name==='Franz'))")
+        await pg.wait_for_timeout(300)
+        await pg.evaluate("""() => [...document.querySelectorAll('#modal-body .skilllink')]
+            .find(x=>/Stealth/.test(x.textContent)).click()""")
+        await pg.wait_for_timeout(300)
+        sk=await pg.evaluate("""() => ({
+            title: document.getElementById('modal-title').firstChild.textContent,
+            sub: document.getElementById('modal-sub').textContent,
+            depth: modalStack.length })""")
+        print("ferdighetsoppslag fra kortet:", sk)
+        assert sk["title"] == "Stealth" and sk["depth"] == 2, sk
+        assert "20%" in sk["sub"], sk
+        await pg.evaluate("closeAllModals()")
+
         # --- REPLIKKER OG ROLLESPILL I SCENENE
         d=await pg.evaluate("""() => { const b=state.scenario.beats;
             return {scenes: b.length,

@@ -804,6 +804,10 @@ table.skills .steps { margin-left: 10px; }
 .chip.talent.known:hover { background: var(--brass-glow); }
 .chip.talent:not(.known) { border-style: dashed; }
 .section-label.chosen { color: var(--brass); border-bottom-color: var(--brass-dim); }
+.section-label { display: flex; align-items: baseline; gap: 8px;
+  flex-wrap: wrap; justify-content: space-between; }
+.skilllink { font: inherit; color: inherit; }
+.skilllink:hover { color: var(--brass); text-decoration: underline; }
 .btn.primary[disabled] { opacity: 0.4; cursor: not-allowed; }
 .cb-name { flex: 1; min-width: 0; display: block; }
 .cb-name b {
@@ -1015,6 +1019,8 @@ table.skills .steps { margin-left: 10px; }
 <script type="application/json" id="bundled-talents">/*__TALENTS__*/</script>
 <script type="application/json" id="bundled-abilities">/*__ABILITIES__*/</script>
 <script type="application/json" id="bundled-talent-rules">/*__TALENT_RULES__*/</script>
+<script type="application/json" id="bundled-keeper-rules">/*__KEEPER_RULES__*/</script>
+<script type="application/json" id="bundled-skills">/*__SKILLS__*/</script>
 
 <script>
 "use strict";
@@ -1119,6 +1125,8 @@ const state = {
   talents: null,      // innebygd talentoppslag, skrivebeskyttet
   abilities: null,    // innebygde spesialregler for skapninger
   talentRules: null,  // reglene talentene viser videre til
+  keeperRules: null,  // regelbokser til bruk ved bordet
+  skillBook: null,    // ferdighetsoppslag fra regelboka
   combat: null,       // { active, round, turn, combatants, log }
   view: "overview",
   query: "",
@@ -2100,14 +2108,24 @@ function openCharacter(pc) {
         const wrap = el("div", { class: "tablewrap" });
         const table = el("table", { class: "skills" });
         Object.keys(c.skills).sort().forEach((k) => {
-          table.appendChild(el("tr", null, [
-            el("td", { text: k }),
-            skillValueCell(c.skills[k], "%"),
-          ]));
+          // Navnet er klikkbart når ferdigheten finnes i regelboka.
+          const known = lookupSkill(k);
+          const cell = el("td", null, [
+            known
+              ? el("button", { class: "linkish skilllink", type: "button",
+                               title: "Hva ferdigheten dekker",
+                               text: k, onclick: () => openSkill(k, known) })
+              : el("span", { text: k }),
+          ]);
+          table.appendChild(el("tr", null, [cell,
+                                            skillValueCell(c.skills[k], "%")]));
         });
         wrap.appendChild(table);
         body.appendChild(wrap);
-        body.appendChild(stepsLegend());
+        body.appendChild(el("p", { class: "steps-legend",
+          text: "Tallene etter verdien er hard (halv) og extreme " +
+                "(femtedel). Trykk på navnet for å se hva ferdigheten " +
+                "dekker." }));
       }
 
       if (c.talents || c.insane_talents) {
@@ -2558,6 +2576,166 @@ function viewList(root, section, title, lede, placeholder) {
   const stack = el("div", { class: "stack" });
   items.forEach((it) => stack.appendChild(entryRow(it, section)));
   root.appendChild(stack);
+}
+
+/* Regler-fanen: scenarioets egne oppslag først, og under dem
+   regelbokser og ferdighetsoppslag fra bøkene — det man ellers måtte
+   bla etter midt i en økt.                                        */
+function viewReference(root) {
+  root.appendChild(el("h1", { text: "Regler og oppslag" }));
+  root.appendChild(el("p", { class: "lede",
+    text: "Skipsdata, terningslag og sanity-belønninger fra scenarioet, " +
+          "og under dem reglene fra bøkene: galskap, formler, drukning, " +
+          "farer og hele ferdighetslista." }));
+  root.appendChild(searchBar("Søk i regler, formler og ferdigheter…"));
+  root.appendChild(el("div", { style: "height:12px" }));
+
+  const q = state.query.toLowerCase();
+  let found = 0;
+
+  function block(title, count, rows) {
+    if (!rows.children.length) return;
+    found += count;
+    const sec = el("section", { class: "day" }, [
+      el("div", { class: "day-head" }, [
+        el("h3", { text: title }),
+        el("span", { text: String(count) }),
+      ]),
+    ]);
+    sec.appendChild(rows);
+    root.appendChild(sec);
+  }
+
+  // --- scenarioets egne oppslag
+  const scen = visible(state.scenario.reference || [], "reference");
+  const scenRows = el("div", { class: "stack" });
+  scen.forEach((it) => scenRows.appendChild(entryRow(it, "reference")));
+  block("Dette scenarioet", scen.length, scenRows);
+
+  // --- regelbokser fra bøkene
+  const boxes = [];
+  [state.keeperRules, state.talentRules].forEach((bank) => {
+    if (bank) (bank.rules || []).forEach((r) => boxes.push(r));
+  });
+  const hitBoxes = boxes.filter((r) => !q ||
+    [r.title, r.source, r.intro,
+     (r.sections || []).map((x) => x.title + " " + x.body).join(" ")]
+      .filter(Boolean).join(" ").toLowerCase().indexOf(q) !== -1);
+  const boxRows = el("div", { class: "stack" });
+  hitBoxes.forEach((r) => {
+    boxRows.appendChild(el("button", {
+      class: "entry pickrow", type: "button",
+      onclick: () => openRuleBox(r),
+    }, [
+      el("span", { class: "entry-body" }, [
+        el("span", { class: "entry-title", text: r.title }),
+        el("span", { class: "entry-sub", text: r.source || "" }),
+        el("span", { class: "entry-sub",
+          text: (r.sections || []).map((x) => x.title).join(" · ") }),
+      ]),
+      el("span", { class: "entry-open", text: "ÅPNE" }),
+    ]));
+  });
+  block("Regelbok", hitBoxes.length, boxRows);
+
+  // --- ferdighetsoppslag
+  const all = (state.skillBook && state.skillBook.skills) || [];
+  const hitSkills = all.filter((sk) => !q ||
+    (sk.name + " " + sk.description + " " +
+     (sk.difficulty || []).join(" ")).toLowerCase().indexOf(q) !== -1);
+  const skillRows = el("div", { class: "stack" });
+  // Uten søk er lista lang; da vises den bare som en inngang.
+  const show = q ? hitSkills : [];
+  show.forEach((sk) => skillRows.appendChild(skillRow(sk)));
+  if (!q && all.length) {
+    skillRows.appendChild(el("button", {
+      class: "entry pickrow", type: "button",
+      onclick: () => openSkillList(),
+    }, [
+      el("span", { class: "entry-body" }, [
+        el("span", { class: "entry-title", text: "Hele ferdighetslista" }),
+        el("span", { class: "entry-sub",
+          text: all.length + " ferdigheter med beskrivelse og hva et " +
+                "hardt slag betyr" }),
+      ]),
+      el("span", { class: "entry-open", text: "ÅPNE" }),
+    ]));
+  }
+  block("Ferdigheter", q ? hitSkills.length : all.length, skillRows);
+
+  if (q && !found) root.appendChild(emptyBox("Ingen treff."));
+}
+
+function skillRow(sk) {
+  return el("button", {
+    class: "entry pickrow", type: "button",
+    onclick: () => openSkill(sk.name, sk),
+  }, [
+    el("span", { class: "entry-body" }, [
+      el("span", { class: "entry-title", text: sk.name }),
+      el("span", { class: "entry-sub", text: sk.description.slice(0, 110) }),
+    ]),
+    el("span", { class: "entry-open", text: sk.base }),
+  ]);
+}
+
+function openSkillList() {
+  const all = (state.skillBook && state.skillBook.skills) || [];
+  openModal("Ferdigheter", state.skillBook ? state.skillBook.source : "",
+    (body) => {
+      const stack = el("div", { class: "stack" });
+      all.forEach((sk) => stack.appendChild(skillRow(sk)));
+      body.appendChild(stack);
+    }, []);
+}
+
+// Slår opp en ferdighet på navn. Karakterarkene bruker egne
+// skrivemåter — «Mech. Repair», «Science (Biology)» — så både alias og
+// spesialiseringer må finne fram til grunnoppslaget.
+function lookupSkill(name) {
+  const raw = String(name || "").trim().toLowerCase();
+  if (skillIndex[raw]) return skillIndex[raw];
+  const base = raw.replace(/\s*\(.*\)\s*$/, "").trim();
+  if (skillIndex[base]) return skillIndex[base];
+  return skillIndex[base + " (specializations)"] || null;
+}
+
+function openSkill(name, sk) {
+  const s = sk || lookupSkill(name);
+  openModal(s ? s.name : name, s ? "Grunnverdi " + s.base : "Ukjent ferdighet",
+    (body) => {
+      if (!s) {
+        body.appendChild(el("p", { class: "prose",
+          text: "Denne ferdigheten står ikke i utgaven av regelboka som " +
+                "er lest inn." }));
+        return;
+      }
+      body.appendChild(el("p", { class: "prose", text: s.description }));
+      if ((s.difficulty || []).length) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Hva slagene betyr" }));
+        const ul = el("ul", { class: "bullets" });
+        s.difficulty.forEach((d) => ul.appendChild(el("li", { text: d })));
+        body.appendChild(ul);
+      }
+      if (s.pushing) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Å pushe slaget" }));
+        body.appendChild(el("p", { class: "prose", text: s.pushing }));
+      }
+      if (s.pushed_failure) {
+        body.appendChild(el("div", { class: "section-label",
+                                     text: "Når et pushet slag ryker" }));
+        body.appendChild(el("p", { class: "prose", text: s.pushed_failure }));
+      }
+      if (s.insane) {
+        body.appendChild(el("p", { class: "caveat", text: s.insane }));
+      }
+      if (state.skillBook && state.skillBook.note) {
+        body.appendChild(el("p", { class: "caveat",
+                                   text: state.skillBook.note }));
+      }
+    }, []);
 }
 
 /* ----------------------------- NPCer ---------------------------- */
@@ -3506,12 +3684,26 @@ function openRuleBox(rule, highlight) {
         (x) => x.title.toLowerCase() === String(highlight).toLowerCase());
       if (i > 0) secs.unshift(secs.splice(i, 1)[0]);
     }
+    const SRC_LABEL = {
+      "verbatim": "ordrett fra boka",
+      "reconstructed": "skrevet ut fra reglene",
+      "scenario": "fra scenarioet",
+      "scenario + reconstructed": "scenariotall + reglene",
+      "eget": "til dette bordet",
+    };
     secs.forEach((sec) => {
       const on = highlight &&
         sec.title.toLowerCase() === String(highlight).toLowerCase();
-      body.appendChild(el("div", {
-        class: "section-label" + (on ? " chosen" : ""),
+      const head = el("div", {
+        class: "section-label" + (on ? " chosen" : "") });
+      head.appendChild(el("span", {
         text: sec.title + (on ? "  ← valgt" : "") }));
+      // Hva som er sitat og hva som er skrevet ut, skal alltid stå.
+      const tag = SRC_LABEL[sec.source];
+      if (tag) {
+        head.appendChild(el("span", { class: "line-src", text: tag }));
+      }
+      body.appendChild(head);
       body.appendChild(el("p", { class: "prose", text: sec.body }));
     });
   }, []);
@@ -5056,12 +5248,15 @@ function buildResolve(body, getApplyBtn) {
       out.push({ key: "dive", label: "Dykk i dekning",
                  hint: "Unnvikelse mot skytevåpen. Koster neste handling." });
       out.push({ key: "dodge", label: "Unnvik likevel",
-                 hint: "Normalt ikke lov mot skytevåpen — bare om du som " +
-                       "Keeper tillater det." });
+                 hint: "Kuler kan ikke unnvikes — de kan ikke ses i " +
+                       "bevegelse. Bruk bare dette om du som Keeper " +
+                       "tillater det." });
     } else {
       out.push({ key: "dodge", label: "Unnvik",
                  hint: "Motsatt slag mot Unnvikelse. Vinner forsvareren, " +
-                       "treffer ikke angrepet." });
+                       "treffer ikke angrepet. Kan brukes så mange " +
+                       "ganger man blir angrepet, men bare én gang mot " +
+                       "det samme angrepet. Kan ikke pushes." });
       out.push({ key: "fightback", label: "Slå tilbake",
                  hint: "Motsatt slag med eget våpen. Vinner forsvareren, " +
                        "er det angriperen som tar skaden. Én gang per runde." });
@@ -5120,8 +5315,8 @@ function buildResolve(body, getApplyBtn) {
       if (f.target.reacted === state.combat.round && state.combat.round) {
         fbPick.appendChild(el("p", { class: "caveat",
           text: f.target.name + " har alt slått tilbake denne runden. " +
-                "Man kan slå tilbake én gang per runde, men unnvike " +
-                "så mange ganger man blir angrepet." }));
+                "Unnvikelse kan brukes så mange ganger man blir " +
+                "angrepet — men bare én gang mot det samme angrepet." }));
       }
     }
   }
@@ -6158,11 +6353,7 @@ function render() {
         "Søk i steder…");
       break;
     case "handouts":  viewHandouts(root); break;
-    case "reference":
-      viewList(root, "reference", "Regler og oppslag",
-        "Skipsdata, terningslag, sanity-belønninger og valgfrie moduler.",
-        "Søk i oppslag…");
-      break;
+    case "reference": viewReference(root); break;
     case "tactics":   viewTactics(root); break;
     case "notes":     viewNotes(root); break;
     case "sessions":  viewSessions(root); break;
@@ -6225,6 +6416,22 @@ function loadBestiary() {
   const tr = loadBundled("bundled-talent-rules");
   state.talentRules = (tr && Array.isArray(tr.rules)) ? tr : null;
 
+  const kr = loadBundled("bundled-keeper-rules");
+  state.keeperRules = (kr && Array.isArray(kr.rules)) ? kr : null;
+
+  const sk = loadBundled("bundled-skills");
+  state.skillBook = (sk && Array.isArray(sk.skills)) ? sk : null;
+  // Oppslag på små bokstaver, inkludert alias fra karakterarkene.
+  skillIndex = {};
+  if (state.skillBook) {
+    state.skillBook.skills.forEach((x) => {
+      skillIndex[x.name.toLowerCase()] = x;
+      (x.aliases || []).forEach((a) => {
+        if (!skillIndex[a.toLowerCase()]) skillIndex[a.toLowerCase()] = x;
+      });
+    });
+  }
+
   const t = loadBundled("bundled-talents");
   state.talents = (t && Array.isArray(t.talents)) ? t : null;
   // Oppslag på små bokstaver, så «rapid fire» finner «Rapid Fire».
@@ -6237,6 +6444,7 @@ function loadBestiary() {
 }
 
 let talentIndex = {};
+let skillIndex = {};
 
 async function loadRoster() {
   // Alle roller normaliseres ved innlasting, slik at gamle filer fra
