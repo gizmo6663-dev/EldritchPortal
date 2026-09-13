@@ -106,7 +106,7 @@ async def main():
             return {
               rader: document.querySelectorAll('#main .entry').length,
               merker: document.querySelectorAll('#main .streamtag').length,
-              koblet: document.querySelectorAll('#main .entry.linked').length,
+              koblet: document.querySelectorAll('#main .logline.linked').length,
               typer: [...new Set([...document.querySelectorAll('#main .streamtag')]
                        .map(x => x.textContent))].sort(),
             }; }""")

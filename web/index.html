@@ -25,6 +25,10 @@ img { max-width: 100%; }
 :root {
   color-scheme: dark;
 
+  /* Hurtiglinja nederst er ikke der uten et aktivt scenario, og da
+     skal ingenting gi plass til den heller. */
+  --quickh: 0px;
+
   --ink:        #0E0709;   /* skrogsvart, med et rødt anslag */
   --ink-2:      #170D11;   /* panel */
   --ink-3:      #23141A;   /* hevet flate */
@@ -223,7 +227,7 @@ a { color: var(--brass); }
 .main {
   grid-area: main;
   padding: var(--gutter);
-  padding-block: 24px 72px;
+  padding-block: 24px calc(72px + var(--quickh));
   min-width: 0;
 }
 .view { max-width: 72ch; margin-inline: auto; }
@@ -609,7 +613,7 @@ textarea.field { resize: vertical; line-height: 1.6; }
 .empty h3 { font-family: var(--ui); color: var(--parchment); margin: 0 0 6px; }
 
 .toast {
-  position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+  position: fixed; left: 50%; bottom: calc(26px + var(--quickh)); transform: translateX(-50%);
   z-index: 90;
   background: var(--ink-3); border: 1px solid var(--brass-dim);
   color: var(--brass); border-radius: 999px;
@@ -1013,6 +1017,93 @@ table.skills .steps { margin-left: 10px; }
 
 /* ----------------------- smale skjermer ------------------------ */
 
+
+/* ==================================================================
+   HURTIGNOTAT
+
+   Den ligger fast nederst på alle faner, og skriver én tidsstemplet
+   linje inn i nyeste sesjon. Poenget er at avstanden fra «det skjedde
+   noe» til «det står skrevet» skal være ett felt og én enter — ingen
+   fanebytte, ingen tapt tråd i spillet.
+   ================================================================== */
+
+body.quickon { --quickh: 62px; }
+
+.quickbar {
+  position: fixed;
+  left: var(--rail); right: 0; bottom: 0;
+  z-index: 70;
+  background: var(--ink-2);
+  border-top: 1px solid var(--rule);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.45);
+  padding: 10px var(--gutter);
+}
+.quickbar[hidden] { display: none !important; }
+.quickbar form {
+  display: flex; align-items: center; gap: 8px;
+  max-width: 1080px; margin-inline: auto;
+}
+.quickbar .field { flex: 1 1 160px; min-width: 0; margin: 0; }
+.quickbar .quick-where {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--faint); white-space: nowrap;
+}
+
+/* Merkelappen for raden man logget fra. Den står der til man har
+   skrevet ferdig, slik at notatet henger på riktig spor. */
+.quickref {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--brass); border: 1px solid var(--brass-dim);
+  background: var(--brass-glow);
+  border-radius: 999px; padding: 3px 8px; max-width: 34ch;
+}
+.quickref span {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.quickref button { color: var(--brass); font-size: 13px; line-height: 1; }
+
+/* Loggknappen ved siden av hver rad i Økta. Radene er selv knapper, så
+   den kan ikke ligge inni dem — de står side om side i stedet. */
+.logline { display: flex; align-items: stretch; gap: 6px; }
+.logline > .entry { flex: 1 1 auto; min-width: 0; }
+.logline.linked { margin-left: 18px; }
+.logline.linked > .entry { border-left-style: dashed; }
+.logbtn {
+  flex: none; width: 42px;
+  border: 1px solid var(--rule-soft); border-radius: 6px;
+  background: var(--ink-2); color: var(--faint);
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+}
+.logbtn:hover { color: var(--brass); border-color: var(--brass-dim); }
+
+/* Loggen slik den står i sesjonen etterpå. */
+.logrow {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid var(--rule-soft);
+}
+.logrow:last-child { border-bottom: none; }
+.logrow time {
+  font-family: var(--mono); font-size: 11px; color: var(--brass-dim);
+  font-variant-numeric: tabular-nums; flex: none;
+}
+.logrow p { margin: 0; flex: 1 1 auto; min-width: 0; font-size: 14px; }
+.logrow .logwhere { font-family: var(--mono); font-size: 10px; color: var(--faint); }
+.logrow .logdrop { flex: none; color: var(--faint); font-size: 15px; line-height: 1; }
+.logrow .logdrop:hover { color: var(--signal); }
+.logrow.merged p { color: var(--muted); }
+
+@media (max-width: 860px) {
+  .quickbar { left: 0; }
+  .quickbar .quick-where { display: none; }
+  /* På en telefon er det feltet som må ha plassen. Merkelappen legger
+     seg på egen linje over i stedet for å klemme feltet i hjel. */
+  .quickbar form { flex-wrap: wrap; }
+  .quickref { order: -1; flex: 1 0 100%; max-width: 100%; }
+  body.quickon { --quickh: 58px; }
+}
+
 @media (max-width: 860px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
@@ -1038,7 +1129,7 @@ table.skills .steps { margin-left: 10px; }
   }
   .navlink[aria-current="page"] { border-left: none; border-bottom-color: var(--brass); }
   .navlink .count { margin-left: 6px; }
-  .main { padding-block: 18px 64px; }
+  .main { padding-block: 18px calc(64px + var(--quickh)); }
   .masthead { gap: 10px; padding: 12px var(--gutter); }
   .wordmark { font-size: 17px; }
 }
@@ -1070,6 +1161,20 @@ table.skills .steps { margin-left: 10px; }
   <nav class="rail" id="rail" aria-label="Seksjoner"></nav>
 
   <main class="main" id="main"><div class="view"></div></main>
+</div>
+
+<div class="quickbar" id="quickbar" hidden>
+  <form id="quick-form" autocomplete="off">
+    <span class="quick-where" id="quick-where"></span>
+    <span class="quickref" id="quick-ref" hidden>
+      <span id="quick-ref-text"></span>
+      <button type="button" id="quick-ref-clear" aria-label="Fjern koblingen">&times;</button>
+    </span>
+    <input class="field" id="quick-note" type="text"
+           placeholder="Hurtignotat — skriv og trykk enter (N for markør hit)"
+           aria-label="Hurtignotat til nyeste sesjon">
+    <button class="btn primary small" type="submit">Logg</button>
+  </form>
 </div>
 
 <div class="scrim" id="scrim" hidden>
@@ -1209,6 +1314,7 @@ const state = {
   streamOn: { timeline: true, beats: true, clues: true, locations: true },
   spellBook: null,    // formelbanken
   charFilter: "all",  // all | pc | npc | enemy
+  quickRef: null,     // raden hurtignotatet skal henge på
 };
 
 /* ------------------------- rollelisten -------------------------- */
@@ -2753,7 +2859,21 @@ function streamRow(item, section) {
   const row = entryRow(item, section);
   const body = row.querySelector(".entry-body");
   if (body) body.insertBefore(streamBadge(section), body.firstChild);
-  return row;
+
+  // Raden er selv en knapp, så loggknappen kan ikke ligge inni den.
+  // Den legger en påbegynt linje i hurtignotatet og setter markøren
+  // bakerst, slik at man bare skriver hva som faktisk skjedde.
+  const log = el("button", {
+    class: "logbtn", type: "button", text: "LOGG",
+    title: "Skriv et notat om «" + (item.title || item.name) + "»",
+    onclick: (e) => {
+      e.stopPropagation();
+      startQuickNote(quickStub(item, section), {
+        id: item.id, section: section, title: item.title || item.name || "",
+      });
+    },
+  });
+  return el("div", { class: "logline" }, [row, log]);
 }
 
 /* ==================================================================
@@ -3475,7 +3595,8 @@ function oneSessionMarkdown(s) {
   const head = "## " + (s.title || "Uten navn") +
                (s.date ? "  \n*" + s.date + "*" : "");
   const body = (s.summary || "").trim() || "*(ingenting skrevet)*";
-  return head + "\n\n" + body + "\n";
+  const log = logMarkdown(s);
+  return head + "\n\n" + body + "\n" + (log ? "\n" + log : "");
 }
 
 /* Hva gruppa har krysset av, seksjon for seksjon. */
@@ -3512,6 +3633,185 @@ function progressMarkdown() {
   return out.join("\n");
 }
 
+/* ==================================================================
+   HURTIGNOTAT OG ØKTLOGG
+
+   En sesjon har et sammendrag man skriver etterpå, og en logg man
+   fyller mens man spiller. Loggen er linjer med klokkeslett, og hver
+   linje husker hvilken fane — og eventuelt hvilket spor eller hvilken
+   scene — den ble skrevet fra. Etterpå flettes de inn i sammendraget,
+   og da er halve oppsummeringen allerede skrevet.
+   ================================================================== */
+
+/* Nyeste sesjon. Finnes ingen, lages den — å måtte trykke «Ny sesjon»
+   først er nøyaktig det steget hurtignotatet skal fjerne. */
+function currentSession() {
+  if (!state.progress) return null;
+  const sessions = state.progress.sessions;
+  if (!sessions.length) {
+    sessions.push({
+      title: "Sesjon 1",
+      date: new Date().toISOString().slice(0, 10),
+      summary: "",
+      log: [],
+    });
+  }
+  const s = sessions[sessions.length - 1];
+  if (!Array.isArray(s.log)) s.log = [];   // sesjoner lagret før loggen fantes
+  return s;
+}
+
+function viewLabel(key) {
+  const hit = VIEWS.filter((v) => v.key === key)[0];
+  return hit ? hit.label : key;
+}
+
+function logTime(entry) {
+  const d = new Date(entry.t);
+  if (isNaN(d.getTime())) return "--:--";
+  return d.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
+}
+
+async function addLogEntry(text) {
+  const body = String(text || "").trim();
+  if (!body) return null;
+  const s = currentSession();
+  if (!s) return null;
+  const ref = state.quickRef;
+  const entry = {
+    t: new Date().toISOString(),
+    text: body,
+    view: viewLabel(state.view),
+  };
+  if (ref) {
+    entry.ref = ref.id;
+    entry.refTitle = ref.title;
+    entry.refSection = ref.section;
+  }
+  s.log.push(entry);
+  await saveProgress();
+  return s;
+}
+
+/* Merkelappen i hurtiglinja: hvilken rad notatet henger på. */
+function renderQuickRef() {
+  const chip = document.getElementById("quick-ref");
+  const label = document.getElementById("quick-ref-text");
+  const ref = state.quickRef;
+  chip.hidden = !ref;
+  if (ref) label.textContent = ref.title;
+  measureQuickBar();
+}
+
+/* Hvor mye plass innholdet over må gi fra seg. Den måles i stedet for
+   å gjettes, for på smal skjerm legger merkelappen seg på egen linje
+   og gjør linja høyere. */
+function measureQuickBar() {
+  const bar = document.getElementById("quickbar");
+  if (!bar) return;
+  document.body.style.setProperty(
+    "--quickh", bar.hidden ? "0px" : bar.offsetHeight + "px");
+}
+
+function setQuickRef(ref) {
+  state.quickRef = ref || null;
+  renderQuickRef();
+}
+
+/* Åpningen på en linje, slik at man bare skriver resten. */
+function quickStub(item, section) {
+  const name = item.title || item.name || "";
+  const stub = { timeline: "Utløst: ", beats: "Scene spilt: ",
+                 clues: "Spor funnet: ", locations: "Besøkte: " }[section]
+             || "";
+  return stub + name + " — ";
+}
+
+function startQuickNote(prefill, ref) {
+  const field = document.getElementById("quick-note");
+  if (!field) return;
+  setQuickRef(ref);
+  if (prefill !== null && prefill !== undefined) field.value = prefill;
+  field.focus();
+  const n = field.value.length;
+  try { field.setSelectionRange(n, n); } catch (e) { /* ikke alle felt */ }
+}
+
+/* Hurtiglinja skal bare stå der den har et sted å skrive til, og den
+   skal si hvilken fane og hvilken sesjon linja havner i. */
+function updateQuickBar() {
+  const bar = document.getElementById("quickbar");
+  if (!bar) return;
+  const on = !!state.progress;
+  bar.hidden = !on;
+  document.body.classList.toggle("quickon", on);
+  if (!on) return;
+  const sessions = state.progress.sessions;
+  const last = sessions.length ? sessions[sessions.length - 1] : null;
+  const n = last && Array.isArray(last.log) ? last.log.length : 0;
+  document.getElementById("quick-where").textContent =
+    viewLabel(state.view) + (last ? " → " + (last.title || "sesjon") : "") +
+    (n ? " · " + n : "");
+  renderQuickRef();
+}
+
+function setupQuickBar() {
+  const form = document.getElementById("quick-form");
+  const field = document.getElementById("quick-note");
+  if (!form) return;
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = field.value;
+    if (!text.trim()) return;
+    const s = await addLogEntry(text);
+    if (!s) { toast("Ingen scenario å logge på"); return; }
+    field.value = "";
+    setQuickRef(null);
+    markSaved();
+    toast("Logget i " + (s.title || "sesjonen"));
+    // Sesjonsfanen viser loggen, så den må tegnes på nytt der.
+    if (state.view === "sessions") render();
+    else updateQuickBar();
+  });
+
+  document.getElementById("quick-ref-clear")
+    .addEventListener("click", () => { setQuickRef(null); field.focus(); });
+  window.addEventListener("resize", measureQuickBar);
+
+  field.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { field.value = ""; setQuickRef(null); field.blur(); }
+  });
+
+  // «N» hvor som helst setter markøren i feltet. Den gjelder bare når
+  // man ikke allerede skriver et sted, ellers ville den spist bokstaver.
+  document.addEventListener("keydown", (e) => {
+    if (e.key !== "n" && e.key !== "N") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" ||
+              t.isContentEditable)) return;
+    if (!document.getElementById("scrim").hidden) return;
+    if (document.getElementById("quickbar").hidden) return;
+    e.preventDefault();
+    startQuickNote(undefined, state.quickRef);
+  });
+}
+
+/* Loggen som markdown, til eksporten. */
+function logMarkdown(s) {
+  const log = (s && s.log) || [];
+  if (!log.length) return "";
+  const out = ["### Logg underveis", ""];
+  log.forEach((e) => {
+    let line = "- **" + logTime(e) + "** " + e.text;
+    if (e.refTitle) line += "  *(" + e.refTitle + ")*";
+    out.push(line);
+  });
+  out.push("");
+  return out.join("\n");
+}
+
 function sessionsMarkdown(withProgress) {
   const sc = state.scenario || {};
   const out = ["# " + (sc.title || "Spilløkter")];
@@ -3531,11 +3831,79 @@ function sessionsMarkdown(withProgress) {
   return out.join("\n");
 }
 
+/* Loggen slik den ser ut i sesjonsfanen: linjene man skrev underveis,
+   med klokkeslett og hvor de ble skrevt fra. De kan flettes inn i
+   sammendraget, og da markeres de som flettet — ellers ville et nytt
+   trykk lagt dem inn en gang til. */
+function sessionLogBlock(s, save) {
+  const log = Array.isArray(s.log) ? s.log : [];
+  const box = el("div", { style: "margin-top:14px" });
+  if (!log.length) {
+    box.appendChild(el("p", { class: "savestate",
+      text: "Ingen hurtignotater i denne økta ennå." }));
+    return box;
+  }
+
+  const unmerged = log.filter((e) => !e.merged).length;
+  box.appendChild(el("div", { class: "row spread", style: "margin-bottom:6px" }, [
+    el("span", { class: "eyebrow", text: "Logg underveis" }),
+    el("span", { class: "chip",
+                 text: log.length + (log.length === 1 ? " linje" : " linjer") }),
+  ]));
+
+  const list = el("div");
+  log.forEach((e, j) => {
+    const where = [e.refTitle, e.view].filter(Boolean)[0] || "";
+    list.appendChild(el("div", { class: "logrow" + (e.merged ? " merged" : "") }, [
+      el("time", { text: logTime(e) }),
+      el("p", {}, [
+        document.createTextNode(e.text),
+        where ? el("span", { class: "logwhere", text: "  " + where }) : null,
+      ]),
+      el("button", {
+        class: "logdrop", type: "button", text: "\u00d7",
+        "aria-label": "Slett linja",
+        onclick: async () => {
+          log.splice(j, 1);
+          await saveProgress();
+          render();
+        },
+      }),
+    ]));
+  });
+  box.appendChild(list);
+
+  if (unmerged) {
+    box.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
+      el("button", {
+        class: "btn small", type: "button",
+        text: "Flett " + unmerged + " linje" + (unmerged === 1 ? "" : "r") +
+              " inn i sammendraget",
+        title: "Legger linjene nederst i teksten over, så du kan skrive " +
+               "dem om til prosa",
+        onclick: async () => {
+          save.flush();
+          const add = log.filter((e) => !e.merged)
+            .map((e) => logTime(e) + " — " + e.text);
+          s.summary = ((s.summary || "").trim() + "\n\n" + add.join("\n"))
+            .trim();
+          log.forEach((e) => { e.merged = true; });
+          await saveProgress();
+          render();
+          toast("Flettet inn " + add.length + " linje" +
+                (add.length === 1 ? "" : "r"));
+        },
+      }),
+    ]));
+  }
+  return box;
+}
+
 function viewSessions(root) {
   root.appendChild(el("h1", { text: "Sesjoner" }));
   root.appendChild(el("p", { class: "lede",
-    text: "Én oppsummering per spillkveld. Elementer du sender hit fra " +
-          "en scene havner i den nyeste." }));
+    text: "Én oppsummering per spillkveld. Hurtignotater nederst på " +
+          "skjermen havner i loggen til den nyeste." }));
 
   root.appendChild(el("div", { class: "row", style: "margin-bottom:18px" }, [
     el("button", {
@@ -3595,6 +3963,7 @@ function viewSessions(root) {
     panel.appendChild(el("div", { class: "grid-2" }, [title, date]));
     panel.appendChild(el("div", { style: "height:10px" }));
     panel.appendChild(summary);
+    panel.appendChild(sessionLogBlock(s, save));
     panel.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
       el("button", { class: "btn small", type: "button", text: "Eksporter",
         title: "Bare denne økta, som tekstfil",
@@ -7198,6 +7567,7 @@ async function downloadText(filename, text, mime) {
 
 function render() {
   renderRail();
+  updateQuickBar();
 
   const mast = document.getElementById("mast-title");
   const sub = document.getElementById("mast-sub");
@@ -7263,6 +7633,7 @@ function render() {
 async function boot() {
   setupDice();
   armFailsafe();
+  setupQuickBar();
   document.getElementById("save-now").addEventListener("click", async () => {
     const n = flushWrites();
     // Skriv fremdrift og roster på nytt uansett, så knappen betyr det
