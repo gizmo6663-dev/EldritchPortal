@@ -40,6 +40,57 @@ TEMPO = "-8%"
 DYBDE = "+0Hz"
 LYDSTYRKE = "+0%"
 
+# ------------------------------------------------------------------
+# STEMNING
+#
+# Talesyntesen har knapper for fart og tonehøyde, og det er omtrent
+# alt. Det som faktisk gjør en opplesning alvorlig og uhyggelig er hva
+# som skjer etterpå: et rom rundt stemmen, litt varme nedi, toppen
+# dempet, og et jevnt trykk så den ikke spretter.
+#
+# Det gjøres med ffmpeg, og det virker på hvilken som helst stemme —
+# edge-tts, Piper, eller et opptak av deg selv.
+#
+# atempo endrer farten uten å røre tonehøyden. Det er med vilje:
+# asetrate ville senket tonehøyden også, og det er nettopp det som gir
+# den metalliske klangen vi ikke vil ha.
+# ------------------------------------------------------------------
+STEMNINGER = {
+    "ingen": [],
+    # Rolig og alvorlig. Et lite rom, varme i bunnen, dempet topp.
+    "mork": [
+        "atempo=0.96",
+        "highpass=f=70",
+        "equalizer=f=180:t=q:w=1.2:g=2.5",
+        "equalizer=f=3200:t=q:w=1.5:g=-2",
+        "lowpass=f=7600",
+        "aecho=0.85:0.8:38|64:0.16|0.09",
+        "acompressor=threshold=-18dB:ratio=3:attack=8:release=280",
+    ],
+    # Større rom. Som å bli fortalt noe i en kjeller under vannlinja.
+    "krypt": [
+        "atempo=0.93",
+        "highpass=f=60",
+        "asubboost=dry=0.9:wet=0.35:decay=0.6",
+        "equalizer=f=2600:t=q:w=1.5:g=-3",
+        "lowpass=f=6200",
+        "aecho=0.8:0.88:110|210|370:0.32|0.2|0.11",
+        "acompressor=threshold=-20dB:ratio=4:attack=6:release=320",
+    ],
+    # Trådløsen i røykesalongen, 1936. Smalt bånd og litt trykk.
+    "radio": [
+        "atempo=0.97",
+        "highpass=f=320",
+        "lowpass=f=3000",
+        "equalizer=f=1400:t=q:w=1.2:g=3",
+        "acompressor=threshold=-24dB:ratio=6:attack=4:release=180",
+        "aecho=0.9:0.6:18:0.12",
+    ],
+}
+
+# En lav tone under stemmen. Den høres nesten ikke, men den merkes.
+DRONE_HZ = 55
+
 MAANEDER = ["januar", "februar", "mars", "april", "mai", "juni", "juli",
             "august", "september", "oktober", "november", "desember"]
 
@@ -103,6 +154,53 @@ def vask(md):
     return tekst
 
 
+def ffmpeg_sti():
+    """ffmpeg fra stien, eller den pip-installerte om den finnes."""
+    funnet = shutil.which("ffmpeg")
+    if funnet:
+        return funnet
+    try:
+        import imageio_ffmpeg
+        return imageio_ffmpeg.get_ffmpeg_exe()
+    except Exception:
+        return None
+
+
+def legg_paa_stemning(inn, ut, stemning, drone):
+    """Kjører lyden gjennom ffmpeg og legger på rommet."""
+    ff = ffmpeg_sti()
+    if not ff:
+        print("Fant ikke ffmpeg, så stemningen ble hoppet over.\n"
+              "  Termux: pkg install ffmpeg")
+        return False
+    kjede = list(STEMNINGER.get(stemning) or [])
+    if not kjede and not drone:
+        return False
+
+    if drone:
+        # Dronen skal vare like lenge som stemmen, så den klippes etter
+        # den korteste av de to.
+        filter_complex = (
+            "[0:a]" + ",".join(kjede or ["anull"]) + "[tale];"
+            "sine=frequency=%d:sample_rate=44100[bass];"
+            "[bass]volume=%.3f[dronen];"
+            "[tale][dronen]amix=inputs=2:duration=first:dropout_transition=0"
+            ":normalize=0[ut]" % (DRONE_HZ, drone)
+        )
+        kommando = [ff, "-y", "-i", inn, "-filter_complex", filter_complex,
+                    "-map", "[ut]", "-c:a", "libmp3lame", "-q:a", "3", ut]
+    else:
+        kommando = [ff, "-y", "-i", inn, "-af", ",".join(kjede),
+                    "-c:a", "libmp3lame", "-q:a", "3", ut]
+
+    r = subprocess.run(kommando, capture_output=True, text=True)
+    if r.returncode != 0:
+        print("ffmpeg feilet, så lyden er uten stemning:\n" +
+              (r.stderr or "").strip()[-400:])
+        return False
+    return True
+
+
 def spill(fil):
     """Termux først, så det som måtte finnes på en vanlig maskin."""
     if shutil.which("termux-media-player"):
@@ -149,6 +247,15 @@ def main():
                          "for å se hva som faktisk blir lest")
     ap.add_argument("--stemmer", action="store_true",
                     help="list de norske stemmene tjenesten har")
+    ap.add_argument("--stemning", default="ingen",
+                    choices=sorted(STEMNINGER),
+                    help="rom og klang lagt på etterpå med ffmpeg. "
+                         "«mork» er rolig og alvorlig, «krypt» er et "
+                         "større og våtere rom, «radio» er trådløsen "
+                         "i røykesalongen.")
+    ap.add_argument("--drone", type=float, default=0.0, metavar="STYRKE",
+                    help="legg en lav tone under stemmen, f.eks. 0.04. "
+                         "Den høres nesten ikke, men den merkes.")
     args = ap.parse_args()
 
     edge = shutil.which("edge-tts")
@@ -195,6 +302,19 @@ def main():
             os.remove(tmp)
         except OSError:
             pass
+
+    if args.stemning != "ingen" or args.drone:
+        raa = ut + ".raa.mp3"
+        os.replace(ut, raa)
+        try:
+            if not legg_paa_stemning(raa, ut, args.stemning, args.drone):
+                os.replace(raa, ut)      # gi tilbake den rene lyden
+            else:
+                os.remove(raa)
+        except Exception:
+            if os.path.exists(raa):
+                os.replace(raa, ut)
+            raise
 
     print("Skrev " + ut)
     if args.spill:

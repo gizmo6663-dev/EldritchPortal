@@ -181,6 +181,31 @@ tekst og ikke som tegn.
 | `--tekst` | skriver ut hva som faktisk blir lest, uten å lage lyd |
 | `--stemmer` | lister de norske stemmene tjenesten har |
 | `-v`, `--tempo`, `--dybde` | stemme, `--rate` og `--pitch` for edge-tts |
+| `--stemning` | rom og klang lagt på etterpå (se under) |
+| `--drone` | en lav tone under stemmen, f.eks. `0.04` |
+
+**Stemning — der kontrollen faktisk ligger**
+Talesyntesen har knapper for fart og tonehøyde, og det er omtrent alt.
+Det som gjør en opplesning alvorlig er hva som skjer etterpå: et rom
+rundt stemmen, varme i bunnen, dempet topp, og et jevnt trykk. Det
+gjøres med ffmpeg, og virker på hvilken som helst stemme.
+
+| `--stemning` | Hva det er |
+| --- | --- |
+| `mork` | rolig og alvorlig. Lite rom, varme nedi, dempet topp |
+| `krypt` | større og vått rom. Som en kjeller under vannlinja |
+| `radio` | trådløsen i røykesalongen, 1936. Smalt bånd og trykk |
+
+```sh
+python3 tools/opplesing.py sesjon-1.md --stemning krypt --drone 0.04 --spill
+```
+
+Farten endres med `atempo`, som lar tonehøyden være i fred. Det er med
+vilje — `asetrate` ville senket tonehøyden også, og det er nettopp det
+som gir metallisk klang.
+
+Krever ffmpeg: `pkg install ffmpeg` i Termux. Finnes den ikke, sier
+skriptet fra og gir deg lyden uten stemning i stedet for å feile.
 
 ### ⚔️ Kamp
 Sub-faner for kampstøtte:
