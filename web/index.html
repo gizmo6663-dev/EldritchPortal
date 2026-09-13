@@ -1086,10 +1086,10 @@ body.quickon { --quickh: 62px; }
 
 /* Loggknappen ved siden av hver rad i Økta. Radene er selv knapper, så
    den kan ikke ligge inni dem — de står side om side i stedet. */
-.streamline { display: flex; align-items: stretch; gap: 6px; }
-.streamline > .entry { flex: 1 1 auto; min-width: 0; }
-.streamline.linked { margin-left: 18px; }
-.streamline.linked > .entry { border-left-style: dashed; }
+.entryline { display: flex; align-items: stretch; gap: 6px; }
+.entryline > .entry { flex: 1 1 auto; min-width: 0; }
+.entryline.linked { margin-left: 18px; }
+.entryline.linked > .entry { border-left-style: dashed; }
 .logbtn {
   flex: none; width: 42px;
   border: 1px solid var(--rule-soft); border-radius: 6px;
@@ -1113,6 +1113,29 @@ body.quickon { --quickh: 62px; }
 .logrow .logdrop { flex: none; color: var(--faint); font-size: 15px; line-height: 1; }
 .logrow .logdrop:hover { color: var(--signal); }
 .logrow.merged p { color: var(--muted); }
+.anchorchip {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--tide);
+  border: 1px solid rgba(110,139,168,0.4); border-radius: 3px;
+  padding: 1px 6px; white-space: nowrap;
+}
+.anchorchip.none { color: var(--faint); border-color: var(--rule); }
+.anchorchip:hover { color: var(--brass); border-color: var(--brass-dim); }
+
+/* «Nå spiller vi» i hurtiglinja. Den er en knapp, ikke en etikett. */
+.nowbtn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  color: var(--tide); border: 1px solid rgba(110,139,168,0.4);
+  border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+  max-width: 30ch; overflow: hidden; text-overflow: ellipsis;
+}
+.nowbtn:hover { color: var(--brass); border-color: var(--brass-dim); }
+.nowbtn.none { color: var(--faint); border-color: var(--rule); }
+
+.logedit { width: 100%; }
+.logrow p.clickable { cursor: text; }
+.logrow p.clickable:hover { color: var(--parchment); }
+
 .logkind {
   font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
   text-transform: uppercase; color: var(--brass-dim);
@@ -1146,6 +1169,7 @@ body.quickon { --quickh: 62px; }
 @media (max-width: 860px) {
   .quickbar { left: 0; }
   .quickbar .quick-where { display: none; }
+  .nowbtn { max-width: 14ch; }
   /* På en telefon er det feltet som må ha plassen. Merkelappen legger
      seg på egen linje over i stedet for å klemme feltet i hjel. */
   .quickbar form { flex-wrap: wrap; }
@@ -1215,6 +1239,8 @@ body.quickon { --quickh: 62px; }
 <div class="quickbar" id="quickbar" hidden>
   <div class="quickchips" id="quick-chips"></div>
   <form id="quick-form" autocomplete="off">
+    <button class="nowbtn" id="quick-now" type="button"
+            title="Hvor i historien dere er nå. Alt du logger festes her."></button>
     <span class="quick-where" id="quick-where"></span>
     <span class="quickref" id="quick-ref" hidden>
       <span id="quick-ref-text"></span>
@@ -1367,6 +1393,8 @@ const state = {
   quickRef: null,     // raden hurtignotatet skal henge på
   quickKind: null,    // hva slags linje snarveien startet
   writeUp: null,      // sesjonen som står i skrivemodus
+  editLine: null,     // «i:j» — logglinja som redigeres
+  logOrder: "story",  // story | typed
 };
 
 /* ------------------------- rollelisten -------------------------- */
@@ -1455,7 +1483,7 @@ function ensureIds(data) {
 }
 
 function emptyProgress() {
-  return { flags: {}, notes: "", itemNotes: {}, sessions: [] };
+  return { flags: {}, notes: "", itemNotes: {}, sessions: [], now: "" };
 }
 
 function applyProgress(data, prog) {
@@ -2247,7 +2275,7 @@ function modalActions(item, section) {
   if (item.id && state.progress) {
     buttons.push(el("button", {
       class: "btn small", type: "button", text: "Til sesjonslogg",
-      onclick: () => { copyToSession(item); closeModal(); },
+      onclick: () => { copyToSession(item, section); closeModal(); },
     }));
   }
   return buttons;
@@ -2543,16 +2571,20 @@ function itemAsLine(item) {
   return line;
 }
 
-async function copyToSession(item) {
-  const sessions = state.progress.sessions;
-  if (!sessions.length) {
-    sessions.push({ title: "Sesjon 1", date: new Date().toISOString().slice(0, 10),
-                    summary: "" });
-  }
-  const s = sessions[sessions.length - 1];
-  s.summary = (s.summary ? s.summary + "\n" : "") + itemAsLine(item);
-  await saveProgress();
-  toast("Lagt i «" + (s.title || "sesjonen") + "»");
+/* «Til sesjonslogg» skrev tidligere rett inn i sammendraget, utenom
+   loggen. Da fikk linja verken klokkeslett, forankring eller
+   muligheten til å rettes etterpå. Nå går den samme vei som alt
+   annet. */
+async function copyToSession(item, section) {
+  const s = await addLogEntry(itemAsLine(item), {
+    ref: item.id ? { id: item.id, section: section,
+                     title: item.title || item.name || "" } : null,
+    anchor: storyAnchorFor(item, section || ""),
+  });
+  if (!s) { toast("Ingen scenario å logge på"); return; }
+  markSaved();
+  updateQuickBar();
+  toast("Lagt i loggen til «" + (s.title || "sesjonen") + "»");
 }
 
 /* ==================================================================
@@ -2724,11 +2756,27 @@ function entryRow(item, section, tag) {
   children.push(el("span", { class: "entry-body" }, bodyBits));
   children.push(el("span", { class: "entry-open", text: "ÅPNE" }));
 
-  return el("button", {
+  const row = el("button", {
     class: "entry" + (done ? " done" : ""), type: "button",
     "data-tag": tag || item.tag || null,
     onclick: () => openItem(item, section),
   }, children);
+
+  // Raden er selv en knapp, så loggknappen kan ikke ligge inni den.
+  // Den legger en påbegynt linje i hurtignotatet og setter markøren
+  // bakerst, slik at man bare skriver hva som faktisk skjedde.
+  const log = el("button", {
+    class: "logbtn", type: "button", text: "LOGG",
+    title: "Skriv et notat om «" + (item.title || item.name) + "»",
+    onclick: (e) => {
+      e.stopPropagation();
+      startQuickNote(quickStub(item, section), {
+        id: item.id, section: section, title: item.title || item.name || "",
+        anchor: storyAnchorFor(item, section),
+      });
+    },
+  });
+  return el("div", { class: "entryline" }, [row, log]);
 }
 
 function filterToolbar(section) {
@@ -2910,24 +2958,10 @@ function streamBadge(section) {
    scenarioet den kom fra — ellers mister man oversikten i en blandet
    liste. */
 function streamRow(item, section) {
-  const row = entryRow(item, section);
-  const body = row.querySelector(".entry-body");
+  const line = entryRow(item, section);
+  const body = line.querySelector(".entry-body");
   if (body) body.insertBefore(streamBadge(section), body.firstChild);
-
-  // Raden er selv en knapp, så loggknappen kan ikke ligge inni den.
-  // Den legger en påbegynt linje i hurtignotatet og setter markøren
-  // bakerst, slik at man bare skriver hva som faktisk skjedde.
-  const log = el("button", {
-    class: "logbtn", type: "button", text: "LOGG",
-    title: "Skriv et notat om «" + (item.title || item.name) + "»",
-    onclick: (e) => {
-      e.stopPropagation();
-      startQuickNote(quickStub(item, section), {
-        id: item.id, section: section, title: item.title || item.name || "",
-      });
-    },
-  });
-  return el("div", { class: "streamline" }, [row, log]);
+  return line;
 }
 
 /* ==================================================================
@@ -3699,6 +3733,140 @@ function progressMarkdown() {
    og da er halve oppsummeringen allerede skrevet.
    ================================================================== */
 
+/* ==================================================================
+   HVOR I HISTORIEN DET SKJEDDE
+
+   Loggen hadde én tidsakse: da man skrev linja. Det er feil akse. Man
+   husker at spillerne gikk om bord lenge etter at man har logget liket
+   i ballasttanken, og da sto det i loggen at de fant liket først og
+   gikk om bord etterpå.
+
+   Derfor har hver linje to tider. Klokkeslettet er når den ble
+   skrevet, og forankringen er hvor i scenarioet det hørte hjemme.
+   Loggen leses i forankringens rekkefølge, ikke i skrivingens.
+
+   Forankringen er en hendelse på tidslinja, fordi tidslinja er det
+   eneste i scenarioet som har en rekkefølge. En scene eller et spor
+   som henger på en tidslinjehendelse gjennom connects_to arver den.
+   Ellers brukes nå-pekeren: «nå spiller vi her», satt én gang når
+   scenen skifter, så arver alt som logges den.
+   ================================================================== */
+
+function timelineItems() {
+  return (state.scenario && state.scenario.timeline) || [];
+}
+
+/* Hvor langt ute i historien en forankring ligger. Uten forankring
+   havner linja bakerst — den vet ikke bedre, og da skal den ikke
+   dytte seg inn foran noe som vet. */
+function anchorIndex(id) {
+  if (!id) return Number.MAX_SAFE_INTEGER;
+  const list = timelineItems();
+  for (let i = 0; i < list.length; i += 1) {
+    if (list[i].id === id) return i;
+  }
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function anchorItem(id) {
+  return timelineItems().filter((x) => x.id === id)[0] || null;
+}
+
+function anchorLabel(id) {
+  const it = anchorItem(id);
+  if (!it) return "";
+  return [it.day, it.title].filter(Boolean).join(" — ");
+}
+
+function anchorShort(id) {
+  const it = anchorItem(id);
+  if (!it) return "";
+  return it.day || it.title || "";
+}
+
+/* Tidslinjehendelsen en scene eller et spor henger på. */
+function anchorOfLinked(id) {
+  const hit = timelineItems().filter(
+    (t) => (t.connects_to || []).indexOf(id) !== -1)[0];
+  return hit ? hit.id : "";
+}
+
+function storyAnchorFor(item, section) {
+  if (section === "timeline") return item.id;
+  const linked = anchorOfLinked(item.id);
+  if (linked) return linked;
+  return (state.progress && state.progress.now) || "";
+}
+
+async function setNow(id) {
+  if (!state.progress) return;
+  state.progress.now = id || "";
+  await saveProgress();
+  updateQuickBar();
+  if (state.view === "stream" || state.view === "sessions") render();
+}
+
+/* Velgeren. Den samme brukes til å sette nå-pekeren og til å flytte en
+   linje som havnet feil. */
+function openAnchorPicker(valgt, onPick, tittel) {
+  const list = timelineItems();
+  openModal(tittel || "Hvor i historien?", "", (body) => {
+    if (!list.length) {
+      body.appendChild(emptyBox("Scenarioet har ingen tidslinje.",
+        "Da er det ingenting å feste linjene til."));
+      return;
+    }
+    body.appendChild(el("p", { class: "lede",
+      text: "Velg hendelsen dette hører hjemme ved. Loggen leses i " +
+            "denne rekkefølgen, uansett når linjene ble skrevet." }));
+
+    const stack = el("div", { class: "stack" });
+    stack.appendChild(el("button", {
+      class: "entry" + (!valgt ? " done" : ""), type: "button",
+      onclick: async () => { await onPick(""); closeModal(); },
+    }, [
+      el("span", { class: "tick", style: "border-color:transparent" }),
+      el("span", { class: "entry-body" }, [
+        el("span", { class: "entry-title", text: "Ingen forankring" }),
+        el("span", { class: "entry-sub",
+                     text: "Linja legger seg bakerst i loggen" }),
+      ]),
+    ]));
+
+    let dag = null;
+    list.forEach((it) => {
+      // Dagene skiller bolkene, ellers er lista bare en lang remse.
+      if (it.day && it.day !== dag) {
+        dag = it.day;
+        stack.appendChild(el("div", { class: "rail-group", text: dag }));
+      }
+      stack.appendChild(el("button", {
+        class: "entry" + (it.id === valgt ? " done" : ""), type: "button",
+        "data-tag": it.tag || null,
+        onclick: async () => { await onPick(it.id); closeModal(); },
+      }, [
+        el("span", { class: "tick", style: "border-color:transparent" }),
+        el("span", { class: "entry-body" }, [
+          el("span", { class: "entry-title", text: it.title || "?" }),
+          el("span", { class: "entry-sub",
+                       text: [it.day, it.when].filter(Boolean).join(" · ") }),
+        ]),
+      ]));
+    });
+    body.appendChild(stack);
+  });
+}
+
+/* Loggen i den rekkefølgen den skjedde. Innenfor samme forankring
+   gjelder skriverekkefølgen — det er det nærmeste vi kommer. */
+function storyOrder(log) {
+  return (log || []).slice().sort((a, b) => {
+    const d = anchorIndex(a.anchor) - anchorIndex(b.anchor);
+    if (d !== 0) return d;
+    return String(a.t || "").localeCompare(String(b.t || ""));
+  });
+}
+
 /* Nyeste sesjon. Finnes ingen, lages den — å måtte trykke «Ny sesjon»
    først er nøyaktig det steget hurtignotatet skal fjerne. */
 /* Hvem som var med. Alle spillerne i rollelisten er med som
@@ -3752,6 +3920,14 @@ async function addLogEntry(text, opts) {
     view: o.view || viewLabel(state.view),
   };
   if (o.kind) entry.kind = o.kind;
+  // Forankringen kommer fra raden man logget fra, ellers fra
+  // nå-pekeren. Den kan flyttes etterpå.
+  const anchor = o.anchor !== undefined
+    ? o.anchor
+    : (ref && ref.anchor !== undefined
+        ? ref.anchor
+        : (state.progress && state.progress.now) || "");
+  if (anchor) entry.anchor = anchor;
   if (ref) {
     entry.ref = ref.id;
     entry.refTitle = ref.title;
@@ -3870,6 +4046,16 @@ function updateQuickBar() {
   document.getElementById("quick-where").textContent =
     viewLabel(state.view) + (last ? " → " + (last.title || "sesjon") : "") +
     (n ? " · " + n : "");
+
+  const now = document.getElementById("quick-now");
+  const label = anchorShort(state.progress.now);
+  now.textContent = label ? "NÅ · " + label : "SETT NÅ";
+  now.className = "nowbtn" + (label ? "" : " none");
+  now.title = label
+    ? "Nå spiller vi: " + anchorLabel(state.progress.now) +
+      ". Alt du logger festes her."
+    : "Si hvor i historien dere er, så havner loggen i riktig " +
+      "rekkefølge selv om du skriver den i feil rekkefølge.";
   renderQuickRef();
 }
 
@@ -3898,6 +4084,10 @@ function setupQuickBar() {
 
   document.getElementById("quick-ref-clear")
     .addEventListener("click", () => { setQuickRef(null); field.focus(); });
+  document.getElementById("quick-now").addEventListener("click", () => {
+    openAnchorPicker(state.progress && state.progress.now,
+                     setNow, "Nå spiller vi");
+  });
   window.addEventListener("resize", measureQuickBar);
   // Snarveiene dukker opp når markøren står i linja, og da blir den
   // høyere — den må måles på nytt begge veier.
@@ -3935,10 +4125,12 @@ function setupQuickBar() {
 function logMarkdown(s) {
   const log = (s && s.log) || [];
   if (!log.length) return "";
+  // Historisk rekkefølge. Det er den som gir mening å lese.
   const out = ["### Logg underveis", ""];
-  log.forEach((e) => {
+  storyOrder(log).forEach((e) => {
     let line = "- **" + logTime(e) + "** " + e.text;
-    if (e.refTitle) line += "  *(" + e.refTitle + ")*";
+    const hvor = [anchorShort(e.anchor), e.refTitle].filter(Boolean)[0];
+    if (hvor) line += "  *(" + hvor + ")*";
     out.push(line);
     // Prosaen man skrev i skrivemodus skal ikke kunne bli borte, selv
     // om den aldri ble flettet inn i sammendraget.
@@ -3998,15 +4190,21 @@ function castBlock(s) {
   return box;
 }
 
-/* Loggen slik den ser ut i sesjonsfanen: linjene man skrev underveis,
-   med klokkeslett og hvor de ble skrevet fra.
+/* Loggen slik den ser ut i sesjonsfanen.
 
-   I skrivemodus får hver linje et felt under seg. Der skriver man den
-   om til hele setninger, og da er oppsummeringen skrevet mens man
-   husker hva som faktisk skjedde — ikke uka etterpå. Sammendraget
-   settes sammen av prosaen der den finnes, og av rålinja der den ikke
-   gjør det. Flettede linjer merkes, ellers ville et nytt trykk lagt
-   dem inn en gang til. */
+   Den leses i historisk rekkefølge, ikke i den rekkefølgen linjene ble
+   skrevet — man husker ting i feil rekkefølge, og da skal ikke loggen
+   arve rotet. Skriverekkefølgen kan slås på hvis man vil se hva som
+   faktisk skjedde ved bordet.
+
+   Alt kan rettes etterpå: teksten redigeres ved å trykke på den,
+   forankringen flyttes med merkelappen, og linja slettes med krysset.
+   Det er meningen — hurtig inn, rett opp senere.
+
+   I skrivemodus får hver linje et felt under seg, der den skrives om
+   til setninger mens man fortsatt husker hva som skjedde. «Sett
+   sammen» bygger sammendraget av prosaen der den finnes, og av rålinja
+   der den ikke gjør det. */
 function sessionLogBlock(s, i, save) {
   const log = Array.isArray(s.log) ? s.log : [];
   const box = el("div", { style: "margin-top:14px" });
@@ -4018,6 +4216,9 @@ function sessionLogBlock(s, i, save) {
 
   const writing = state.writeUp === i;
   const unmerged = log.filter((e) => !e.merged).length;
+  const story = state.logOrder !== "typed";
+  const rows = story ? storyOrder(log) : log.slice();
+  const uforankret = log.filter((e) => !e.anchor).length;
 
   box.appendChild(el("div", { class: "row spread", style: "margin-bottom:6px" }, [
     el("span", { class: "eyebrow", text: "Logg underveis" }),
@@ -4025,30 +4226,95 @@ function sessionLogBlock(s, i, save) {
                  text: log.length + (log.length === 1 ? " linje" : " linjer") }),
   ]));
 
+  // Rekkefølgen er et valg, og valget skal være synlig.
+  box.appendChild(el("div", { class: "respchips", style: "margin-bottom:8px" }, [
+    el("button", {
+      class: "chip resp" + (story ? " on" : ""), type: "button",
+      text: "Slik det skjedde", "aria-pressed": String(story),
+      title: "Sortert etter hvor i scenarioet linja hører hjemme",
+      onclick: () => { state.logOrder = "story"; render(); },
+    }),
+    el("button", {
+      class: "chip resp" + (!story ? " on" : ""), type: "button",
+      text: "Slik du skrev det", "aria-pressed": String(!story),
+      title: "Sortert etter klokkeslett",
+      onclick: () => { state.logOrder = "typed"; render(); },
+    }),
+  ]));
+
+  if (story && uforankret) {
+    box.appendChild(el("p", { class: "savestate",
+      text: uforankret + (uforankret === 1 ? " linje" : " linjer") +
+            " mangler forankring og ligger bakerst. Trykk på " +
+            "merkelappen for å flytte dem." }));
+  }
+
   const list = el("div");
-  log.forEach((e, j) => {
+  rows.forEach((e) => {
+    const j = log.indexOf(e);
+    const nokkel = i + ":" + j;
     const where = [e.refTitle, e.view].filter(Boolean)[0] || "";
     const kind = e.kind ? el("span", { class: "logkind",
                                        text: QUICK_KIND_LABEL[e.kind] || e.kind })
                         : null;
+
+    // Merkelappen sier hvor i historien linja sitter, og flytter den.
+    const anchor = el("button", {
+      class: "anchorchip" + (e.anchor ? "" : " none"), type: "button",
+      text: anchorShort(e.anchor) || "uten sted",
+      title: e.anchor ? anchorLabel(e.anchor)
+                      : "Linja er ikke festet noe sted. Trykk for å feste den.",
+      onclick: () => openAnchorPicker(e.anchor, async (id) => {
+        if (id) e.anchor = id; else delete e.anchor;
+        await saveProgress();
+        render();
+      }, "Hvor hører linja hjemme?"),
+    });
+
     const drop = el("button", {
-      class: "logdrop", type: "button", text: "\u00d7",
+      class: "logdrop", type: "button", text: "×",
       "aria-label": "Slett linja",
       onclick: async () => {
         log.splice(j, 1);
+        if (state.editLine === nokkel) state.editLine = null;
         await saveProgress();
         render();
       },
     });
 
+    // Teksten redigeres ved å trykke på den. Fort inn, rettet etterpå.
+    let tekst;
+    if (state.editLine === nokkel) {
+      const felt = el("input", { class: "field logedit", id: "logedit-" + nokkel,
+                                 value: e.text });
+      const lagre = async () => {
+        const ny = felt.value.trim();
+        if (ny) e.text = ny;
+        state.editLine = null;
+        await saveProgress();
+        render();
+      };
+      felt.addEventListener("keydown", (ev) => {
+        if (ev.key === "Enter") { ev.preventDefault(); lagre(); }
+        if (ev.key === "Escape") { state.editLine = null; render(); }
+      });
+      felt.addEventListener("blur", lagre);
+      tekst = el("p", {}, [felt]);
+      setTimeout(() => { felt.focus(); felt.select(); }, 0);
+    } else {
+      tekst = el("p", { class: "clickable", title: "Trykk for å rette teksten",
+                        onclick: () => { state.editLine = nokkel; render(); } }, [
+        kind,
+        document.createTextNode(e.text),
+        where ? el("span", { class: "logwhere", text: "  " + where }) : null,
+      ]);
+    }
+
     if (!writing) {
       list.appendChild(el("div", { class: "logrow" + (e.merged ? " merged" : "") }, [
         el("time", { text: logTime(e) }),
-        el("p", {}, [
-          kind,
-          document.createTextNode(e.text),
-          where ? el("span", { class: "logwhere", text: "  " + where }) : null,
-        ]),
+        anchor,
+        tekst,
         drop,
       ]));
       return;
@@ -4067,11 +4333,8 @@ function sessionLogBlock(s, i, save) {
     list.appendChild(el("div", { class: "logwrite" }, [
       el("div", { class: "logsrc" }, [
         el("time", { text: logTime(e) }),
-        el("p", {}, [
-          kind,
-          document.createTextNode(e.text),
-          where ? el("span", { class: "logwhere", text: "  " + where }) : null,
-        ]),
+        anchor,
+        tekst,
         drop,
       ]),
       prose,
@@ -4091,12 +4354,14 @@ function sessionLogBlock(s, i, save) {
     buttons.appendChild(el("button", {
       class: "btn small", type: "button",
       text: "Sett sammen " + unmerged + " linje" + (unmerged === 1 ? "" : "r"),
-      title: "Legger dem nederst i sammendraget over — prosaen der du " +
-             "har skrevet den, ellers rålinja",
+      title: "Legger dem nederst i sammendraget over, i historisk " +
+             "rekkefølge — prosaen der du har skrevet den, ellers rålinja",
       onclick: async () => {
         save.flush();
         flushWrites();
-        const add = log.filter((e) => !e.merged).map((e) => {
+        // Historisk rekkefølge, ikke skriverekkefølgen: sammendraget
+        // skal kunne leses som en fortelling.
+        const add = storyOrder(log).filter((e) => !e.merged).map((e) => {
           const prose = (e.prose || "").trim();
           return prose || (logTime(e) + " — " + e.text);
         });
