@@ -114,14 +114,36 @@ nett. Standard er `nb-NO-PernilleNeural`; mannsstemmen er
 `nb-NO-FinnNeural`.
 
 En nettside kan ikke snakke med Termux av seg selv. Løsningen er at
-Termux serverer sida, så ligger appen og talesyntesen på samme sted:
+Termux — eller PC-en — serverer sida, så ligger appen og talesyntesen
+på samme sted.
+
+**På PC (enklest — Termux trengs ikke):**
 
 ```sh
-pkg install python
 pip install edge-tts
-python3 tools/opplesing_server.py
-# åpne http://127.0.0.1:8765 i nettleseren
+python3 tools/opplesing_server.py --apne
 ```
+
+Windows: bruk `py` eller `python` i stedet for `python3`.
+
+**I Termux:**
+
+```sh
+pkg install python git
+pip install edge-tts
+git clone https://github.com/gizmo6663-dev/EldritchPortal
+cd EldritchPortal
+termux-wake-lock                       # så Android ikke dreper den
+python tools/opplesing_server.py --apne
+```
+
+Uten `--apne`: åpne `http://127.0.0.1:8765` i nettleseren selv. Termux
+må stå og kjøre mens du bruker appen — bytt til nettleseren, ikke lukk
+Termux.
+
+**Servere fra PC og bruke telefonen:** start med `--alle` på PC-en og
+åpne `http://<pc-ens-ip>:8765` på telefonen. Endepunktet er da åpent for
+alle på nettet, så gjør det bare hjemme.
 
 Da velger «Les opp» den nevrale motoren av seg selv, du får stemmevalg,
 tempo og dybde i edge-tts sine egne enheter, og lyden kan lastes ned som

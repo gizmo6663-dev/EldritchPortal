@@ -4260,11 +4260,11 @@ function saveSpeechPrefs(p) {
    ------------------------------------------------------------------ */
 
 let ttsRemote = null;      // { voices: [...], standard: "nb-NO-..." }
-let ttsProbed = false;
 
 async function probeTts() {
-  if (ttsProbed) return ttsRemote;
-  ttsProbed = true;
+  // Fant vi den, er svaret gitt. Fant vi den ikke, kan serveren ha
+  // blitt startet etterpå — da er det verdt å spørre en gang til.
+  if (ttsRemote) return ttsRemote;
   if (typeof location === "undefined" || location.protocol !== "http:") {
     return null;
   }

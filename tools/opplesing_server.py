@@ -191,6 +191,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                    {"Content-Disposition": 'inline; filename="opplesing.mp3"'})
 
 
+def aapne(url):
+    """Termux har sin egen måte å åpne en lenke på."""
+    import shutil
+    import subprocess
+    if shutil.which("termux-open-url"):
+        subprocess.run(["termux-open-url", url], check=False)
+        return
+    try:
+        import webbrowser
+        webbrowser.open(url)
+    except Exception:
+        pass
+
+
 def main():
     ap = argparse.ArgumentParser(
         description="Serverer nettleserversjonen med edge-tts bak seg.")
@@ -202,6 +216,8 @@ def main():
                     help="hvor index.html ligger (standard: web/)")
     ap.add_argument("--cache", default=None,
                     help="hvor de ferdige lydfilene mellomlagres")
+    ap.add_argument("--apne", action="store_true",
+                    help="åpne appen i nettleseren med én gang")
     args = ap.parse_args()
 
     if edge_tts is None:
@@ -221,6 +237,8 @@ def main():
               ("127.0.0.1" if not args.alle else vert, args.port))
         print("Lydfiler mellomlagres i " + cache)
         print("Ctrl-C for å stoppe.")
+        if args.apne:
+            aapne("http://127.0.0.1:%d/" % args.port)
         try:
             srv.serve_forever()
         except KeyboardInterrupt:
