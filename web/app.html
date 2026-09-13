@@ -1121,6 +1121,15 @@ body.quickon { --quickh: 62px; }
 .nowbtn:hover { color: var(--brass); border-color: var(--brass-dim); }
 .nowbtn.none { color: var(--faint); border-color: var(--rule); }
 
+.undobtn {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em;
+  color: var(--signal); border: 1px solid var(--signal);
+  border-radius: 999px; padding: 4px 10px; white-space: nowrap;
+  background: rgba(160,60,60,0.1);
+}
+.undobtn:hover { background: rgba(160,60,60,0.22); }
+.undobtn[hidden] { display: none !important; }
+
 .logedit { width: 100%; }
 .logrow p.clickable { cursor: text; }
 .logrow p.clickable:hover { color: var(--parchment); }
@@ -1227,6 +1236,7 @@ body.quickon { --quickh: 62px; }
 <div class="quickbar" id="quickbar" hidden>
   <div class="quickchips" id="quick-chips"></div>
   <form id="quick-form" autocomplete="off">
+    <button class="undobtn" id="quick-undo" type="button" hidden></button>
     <button class="nowbtn" id="quick-now" type="button"
             title="Hvor i historien dere er nå. Alt du logger festes her."></button>
     <span class="quick-where" id="quick-where"></span>
@@ -1622,14 +1632,108 @@ function findItem(id) {
   return null;
 }
 
+/* ==================================================================
+   ANGRE
+
+   Én feil avkryssing er lett gjort midt i en scene, og uten en
+   angreknapp må man lete opp raden igjen for å rette den. Stabelen
+   holder på de siste handlingene og hvordan de tas tilbake.
+
+   Den lever bare så lenge sida er åpen. Å angre noe man gjorde forrige
+   spillkveld er ikke det dette skal løse — det gjør man ved å rette i
+   loggen.
+   ================================================================== */
+
+const UNDO_MAX = 12;
+const undoStack = [];
+
+function pushUndo(label, undo) {
+  undoStack.push({ label: label, undo: undo });
+  while (undoStack.length > UNDO_MAX) undoStack.shift();
+  updateUndoButton();
+}
+
+function updateUndoButton() {
+  const btn = document.getElementById("quick-undo");
+  if (!btn) return;
+  const last = undoStack[undoStack.length - 1];
+  btn.hidden = !last;
+  if (last) {
+    btn.textContent = "ANGRE";
+    btn.title = "Angre: " + last.label;
+  }
+}
+
+async function doUndo() {
+  const last = undoStack.pop();
+  if (!last) { toast("Ingenting å angre"); return; }
+  await last.undo();
+  updateUndoButton();
+  render();
+  toast("Angret: " + last.label);
+}
+
+/* Linja en avkryssing skriver i loggen. Den skal lese som noe som
+   skjedde, ikke som «krysset av rad 14». */
+function logLineFor(item, section) {
+  const name = item.title || item.name || "";
+  const stub = { timeline: "Utløst: ", beats: "Scene spilt: ",
+                 clues: "Spor funnet: ", locations: "Besøkte: ",
+                 handouts: "Delte ut: ", tactics: "Brukte taktikk: " }[section]
+             || "";
+  return (stub + name).trim();
+}
+
 async function toggleFlag(id) {
   const hit = findItem(id);
   if (!hit) return;
   const flag = FLAGS[hit.section];
   if (!flag) return;
-  hit.item[flag] = !hit.item[flag];
+  const before = !!hit.item[flag];
+  hit.item[flag] = !before;
   if (hit.item[flag]) state.progress.flags[id] = true;
   else delete state.progress.flags[id];
+
+  // Krysser man av en hendelse på tidslinja, har den nettopp skjedd —
+  // og da er det der vi er. Nå-pekeren følger etter av seg selv, så
+  // alt som logges videre havner riktig uten at man tenker på det.
+  const forrigeNa = state.progress.now || "";
+  if (hit.item[flag] && hit.section === "timeline") {
+    state.progress.now = id;
+  }
+
+  // Er bryteren på, skriver avkryssingen sin egen linje i loggen, med
+  // forankringen raden allerede vet om. Da er loggen ført av det man
+  // uansett gjorde, og ikke en jobb til.
+  let skrevet = null;
+  if (hit.item[flag] && state.progress.autoLog) {
+    const sesjon = await addLogEntry(logLineFor(hit.item, hit.section), {
+      ref: { id: id, section: hit.section,
+             title: hit.item.title || hit.item.name || "" },
+      anchor: storyAnchorFor(hit.item, hit.section),
+      kind: "kryss",
+    });
+    if (sesjon && sesjon.log.length) {
+      skrevet = { log: sesjon.log, entry: sesjon.log[sesjon.log.length - 1] };
+    }
+  }
+
+  const navn = hit.item.title || hit.item.name || "raden";
+  pushUndo((before ? "fjernet kryss for " : "krysset av ") + navn,
+    async () => {
+      hit.item[flag] = before;
+      if (before) state.progress.flags[id] = true;
+      else delete state.progress.flags[id];
+      state.progress.now = forrigeNa;
+      // Linja avkryssingen skrev skal bort med den. Ellers står det
+      // igjen en hendelse i loggen som aldri skjedde.
+      if (skrevet) {
+        const at = skrevet.log.indexOf(skrevet.entry);
+        if (at !== -1) skrevet.log.splice(at, 1);
+      }
+      await saveProgress();
+    });
+
   await saveProgress();
   render();
 }
@@ -3138,6 +3242,23 @@ function viewStream(root) {
     text: state.hideDone ? "Skjuler avkryssede" : "Skjul avkryssede",
     onclick: () => { state.hideDone = !state.hideDone; render(); },
   }));
+  // Avkryssing er noe man gjør uansett. Står bryteren på, fører den
+  // loggen for deg, og da er det ett arbeidssteg færre per hendelse.
+  chips.appendChild(el("button", {
+    class: "chip resp" + (state.progress.autoLog ? " on" : ""),
+    type: "button", text: "Kryss av = logg",
+    "aria-pressed": String(!!state.progress.autoLog),
+    title: "Hver avkryssing skriver sin egen linje i øktloggen, " +
+           "forankret der raden hører hjemme",
+    onclick: async () => {
+      state.progress.autoLog = !state.progress.autoLog;
+      await saveProgress();
+      render();
+      toast(state.progress.autoLog
+        ? "Avkryssing føres i loggen"
+        : "Avkryssing føres ikke lenger");
+    },
+  }));
   root.appendChild(chips);
 
   const pick = (key) => on[key] ? visible(sc[key] || [], key) : [];
@@ -3964,6 +4085,7 @@ const QUICK_SHORTCUTS = [
 const QUICK_KIND_LABEL = {};
 QUICK_SHORTCUTS.forEach((x) => { QUICK_KIND_LABEL[x[0]] = x[1]; });
 QUICK_KIND_LABEL.kamp = "Kamp";
+QUICK_KIND_LABEL.kryss = "Avkrysset";
 
 function updateQuickChips() {
   const box = document.getElementById("quick-chips");
@@ -4002,11 +4124,7 @@ function renderQuickChips() {
 
 /* Åpningen på en linje, slik at man bare skriver resten. */
 function quickStub(item, section) {
-  const name = item.title || item.name || "";
-  const stub = { timeline: "Utløst: ", beats: "Scene spilt: ",
-                 clues: "Spor funnet: ", locations: "Besøkte: " }[section]
-             || "";
-  return stub + name + " — ";
+  return logLineFor(item, section) + " — ";
 }
 
 function startQuickNote(prefill, ref) {
@@ -4039,6 +4157,7 @@ function updateQuickBar() {
   const label = anchorShort(state.progress.now);
   now.textContent = label ? "NÅ · " + label : "SETT NÅ";
   now.className = "nowbtn" + (label ? "" : " none");
+  updateUndoButton();
   now.title = label
     ? "Nå spiller vi: " + anchorLabel(state.progress.now) +
       ". Alt du logger festes her."
@@ -4072,6 +4191,8 @@ function setupQuickBar() {
 
   document.getElementById("quick-ref-clear")
     .addEventListener("click", () => { setQuickRef(null); field.focus(); });
+  document.getElementById("quick-undo")
+    .addEventListener("click", () => doUndo());
   document.getElementById("quick-now").addEventListener("click", () => {
     openAnchorPicker(state.progress && state.progress.now,
                      setNow, "Nå spiller vi");
@@ -4094,16 +4215,25 @@ function setupQuickBar() {
     }
   });
 
-  // «N» hvor som helst setter markøren i feltet. Den gjelder bare når
-  // man ikke allerede skriver et sted, ellers ville den spist bokstaver.
+  // Snarveier som bare gjelder når man ikke skriver et sted. Ellers
+  // ville N spist bokstaver og ctrl-Z tatt angringen fra tekstfeltet.
+  function skriverNoensteds(t) {
+    return !!(t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" ||
+                    t.isContentEditable));
+  }
   document.addEventListener("keydown", (e) => {
+    if (skriverNoensteds(e.target)) return;
+    if (document.getElementById("quickbar").hidden) return;
+
+    if ((e.key === "z" || e.key === "Z") && (e.ctrlKey || e.metaKey) &&
+        !e.shiftKey) {
+      e.preventDefault();
+      doUndo();
+      return;
+    }
     if (e.key !== "n" && e.key !== "N") return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const t = e.target;
-    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" ||
-              t.isContentEditable)) return;
     if (!document.getElementById("scrim").hidden) return;
-    if (document.getElementById("quickbar").hidden) return;
     e.preventDefault();
     startQuickNote(undefined, state.quickRef);
   });
@@ -4263,8 +4393,14 @@ function sessionLogBlock(s, i, save) {
       class: "logdrop", type: "button", text: "×",
       "aria-label": "Slett linja",
       onclick: async () => {
+        const fjernet = log[j];
         log.splice(j, 1);
         if (state.editLine === nokkel) state.editLine = null;
+        pushUndo("slettet «" + (fjernet.text || "").slice(0, 30) + "»",
+          async () => {
+            log.splice(Math.min(j, log.length), 0, fjernet);
+            await saveProgress();
+          });
         await saveProgress();
         render();
       },
