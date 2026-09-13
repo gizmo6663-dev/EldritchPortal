@@ -133,12 +133,13 @@ async def main():
         s = await pg.evaluate("""() => {
             setView('sessions'); render();
             return { rader: document.querySelectorAll('#main .logrow').length,
-                     flett: !!document.querySelector(
-                       \"#main button:not(.logdrop)\") }; }""")
+                     flett: [...document.querySelectorAll('#main button')]
+                       .some(b => /Sett sammen/.test(b.textContent)) }; }""")
         check("begge linjene vises", s["rader"], 2)
+        check("og kan settes sammen", s["flett"], True)
         flettet = await pg.evaluate("""async () => {
             const knapp = [...document.querySelectorAll('#main button')]
-              .find(b => /Flett/.test(b.textContent));
+              .find(b => /Sett sammen/.test(b.textContent));
             if (!knapp) return { fant: false };
             knapp.click();
             await new Promise(r => setTimeout(r, 400));
@@ -146,8 +147,8 @@ async def main():
             return { fant: true, sammendrag: s.summary,
                      merket: s.log.every(e => e.merged),
                      igjen: [...document.querySelectorAll('#main button')]
-                       .some(b => /Flett/.test(b.textContent)) }; }""")
-        check("fletteknappen finnes", flettet["fant"], True)
+                       .some(b => /Sett sammen/.test(b.textContent)) }; }""")
+        check("knappen finnes", flettet["fant"], True)
         check("linjene havnet i sammendraget",
               "Wang Ma funnet død" in flettet["sammendrag"], True)
         check("og er merket som flettet", flettet["merket"], True)

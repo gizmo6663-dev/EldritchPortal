@@ -1032,6 +1032,26 @@ body.quickon { --quickh: 62px; }
   display: flex; align-items: center; gap: 8px;
   max-width: 1080px; margin-inline: auto;
 }
+
+/* Snarveiene tar plass, og de trengs bare i det øyeblikket man skal
+   skrive. De kommer fram når markøren står i linja. */
+.quickchips {
+  display: none;
+  gap: 6px; flex-wrap: wrap;
+  max-width: 1080px; margin: 0 auto 8px;
+}
+.quickbar:focus-within .quickchips { display: flex; }
+.quickchip {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
+  border: 1px solid var(--rule); border-radius: 999px;
+  padding: 4px 10px; background: var(--ink);
+}
+.quickchip:hover { color: var(--brass); border-color: var(--brass-dim); }
+.quickchip[aria-pressed="true"] {
+  color: var(--brass); border-color: var(--brass-dim);
+  background: var(--brass-glow);
+}
 .quickbar .field { flex: 1 1 160px; min-width: 0; margin: 0; }
 .quickbar .quick-where {
   font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
@@ -1055,10 +1075,10 @@ body.quickon { --quickh: 62px; }
 
 /* Loggknappen ved siden av hver rad i Økta. Radene er selv knapper, så
    den kan ikke ligge inni dem — de står side om side i stedet. */
-.logline { display: flex; align-items: stretch; gap: 6px; }
-.logline > .entry { flex: 1 1 auto; min-width: 0; }
-.logline.linked { margin-left: 18px; }
-.logline.linked > .entry { border-left-style: dashed; }
+.streamline { display: flex; align-items: stretch; gap: 6px; }
+.streamline > .entry { flex: 1 1 auto; min-width: 0; }
+.streamline.linked { margin-left: 18px; }
+.streamline.linked > .entry { border-left-style: dashed; }
 .logbtn {
   flex: none; width: 42px;
   border: 1px solid var(--rule-soft); border-radius: 6px;
@@ -1082,6 +1102,31 @@ body.quickon { --quickh: 62px; }
 .logrow .logdrop { flex: none; color: var(--faint); font-size: 15px; line-height: 1; }
 .logrow .logdrop:hover { color: var(--signal); }
 .logrow.merged p { color: var(--muted); }
+.logkind {
+  font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--brass-dim);
+  border: 1px solid var(--rule); border-radius: 3px;
+  padding: 1px 5px; margin-right: 6px; white-space: nowrap;
+}
+
+/* Skrivemodus: hver linje får plass til å bli til prosa. */
+.logwrite { display: block; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); }
+.logwrite:last-child { border-bottom: none; }
+.logwrite .logsrc {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px;
+}
+.logwrite textarea { min-height: 62px; }
+
+.castrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.castchip {
+  font-family: var(--ui); font-size: 12px;
+  color: var(--faint); border: 1px solid var(--rule);
+  border-radius: 999px; padding: 4px 12px; background: var(--ink);
+}
+.castchip[aria-pressed="true"] {
+  color: var(--verdigris); border-color: var(--verdigris);
+  background: rgba(90,140,120,0.12);
+}
 
 @media (max-width: 860px) {
   .quickbar { left: 0; }
@@ -1152,6 +1197,7 @@ body.quickon { --quickh: 62px; }
 </div>
 
 <div class="quickbar" id="quickbar" hidden>
+  <div class="quickchips" id="quick-chips"></div>
   <form id="quick-form" autocomplete="off">
     <span class="quick-where" id="quick-where"></span>
     <span class="quickref" id="quick-ref" hidden>
@@ -1303,6 +1349,8 @@ const state = {
   spellBook: null,    // formelbanken
   charFilter: "all",  // all | pc | npc | enemy
   quickRef: null,     // raden hurtignotatet skal henge på
+  quickKind: null,    // hva slags linje snarveien startet
+  writeUp: null,      // sesjonen som står i skrivemodus
 };
 
 /* ------------------------- rollelisten -------------------------- */
@@ -2861,7 +2909,7 @@ function streamRow(item, section) {
       });
     },
   });
-  return el("div", { class: "logline" }, [row, log]);
+  return el("div", { class: "streamline" }, [row, log]);
 }
 
 /* ==================================================================
@@ -3580,8 +3628,10 @@ function copyText(text) {
 }
 
 function oneSessionMarkdown(s) {
-  const head = "## " + (s.title || "Uten navn") +
-               (s.date ? "  \n*" + s.date + "*" : "");
+  let head = "## " + (s.title || "Uten navn") +
+             (s.date ? "  \n*" + s.date + "*" : "");
+  const cast = (s.cast || []).filter(Boolean);
+  if (cast.length) head += "  \n*Med: " + cast.join(", ") + "*";
   const body = (s.summary || "").trim() || "*(ingenting skrevet)*";
   const log = logMarkdown(s);
   return head + "\n\n" + body + "\n" + (log ? "\n" + log : "");
@@ -3633,19 +3683,30 @@ function progressMarkdown() {
 
 /* Nyeste sesjon. Finnes ingen, lages den — å måtte trykke «Ny sesjon»
    først er nøyaktig det steget hurtignotatet skal fjerne. */
+/* Hvem som var med. Alle spillerne i rollelisten er med som
+   utgangspunkt — det vanlige er at noen mangler, ikke at ingen møter,
+   så det er raskere å krysse av den som ikke kom. */
+function pcNames() {
+  return state.characters.filter((c) => c.kind === "pc").map((c) => c.name);
+}
+
+function newSession() {
+  return {
+    title: "Sesjon " + (state.progress.sessions.length + 1),
+    date: new Date().toISOString().slice(0, 10),
+    summary: "",
+    cast: pcNames(),
+    log: [],
+  };
+}
+
 function currentSession() {
   if (!state.progress) return null;
   const sessions = state.progress.sessions;
-  if (!sessions.length) {
-    sessions.push({
-      title: "Sesjon 1",
-      date: new Date().toISOString().slice(0, 10),
-      summary: "",
-      log: [],
-    });
-  }
+  if (!sessions.length) sessions.push(newSession());
   const s = sessions[sessions.length - 1];
   if (!Array.isArray(s.log)) s.log = [];   // sesjoner lagret før loggen fantes
+  if (!Array.isArray(s.cast)) s.cast = [];
   return s;
 }
 
@@ -3660,17 +3721,19 @@ function logTime(entry) {
   return d.toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" });
 }
 
-async function addLogEntry(text) {
+async function addLogEntry(text, opts) {
   const body = String(text || "").trim();
   if (!body) return null;
   const s = currentSession();
   if (!s) return null;
-  const ref = state.quickRef;
+  const o = opts || {};
+  const ref = o.ref;
   const entry = {
     t: new Date().toISOString(),
     text: body,
-    view: viewLabel(state.view),
+    view: o.view || viewLabel(state.view),
   };
+  if (o.kind) entry.kind = o.kind;
   if (ref) {
     entry.ref = ref.id;
     entry.refTitle = ref.title;
@@ -3704,6 +3767,55 @@ function measureQuickBar() {
 function setQuickRef(ref) {
   state.quickRef = ref || null;
   renderQuickRef();
+}
+
+/* Det man skriver om igjen og om igjen. Snarveien gir åpningen på
+   linja og merker den, slik at notatet blir ett trykk og et navn. */
+const QUICK_SHORTCUTS = [
+  ["san",    "SAN-tap",   "SAN-tap: "],
+  ["skade",  "Skade",     "Skade: "],
+  ["npc",    "NPC møtt",  "Møtte: "],
+  ["logn",   "Løgn",      "Løgn fortalt: "],
+  ["glipp",  "Oversett",  "Oversett: "],
+  ["folg",   "Følg opp",  "Følg opp: "],
+];
+const QUICK_KIND_LABEL = {};
+QUICK_SHORTCUTS.forEach((x) => { QUICK_KIND_LABEL[x[0]] = x[1]; });
+QUICK_KIND_LABEL.kamp = "Kamp";
+
+function updateQuickChips() {
+  const box = document.getElementById("quick-chips");
+  if (!box) return;
+  [].forEach.call(box.children, (b) => {
+    b.setAttribute("aria-pressed",
+                   String(state.quickKind === b.dataset.kind));
+  });
+}
+
+function renderQuickChips() {
+  const box = document.getElementById("quick-chips");
+  if (!box) return;
+  box.innerHTML = "";
+  QUICK_SHORTCUTS.forEach(([key, label, stub]) => {
+    const chip = el("button", {
+      class: "quickchip", type: "button", text: label,
+      "aria-pressed": String(state.quickKind === key),
+      onclick: () => {
+        // Trykk på den samme igjen slår den av, slik at man ikke må
+        // tømme feltet for hånd når man traff feil.
+        if (state.quickKind === key) {
+          state.quickKind = null;
+          startQuickNote("", state.quickRef);
+        } else {
+          state.quickKind = key;
+          startQuickNote(stub, state.quickRef);
+        }
+        updateQuickChips();
+      },
+    });
+    chip.dataset.kind = key;
+    box.appendChild(chip);
+  });
 }
 
 /* Åpningen på en linje, slik at man bare skriver resten. */
@@ -3752,9 +3864,12 @@ function setupQuickBar() {
     e.preventDefault();
     const text = field.value;
     if (!text.trim()) return;
-    const s = await addLogEntry(text);
+    const s = await addLogEntry(text, { ref: state.quickRef,
+                                        kind: state.quickKind });
     if (!s) { toast("Ingen scenario å logge på"); return; }
     field.value = "";
+    state.quickKind = null;
+    updateQuickChips();
     setQuickRef(null);
     markSaved();
     toast("Logget i " + (s.title || "sesjonen"));
@@ -3766,9 +3881,21 @@ function setupQuickBar() {
   document.getElementById("quick-ref-clear")
     .addEventListener("click", () => { setQuickRef(null); field.focus(); });
   window.addEventListener("resize", measureQuickBar);
+  // Snarveiene dukker opp når markøren står i linja, og da blir den
+  // høyere — den må måles på nytt begge veier.
+  const bar = document.getElementById("quickbar");
+  bar.addEventListener("focusin", measureQuickBar);
+  bar.addEventListener("focusout", () => setTimeout(measureQuickBar, 0));
+  renderQuickChips();
 
   field.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") { field.value = ""; setQuickRef(null); field.blur(); }
+    if (e.key === "Escape") {
+      field.value = "";
+      state.quickKind = null;
+      updateQuickChips();
+      setQuickRef(null);
+      field.blur();
+    }
   });
 
   // «N» hvor som helst setter markøren i feltet. Den gjelder bare når
@@ -3795,6 +3922,10 @@ function logMarkdown(s) {
     let line = "- **" + logTime(e) + "** " + e.text;
     if (e.refTitle) line += "  *(" + e.refTitle + ")*";
     out.push(line);
+    // Prosaen man skrev i skrivemodus skal ikke kunne bli borte, selv
+    // om den aldri ble flettet inn i sammendraget.
+    const prose = (e.prose || "").trim();
+    if (prose) out.push("  > " + prose.replace(/\n/g, "\n  > "));
   });
   out.push("");
   return out.join("\n");
@@ -3819,11 +3950,46 @@ function sessionsMarkdown(withProgress) {
   return out.join("\n");
 }
 
+/* Hvem som var med. Navnene kommer fra rollelisten, og den som ikke
+   møtte krysses bort — da navngir eksporten seg selv. */
+function castBlock(s) {
+  const box = el("div", { style: "margin-top:14px" });
+  const roster = pcNames();
+  const cast = Array.isArray(s.cast) ? s.cast : (s.cast = []);
+  // Navn i økta som ikke lenger står i rollelisten skal ikke forsvinne
+  // bare fordi rollen er slettet eller omdøpt.
+  const names = roster.concat(cast.filter((n) => roster.indexOf(n) === -1));
+  if (!names.length) return box;
+
+  box.appendChild(el("span", { class: "eyebrow", text: "Hvem var med" }));
+  const row = el("div", { class: "castrow" });
+  names.forEach((name) => {
+    const on = cast.indexOf(name) !== -1;
+    row.appendChild(el("button", {
+      class: "castchip", type: "button", text: name,
+      "aria-pressed": String(on),
+      onclick: async () => {
+        const at = cast.indexOf(name);
+        if (at === -1) cast.push(name); else cast.splice(at, 1);
+        await saveProgress();
+        render();
+      },
+    }));
+  });
+  box.appendChild(row);
+  return box;
+}
+
 /* Loggen slik den ser ut i sesjonsfanen: linjene man skrev underveis,
-   med klokkeslett og hvor de ble skrevt fra. De kan flettes inn i
-   sammendraget, og da markeres de som flettet — ellers ville et nytt
-   trykk lagt dem inn en gang til. */
-function sessionLogBlock(s, save) {
+   med klokkeslett og hvor de ble skrevet fra.
+
+   I skrivemodus får hver linje et felt under seg. Der skriver man den
+   om til hele setninger, og da er oppsummeringen skrevet mens man
+   husker hva som faktisk skjedde — ikke uka etterpå. Sammendraget
+   settes sammen av prosaen der den finnes, og av rålinja der den ikke
+   gjør det. Flettede linjer merkes, ellers ville et nytt trykk lagt
+   dem inn en gang til. */
+function sessionLogBlock(s, i, save) {
   const log = Array.isArray(s.log) ? s.log : [];
   const box = el("div", { style: "margin-top:14px" });
   if (!log.length) {
@@ -3832,7 +3998,9 @@ function sessionLogBlock(s, save) {
     return box;
   }
 
+  const writing = state.writeUp === i;
   const unmerged = log.filter((e) => !e.merged).length;
+
   box.appendChild(el("div", { class: "row spread", style: "margin-bottom:6px" }, [
     el("span", { class: "eyebrow", text: "Logg underveis" }),
     el("span", { class: "chip",
@@ -3842,48 +4010,89 @@ function sessionLogBlock(s, save) {
   const list = el("div");
   log.forEach((e, j) => {
     const where = [e.refTitle, e.view].filter(Boolean)[0] || "";
-    list.appendChild(el("div", { class: "logrow" + (e.merged ? " merged" : "") }, [
-      el("time", { text: logTime(e) }),
-      el("p", {}, [
-        document.createTextNode(e.text),
-        where ? el("span", { class: "logwhere", text: "  " + where }) : null,
+    const kind = e.kind ? el("span", { class: "logkind",
+                                       text: QUICK_KIND_LABEL[e.kind] || e.kind })
+                        : null;
+    const drop = el("button", {
+      class: "logdrop", type: "button", text: "\u00d7",
+      "aria-label": "Slett linja",
+      onclick: async () => {
+        log.splice(j, 1);
+        await saveProgress();
+        render();
+      },
+    });
+
+    if (!writing) {
+      list.appendChild(el("div", { class: "logrow" + (e.merged ? " merged" : "") }, [
+        el("time", { text: logTime(e) }),
+        el("p", {}, [
+          kind,
+          document.createTextNode(e.text),
+          where ? el("span", { class: "logwhere", text: "  " + where }) : null,
+        ]),
+        drop,
+      ]));
+      return;
+    }
+
+    const prose = el("textarea", { class: "field", rows: "3",
+                                   id: "prose-" + i + "-" + j,
+                                   placeholder: "Skriv linja om til setninger…" });
+    prose.value = e.prose || "";
+    const saveProse = debounce(async () => {
+      e.prose = prose.value;
+      await saveProgress();
+    }, 600);
+    prose.addEventListener("input", saveProse);
+
+    list.appendChild(el("div", { class: "logwrite" }, [
+      el("div", { class: "logsrc" }, [
+        el("time", { text: logTime(e) }),
+        el("p", {}, [
+          kind,
+          document.createTextNode(e.text),
+          where ? el("span", { class: "logwhere", text: "  " + where }) : null,
+        ]),
+        drop,
       ]),
-      el("button", {
-        class: "logdrop", type: "button", text: "\u00d7",
-        "aria-label": "Slett linja",
-        onclick: async () => {
-          log.splice(j, 1);
-          await saveProgress();
-          render();
-        },
-      }),
+      prose,
     ]));
   });
   box.appendChild(list);
 
+  const buttons = el("div", { class: "row", style: "margin-top:10px" });
+  buttons.appendChild(el("button", {
+    class: "btn small", type: "button",
+    "aria-pressed": String(writing),
+    text: writing ? "Ferdig å skrive" : "Skriv ferdig",
+    title: "Gir hver linje et felt der den kan skrives om til prosa",
+    onclick: () => { state.writeUp = writing ? null : i; render(); },
+  }));
   if (unmerged) {
-    box.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
-      el("button", {
-        class: "btn small", type: "button",
-        text: "Flett " + unmerged + " linje" + (unmerged === 1 ? "" : "r") +
-              " inn i sammendraget",
-        title: "Legger linjene nederst i teksten over, så du kan skrive " +
-               "dem om til prosa",
-        onclick: async () => {
-          save.flush();
-          const add = log.filter((e) => !e.merged)
-            .map((e) => logTime(e) + " — " + e.text);
-          s.summary = ((s.summary || "").trim() + "\n\n" + add.join("\n"))
-            .trim();
-          log.forEach((e) => { e.merged = true; });
-          await saveProgress();
-          render();
-          toast("Flettet inn " + add.length + " linje" +
-                (add.length === 1 ? "" : "r"));
-        },
-      }),
-    ]));
+    buttons.appendChild(el("button", {
+      class: "btn small", type: "button",
+      text: "Sett sammen " + unmerged + " linje" + (unmerged === 1 ? "" : "r"),
+      title: "Legger dem nederst i sammendraget over — prosaen der du " +
+             "har skrevet den, ellers rålinja",
+      onclick: async () => {
+        save.flush();
+        flushWrites();
+        const add = log.filter((e) => !e.merged).map((e) => {
+          const prose = (e.prose || "").trim();
+          return prose || (logTime(e) + " — " + e.text);
+        });
+        s.summary = ((s.summary || "").trim() + "\n\n" + add.join("\n\n"))
+          .trim();
+        log.forEach((e) => { e.merged = true; });
+        await saveProgress();
+        render();
+        toast("Satte sammen " + add.length + " linje" +
+              (add.length === 1 ? "" : "r"));
+      },
+    }));
   }
+  box.appendChild(buttons);
   return box;
 }
 
@@ -3898,11 +4107,7 @@ function viewSessions(root) {
       class: "btn primary", type: "button", text: "Ny sesjon",
       onclick: async () => {
         flushWrites();
-        state.progress.sessions.push({
-          title: "Sesjon " + (state.progress.sessions.length + 1),
-          date: new Date().toISOString().slice(0, 10),
-          summary: "",
-        });
+        state.progress.sessions.push(newSession());
         await saveProgress();
         render();
       },
@@ -3951,7 +4156,8 @@ function viewSessions(root) {
     panel.appendChild(el("div", { class: "grid-2" }, [title, date]));
     panel.appendChild(el("div", { style: "height:10px" }));
     panel.appendChild(summary);
-    panel.appendChild(sessionLogBlock(s, save));
+    panel.appendChild(castBlock(s));
+    panel.appendChild(sessionLogBlock(s, i, save));
     panel.appendChild(el("div", { class: "row", style: "margin-top:10px" }, [
       el("button", { class: "btn small", type: "button", text: "Eksporter",
         title: "Bare denne økta, som tekstfil",
@@ -5472,6 +5678,60 @@ async function addManyToCombat(list) {
                                          : " deltakere lagt i kampen"));
 }
 
+/* ==================================================================
+   KAMPEN INN I ØKTLOGGEN
+
+   Kamptrackeren fører allerede runde for runde. Det som er verdt å ta
+   med videre er ikke hver eneste terning, men utfallet: hvem som sto
+   mot hvem, hvor lenge det varte, og hvem som gikk skadet derfra.
+   ================================================================== */
+
+function combatSummary() {
+  const cb = state.combat;
+  if (!cb || !cb.combatants.length) return "";
+  const heroes = cb.combatants.filter((c) => c.kind === "pc");
+  const foes = cb.combatants.filter((c) => c.kind !== "pc");
+  const names = (list) => list.map((c) => c.name).join(", ");
+  const has = (c, cond) => (c.conditions || []).indexOf(cond) !== -1;
+
+  const bits = [];
+  bits.push("Kamp: " + (heroes.length ? names(heroes) : "ingen spillere") +
+            (foes.length ? " mot " + names(foes) : ""));
+  if (cb.round) {
+    bits.push(cb.round + (cb.round === 1 ? " runde" : " runder"));
+  }
+  const dead = cb.combatants.filter((c) => has(c, "Død"));
+  const down = cb.combatants.filter(
+    (c) => !has(c, "Død") && (has(c, "Bevisstløs") || has(c, "Døende") ||
+                              c.hp <= 0));
+  const wounded = cb.combatants.filter(
+    (c) => c.majorWound && !has(c, "Død"));
+  const hurt = cb.combatants.filter(
+    (c) => c.hp > 0 && c.hpMax && c.hp < c.hpMax && !c.majorWound);
+
+  if (dead.length) bits.push("Døde: " + names(dead));
+  if (down.length) bits.push("Nede: " + names(down));
+  if (wounded.length) bits.push("Major wound: " + names(wounded));
+  if (hurt.length) {
+    bits.push("Skadet: " + hurt.map((c) => c.name + " " + c.hp + "/" +
+                                           c.hpMax).join(", "));
+  }
+  if (dead.length + down.length + wounded.length + hurt.length === 0) {
+    bits.push("ingen kom til skade");
+  }
+  return bits.join(" — ");
+}
+
+async function combatToLog(quiet) {
+  const text = combatSummary();
+  if (!text) { if (!quiet) toast("Ingen kamp å logge"); return; }
+  const s = await addLogEntry(text, { kind: "kamp", view: "Kamp" });
+  if (!s) { if (!quiet) toast("Ingen scenario å logge på"); return; }
+  markSaved();
+  toast("Kampen er i loggen til " + (s.title || "økta"));
+  updateQuickBar();
+}
+
 function viewCombat(root) {
   const cb = state.combat;
   root.appendChild(el("h1", { text: "Kamp" }));
@@ -5512,6 +5772,9 @@ function viewCombat(root) {
       onclick: () => confirmThen("Avslutt kampen?",
         "Deltakerlista blir liggende, men runde og tur nullstilles.",
         async () => {
+          // Sammendraget må skrives før runden nullstilles, ellers
+          // står det at kampen varte i null runder.
+          if (cb.toLog) await combatToLog(true);
           cb.active = false; cb.round = 0; cb.turn = 0; cb.taken = 0;
           await saveCombat(); render();
         }),
@@ -5521,6 +5784,27 @@ function viewCombat(root) {
     class: "btn small", type: "button", text: "+ Legg til",
     onclick: () => addCombatantDialog(),
   }));
+  if (cb.combatants.length) {
+    // Står bryteren på, skrives sammendraget av seg selv når kampen
+    // avsluttes. Knappen ved siden av gjør det når som helst.
+    controls.appendChild(el("button", {
+      class: "btn small", type: "button",
+      "aria-pressed": String(!!cb.toLog),
+      text: cb.toLog ? "Tas med i øktnotatet" : "Ta med i øktnotatet",
+      title: "Skriver et sammendrag av kampen inn i loggen til nyeste " +
+             "sesjon når kampen avsluttes",
+      onclick: async () => {
+        cb.toLog = !cb.toLog;
+        await saveCombat();
+        render();
+      },
+    }));
+    controls.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Logg kampen nå",
+      title: combatSummary(),
+      onclick: () => combatToLog(),
+    }));
+  }
   if (state.scenario && (state.scenario.tactics || []).length) {
     controls.appendChild(el("button", {
       class: "btn small", type: "button", text: "Trekk taktikk",
