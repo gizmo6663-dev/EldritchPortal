@@ -4235,7 +4235,16 @@ function allVoices() {
 }
 
 const SPEECH_KEY = "eldritch-speech";
-const SPEECH_DEFAULTS = { voice: "", rate: 0.82, pitch: 0.7, withLog: false };
+
+/* Tidligere sto disse på 0,82 og 0,7 for å få noe «mørkt». Det var
+   feil verktøy: å skyve tonehøyden ned på en systemstemme gir
+   metallisk klang og grøtete konsonanter, ikke stemning. Rolig tempo
+   og en god stemme gjør jobben — tonehøyden blir stående. */
+const SPEECH_DEFAULTS = {
+  voice: "", rate: 0.95, pitch: 1, withLog: false,
+  // edge-tts har egne enheter, og egne verdier å huske.
+  engine: "auto", nvoice: "", nrate: -8, npitch: 0,
+};
 
 function speechPrefs() {
   let saved = null;
@@ -4249,8 +4258,72 @@ function saveSpeechPrefs(p) {
   catch (e) { /* privat vindu, eller full lagring — ikke verdt en feil */ }
 }
 
+/* ------------------------------------------------------------------
+   EDGE-TTS GJENNOM TERMUX
+
+   Nettleseren kan ikke snakke med Termux av seg selv. Men serveres
+   sida av tools/opplesing_server.py, ligger appen og talesyntesen på
+   samme sted, og da kan «Les opp» be om ordentlig lyd i stedet for å
+   lage den selv.
+
+   Vi ser bare etter serveren når sida faktisk kommer over http — som
+   artifact ligger den på https bak en CSP som likevel ville stanset
+   forespørselen, og et oppslag der gir bare en feil i konsollen.
+   ------------------------------------------------------------------ */
+
+let ttsRemote = null;      // { voices: [...], standard: "nb-NO-..." }
+let ttsProbed = false;
+
+async function probeTts() {
+  if (ttsProbed) return ttsRemote;
+  ttsProbed = true;
+  if (typeof location === "undefined" || location.protocol !== "http:") {
+    return null;
+  }
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 2500);
+    const r = await fetch("tts/stemmer", { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (!data || !Array.isArray(data.stemmer) || !data.stemmer.length) {
+      return null;
+    }
+    ttsRemote = { voices: data.stemmer, standard: data.standard || "" };
+  } catch (e) {
+    ttsRemote = null;      // ingen server, og det er helt greit
+  }
+  return ttsRemote;
+}
+
+function ttsSigned(n, unit) {
+  const v = Math.round(n);
+  return (v >= 0 ? "+" : "") + v + unit;
+}
+
+async function ttsFetchAudio(text, prefs) {
+  const r = await fetch("tts", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      tekst: text,
+      stemme: prefs.nvoice || (ttsRemote && ttsRemote.standard) || "",
+      tempo: ttsSigned(prefs.nrate, "%"),
+      dybde: ttsSigned(prefs.npitch, "Hz"),
+    }),
+  });
+  if (!r.ok) {
+    let msg = "Opplesingen feilet";
+    try { msg = (await r.json()).feil || msg; } catch (e) { /* ikke JSON */ }
+    throw new Error(msg);
+  }
+  return await r.blob();
+}
+
 const reader = { chunks: [], at: 0, playing: false, paused: false,
-                 tick: null, guard: null };
+                 tick: null, guard: null,
+                 audio: null, url: null, busy: false };
 
 function readerStop() {
   reader.playing = false;
@@ -4259,7 +4332,43 @@ function readerStop() {
   reader.at = 0;
   if (reader.guard) { clearInterval(reader.guard); reader.guard = null; }
   if (speechOk()) window.speechSynthesis.cancel();
+  if (reader.audio) {
+    reader.audio.pause();
+    reader.audio.onended = null;
+    reader.audio = null;
+  }
+  // Blob-adressen holder lyden i minnet til den slippes.
+  if (reader.url) { URL.revokeObjectURL(reader.url); reader.url = null; }
   if (reader.tick) reader.tick();
+}
+
+/* Nevral opplesing: hele teksten lages i ett stykke og spilles som en
+   vanlig lydfil. Ingen oppdeling — den er bare nødvendig for
+   nettleserstemmen, som kveler lange biter. */
+async function readerStartNeural(text, prefs) {
+  readerStop();
+  reader.busy = true;
+  if (reader.tick) reader.tick();
+  try {
+    const blob = await ttsFetchAudio(text, prefs);
+    reader.url = URL.createObjectURL(blob);
+    const audio = new Audio(reader.url);
+    reader.audio = audio;
+    reader.playing = true;
+    reader.paused = false;
+    audio.onended = () => { if (reader.playing) readerStop(); };
+    audio.onerror = () => { readerStop(); toast("Fikk ikke spilt av lyden"); };
+    audio.ontimeupdate = () => { if (reader.tick) reader.tick(); };
+    await audio.play();
+    return true;
+  } catch (e) {
+    readerStop();
+    toast(String((e && e.message) || e));
+    return false;
+  } finally {
+    reader.busy = false;
+    if (reader.tick) reader.tick();
+  }
 }
 
 function readerSpeakNext(prefs, voice) {
@@ -4313,7 +4422,10 @@ function readerStart(text, prefs) {
 
 function readerPause() {
   if (!reader.playing) return;
-  if (reader.paused) {
+  if (reader.audio) {
+    if (reader.paused) { reader.paused = false; reader.audio.play(); }
+    else { reader.paused = true; reader.audio.pause(); }
+  } else if (reader.paused) {
     reader.paused = false;
     window.speechSynthesis.resume();
   } else {
@@ -4323,68 +4435,162 @@ function readerPause() {
   if (reader.tick) reader.tick();
 }
 
+/* Hvilken motor som faktisk brukes. «auto» betyr edge-tts hvis den er
+   der, og nettleserstemmen ellers. */
+function readerEngine(prefs) {
+  if (prefs.engine === "browser") return "browser";
+  return ttsRemote ? "neural" : "browser";
+}
+
+async function downloadBlob(filename, blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  // Gi nettleseren et øyeblikk til å starte nedlastingen.
+  setTimeout(() => URL.revokeObjectURL(url), 20000);
+}
+
 function openReader(s) {
-  let prefs = speechPrefs();
+  const prefs = speechPrefs();
   const tekst = () => speechTextFor(s, prefs.withLog);
+  const level = modalStack.length;
+
+  // Serveres sida av Termux, finnes de nevrale stemmene. Det vet vi
+  // ikke før vi har spurt, så kortet tegnes på nytt når svaret kommer.
+  probeTts().then((found) => {
+    if (found && modalStack.length === level + 1) renderModal();
+  });
 
   openModal("Les opp", s.title || "", (body) => {
-    if (!speechOk()) {
-      body.appendChild(emptyBox("Nettleseren har ingen talesyntese.",
-        "Bruk «Last ned teksten» og kjør tools/opplesing.py i Termux."));
-    } else {
+    const engine = readerEngine(prefs);
+
+    if (engine === "neural") {
       body.appendChild(el("p", { class: "lede",
-        text: "Leses med nettleserens egen stemme — den koster ingenting " +
-              "og virker uten nett, men du får de stemmene maskinen har. " +
-              "For en mørk norsk mannsstemme: last ned teksten og kjør " +
-              "tools/opplesing.py, som sender den til edge-tts." }));
+        text: "Leses av edge-tts gjennom Termux — de nevrale norske " +
+              "stemmene. Lyden lages på nytt bare når teksten eller " +
+              "innstillingene endrer seg." }));
+    } else if (ttsRemote) {
+      body.appendChild(el("p", { class: "lede",
+        text: "Leses med nettleserens egen stemme. De nevrale stemmene " +
+              "er tilgjengelige — bytt motor nedenfor." }));
+    } else if (speechOk()) {
+      body.appendChild(el("p", { class: "lede",
+        text: "Leses med nettleserens egen stemme: gratis og uten nett, " +
+              "men du får de stemmene maskinen har, og de er langt fra " +
+              "de nevrale. Vil du ha Pernille eller Finn, kjør " +
+              "tools/opplesing_server.py i Termux og åpne appen derfra." }));
+    } else {
+      body.appendChild(emptyBox("Nettleseren har ingen talesyntese.",
+        "Kjør tools/opplesing_server.py i Termux og åpne appen derfra, " +
+        "eller bruk «Last ned teksten» med tools/opplesing.py."));
     }
 
-    const voices = allVoices();
     const status = el("p", { class: "savestate" });
     const preview = el("p", { class: "lede", style: "min-height:3em" });
+    let play, pause;
 
     function refresh() {
-      const n = reader.chunks.length;
-      status.textContent = !reader.playing
-        ? (n ? "Ferdig." : "Klar.")
-        : (reader.paused ? "Pauset" : "Leser") + " — del " +
-          Math.min(reader.at + 1, n) + " av " + n;
-      preview.textContent = reader.playing
+      const neural = !!reader.audio;
+      if (reader.busy) {
+        status.textContent = "Lager lyden…";
+      } else if (!reader.playing) {
+        status.textContent = "Klar.";
+      } else if (neural) {
+        const a = reader.audio;
+        const tid = (n) => {
+          if (!isFinite(n)) return "–";
+          const m = Math.floor(n / 60);
+          const sek = Math.floor(n % 60);
+          return m + ":" + (sek < 10 ? "0" : "") + sek;
+        };
+        status.textContent = (reader.paused ? "Pauset" : "Spiller") +
+          " — " + tid(a.currentTime) + " av " + tid(a.duration);
+      } else {
+        status.textContent = (reader.paused ? "Pauset" : "Leser") +
+          " — del " + Math.min(reader.at + 1, reader.chunks.length) +
+          " av " + reader.chunks.length;
+      }
+      preview.textContent = (reader.playing && !neural)
         ? (reader.chunks[reader.at] || "") : "";
       play.textContent = reader.playing ? "Stopp" : "Spill av";
+      play.disabled = reader.busy;
       pause.textContent = reader.paused ? "Fortsett" : "Pause";
       pause.disabled = !reader.playing;
     }
     reader.tick = refresh;
 
-    if (voices.length) {
-      const picker = el("select", { class: "field", id: "speech-voice" });
-      voices.forEach((v) => {
-        const norsk = /^n[bn]/i.test(v.lang);
+    // --- motorvalg, når det finnes noe å velge mellom
+    if (ttsRemote) {
+      const row = el("div", { class: "respchips", style: "margin-bottom:14px" });
+      [["auto", "Nevral (edge-tts)"], ["browser", "Nettleserstemme"]]
+        .forEach(([key, label]) => {
+          const on = (key === "auto") === (engine === "neural");
+          row.appendChild(el("button", {
+            class: "chip resp" + (on ? " on" : ""), type: "button",
+            text: label, "aria-pressed": String(on),
+            onclick: () => {
+              prefs.engine = key;
+              saveSpeechPrefs(prefs);
+              readerStop();
+              renderModal();
+            },
+          }));
+        });
+      body.appendChild(row);
+    }
+
+    // --- stemme
+    if (engine === "neural") {
+      const picker = el("select", { class: "field", id: "speech-nvoice" });
+      const valgt = prefs.nvoice || ttsRemote.standard;
+      ttsRemote.voices.forEach((v) => {
         picker.appendChild(el("option", {
-          value: v.voiceURI,
-          text: v.name + " (" + v.lang + ")" + (norsk ? "  ← norsk" : ""),
-          selected: v.voiceURI === prefs.voice ? "selected" : null,
+          value: v.id,
+          text: v.navn + " — " + v.kjonn + " (" + v.sprak + ")",
+          selected: v.id === valgt ? "selected" : null,
         }));
       });
-      if (!prefs.voice) picker.selectedIndex = 0;
       picker.addEventListener("change", () => {
-        prefs.voice = picker.value;
+        prefs.nvoice = picker.value;
         saveSpeechPrefs(prefs);
+        readerStop();
       });
       body.appendChild(el("div", { class: "section-label", text: "Stemme" }));
       body.appendChild(picker);
-      if (!voices.some((v) => /^n[bn]/i.test(v.lang))) {
-        body.appendChild(el("p", { class: "savestate",
-          text: "Ingen norsk stemme funnet på denne maskinen. Den " +
-                "øverste leses med norske lyder, men det høres deretter " +
-                "ut." }));
+    } else if (speechOk()) {
+      const voices = allVoices();
+      if (voices.length) {
+        const picker = el("select", { class: "field", id: "speech-voice" });
+        voices.forEach((v) => {
+          picker.appendChild(el("option", {
+            value: v.voiceURI,
+            text: v.name + " (" + v.lang + ")" +
+                  (/^n[bn]/i.test(v.lang) ? "  ← norsk" : ""),
+            selected: v.voiceURI === prefs.voice ? "selected" : null,
+          }));
+        });
+        if (!prefs.voice) picker.selectedIndex = 0;
+        picker.addEventListener("change", () => {
+          prefs.voice = picker.value;
+          saveSpeechPrefs(prefs);
+        });
+        body.appendChild(el("div", { class: "section-label", text: "Stemme" }));
+        body.appendChild(picker);
+        if (!voices.some((v) => /^n[bn]/i.test(v.lang))) {
+          body.appendChild(el("p", { class: "savestate",
+            text: "Ingen norsk stemme på denne maskinen." }));
+        }
       }
     }
 
-    // Sakte og lavt er det som gjør den rolig og mørk.
-    function slider(label, key, min, max, step) {
-      const out = el("span", { class: "chip", text: String(prefs[key]) });
+    // --- tempo og dybde, i motorens egne enheter
+    function slider(label, key, min, max, step, suffix) {
+      const vis = (v) => (suffix ? (v > 0 ? "+" : "") + v + suffix : String(v));
+      const out = el("span", { class: "chip", text: vis(prefs[key]) });
       const input = el("input", {
         type: "range", min: String(min), max: String(max),
         step: String(step), value: String(prefs[key]),
@@ -4392,8 +4598,13 @@ function openReader(s) {
       });
       input.addEventListener("input", () => {
         prefs[key] = parseFloat(input.value);
-        out.textContent = input.value;
+        out.textContent = vis(prefs[key]);
         saveSpeechPrefs(prefs);
+      });
+      // Nevral lyd er allerede laget når man drar i spaken, så den må
+      // lages på nytt for at endringen skal høres.
+      input.addEventListener("change", () => {
+        if (engine === "neural" && reader.playing) readerStop();
       });
       return el("div", { style: "margin-top:10px" }, [
         el("div", { class: "row spread" }, [
@@ -4402,44 +4613,68 @@ function openReader(s) {
         input,
       ]);
     }
-    body.appendChild(slider("Tempo", "rate", 0.5, 1.2, 0.02));
-    body.appendChild(slider("Dybde", "pitch", 0.3, 1.2, 0.05));
+
+    if (engine === "neural") {
+      body.appendChild(slider("Tempo", "nrate", -40, 20, 1, "%"));
+      body.appendChild(slider("Dybde", "npitch", -30, 10, 1, "Hz"));
+      body.appendChild(el("p", { class: "savestate",
+        text: "Ro kommer av tempoet. Dybde flytter tonehøyden og gir " +
+              "fort en metallisk klang — la den stå på null om du er " +
+              "i tvil." }));
+    } else {
+      body.appendChild(slider("Tempo", "rate", 0.5, 1.2, 0.02));
+      body.appendChild(slider("Dybde", "pitch", 0.5, 1.2, 0.05));
+    }
 
     const log = el("button", {
       class: "chip resp" + (prefs.withLog ? " on" : ""), type: "button",
-      text: "Ta med loggen",
-      "aria-pressed": String(prefs.withLog),
+      text: "Ta med loggen", "aria-pressed": String(prefs.withLog),
       onclick: () => {
         prefs.withLog = !prefs.withLog;
         saveSpeechPrefs(prefs);
-        if (reader.playing) readerStop();
+        readerStop();
         renderModal();
       },
     });
     body.appendChild(el("div", { class: "respchips",
                                  style: "margin-top:14px" }, [log]));
 
-    const play = el("button", {
+    play = el("button", {
       class: "btn primary", type: "button", text: "Spill av",
-      onclick: () => {
+      onclick: async () => {
         if (reader.playing) { readerStop(); return; }
-        if (readerStart(tekst(), prefs)) refresh();
+        if (engine === "neural") await readerStartNeural(tekst(), prefs);
+        else if (readerStart(tekst(), prefs)) refresh();
       },
     });
-    const pause = el("button", {
+    pause = el("button", {
       class: "btn", type: "button", text: "Pause",
       onclick: () => readerPause(),
     });
-    const dl = el("button", {
-      class: "btn small", type: "button", text: "Last ned teksten",
-      title: "Ren tekst, klar for tools/opplesing.py og edge-tts",
-      onclick: async () => {
-        await downloadText(
-          slugify(s.title || "okt") + "-opplesing.txt", tekst());
-      },
-    });
+
+    const knapper = [play, pause];
+    if (engine === "neural") {
+      knapper.push(el("button", {
+        class: "btn small", type: "button", text: "Last ned mp3",
+        onclick: async () => {
+          try {
+            const blob = await ttsFetchAudio(tekst(), prefs);
+            await downloadBlob(slugify(s.title || "okt") + ".mp3", blob);
+          } catch (e) { toast(String((e && e.message) || e)); }
+        },
+      }));
+    } else {
+      knapper.push(el("button", {
+        class: "btn small", type: "button", text: "Last ned teksten",
+        title: "Ren tekst, klar for tools/opplesing.py og edge-tts",
+        onclick: async () => {
+          await downloadText(
+            slugify(s.title || "okt") + "-opplesing.txt", tekst());
+        },
+      }));
+    }
     body.appendChild(el("div", { class: "row", style: "margin-top:16px" },
-                        [play, pause, dl]));
+                        knapper));
     body.appendChild(status);
     body.appendChild(preview);
     refresh();

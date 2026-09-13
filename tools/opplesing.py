@@ -10,9 +10,10 @@ stjerner blir «stjerne», datoer blir sifre på rad, og overskrifter
 renner sammen med avsnittet under. Derfor vaskes teksten først, og så
 sendes den til edge-tts.
 
-Stemmen er Finn, den norske mannsstemmen, satt langsom og lav — det er
-det nærmeste man kommer en rolig og mørk opplesning uten å betale for
-noe. Alt kan overstyres med flagg.
+Stemmen er Pernille, satt litt langsommere enn normalt. Roen skal komme
+av tempoet og av teksten, ikke av å skru tonehøyden ned — det siste gir
+bare metallisk klang. Alt kan overstyres med flagg; mannsstemmen heter
+nb-NO-FinnNeural.
 
 Krever nett: edge-tts snakker med Microsofts tjeneste. Den er gratis og
 uten nøkkel, men den er ikke lokal.
@@ -29,9 +30,14 @@ import shutil
 import subprocess
 import sys
 
-STEMME = "nb-NO-FinnNeural"
-TEMPO = "-15%"       # langsommere enn normalt
-DYBDE = "-20Hz"      # og et hakk mørkere
+# Pernille er den norske stemmen som holder best. Finn er
+# mannsstemmen — bytt med -v nb-NO-FinnNeural.
+STEMME = "nb-NO-PernilleNeural"
+
+# Roen kommer av tempoet. Å skyve tonehøyden ned gir metallisk klang
+# og grøtete konsonanter på en nevral stemme, så dybden står på null.
+TEMPO = "-8%"
+DYBDE = "+0Hz"
 LYDSTYRKE = "+0%"
 
 MAANEDER = ["januar", "februar", "mars", "april", "mai", "juni", "juli",

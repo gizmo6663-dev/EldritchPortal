@@ -10,7 +10,7 @@ rekkefølgen og stoppingen kan sjekkes uten at noen faktisk snakker.
 Selve edge-tts er ikke testet her: den krever nett til Microsoft, og
 det har ikke dette miljøet.
 """
-import asyncio, importlib.util, json, os, tempfile
+import asyncio, importlib.util, json, os, socketserver, sys, tempfile, threading
 from playwright.async_api import async_playwright
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -237,6 +237,126 @@ async def test_reader():
         await b.close()
 
 
+async def test_bridge():
+    """Nettsida mot en faktisk kjørende opplesingsserver.
+
+    edge-tts settes på, så det som testes er broen: at sida finner
+    serveren, at den nevrale motoren velges av seg selv, og at teksten
+    og innstillingene kommer hele veien fram."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import fake_edge                                   # setter inn edge_tts
+    edge = sys.modules["edge_tts"]
+    spec = importlib.util.spec_from_file_location(
+        "opplesing_server", os.path.join(REPO, "tools", "opplesing_server.py"))
+    srv_mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(srv_mod)
+
+    srv_mod.Handler.cache_dir = tempfile.mkdtemp(prefix="tts-bridge-")
+    srv_mod.Handler.root = os.path.join(REPO, "web")
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
+    srv = socketserver.ThreadingTCPServer(("127.0.0.1", 0), srv_mod.Handler)
+    port = srv.server_address[1]
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    try:
+        async with async_playwright() as p:
+            b = await p.chromium.launch(
+                executable_path=os.environ.get("CHROMIUM_PATH") or None)
+            ctx = await b.new_context(viewport={"width": 1280, "height": 1000})
+            errs = []
+            pg = await ctx.new_page()
+            pg.on("pageerror", lambda e: errs.append("PAGEERROR: " + str(e)))
+            await pg.goto("http://127.0.0.1:%d/" % port)
+            await pg.wait_for_timeout(2500)
+
+            print("\n== sida finner serveren ==")
+            funnet = await pg.evaluate("async () => { const r = await probeTts();"
+                                       " return r && r.voices.map(v => v.id); }")
+            check("de norske stemmene kom fram", funnet,
+                  ["nb-NO-PernilleNeural", "nb-NO-FinnNeural"])
+            check("og den nevrale motoren velges av seg selv",
+                  await pg.evaluate("() => readerEngine(speechPrefs())"),
+                  "neural")
+
+            print("\n== kortet viser den nevrale motoren ==")
+            await pg.evaluate("""async () => {
+                state.progress.sessions = [{ title:"Sesjon 1",
+                  date:"2026-09-13", summary:"Skipet gynget i mørket.",
+                  cast:[], log:[] }];
+                await saveProgress(); setView('sessions'); render(); }""")
+            await pg.wait_for_timeout(400)
+            r = await pg.evaluate("""async () => {
+                [...document.querySelectorAll('#main button')]
+                  .find(b => b.textContent === 'Les opp').click();
+                await new Promise(r => setTimeout(r, 500));
+                const body = document.getElementById('modal-body');
+                return { stemmer: [...body.querySelectorAll('#speech-nvoice option')]
+                           .map(o => o.value),
+                         valgt: body.querySelector('#speech-nvoice').value,
+                         tempo: body.querySelector('#speech-nrate').value,
+                         dybde: body.querySelector('#speech-npitch').value,
+                         motor: [...body.querySelectorAll('.chip.resp')]
+                           .filter(c => c.getAttribute('aria-pressed') === 'true')
+                           .map(c => c.textContent),
+                         mp3: [...body.querySelectorAll('button')]
+                           .some(x => x.textContent === 'Last ned mp3') }; }""")
+            check("stemmene ligger i kortet", r["stemmer"],
+                  ["nb-NO-PernilleNeural", "nb-NO-FinnNeural"])
+            check("Pernille er valgt", r["valgt"], "nb-NO-PernilleNeural")
+            check("tempoet står litt ned", r["tempo"], "-8")
+            check("dybden står på null", r["dybde"], "0")
+            check("den nevrale motoren er merket",
+                  "Nevral (edge-tts)" in r["motor"], True)
+            check("og mp3-en kan lastes ned", r["mp3"], True)
+
+            print("\n== lyden hentes fra serveren ==")
+            del edge.KALL[:]
+            r = await pg.evaluate("""async () => {
+                const prefs = speechPrefs();
+                prefs.nvoice = "nb-NO-FinnNeural";
+                prefs.nrate = -14; prefs.npitch = -3;
+                const blob = await ttsFetchAudio("Skipet gynget i mørket.",
+                                                 prefs);
+                return { type: blob.type, storrelse: blob.size }; }""")
+            check("svaret er en lydfil", r["type"], "audio/mpeg")
+            check("med innhold", r["storrelse"] > 0, True)
+            check("tjenesten fikk teksten", edge.KALL[0]["text"],
+                  "Skipet gynget i mørket.")
+            check("stemmen", edge.KALL[0]["voice"], "nb-NO-FinnNeural")
+            check("tempoet som fortegnet tall", edge.KALL[0]["rate"], "-14%")
+            check("og dybden", edge.KALL[0]["pitch"], "-3Hz")
+
+            plus = await pg.evaluate("""async () => {
+                const prefs = speechPrefs();
+                prefs.nrate = 5; prefs.npitch = 0;
+                await ttsFetchAudio("Fortere.", prefs);
+                return true; }""")
+            check("positive verdier får pluss foran",
+                  edge.KALL[-1]["rate"], "+5%")
+
+            print("\n== motoren kan byttes til nettleserstemmen ==")
+            r = await pg.evaluate("""async () => {
+                const chip = [...document.querySelectorAll('#modal-body .chip.resp')]
+                  .find(c => c.textContent === 'Nettleserstemme');
+                chip.click();
+                await new Promise(r => setTimeout(r, 300));
+                const body = document.getElementById('modal-body');
+                return { nevral: !!body.querySelector('#speech-nvoice'),
+                         tekst: [...body.querySelectorAll('button')]
+                           .some(x => x.textContent === 'Last ned teksten'),
+                         lagret: speechPrefs().engine }; }""")
+            check("det nevrale stemmevalget er borte", r["nevral"], False)
+            check("og teksten kan lastes ned i stedet", r["tekst"], True)
+            check("valget huskes", r["lagret"], "browser")
+
+            print("\nERRORS:", errs or "none")
+            await b.close()
+    finally:
+        srv.shutdown()
+        srv.server_close()
+
+
 test_vask()
 asyncio.run(test_reader())
+asyncio.run(test_bridge())
 print("\nRESULT:", "FAILED" if fails else "OK")

@@ -105,27 +105,46 @@ Kombinert fane med sub-fanene **Musikk** og **Ambient**:
 - Ingen opplasting eller egen medieserver nødvendig for selve lydutvalget
 
 ### 🗣️ Opplesing av spilløkter
-Nettleserversjonen kan lese oppsummeringen av en spilløkt høyt.
+Nettleserversjonen kan lese oppsummeringen av en spilløkt høyt. Knappen
+**Les opp** ligger i sesjonskortet, og den har to motorer.
 
-**I appen** — knappen **Les opp** i sesjonskortet
-- Bruker nettleserens egen talesyntese: gratis, virker uten nett og uten
-  oppsett, men du får de stemmene maskinen har
-- Norske stemmer rangeres øverst, mannsstemmer først
-- Tempo og dybde kan skrus ned for en roligere og mørkere opplesning;
-  standard er 0,82 og 0,7
-- Loggen kan tas med eller utelates
-- Innstillingene huskes i nettleseren
+**Nevral (edge-tts) — den som høres bra ut**
+Microsofts norske nevrale stemmer, gratis og uten nøkkel, men de krever
+nett. Standard er `nb-NO-PernilleNeural`; mannsstemmen er
+`nb-NO-FinnNeural`.
 
-**Bedre stemme** — `tools/opplesing.py` med edge-tts
-Microsofts nevrale stemmer er gratis og krever ingen nøkkel, men de
-krever nett. Den norske mannsstemmen heter `nb-NO-FinnNeural`.
+En nettside kan ikke snakke med Termux av seg selv. Løsningen er at
+Termux serverer sida, så ligger appen og talesyntesen på samme sted:
 
 ```sh
-# I Termux
-pkg install python ffmpeg
+pkg install python
 pip install edge-tts
+python3 tools/opplesing_server.py
+# åpne http://127.0.0.1:8765 i nettleseren
+```
 
-# Last ned teksten fra «Les opp» i appen, så:
+Da velger «Les opp» den nevrale motoren av seg selv, du får stemmevalg,
+tempo og dybde i edge-tts sine egne enheter, og lyden kan lastes ned som
+mp3. Samme tekst med samme innstillinger lages bare én gang og
+mellomlagres. `--alle` slipper til andre maskiner i samme nett — bare på
+et nett du stoler på, for endepunktet er åpent.
+
+**Nettleserstemmen — den som alltid virker**
+Brukes når serveren ikke er der. Den koster ingenting og virker uten
+nett, men den bruker stemmene som ligger på maskinen, og de er ikke i
+nærheten av de nevrale. Norske stemmer rangeres øverst, mannsstemmer
+først.
+
+**Tempo og dybde**
+Roen skal komme av tempoet, ikke av tonehøyden: å skyve dybden ned gir
+metallisk klang og grøtete konsonanter. Standard er derfor et lite hakk
+langsommere og tonehøyde urørt — `-8 %` og `0 Hz` nevralt, `0,95` og
+`1,0` i nettleseren.
+
+**Uten server: `tools/opplesing.py`**
+Lager mp3-en fra en eksportert fil i stedet.
+
+```sh
 python3 tools/opplesing.py ~/storage/downloads/sesjon-1-opplesing.txt --spill
 ```
 
@@ -140,9 +159,6 @@ tekst og ikke som tegn.
 | `--tekst` | skriver ut hva som faktisk blir lest, uten å lage lyd |
 | `--stemmer` | lister de norske stemmene tjenesten har |
 | `-v`, `--tempo`, `--dybde` | stemme, `--rate` og `--pitch` for edge-tts |
-
-Standard er `--tempo -15% --dybde -20Hz`, altså langsommere og mørkere
-enn normalt.
 
 ### ⚔️ Kamp
 Sub-faner for kampstøtte:
