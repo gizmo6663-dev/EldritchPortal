@@ -1117,6 +1117,10 @@ body.quickon { --quickh: 62px; }
 }
 .logwrite textarea { min-height: 62px; }
 
+/* Skyveknappene i leseren skal ha husets farge, ikke nettleserens. */
+.slider { width: 100%; accent-color: var(--brass); margin: 4px 0 0; }
+.btn:disabled { opacity: 0.4; }
+
 .castrow { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
 .castchip {
   font-family: var(--ui); font-size: 12px;
@@ -2078,6 +2082,8 @@ function openModal(title, subtitle, buildBody, footButtons) {
 // Ett steg tilbake i stabelen.
 function closeModal() {
   modalStack.pop();
+  // Leseren skal ikke fortsette å snakke fra et kort som er lukket.
+  if (typeof reader !== "undefined" && reader.playing) readerStop();
   renderModal();
 }
 
@@ -4096,6 +4102,338 @@ function sessionLogBlock(s, i, save) {
   return box;
 }
 
+/* ==================================================================
+   OPPLESING
+
+   Oppsummeringen er skrevet for å bli lest høyt, og da skal den kunne
+   leses høyt. Nettleseren har sin egen talesyntese — den er gratis,
+   virker uten nett og uten oppsett, men stemmene er de som ligger på
+   maskinen, og de er sjelden vakre.
+
+   Vil man ha det mørkt og rolig på ordentlig, ligger tools/opplesing.py
+   i repoet: den sender den samme teksten til edge-tts og får en
+   nevral norsk mannsstemme tilbake som mp3. Knappen «Last ned teksten»
+   nedenfor gir fila det skriptet vil ha.
+
+   Markdown leses ikke godt høyt. Stjerner blir «stjerne», og en dato
+   som 2026-09-13 blir sifre på rad. Derfor lages teksten her på nytt
+   fra sesjonen i stedet for å gjenbruke eksporten.
+   ================================================================== */
+
+const MAANEDER = ["januar", "februar", "mars", "april", "mai", "juni",
+                  "juli", "august", "september", "oktober", "november",
+                  "desember"];
+
+function spokenDate(iso) {
+  const m = String(iso || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return String(iso || "");
+  const md = parseInt(m[2], 10);
+  if (md < 1 || md > 12) return String(iso);
+  return parseInt(m[3], 10) + ". " + MAANEDER[md - 1] + " " + m[1];
+}
+
+/* Et klokkeslett skal høres ut som et klokkeslett, og hver del skal
+   ende i punktum — ellers renner de sammen når de leses. */
+function spokenLine(text) {
+  let t = String(text || "").trim();
+  t = t.replace(/^(\d{1,2}):(\d{2})\s*(?:[—–-]\s*)?/,
+                (_, h, min) => "Klokka " + h + " " + min + ". ");
+  t = t.replace(/\s+[—–]\s+/g, ", ");
+  if (t && !/[.!?:…]$/.test(t)) t += ".";
+  return t;
+}
+
+function speechTextFor(s, withLog) {
+  const out = [];
+  if (s.title) out.push(spokenLine(s.title));
+  if (s.date) out.push(spokenDate(s.date) + ".");
+  const cast = (s.cast || []).filter(Boolean);
+  if (cast.length) out.push("Med: " + cast.join(", ") + ".");
+  const body = (s.summary || "").trim();
+  if (body) {
+    out.push("");
+    body.split(/\n{2,}/).forEach((para) => {
+      const lines = para.split("\n").map(spokenLine).filter(Boolean);
+      if (lines.length) out.push(lines.join(" "));
+    });
+  }
+  if (withLog && (s.log || []).length) {
+    out.push("");
+    out.push("Logg underveis.");
+    s.log.forEach((e) => {
+      const prose = (e.prose || "").trim();
+      out.push(spokenLine(logTime(e) + " " + (prose || e.text)));
+    });
+  }
+  return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+/* Talesyntesen i nettleseren kveler lange biter — den stopper midt i
+   etter noen sekunder. Derfor deles teksten opp i setninger og leses
+   én bit om gangen. */
+function splitForSpeech(text) {
+  const chunks = [];
+  String(text || "").split(/\n+/).forEach((para) => {
+    const line = para.trim();
+    if (!line) return;
+    const sentences = line.match(/[^.!?…]+[.!?…]*\s*/g) || [line];
+    let buf = "";
+    sentences.forEach((raw) => {
+      const bit = raw.trim();
+      if (!bit) return;
+      if ((buf + " " + bit).trim().length > 180 && buf) {
+        chunks.push(buf.trim());
+        buf = bit;
+      } else {
+        buf = (buf + " " + bit).trim();
+      }
+    });
+    if (buf) chunks.push(buf);
+  });
+  return chunks;
+}
+
+function speechOk() {
+  return typeof window !== "undefined" && "speechSynthesis" in window &&
+         typeof window.SpeechSynthesisUtterance === "function";
+}
+
+/* Norsk først, og mannsstemmer før resten av de norske. Hvilke stemmer
+   som finnes avhenger av maskinen, så dette er en rangering, ikke et
+   valg vi kan ta på forhånd. */
+const MALE_HINTS = ["finn", "male", "mann", "jacob", "daniel", "bjørn",
+                    "bjorn", "henrik"];
+
+function voiceScore(v) {
+  const lang = String(v.lang || "").toLowerCase();
+  const name = String(v.name || "").toLowerCase();
+  let score = 0;
+  if (/^nb/.test(lang)) score += 100;
+  else if (/^n[no]/.test(lang)) score += 90;
+  else if (/^(da|sv)/.test(lang)) score += 20;   // bedre enn engelsk på norsk
+  if (MALE_HINTS.some((h) => name.indexOf(h) !== -1)) score += 10;
+  if (/female|kvinne|pernille|iselin/.test(name)) score -= 5;
+  return score;
+}
+
+function allVoices() {
+  if (!speechOk()) return [];
+  const list = window.speechSynthesis.getVoices() || [];
+  return list.slice().sort((a, b) => voiceScore(b) - voiceScore(a));
+}
+
+const SPEECH_KEY = "eldritch-speech";
+const SPEECH_DEFAULTS = { voice: "", rate: 0.82, pitch: 0.7, withLog: false };
+
+function speechPrefs() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(SPEECH_KEY) || "null"); }
+  catch (e) { saved = null; }
+  return Object.assign({}, SPEECH_DEFAULTS, saved || {});
+}
+
+function saveSpeechPrefs(p) {
+  try { localStorage.setItem(SPEECH_KEY, JSON.stringify(p)); }
+  catch (e) { /* privat vindu, eller full lagring — ikke verdt en feil */ }
+}
+
+const reader = { chunks: [], at: 0, playing: false, paused: false,
+                 tick: null, guard: null };
+
+function readerStop() {
+  reader.playing = false;
+  reader.paused = false;
+  reader.chunks = [];
+  reader.at = 0;
+  if (reader.guard) { clearInterval(reader.guard); reader.guard = null; }
+  if (speechOk()) window.speechSynthesis.cancel();
+  if (reader.tick) reader.tick();
+}
+
+function readerSpeakNext(prefs, voice) {
+  if (!reader.playing || reader.at >= reader.chunks.length) {
+    if (reader.playing) readerStop();
+    return;
+  }
+  const u = new window.SpeechSynthesisUtterance(reader.chunks[reader.at]);
+  if (voice) { u.voice = voice; u.lang = voice.lang; }
+  else u.lang = "nb-NO";
+  u.rate = prefs.rate;
+  u.pitch = prefs.pitch;
+  u.onend = () => {
+    if (!reader.playing) return;
+    reader.at += 1;
+    if (reader.tick) reader.tick();
+    readerSpeakNext(prefs, voice);
+  };
+  u.onerror = () => {
+    // «interrupted» kommer av at vi selv avbrøt, og er ikke en feil.
+    if (!reader.playing) return;
+    readerStop();
+    toast("Opplesingen stoppet");
+  };
+  window.speechSynthesis.speak(u);
+  if (reader.tick) reader.tick();
+}
+
+function readerStart(text, prefs) {
+  if (!speechOk()) { toast("Nettleseren har ingen talesyntese"); return false; }
+  readerStop();
+  reader.chunks = splitForSpeech(text);
+  if (!reader.chunks.length) { toast("Ingenting å lese opp"); return false; }
+  const voices = allVoices();
+  const chosen = voices.filter((v) => v.voiceURI === prefs.voice)[0] ||
+                 voices[0] || null;
+  reader.at = 0;
+  reader.playing = true;
+  reader.paused = false;
+  // Chrome stanser av og til mellom bitene. Vekkeren rører bare ved
+  // det når vi faktisk skal spille, aldri når brukeren har pauset.
+  reader.guard = setInterval(() => {
+    if (reader.playing && !reader.paused &&
+        !window.speechSynthesis.speaking) {
+      window.speechSynthesis.resume();
+    }
+  }, 5000);
+  readerSpeakNext(prefs, chosen);
+  return true;
+}
+
+function readerPause() {
+  if (!reader.playing) return;
+  if (reader.paused) {
+    reader.paused = false;
+    window.speechSynthesis.resume();
+  } else {
+    reader.paused = true;
+    window.speechSynthesis.pause();
+  }
+  if (reader.tick) reader.tick();
+}
+
+function openReader(s) {
+  let prefs = speechPrefs();
+  const tekst = () => speechTextFor(s, prefs.withLog);
+
+  openModal("Les opp", s.title || "", (body) => {
+    if (!speechOk()) {
+      body.appendChild(emptyBox("Nettleseren har ingen talesyntese.",
+        "Bruk «Last ned teksten» og kjør tools/opplesing.py i Termux."));
+    } else {
+      body.appendChild(el("p", { class: "lede",
+        text: "Leses med nettleserens egen stemme — den koster ingenting " +
+              "og virker uten nett, men du får de stemmene maskinen har. " +
+              "For en mørk norsk mannsstemme: last ned teksten og kjør " +
+              "tools/opplesing.py, som sender den til edge-tts." }));
+    }
+
+    const voices = allVoices();
+    const status = el("p", { class: "savestate" });
+    const preview = el("p", { class: "lede", style: "min-height:3em" });
+
+    function refresh() {
+      const n = reader.chunks.length;
+      status.textContent = !reader.playing
+        ? (n ? "Ferdig." : "Klar.")
+        : (reader.paused ? "Pauset" : "Leser") + " — del " +
+          Math.min(reader.at + 1, n) + " av " + n;
+      preview.textContent = reader.playing
+        ? (reader.chunks[reader.at] || "") : "";
+      play.textContent = reader.playing ? "Stopp" : "Spill av";
+      pause.textContent = reader.paused ? "Fortsett" : "Pause";
+      pause.disabled = !reader.playing;
+    }
+    reader.tick = refresh;
+
+    if (voices.length) {
+      const picker = el("select", { class: "field", id: "speech-voice" });
+      voices.forEach((v) => {
+        const norsk = /^n[bn]/i.test(v.lang);
+        picker.appendChild(el("option", {
+          value: v.voiceURI,
+          text: v.name + " (" + v.lang + ")" + (norsk ? "  ← norsk" : ""),
+          selected: v.voiceURI === prefs.voice ? "selected" : null,
+        }));
+      });
+      if (!prefs.voice) picker.selectedIndex = 0;
+      picker.addEventListener("change", () => {
+        prefs.voice = picker.value;
+        saveSpeechPrefs(prefs);
+      });
+      body.appendChild(el("div", { class: "section-label", text: "Stemme" }));
+      body.appendChild(picker);
+      if (!voices.some((v) => /^n[bn]/i.test(v.lang))) {
+        body.appendChild(el("p", { class: "savestate",
+          text: "Ingen norsk stemme funnet på denne maskinen. Den " +
+                "øverste leses med norske lyder, men det høres deretter " +
+                "ut." }));
+      }
+    }
+
+    // Sakte og lavt er det som gjør den rolig og mørk.
+    function slider(label, key, min, max, step) {
+      const out = el("span", { class: "chip", text: String(prefs[key]) });
+      const input = el("input", {
+        type: "range", min: String(min), max: String(max),
+        step: String(step), value: String(prefs[key]),
+        id: "speech-" + key, class: "slider",
+      });
+      input.addEventListener("input", () => {
+        prefs[key] = parseFloat(input.value);
+        out.textContent = input.value;
+        saveSpeechPrefs(prefs);
+      });
+      return el("div", { style: "margin-top:10px" }, [
+        el("div", { class: "row spread" }, [
+          el("span", { class: "section-label", text: label }), out,
+        ]),
+        input,
+      ]);
+    }
+    body.appendChild(slider("Tempo", "rate", 0.5, 1.2, 0.02));
+    body.appendChild(slider("Dybde", "pitch", 0.3, 1.2, 0.05));
+
+    const log = el("button", {
+      class: "chip resp" + (prefs.withLog ? " on" : ""), type: "button",
+      text: "Ta med loggen",
+      "aria-pressed": String(prefs.withLog),
+      onclick: () => {
+        prefs.withLog = !prefs.withLog;
+        saveSpeechPrefs(prefs);
+        if (reader.playing) readerStop();
+        renderModal();
+      },
+    });
+    body.appendChild(el("div", { class: "respchips",
+                                 style: "margin-top:14px" }, [log]));
+
+    const play = el("button", {
+      class: "btn primary", type: "button", text: "Spill av",
+      onclick: () => {
+        if (reader.playing) { readerStop(); return; }
+        if (readerStart(tekst(), prefs)) refresh();
+      },
+    });
+    const pause = el("button", {
+      class: "btn", type: "button", text: "Pause",
+      onclick: () => readerPause(),
+    });
+    const dl = el("button", {
+      class: "btn small", type: "button", text: "Last ned teksten",
+      title: "Ren tekst, klar for tools/opplesing.py og edge-tts",
+      onclick: async () => {
+        await downloadText(
+          slugify(s.title || "okt") + "-opplesing.txt", tekst());
+      },
+    });
+    body.appendChild(el("div", { class: "row", style: "margin-top:16px" },
+                        [play, pause, dl]));
+    body.appendChild(status);
+    body.appendChild(preview);
+    refresh();
+  });
+}
+
 function viewSessions(root) {
   root.appendChild(el("h1", { text: "Sesjoner" }));
   root.appendChild(el("p", { class: "lede",
@@ -4169,6 +4507,10 @@ function viewSessions(root) {
         } }),
       el("button", { class: "btn small", type: "button", text: "Kopier",
         onclick: () => { save.flush(); copyText(oneSessionMarkdown(s)); } }),
+      el("button", { class: "btn small", type: "button", text: "Les opp",
+        title: "Leser oppsummeringen høyt, eller gir deg teksten til " +
+               "edge-tts",
+        onclick: () => { save.flush(); openReader(s); } }),
       el("button", { class: "btn danger small", type: "button", text: "Slett",
         onclick: () => confirmThen("Slett sesjon?",
           "«" + (s.title || "Uten navn") + "» blir borte.", async () => {

@@ -104,6 +104,46 @@ Kombinert fane med sub-fanene **Musikk** og **Ambient**:
 - Egen opplastet ambient kan loopes sømløst og stoppes fra samme fane
 - Ingen opplasting eller egen medieserver nødvendig for selve lydutvalget
 
+### 🗣️ Opplesing av spilløkter
+Nettleserversjonen kan lese oppsummeringen av en spilløkt høyt.
+
+**I appen** — knappen **Les opp** i sesjonskortet
+- Bruker nettleserens egen talesyntese: gratis, virker uten nett og uten
+  oppsett, men du får de stemmene maskinen har
+- Norske stemmer rangeres øverst, mannsstemmer først
+- Tempo og dybde kan skrus ned for en roligere og mørkere opplesning;
+  standard er 0,82 og 0,7
+- Loggen kan tas med eller utelates
+- Innstillingene huskes i nettleseren
+
+**Bedre stemme** — `tools/opplesing.py` med edge-tts
+Microsofts nevrale stemmer er gratis og krever ingen nøkkel, men de
+krever nett. Den norske mannsstemmen heter `nb-NO-FinnNeural`.
+
+```sh
+# I Termux
+pkg install python ffmpeg
+pip install edge-tts
+
+# Last ned teksten fra «Les opp» i appen, så:
+python3 tools/opplesing.py ~/storage/downloads/sesjon-1-opplesing.txt --spill
+```
+
+Skriptet tar også markdown-eksporten direkte — det vasker bort
+overskrifter, stjerner og lenker, skriver om `2026-09-13` til «13.
+september 2026» og `11:43` til «klokka 11 43», slik at teksten leses som
+tekst og ikke som tegn.
+
+| Flagg | Gjør |
+| --- | --- |
+| `--spill` | spiller av med én gang (`termux-media-player`, `mpv`, `ffplay`) |
+| `--tekst` | skriver ut hva som faktisk blir lest, uten å lage lyd |
+| `--stemmer` | lister de norske stemmene tjenesten har |
+| `-v`, `--tempo`, `--dybde` | stemme, `--rate` og `--pitch` for edge-tts |
+
+Standard er `--tempo -15% --dybde -20Hz`, altså langsommere og mørkere
+enn normalt.
+
 ### ⚔️ Kamp
 Sub-faner for kampstøtte:
 
