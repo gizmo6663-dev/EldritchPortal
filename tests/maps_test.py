@@ -305,19 +305,22 @@ async def test_view():
             state.mapTime = 'natt'; state.mapPower = false;
             if (state.progress) state.progress.mapLights = {};
             render(); await new Promise(r => setTimeout(r, 400));
-            const for_ = document.querySelectorAll('.maplight.kilde').length;
+            // Bare de man har satt ut selv — nødlampene henger der
+            // uansett, og de har ingen data-lys.
+            const for_ = document.querySelectorAll(
+              '.maplight.kilde[data-lys]').length;
             const rom = currentMapRoom();
             await addLight(rom, 'lommelykt');
             await new Promise(r => setTimeout(r, 400));
             const lys = mapLights(rom.id)[0];
             const node = document.querySelector('.maplight.kilde[data-lys]');
             return { for_, etter: document.querySelectorAll(
-                       '.maplight.kilde').length,
+                       '.maplight.kilde[data-lys]').length,
                      type: lys.t, valgt: state.mapSelLight === lys.id,
                      iDom: !!node,
                      kjegle: node && getComputedStyle(node).clipPath !== 'none',
                      midt: lys.x === Math.round(rom.widthPx / 2) }; }""")
-        check("ingen lyskilder før man setter dem ut", r["for_"], 0)
+        check("ingen egne lyskilder før man setter dem ut", r["for_"], 0)
         check("lommelykta kom på kartet", r["etter"], 1)
         check("den er en kjegle", r["kjegle"], True)
         check("den havner midt i rommet", r["midt"], True)
@@ -388,6 +391,35 @@ async def test_view():
               sorted(set(r["uteNattUtenStrom"])), ["maane"])
         check("om dagen trengs de ikke", r["uteDag"], 0)
         check("og under dekk henger det ingen", r["dyptHarIngenAuto"], 0)
+
+        r = await pg.evaluate("""() => {
+            const dypt = mapRoomById('hold7');
+            state.mapTime = 'natt'; state.mapPower = false;
+            const lamper = autoLights(dypt);
+            state.mapPower = true;
+            const medStrom = autoLights(dypt).length;
+            state.mapTime = 'dag'; state.mapPower = true;
+            return { antall: lamper.length,
+                     alleRode: lamper.every(l => l.t === 'nod'),
+                     parvis: lamper.length % 2 === 0,
+                     medStrom: medStrom }; }""")
+        check("nødlampene henger som lamper, ikke som tåke",
+              r["antall"] >= 4, True)
+        check("alle er røde", r["alleRode"], True)
+        check("en på hver langvegg", r["parvis"], True)
+        check("og ingen når strømmen står på", r["medStrom"], 0)
+
+        r = await pg.evaluate("""() => {
+            // Lyslenka skal være pærer på rad, ikke én stor flekk.
+            const paerer = lenkePaerer({ x: 0, y: 35, bredde: 440 });
+            const avstand = paerer[1].x - paerer[0].x;
+            return { antall: paerer.length, avstand: avstand,
+                     starter: paerer[0].x > 0,
+                     innenfor: paerer[paerer.length - 1].x < 440 }; }""")
+        check("lenka har flere pærer", r["antall"] >= 8, True)
+        check("med jevn avstand", r["avstand"] > 20, True)
+        check("den første er inne på lenka", r["starter"], True)
+        check("og den siste også", r["innenfor"], True)
 
         r = await pg.evaluate("""async () => {
             state.mapTime = 'natt'; state.mapPower = false;
