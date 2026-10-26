@@ -1221,13 +1221,37 @@ body.quickon { --quickh: 62px; }
   outline: 2px dashed var(--brass);
   outline-offset: 2px;
   cursor: grabbing;
+  z-index: 10001 !important;
 }
 .mapprop.clueprop::after {
   content: ""; position: absolute; inset: 0;
   box-shadow: inset 0 0 0 1px rgba(224,180,81,0.35);
 }
 
-.mapgrid { position: absolute; top: 0; left: 0; pointer-events: none; }
+.mapgrid {
+  position: absolute; top: 0; left: 0; pointer-events: none;
+  z-index: 10002;
+}
+
+/* Lyslagene. Kunsten er ferdig bakt med lys oppe fra venstre, så
+   gradientene her peker samme vei — ellers ville de to kranglet.
+   Tonelaget mørkner med multiply, dagslyset løfter med screen, og
+   vignetten legger seg over begge. */
+.maplight {
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  /* Gjenstandene har sin egen z-index, så lyset må ligge over dem
+     alle — ellers mørkner gulvet mens møblene står og lyser. */
+  z-index: 10000;
+}
+.maplight.tone { mix-blend-mode: multiply; }
+.maplight.loft { mix-blend-mode: screen; }
+.maplight.vignett { mix-blend-mode: normal; }
+
+/* Skyggen under hver gjenstand. Spritene har en bakt skygge for
+   dagslys; denne legges oppå og vokser når lyset blir lavt. */
+.maplayer { --propskygge: 0 0 0 rgba(0,0,0,0); }
+.mapprop { filter: drop-shadow(var(--propskygge)); }
 
 /* Verktøylinja over kartet. Den delen som gjelder en valgt gjenstand
    blir blek når ingenting er valgt, i stedet for å forsvinne — da
@@ -1510,6 +1534,8 @@ const state = {
   mapGrid: true,      // rutenett på kartet
   mapPlayer: false,   // spillervisning: spor-gjenstander skjult
   mapDecor: true,     // pynt og rot som ikke betyr noe
+  mapTime: "dag",     // dag | natt
+  mapPower: true,     // strøm på skipet
   charFilter: "all",  // all | pc | npc | enemy
   quickRef: null,     // raden hurtignotatet skal henge på
   quickKind: null,    // hva slags linje snarveien startet
@@ -1972,6 +1998,20 @@ function flushWrites() {
    det man nettopp skrev har rukket ned. */
 function saveStreamPrefs() {
   lsSet("streamOn", state.streamOn);
+}
+
+function saveMapPrefs() {
+  lsSet("mapLight", { time: state.mapTime, power: state.mapPower,
+                      grid: state.mapGrid, decor: state.mapDecor });
+}
+
+function loadMapPrefs() {
+  const saved = lsGet("mapLight");
+  if (!saved || typeof saved !== "object") return;
+  if (saved.time === "dag" || saved.time === "natt") state.mapTime = saved.time;
+  if (typeof saved.power === "boolean") state.mapPower = saved.power;
+  if (typeof saved.grid === "boolean") state.mapGrid = saved.grid;
+  if (typeof saved.decor === "boolean") state.mapDecor = saved.decor;
 }
 
 function loadStreamPrefs() {
@@ -9297,6 +9337,150 @@ function armMapKeys() {
   });
 }
 
+/* ==================================================================
+   LYS OG SKYGGE
+
+   Kunsten er ferdig bakt, så lyset legges på som lag over kartet. Det
+   betyr at det ikke kan kaste ekte skygger fra veggene — men det kan
+   gjøre det som faktisk betyr noe ved bordet: si om det er dag eller
+   natt, og hva som skjer når strømmen går.
+
+   Hvor mye dagslys et rom får bestemmes av hvor dypt i skipet det
+   ligger. Det er ikke pynt: i lasterommet på E-dekk ser det likt ut
+   klokka to om natta og klokka to om dagen, og når strømmen går er
+   det stummende mørkt uansett. Ute på dekk er strømbrudd midt på
+   dagen ingenting å bry seg om.
+
+       ute    — åpent dekk, fullt dagslys
+       vindu  — koøyer eller vinduer: Båtdekket, Promenadedekket,
+                A-, B- og C-dekk
+       svakt  — D-dekk, så vidt dagslys
+       dypt   — E-dekk, lensen, og alle lasterom og maskinrom:
+                ingen dagslys i det hele tatt
+
+   Lyset legges mellom gjenstandene og rutenettet, så rutene holder
+   seg lesbare også i mørket.
+   ================================================================== */
+
+function roomLight(room) {
+  if (room.group === "Uteområder") return "ute";
+  // Lasterom, kjølerom og maskinrom har ingen koøyer, uansett dekk.
+  if (room.group === "Lasterom og maskin") return "dypt";
+  const m = String(room.title || "").match(
+    /Båtdekket|Promenadedekket|under E-dekk|[A-E]-dekk/);
+  const dekk = m ? m[0] : "";
+  if (dekk === "under E-dekk" || dekk === "E-dekk") return "dypt";
+  if (dekk === "D-dekk") return "svakt";
+  return "vindu";
+}
+
+const LYS_NAVN = {
+  ute: "åpent dekk", vindu: "koøyer", svakt: "så vidt dagslys",
+  dypt: "ingen dagslys",
+};
+
+/* Fire tilstander ganger fire romtyper.
+
+   tone     mørkner alt (multiply)
+   loft     løfter der lyset kommer inn (screen)
+   vignett  mørkner kantene
+   skygge   hvor langt gjenstandene kaster
+   lampe    varm glød fra taklampene, bare når strømmen står på */
+const LYS_TABELL = {
+  "dag/på": {
+    ute:   { tone: null, loft: 0.10, vignett: 0.10, skygge: [1, 2, 2, 0.22] },
+    vindu: { tone: null, loft: 0.08, vignett: 0.14, skygge: [1, 2, 2, 0.24] },
+    svakt: { tone: "rgba(150,165,190,0.12)", loft: 0.05, vignett: 0.22,
+             skygge: [1, 2, 3, 0.3], lampe: 0.10 },
+    dypt:  { tone: "rgba(105,78,42,0.26)", loft: 0, vignett: 0.40,
+             skygge: [2, 4, 5, 0.42], lampe: 0.20 },
+  },
+  "natt/på": {
+    ute:   { tone: "rgba(40,66,118,0.58)", loft: 0, vignett: 0.46,
+             skygge: [2, 4, 6, 0.5] },
+    vindu: { tone: "rgba(110,72,34,0.30)", loft: 0, vignett: 0.40,
+             skygge: [2, 4, 5, 0.45], lampe: 0.22 },
+    svakt: { tone: "rgba(95,62,28,0.36)", loft: 0, vignett: 0.46,
+             skygge: [2, 4, 6, 0.48], lampe: 0.20 },
+    // Samme som om dagen: her nede finnes det ikke dagslys å miste.
+    dypt:  { tone: "rgba(105,78,42,0.26)", loft: 0, vignett: 0.40,
+             skygge: [2, 4, 5, 0.42], lampe: 0.20 },
+  },
+  "dag/av": {
+    // Ute merkes ikke strømbrudd før det blir mørkt — altså ikke i
+    // det hele tatt om dagen. Tallene er de samme som med strøm på.
+    ute:   { tone: null, loft: 0.10, vignett: 0.10, skygge: [1, 2, 2, 0.22] },
+    vindu: { tone: "rgba(108,124,152,0.46)", loft: 0.26, vignett: 0.52,
+             skygge: [2, 4, 7, 0.5] },
+    svakt: { tone: "rgba(74,88,114,0.68)", loft: 0.14, vignett: 0.62,
+             skygge: [3, 5, 9, 0.55] },
+    dypt:  { tone: "rgba(4,4,7,0.93)", loft: 0, vignett: 0.80,
+             skygge: [3, 6, 11, 0.6] },
+  },
+  "natt/av": {
+    ute:   { tone: "rgba(14,24,52,0.80)", loft: 0.06, vignett: 0.62,
+             skygge: [3, 5, 8, 0.55] },
+    vindu: { tone: "rgba(10,16,36,0.86)", loft: 0.07, vignett: 0.70,
+             skygge: [3, 6, 10, 0.6] },
+    svakt: { tone: "rgba(6,9,20,0.90)", loft: 0.03, vignett: 0.76,
+             skygge: [3, 6, 11, 0.6] },
+    // Og i mørket er det like svart uansett hva klokka er.
+    dypt:  { tone: "rgba(4,4,7,0.93)", loft: 0, vignett: 0.80,
+             skygge: [3, 6, 11, 0.6] },
+  },
+};
+
+function lightMode() {
+  return state.mapTime + "/" + (state.mapPower ? "på" : "av");
+}
+
+function lightFor(room) {
+  const tabell = LYS_TABELL[lightMode()] || LYS_TABELL["dag/på"];
+  return tabell[roomLight(room)] || tabell.vindu;
+}
+
+/* Lagene, i den rekkefølgen de skal tegnes. */
+function lightLayers(room) {
+  const L = lightFor(room);
+  const ut = [];
+
+  // Tonen: hele rommet mørknes og farges.
+  if (L.tone) {
+    ut.push({ klasse: "tone", css: "background:" + L.tone });
+  }
+
+  // Lampene: varm glød ovenfra, som når taklyset står på.
+  if (L.lampe) {
+    ut.push({ klasse: "loft", css:
+      "background:radial-gradient(120% 90% at 50% 0%," +
+      "rgba(255,206,130," + L.lampe + ") 0%," +
+      "rgba(255,206,130,0) 70%)" });
+  }
+
+  // Dagslyset: kommer inn ovenfra og fra venstre, samme vei som
+  // kunsten allerede er lyssatt.
+  if (L.loft) {
+    ut.push({ klasse: "loft", css:
+      "background:linear-gradient(145deg," +
+      "rgba(190,210,240," + L.loft + ") 0%," +
+      "rgba(190,210,240,0) 55%)" });
+  }
+
+  // Vignetten: kantene faller bort, og det gir rommet dybde.
+  if (L.vignett) {
+    ut.push({ klasse: "vignett", css:
+      "background:radial-gradient(ellipse 78% 78% at 48% 42%," +
+      "rgba(0,0,0,0) 40%,rgba(0,0,0," + L.vignett + ") 100%)" });
+  }
+  return ut;
+}
+
+function propShadowCss(room) {
+  const sk = lightFor(room).skygge || [0, 0, 0, 0];
+  return sk[0] + "px " + sk[1] + "px " + sk[2] + "px rgba(0,0,0," +
+         sk[3] + ")";
+}
+
 function viewMaps(root) {
   if (!state.maps) {
     root.appendChild(el("h1", { text: "Kart" }));
@@ -9366,8 +9550,31 @@ function viewMaps(root) {
     class: "chip resp" + (state.mapGrid ? " on" : ""), type: "button",
     text: "Rutenett", "aria-pressed": String(state.mapGrid),
     title: "Fem fot per rute",
-    onclick: () => { state.mapGrid = !state.mapGrid; render(); },
+    onclick: () => { state.mapGrid = !state.mapGrid;
+                     saveMapPrefs(); render(); },
   }));
+  tools.appendChild(el("button", {
+    class: "chip resp" + (state.mapTime === "natt" ? " on" : ""),
+    type: "button", text: state.mapTime === "natt" ? "Natt" : "Dag",
+    "aria-pressed": String(state.mapTime === "natt"),
+    title: "Dagslys eller mørke ute",
+    onclick: () => {
+      state.mapTime = state.mapTime === "natt" ? "dag" : "natt";
+      saveMapPrefs(); render();
+    },
+  }));
+  tools.appendChild(el("button", {
+    class: "chip resp" + (!state.mapPower ? " on" : ""),
+    type: "button", text: "Strømbrudd",
+    "aria-pressed": String(!state.mapPower),
+    title: "Slå lyset på skipet av. Ute på dekk merkes det ikke før " +
+           "det blir mørkt; i lasterommet merkes det med en gang.",
+    onclick: () => {
+      state.mapPower = !state.mapPower;
+      saveMapPrefs(); render();
+    },
+  }));
+
   const dekor = room.items.filter((i) => i.decor).length;
   if (dekor) {
     tools.appendChild(el("button", {
@@ -9375,7 +9582,7 @@ function viewMaps(root) {
       text: "Dekor " + dekor, "aria-pressed": String(state.mapDecor),
       title: "Paller, flekker, aviser og annet rot som bare er stemning",
       onclick: () => { state.mapDecor = !state.mapDecor;
-                       state.mapSel = null; render(); },
+                       state.mapSel = null; saveMapPrefs(); render(); },
     }));
   }
   tools.appendChild(el("button", {
@@ -9421,9 +9628,16 @@ function viewMaps(root) {
                          width: String(room.widthPx),
                          height: String(room.heightPx), alt: room.title });
   layer.appendChild(bg);
+  layer.style.setProperty("--propskygge", propShadowCss(room));
   visibleProps(room).forEach((p) => {
     const node = propEl(room, p.item, p.st);
     if (node) layer.appendChild(node);
+  });
+  // Lyset legges over gjenstandene, men under rutenettet — rutene skal
+  // være lesbare også når det er stummende mørkt.
+  lightLayers(room).forEach((l) => {
+    layer.appendChild(el("div", { class: "maplight " + l.klasse,
+                                  style: l.css }));
   });
   if (state.mapGrid) {
     const g = el("div");
@@ -9437,6 +9651,16 @@ function viewMaps(root) {
     text: room.widthFt + " × " + room.heightFt + " fot · 16 piksler = " +
           "1 fot · rute = 5 fot · dra for å flytte, R for å rotere, " +
           "piltaster for å dytte" }));
+  const sort = roomLight(room);
+  main.appendChild(el("p", { class: "mapmeta",
+    text: "Lys: " + (state.mapTime === "natt" ? "natt" : "dag") +
+          (state.mapPower ? "" : " · strømbrudd") +
+          " · rommet har " + LYS_NAVN[sort] +
+          (sort === "dypt"
+            ? ", så her ser det likt ut hele døgnet"
+            : sort === "ute" && !state.mapPower
+              ? ", så strømbruddet merkes ikke før det blir mørkt"
+              : "") }));
 
   // --- skjulte gjenstander
   const skjult = room.items
@@ -9578,16 +9802,71 @@ async function exportMapPng(room) {
     const bg = await last(mapAsset(room, "bg"));
     const atlas = await last(mapAsset(room, "sprites"));
     g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
+
+    const L = lightFor(room);
+    const sk = L.skygge || [0, 0, 0, 0];
     visibleProps(room).forEach((p) => {
       const ramme = room.frames[p.item.sprite];
       if (!ramme) return;
       const [fx, fy, fw, fh] = ramme;
       g.save();
+      if (sk[3]) {
+        g.shadowColor = "rgba(0,0,0," + sk[3] + ")";
+        g.shadowOffsetX = sk[0];
+        g.shadowOffsetY = sk[1];
+        g.shadowBlur = sk[2];
+      }
       g.translate(p.st.x + fw / 2, p.st.y + fh / 2);
       g.rotate((p.st.r * Math.PI) / 180);
       g.drawImage(atlas, fx, fy, fw, fh, -fw / 2, -fh / 2, fw, fh);
       g.restore();
     });
+
+    // Samme lag som på skjermen, i samme rekkefølge.
+    const W = room.widthPx, H = room.heightPx;
+    if (L.tone) {
+      g.save();
+      g.globalCompositeOperation = "multiply";
+      g.fillStyle = L.tone;
+      g.fillRect(0, 0, W, H);
+      g.restore();
+    }
+    if (L.lampe) {
+      g.save();
+      g.globalCompositeOperation = "screen";
+      const r = Math.max(W * 0.6, H * 0.9);
+      const grad = g.createRadialGradient(W / 2, 0, 0, W / 2, 0, r);
+      grad.addColorStop(0, "rgba(255,206,130," + L.lampe + ")");
+      grad.addColorStop(0.7, "rgba(255,206,130,0)");
+      grad.addColorStop(1, "rgba(255,206,130,0)");
+      g.fillStyle = grad;
+      g.fillRect(0, 0, W, H);
+      g.restore();
+    }
+    if (L.loft) {
+      g.save();
+      g.globalCompositeOperation = "screen";
+      // 145 grader: ovenfra og fra venstre, som på skjermen.
+      const grad = g.createLinearGradient(0, 0, W * 0.6, H * 0.85);
+      grad.addColorStop(0, "rgba(190,210,240," + L.loft + ")");
+      grad.addColorStop(0.55, "rgba(190,210,240,0)");
+      grad.addColorStop(1, "rgba(190,210,240,0)");
+      g.fillStyle = grad;
+      g.fillRect(0, 0, W, H);
+      g.restore();
+    }
+    if (L.vignett) {
+      g.save();
+      const cx = W * 0.48, cy = H * 0.42;
+      const r = Math.max(W, H) * 0.78;
+      const grad = g.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
+      grad.addColorStop(0, "rgba(0,0,0,0)");
+      grad.addColorStop(1, "rgba(0,0,0," + L.vignett + ")");
+      g.fillStyle = grad;
+      g.fillRect(0, 0, W, H);
+      g.restore();
+    }
+
     if (state.mapGrid) {
       const rute = (state.maps.units && state.maps.units.gridPx) || 80;
       g.strokeStyle = "rgba(0,0,0,0.5)";
@@ -9603,7 +9882,9 @@ async function exportMapPng(room) {
     if (!blob) { toast("Fikk ikke laget bildet"); return; }
     await downloadBlob(
       slugify(room.title || room.id) +
-        (state.mapPlayer ? "-spillerkart" : "-kart") + ".png", blob);
+        (state.mapPlayer ? "-spillerkart" : "-kart") +
+        "-" + state.mapTime + (state.mapPower ? "" : "-stromlos") +
+        ".png", blob);
     toast("Lastet ned kartet");
   } catch (e) {
     toast("Fikk ikke lest kartbildene");
@@ -9641,6 +9922,7 @@ async function boot() {
 
   loadBestiary();
   loadStreamPrefs();
+  loadMapPrefs();
 
   // Tegn med lokale data først, slik at siden er brukbar med én gang.
   await loadLibrary();

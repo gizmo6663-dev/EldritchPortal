@@ -199,6 +199,106 @@ async def test_view():
               r["uten"], r["medSpor"] - r["sporProps"])
         check("og ingen er merket som spor da", r["merket"], 0)
 
+        print("\n== lys og skygge ==")
+        r = await pg.evaluate("""() => {
+            const typer = {};
+            state.maps.rooms.forEach(r => {
+              typer[roomLight(r)] = (typer[roomLight(r)] || 0) + 1; });
+            return { typer,
+                     ute: roomLight(mapRoomById('promenade')),
+                     vindu: roomLight(mapRoomById('kabin')),
+                     svakt: roomLight(mapRoomById('steerage')),
+                     dypt: roomLight(mapRoomById('hold7')),
+                     kjolerom: roomLight(mapRoomById('hold3')),
+                     lensa: roomLight(mapRoomById('bilge')) }; }""")
+        check("åpent dekk kjennes igjen", r["ute"], "ute")
+        check("en lugar på A-dekk har koøye", r["vindu"], "vindu")
+        check("sovesalen på D-dekk har så vidt dagslys", r["svakt"], "svakt")
+        check("lasterommet på E-dekk har ingen", r["dypt"], "dypt")
+        check("kjølerommet på B-dekk har heller ingen",
+              r["kjolerom"], "dypt")
+        check("og lensa under E-dekk ikke", r["lensa"], "dypt")
+        check("alle fire typene er i bruk",
+              sorted(r["typer"].keys()), ["dypt", "svakt", "ute", "vindu"])
+
+        r = await pg.evaluate("""async () => {
+            await byttRom('kabin');
+            await new Promise(r => setTimeout(r, 500));
+            const tell = () => document.querySelectorAll('.maplight').length;
+            const ut = {};
+            for (const [tid, strom] of [['dag',true],['natt',true],
+                                        ['dag',false],['natt',false]]) {
+              state.mapTime = tid; state.mapPower = strom; render();
+              await new Promise(r => setTimeout(r, 250));
+              ut[tid + '/' + strom] = {
+                lag: tell(),
+                skygge: document.getElementById('maplayer')
+                          .style.getPropertyValue('--propskygge'),
+              };
+            }
+            state.mapTime = 'dag'; state.mapPower = true; render();
+            return ut; }""")
+        for n in ("dag/true", "natt/true", "dag/false", "natt/false"):
+            check("%s har lyslag" % n, r[n]["lag"] > 0, True)
+        check("skyggen vokser når det blir natt",
+              r["natt/true"]["skygge"] != r["dag/true"]["skygge"], True)
+        check("og når strømmen går",
+              r["dag/false"]["skygge"] != r["dag/true"]["skygge"], True)
+
+        r = await pg.evaluate("""() => {
+            // Et rom uten dagslys skal se likt ut natt og dag.
+            const dypt = state.maps.rooms.find(r => roomLight(r) === 'dypt');
+            const ute = state.maps.rooms.find(r => roomLight(r) === 'ute');
+            const hent = (rom, tid, strom) => {
+              state.mapTime = tid; state.mapPower = strom;
+              return JSON.stringify(lightFor(rom)); };
+            const d1 = hent(dypt, 'dag', true), d2 = hent(dypt, 'natt', true);
+            const d3 = hent(dypt, 'dag', false), d4 = hent(dypt, 'natt', false);
+            const u1 = hent(ute, 'dag', true), u2 = hent(ute, 'dag', false);
+            const u3 = hent(ute, 'natt', true);
+            state.mapTime = 'dag'; state.mapPower = true;
+            return { dyptLikt: d1 === d2, dyptMorktLikt: d3 === d4,
+                     dyptEndrerSegUtenStrom: d1 !== d3,
+                     uteUpaavirket: u1 === u2, uteNattAnnerledes: u1 !== u3 }; }""")
+        check("uten dagslys er natt og dag likt", r["dyptLikt"], True)
+        check("også når strømmen er borte", r["dyptMorktLikt"], True)
+        check("men strømbrudd merkes med en gang",
+              r["dyptEndrerSegUtenStrom"], True)
+        check("ute merkes strømbrudd ikke om dagen",
+              r["uteUpaavirket"], True)
+        check("men natta gjør det", r["uteNattAnnerledes"], True)
+
+        r = await pg.evaluate("""async () => {
+            // Lyset må ligge over gjenstandene, ellers mørkner gulvet
+            // mens møblene står og lyser.
+            state.mapTime = 'natt'; state.mapPower = false; render();
+            await new Promise(r => setTimeout(r, 300));
+            const lys = document.querySelector('.maplight');
+            const prop = document.querySelector('.mapprop:not(.sel)');
+            const z = (n) => parseInt(getComputedStyle(n).zIndex, 10) || 0;
+            const svar = { over: z(lys) > z(prop),
+                           blend: getComputedStyle(
+                             document.querySelector('.maplight.tone'))
+                             .mixBlendMode,
+                           rutenettOverst: z(document.querySelector('.mapgrid'))
+                             > z(lys) };
+            state.mapTime = 'dag'; state.mapPower = true; render();
+            return svar; }""")
+        check("lyset ligger over gjenstandene", r["over"], True)
+        check("og mørkner dem med multiply", r["blend"], "multiply")
+        check("rutenettet ligger øverst", r["rutenettOverst"], True)
+
+        r = await pg.evaluate("""() => {
+            const f = [];
+            state.mapTime = 'natt'; state.mapPower = false;
+            const a = (document.querySelector('.maptools') &&
+              [...document.querySelectorAll('.chip.resp')]
+                .map(c => c.textContent));
+            state.mapTime = 'dag'; state.mapPower = true; render();
+            return a; }""")
+        check("valgene står i verktøylinja",
+              "Strømbrudd" in r and ("Dag" in r or "Natt" in r), True)
+
         print("\n== dekoren kan slås av ==")
         r = await pg.evaluate("""async () => {
             // Finn et rom som faktisk har dekor.
