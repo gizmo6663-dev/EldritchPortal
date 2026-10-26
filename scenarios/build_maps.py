@@ -13,10 +13,16 @@ Noen av filene i pakka heter .png, men er SVG med pikselkunst i. De
 rasteriseres her, så alt ligger som ekte bilder når appen skal bruke
 dem.
 
+Bildene skrives som WebP uten tap. Den nye kunsten har korn og
+fargegradering, og det komprimerer dårlig som PNG — WebP tar en tredel
+av vekten uten å endre et eneste piksel man kan se. Hver fil leses
+tilbake og sammenlignes før den godtas; går det ikke opp, skrives PNG
+i stedet.
+
 Ut:
     bestiary/battlemaps.json
-    web/maps/<no>-<id>/bg.png
-    web/maps/<no>-<id>/sprites.png
+    web/maps/<no>-<id>/bg.webp
+    web/maps/<no>-<id>/sprites.webp
 """
 import argparse
 import collections
@@ -137,19 +143,58 @@ def pakk(bilder):
 
 
 def krymp(bilde):
-    """Slank bildet uten å endre et eneste piksel.
-
-    Kvantisering til palett ville spart mer, men pikselkunst med myke
-    skygger tåler det dårlig, og her er det kunsten som er poenget. Det
-    eneste som gjøres er å droppe alfakanalen når den er ubrukt — det
-    er tapsfritt og tar en firedel av de rå bytene.
-    """
+    """Dropp alfakanalen når den er ubrukt. Tapsfritt."""
     if bilde.mode != "RGBA":
         bilde = bilde.convert("RGBA")
     alfa = bilde.getchannel("A")
     if alfa.getextrema()[0] == 255:
         return bilde.convert("RGB")
     return bilde
+
+
+def likt_der_det_synes(a, b):
+    """Er to bilder like overalt der man kan se forskjell?
+
+    WebP uten tap kaster fargen under piksler som er helt
+    gjennomsiktige. Den fargen kan ikke ses, så en forskjell der er
+    ikke en forskjell.
+    """
+    if a.size != b.size:
+        return False
+    pa, pb = a.convert("RGBA").load(), b.convert("RGBA").load()
+    for y in range(a.height):
+        for x in range(a.width):
+            va, vb = pa[x, y], pb[x, y]
+            if va == vb:
+                continue
+            if va[3] == 0 and vb[3] == 0:
+                continue
+            return False
+    return True
+
+
+def skriv(bilde, mappe, stamme):
+    """Skriv som WebP uten tap, med PNG som fallback.
+
+    Returnerer filnavnet som faktisk ble skrevet, så JSON-en kan peke
+    på det i stedet for at appen gjetter endelsen.
+    """
+    bilde = krymp(bilde)
+    webp = os.path.join(mappe, stamme + ".webp")
+    bilde.save(webp, "WEBP", lossless=True, quality=100, method=5)
+    try:
+        tilbake = Image.open(webp)
+        tilbake.load()
+        if likt_der_det_synes(bilde, tilbake):
+            return stamme + ".webp", os.path.getsize(webp)
+    except Exception:
+        pass
+    # Kom den ikke hel tilbake, er den ikke verdt å spare på.
+    os.remove(webp)
+    png = os.path.join(mappe, stamme + ".png")
+    bilde.save(png, optimize=True)
+    print("  %s: WebP gikk ikke, skrev PNG" % stamme)
+    return stamme + ".png", os.path.getsize(png)
 
 
 def main():
@@ -191,10 +236,8 @@ def main():
         bg_fra = os.path.join(fra, "background.png")
         if not os.path.exists(bg_fra):
             sys.exit("Mangler bakgrunn for " + mappe)
-        bg = krymp(apne(bg_fra))
-        bg_til = os.path.join(til, "bg.png")
-        bg.save(bg_til, optimize=True)
-        bytes_bg += os.path.getsize(bg_til)
+        bg_navn, bg_vekt = skriv(apne(bg_fra), til, "bg")
+        bytes_bg += bg_vekt
 
         # Bare de spritene rommet faktisk bruker. Flere items kan dele
         # én sprite, og da skal den ligge én gang i atlaset.
@@ -210,9 +253,8 @@ def main():
         atlas = Image.new("RGBA", (bredde, hoyde), (0, 0, 0, 0))
         for n, (x, y, w, h) in rammer.items():
             atlas.paste(bilder[n], (x, y))
-        atlas_til = os.path.join(til, "sprites.png")
-        krymp(atlas).save(atlas_til, optimize=True)
-        bytes_atlas += os.path.getsize(atlas_til)
+        atlas_navn, atlas_vekt = skriv(atlas, til, "sprites")
+        bytes_atlas += atlas_vekt
 
         r = collections.OrderedDict()
         for k in ("id", "no", "group", "title", "scene", "note",
@@ -220,6 +262,8 @@ def main():
             if k in rom:
                 r[k] = rom[k]
         r["dir"] = mappe
+        r["bg"] = bg_navn
+        r["atlas"] = atlas_navn
         r["atlasW"] = bredde
         r["atlasH"] = hoyde
         # [x, y, w, h] er kortere enn et objekt, og det er 516 av dem.

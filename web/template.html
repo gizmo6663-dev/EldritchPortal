@@ -1509,6 +1509,7 @@ const state = {
   mapClue: null,      // åpent spor i panelet
   mapGrid: true,      // rutenett på kartet
   mapPlayer: false,   // spillervisning: spor-gjenstander skjult
+  mapDecor: true,     // pynt og rot som ikke betyr noe
   charFilter: "all",  // all | pc | npc | enemy
   quickRef: null,     // raden hurtignotatet skal henge på
   quickKind: null,    // hva slags linje snarveien startet
@@ -9078,8 +9079,12 @@ async function setProp(room, item, endring) {
   await saveProgress();
 }
 
-function mapAsset(room, fil) {
-  return "maps/" + room.dir + "/" + fil;
+function mapAsset(room, hva) {
+  // Byggeskriptet skriver WebP når det går, og PNG når det ikke gjør
+  // det. Hvilken det ble, står i dataene.
+  const navn = hva === "bg" ? (room.bg || "bg.png")
+                            : (room.atlas || "sprites.png");
+  return "maps/" + room.dir + "/" + navn;
 }
 
 /* Gjenstandene som skal tegnes, i stablerekkefølge. I spillervisning
@@ -9089,6 +9094,9 @@ function visibleProps(room) {
     .map((item) => ({ item: item, st: propNow(room, item) }))
     .filter((p) => !p.st.hidden)
     .filter((p) => !(state.mapPlayer && p.item.clue))
+    // Dekor er paller, oljeflekker og aviser — stemning, ikke
+    // innhold. Den kan slås av når kartet skal leses raskt.
+    .filter((p) => state.mapDecor || !p.item.decor)
     .sort((a, b) => a.st.z - b.st.z);
 }
 
@@ -9104,7 +9112,7 @@ function propEl(room, item, st) {
     "data-prop": item.id,
     style: "left:" + st.x + "px;top:" + st.y + "px;" +
            "width:" + fw + "px;height:" + fh + "px;" +
-           "background-image:url(" + mapAsset(room, "sprites.png") + ");" +
+           "background-image:url(" + mapAsset(room, "sprites") + ");" +
            "background-position:" + (-fx) + "px " + (-fy) + "px;" +
            "transform:rotate(" + st.r + "deg);" +
            "z-index:" + (valgt ? 9999 : st.z),
@@ -9360,6 +9368,16 @@ function viewMaps(root) {
     title: "Fem fot per rute",
     onclick: () => { state.mapGrid = !state.mapGrid; render(); },
   }));
+  const dekor = room.items.filter((i) => i.decor).length;
+  if (dekor) {
+    tools.appendChild(el("button", {
+      class: "chip resp" + (state.mapDecor ? " on" : ""), type: "button",
+      text: "Dekor " + dekor, "aria-pressed": String(state.mapDecor),
+      title: "Paller, flekker, aviser og annet rot som bare er stemning",
+      onclick: () => { state.mapDecor = !state.mapDecor;
+                       state.mapSel = null; render(); },
+    }));
+  }
   tools.appendChild(el("button", {
     class: "chip resp" + (state.mapPlayer ? " on" : ""), type: "button",
     text: "Spillervisning", "aria-pressed": String(state.mapPlayer),
@@ -9399,7 +9417,7 @@ function viewMaps(root) {
   const layer = el("div", { class: "maplayer", id: "maplayer",
                             style: "width:" + room.widthPx + "px;height:" +
                                    room.heightPx + "px" });
-  const bg = el("img", { class: "mapbg", src: mapAsset(room, "bg.png"),
+  const bg = el("img", { class: "mapbg", src: mapAsset(room, "bg"),
                          width: String(room.widthPx),
                          height: String(room.heightPx), alt: room.title });
   layer.appendChild(bg);
@@ -9557,8 +9575,8 @@ async function exportMapPng(room) {
   }
 
   try {
-    const bg = await last(mapAsset(room, "bg.png"));
-    const atlas = await last(mapAsset(room, "sprites.png"));
+    const bg = await last(mapAsset(room, "bg"));
+    const atlas = await last(mapAsset(room, "sprites"));
     g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
     visibleProps(room).forEach((p) => {
       const ramme = room.frames[p.item.sprite];

@@ -47,15 +47,15 @@ def test_data():
     doder = 0
     for r in d["rooms"]:
         mappe = os.path.join(REPO, "web", "maps", r["dir"])
-        for fil in ("bg.png", "sprites.png"):
+        for fil in (r["bg"], r["atlas"]):
             if not os.path.exists(os.path.join(mappe, fil)):
                 mangler.append(r["dir"] + "/" + fil)
         if Image:
-            bg = Image.open(os.path.join(mappe, "bg.png"))
+            bg = Image.open(os.path.join(mappe, r["bg"]))
             if bg.size != (r["widthPx"], r["heightPx"]):
                 utenfor.append("%s: bakgrunn %s != %s" %
                                (r["id"], bg.size, (r["widthPx"], r["heightPx"])))
-            atlas = Image.open(os.path.join(mappe, "sprites.png"))
+            atlas = Image.open(os.path.join(mappe, r["atlas"]))
             if atlas.size != (r["atlasW"], r["atlasH"]):
                 utenfor.append("%s: atlas %s != %s" %
                                (r["id"], atlas.size, (r["atlasW"], r["atlasH"])))
@@ -85,8 +85,10 @@ def test_data():
     check("ingen bilder eller sprites mangler", mangler, [])
     check("ingen ruter faller utenfor atlaset", utenfor, [])
     check("ingen ruter overlapper hverandre", dubletter, [])
-    check("alle gjenstandene er med", props, 635)
-    check("alle sporene er med", spor, 94)
+    check("alle gjenstandene er med", props, 839)
+    check("alle sporene er med", spor, 96)
+    dekor = sum(1 for r in d["rooms"] for i in r["items"] if i.get("decor"))
+    check("dekoren er merket som dekor", dekor, 184)
     check("ingen døde dører eller sporpekere", doder, 0)
 
 
@@ -197,6 +199,28 @@ async def test_view():
               r["uten"], r["medSpor"] - r["sporProps"])
         check("og ingen er merket som spor da", r["merket"], 0)
 
+        print("\n== dekoren kan slås av ==")
+        r = await pg.evaluate("""async () => {
+            // Finn et rom som faktisk har dekor.
+            const rom = state.maps.rooms.find(r =>
+              r.items.some(i => i.decor));
+            await byttRom(rom.id);
+            await new Promise(r => setTimeout(r, 600));
+            const med = document.querySelectorAll('.mapprop').length;
+            const dekor = rom.items.filter(i => i.decor).length;
+            const knapp = [...document.querySelectorAll('.chip.resp')]
+              .find(c => c.textContent.startsWith('Dekor'));
+            if (!knapp) return { fant: false };
+            knapp.click();
+            await new Promise(r => setTimeout(r, 500));
+            const uten = document.querySelectorAll('.mapprop').length;
+            state.mapDecor = true; render();
+            return { fant: true, med, uten, dekor,
+                     tekst: knapp.textContent }; }""")
+        check("bryteren finnes", r["fant"], True)
+        check("og teller dekoren", r["tekst"], "Dekor " + str(r["dekor"]))
+        check("dekoren forsvinner", r["uten"], r["med"] - r["dekor"])
+
         print("\n== sporpanelet peker ut gjenstanden ==")
         r = await pg.evaluate("""async () => {
             const rom = currentMapRoom();
@@ -249,8 +273,8 @@ async def test_view():
             const last = (s) => new Promise((ok, nei) => {
               const i = new Image(); i.onload = () => ok(i); i.onerror = nei;
               i.src = s; });
-            const bg = await last(mapAsset(rom, 'bg.png'));
-            const atlas = await last(mapAsset(rom, 'sprites.png'));
+            const bg = await last(mapAsset(rom, 'bg'));
+            const atlas = await last(mapAsset(rom, 'sprites'));
             g.drawImage(bg, 0, 0, c.width, c.height);
             return { bredde: c.width, bgOk: bg.naturalWidth === rom.widthPx,
                      atlasOk: atlas.naturalWidth === rom.atlasW }; }""")
