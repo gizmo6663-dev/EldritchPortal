@@ -299,6 +299,119 @@ async def test_view():
         check("valgene står i verktøylinja",
               "Strømbrudd" in r and ("Dag" in r or "Natt" in r), True)
 
+        print("\n== lyskilder ==")
+        r = await pg.evaluate("""async () => {
+            await byttRom('hold7');
+            state.mapTime = 'natt'; state.mapPower = false;
+            if (state.progress) state.progress.mapLights = {};
+            render(); await new Promise(r => setTimeout(r, 400));
+            const for_ = document.querySelectorAll('.maplight.kilde').length;
+            const rom = currentMapRoom();
+            await addLight(rom, 'lommelykt');
+            await new Promise(r => setTimeout(r, 400));
+            const lys = mapLights(rom.id)[0];
+            const node = document.querySelector('.maplight.kilde[data-lys]');
+            return { for_, etter: document.querySelectorAll(
+                       '.maplight.kilde').length,
+                     type: lys.t, valgt: state.mapSelLight === lys.id,
+                     iDom: !!node,
+                     kjegle: node && getComputedStyle(node).clipPath !== 'none',
+                     midt: lys.x === Math.round(rom.widthPx / 2) }; }""")
+        check("ingen lyskilder før man setter dem ut", r["for_"], 0)
+        check("lommelykta kom på kartet", r["etter"], 1)
+        check("den er en kjegle", r["kjegle"], True)
+        check("den havner midt i rommet", r["midt"], True)
+        check("og blir valgt med én gang", r["valgt"], True)
+
+        r = await pg.evaluate("""async () => {
+            const rom = currentMapRoom();
+            const lys = mapLights(rom.id)[0];
+            await setLight(rom, lys.id, { x: 100, y: 120, rot: 90, r: 220 });
+            render(); await new Promise(r => setTimeout(r, 300));
+            const etter = mapLights(rom.id)[0];
+            return { x: etter.x, rot: etter.rot, r: etter.r }; }""")
+        check("den kan flyttes", r["x"], 100)
+        check("snus", r["rot"], 90)
+        check("og skaleres", r["r"], 220)
+
+        r = await pg.evaluate("""async () => {
+            const rom = currentMapRoom();
+            await addLight(rom, 'lykt');
+            await addLight(rom, 'nod');
+            const antall = mapLights(rom.id).length;
+            const sist = mapLights(rom.id)[2];
+            await removeLight(rom, sist.id);
+            await new Promise(r => setTimeout(r, 300));
+            const etterSletting = mapLights(rom.id).length;
+            document.getElementById('quick-undo').click();
+            await new Promise(r => setTimeout(r, 400));
+            return { antall, etterSletting,
+                     etterAngre: mapLights(rom.id).length }; }""")
+        check("flere lys kan stå samtidig", r["antall"], 3)
+        check("ett kan slukkes", r["etterSletting"], 2)
+        check("og tennes igjen med angre", r["etterAngre"], 3)
+
+        print("\n== nødlys, vinduer og dekkslykter ==")
+        r = await pg.evaluate("""() => {
+            const dypt = mapRoomById('hold7');
+            const vindu = mapRoomById('kabin');
+            const ute = mapRoomById('promenade');
+            const sett = (t, p) => { state.mapTime = t; state.mapPower = p; };
+            const nod = (rom) => !!(lightFor(rom).nodlys);
+            const ut = {};
+            sett('dag', true);   ut.nodMedStrom = nod(dypt);
+            ut.vinduMedStrom = windowShafts(vindu).length;
+            sett('dag', false);  ut.nodDagUtenStrom = nod(dypt);
+            ut.vinduDagUtenStrom = windowShafts(vindu).length;
+            ut.dyptHarIngenVinduer = windowShafts(dypt).length;
+            sett('natt', false); ut.nodNattUtenStrom = nod(dypt);
+            ut.vinduNattUtenStrom = windowShafts(vindu).length;
+            ut.uteNattUtenStrom = autoLights(ute).map(l => l.t);
+            sett('natt', true);  ut.uteNattMedStrom = autoLights(ute).map(l => l.t);
+            sett('dag', true);   ut.uteDag = autoLights(ute).length;
+            ut.dyptHarIngenAuto = autoLights(dypt).length;
+            return ut; }""")
+        check("nødlyset er av når strømmen står på", r["nodMedStrom"], False)
+        check("og på når den går, om dagen", r["nodDagUtenStrom"], True)
+        check("og om natta", r["nodNattUtenStrom"], True)
+        check("vinduene gir ikke lys når lampene virker",
+              r["vinduMedStrom"], 0)
+        check("men de gjør det ved strømbrudd om dagen",
+              r["vinduDagUtenStrom"] > 0, True)
+        check("ikke om natta — da er det mørkt ute",
+              r["vinduNattUtenStrom"], 0)
+        check("et rom uten vinduer får ingen striper",
+              r["dyptHarIngenVinduer"], 0)
+        check("dekkslykter og lyslenke henger ute om natta",
+              sorted(set(r["uteNattMedStrom"])), ["lenke", "lykt"])
+        check("uten strøm står bare månen igjen",
+              sorted(set(r["uteNattUtenStrom"])), ["maane"])
+        check("om dagen trengs de ikke", r["uteDag"], 0)
+        check("og under dekk henger det ingen", r["dyptHarIngenAuto"], 0)
+
+        r = await pg.evaluate("""async () => {
+            state.mapTime = 'natt'; state.mapPower = false;
+            await byttRom('hold7');
+            render(); await new Promise(r => setTimeout(r, 400));
+            const lag = [...document.querySelectorAll('.maplight')];
+            const vign = lag.findIndex(n => n.classList.contains('vignett'));
+            const kilde = lag.findIndex(n => n.classList.contains('kilde'));
+            const z = (n) => parseInt(getComputedStyle(n).zIndex, 10) || 0;
+            return { etterVignett: kilde > vign,
+                     over: z(lag[kilde]) >= z(lag[vign]),
+                     blend: getComputedStyle(lag[kilde]).mixBlendMode }; }""")
+        check("lyskildene tegnes etter vignetten", r["etterVignett"], True)
+        check("og ligger over den", r["over"], True)
+        check("de lyser opp med screen", r["blend"], "screen")
+
+        r = await pg.evaluate("""async () => {
+            const rom = currentMapRoom();
+            const for_ = mapLights(rom.id).length;
+            delete state.progress.mapLights[rom.id];
+            await saveProgress(); render();
+            return { for_, etter: mapLights(rom.id).length }; }""")
+        check("lysene kan slukkes alle sammen", r["etter"], 0)
+
         print("\n== dekoren kan slås av ==")
         r = await pg.evaluate("""async () => {
             // Finn et rom som faktisk har dekor.
