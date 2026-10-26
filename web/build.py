@@ -26,6 +26,7 @@ TALENT_RULES_FILE = os.path.join(BESTIARY_DIR, "talent_rules.json")
 KEEPER_RULES_FILE = os.path.join(BESTIARY_DIR, "keeper_rules.json")
 SKILLS_FILE = os.path.join(BESTIARY_DIR, "skills.json")
 SPELLS_FILE = os.path.join(BESTIARY_DIR, "spells.json")
+MAPS_FILE = os.path.join(BESTIARY_DIR, "battlemaps.json")
 
 SKELETON = """<!doctype html>
 <html lang="nb">
@@ -65,7 +66,8 @@ def main():
         for name in sorted(os.listdir(BESTIARY_DIR)):
             if not name.endswith(".json") or name in (
                     "talents.json", "abilities.json", "talent_rules.json",
-                    "keeper_rules.json", "skills.json", "spells.json"):
+                    "keeper_rules.json", "skills.json", "spells.json",
+                    "battlemaps.json"):
                 continue
             with open(os.path.join(BESTIARY_DIR, name),
                       encoding="utf-8") as fh:
@@ -99,6 +101,7 @@ def main():
     keeper_rules = load(KEEPER_RULES_FILE, {"rules": []})
     skills = load(SKILLS_FILE, {"skills": []})
     spells = load(SPELLS_FILE, {"spells": []})
+    maps = load(MAPS_FILE, {"rooms": [], "groups": []})
 
     page = template.replace("/*__SCENARIOS__*/", embed(scenarios))
     page = page.replace("/*__BESTIARY__*/", embed(bestiary))
@@ -109,6 +112,7 @@ def main():
     page = page.replace("/*__KEEPER_RULES__*/", embed(keeper_rules))
     page = page.replace("/*__SKILLS__*/", embed(skills))
     page = page.replace("/*__SPELLS__*/", embed(spells))
+    page = page.replace("/*__MAPS__*/", embed(maps))
 
     app_path = os.path.join(HERE, "app.html")
     with open(app_path, "w", encoding="utf-8") as fh:
@@ -132,7 +136,7 @@ def main():
           f"{len(talent_rules.get('rules', [])) + len(keeper_rules.get('rules', []))} "
           f"regelbokser og {len(skills.get('skills', []))} "
           f"ferdighetsoppslag og {len(spells.get('spells', []))} "
-          f"formler bygget inn")
+          f"formler og {len(maps.get('rooms', []))} kart bygget inn")
 
 
 if __name__ == "__main__":

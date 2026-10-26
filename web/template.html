@@ -1175,6 +1175,121 @@ body.quickon { --quickh: 62px; }
   body.quickon { --quickh: 58px; }
 }
 
+
+/* ==================================================================
+   BATTLEMAPS
+
+   Kartene er pikselkunst i 16 piksler per fot. Alt inni kartet regnes
+   i romkoordinater, og hele laget skaleres med transform — da slipper
+   vi å regne om hver eneste gjenstand når vinduet endrer størrelse,
+   og piksler forblir piksler.
+
+   Spritene ligger samlet i ett atlasbilde per rom. En gjenstand er en
+   rute med atlaset som bakgrunn, forskjøvet til sin egen rute.
+   ================================================================== */
+
+.view.widest { max-width: 1400px; }
+
+.maproom {
+  display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;
+}
+.mapmain { flex: 1 1 560px; min-width: 0; }
+.mapside { flex: 0 1 330px; min-width: 260px; }
+
+.mapframe {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px var(--rule);
+  border-radius: 3px;
+  touch-action: none;          /* dra gjenstander, ikke sida */
+}
+.maplayer { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+.maplayer img, .mapprop {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+.mapbg { position: absolute; top: 0; left: 0; display: block; }
+
+.mapprop {
+  position: absolute;
+  background-repeat: no-repeat;
+  cursor: grab;
+}
+.mapprop.sel {
+  outline: 2px dashed var(--brass);
+  outline-offset: 2px;
+  cursor: grabbing;
+}
+.mapprop.clueprop::after {
+  content: ""; position: absolute; inset: 0;
+  box-shadow: inset 0 0 0 1px rgba(224,180,81,0.35);
+}
+
+.mapgrid { position: absolute; top: 0; left: 0; pointer-events: none; }
+
+/* Verktøylinja over kartet. Den delen som gjelder en valgt gjenstand
+   blir blek når ingenting er valgt, i stedet for å forsvinne — da
+   hopper ikke resten av knappene bortover. */
+.maptools { display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+            margin-bottom: 10px; }
+.maptools .dim { opacity: 0.35; pointer-events: none; }
+.mapselname { font-family: var(--mono); font-size: 11px; color: var(--brass);
+              max-width: 24ch; overflow: hidden; text-overflow: ellipsis;
+              white-space: nowrap; }
+.mapmeta { font-family: var(--mono); font-size: 11px; color: var(--faint);
+           margin: 8px 0 0; }
+
+.maphidden { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.maphidden .chip { border-style: dashed; }
+
+/* Romlista. Gruppene er dekk og områder på skipet. */
+.maprooms { max-height: 420px; overflow-y: auto; }
+.maproomrow {
+  display: flex; gap: 8px; width: 100%; text-align: left;
+  padding: 5px 8px; border-radius: 3px; font-size: 13px;
+  color: var(--muted); border-left: 2px solid transparent;
+}
+.maproomrow:hover { background: var(--ink-3); color: var(--parchment); }
+.maproomrow[aria-current="true"] {
+  background: var(--ink-3); color: var(--brass);
+  border-left-color: var(--brass);
+}
+.maproomrow .no { font-family: var(--mono); font-size: 10px;
+                  color: var(--faint); min-width: 18px; }
+
+/* Sporpanelet. Keeperens egen liste — den skal aldri på skjermen mot
+   spillerne, og den følger aldri med i en utskrift. */
+.cluerow {
+  width: 100%; text-align: left; padding: 9px 10px;
+  border: 1px solid var(--rule-soft); border-radius: 4px;
+  background: var(--ink-2); margin-bottom: 6px;
+}
+.cluerow:hover { background: var(--ink-3); }
+.cluerow[aria-expanded="true"] { background: var(--ink-3);
+                                 border-color: var(--brass-dim); }
+.cluerow .ct { display: block; font-family: var(--ui); font-weight: 600;
+               font-size: 14px; color: var(--parchment); }
+.cluerow .cr { display: block; font-family: var(--mono); font-size: 10px;
+               color: var(--brass); margin-top: 2px; }
+.cluebody { padding: 2px 10px 10px; }
+.cluebody p { margin: 0 0 8px; font-size: 13px; line-height: 1.5;
+              color: var(--muted); }
+
+@media (max-width: 860px) {
+  .mapside { flex: 1 1 100%; }
+  .maprooms { max-height: 260px; }
+}
+
+@media print {
+  /* Bare kartet skal på papiret. */
+  .rail, .masthead, .quickbar, .mapside, .maptools, .maphidden,
+  .mapmeta { display: none !important; }
+  .maproom { display: block; }
+  .main { padding: 0 !important; }
+}
+
 @media (max-width: 860px) {
   .shell {
     grid-template-columns: minmax(0, 1fr);
@@ -1273,6 +1388,7 @@ body.quickon { --quickh: 62px; }
 <script type="application/json" id="bundled-keeper-rules">/*__KEEPER_RULES__*/</script>
 <script type="application/json" id="bundled-skills">/*__SKILLS__*/</script>
 <script type="application/json" id="bundled-spells">/*__SPELLS__*/</script>
+<script type="application/json" id="bundled-maps">/*__MAPS__*/</script>
 
 <script>
 "use strict";
@@ -1387,6 +1503,12 @@ const state = {
   cluePoints: "alle",   // hvilken vei sporene peker: alle|sant|delvis|villspor
   streamOn: { timeline: true, beats: true, clues: true, locations: true },
   spellBook: null,    // formelbanken
+  maps: null,         // battlemap-banken
+  mapRoom: null,      // rommet som vises
+  mapSel: null,       // valgt gjenstand
+  mapClue: null,      // åpent spor i panelet
+  mapGrid: true,      // rutenett på kartet
+  mapPlayer: false,   // spillervisning: spor-gjenstander skjult
   charFilter: "all",  // all | pc | npc | enemy
   quickRef: null,     // raden hurtignotatet skal henge på
   quickKind: null,    // hva slags linje snarveien startet
@@ -2695,6 +2817,7 @@ const VIEWS = [
   { key: "spells",     label: "Formler",    group: "Oppslag" },
   { key: "reference",  label: "Regler",     group: "Oppslag" },
   { key: "combat",     label: "Kamp",       group: "Bordet" },
+  { key: "maps",       label: "Kart",       group: "Bordet" },
   { key: "tactics",    label: "Taktikk",    group: "Bordet" },
   { key: "characters", label: "Roller",     group: "Bordet" },
   { key: "bestiary",   label: "Fiendebank", group: "Bordet" },
@@ -2723,6 +2846,9 @@ function navBadge(key) {
   }
   if (key === "spells") {
     return (state.spellBook && state.spellBook.spells.length) || "";
+  }
+  if (key === "maps") {
+    return (state.maps && state.maps.rooms.length) || "";
   }
   if (key === "tactics") {
     const t = (state.scenario && state.scenario.tactics) || [];
@@ -8833,7 +8959,8 @@ function render() {
   main.innerHTML = "";
   const root = el("div", { class: "view" +
     (["npcs", "timeline", "beats", "library"].indexOf(state.view) !== -1
-      ? " wide" : "") });
+      ? " wide" : "") +
+    (state.view === "maps" ? " widest" : "") });
   main.appendChild(root);
 
   if (state.view === "library") { viewLibrary(root); return; }
@@ -8842,6 +8969,7 @@ function render() {
   if (state.view === "characters") { viewCharacters(root); return; }
   if (state.view === "bestiary") { viewBestiary(root); return; }
   if (state.view === "combat") { viewCombat(root); return; }
+  if (state.view === "maps") { viewMaps(root); return; }
 
   if (!state.scenario) {
     root.appendChild(el("h1", { text: "Ingen scenario lastet" }));
@@ -8862,6 +8990,7 @@ function render() {
       break;
     case "npcs":      viewNpcs(root); break;
     case "spells":    viewSpells(root); break;
+    case "maps":      viewMaps(root); break;
     case "locations":
       viewList(root, "locations", "Steder",
         "Skipet dekk for dekk, og hva som ligger i hvert lasterom.",
@@ -8873,6 +9002,593 @@ function render() {
     case "notes":     viewNotes(root); break;
     case "sessions":  viewSessions(root); break;
     default:          viewOverview(root);
+  }
+}
+
+/* ==================================================================
+   BATTLEMAPS
+
+   Tretti kart over SS President Coolidge, med flyttbare gjenstander og
+   Keeperens egen sporliste per rom.
+
+   Målestokken er 16 piksler per fot, og rutenettet er fem fot. Alt
+   regnes i romkoordinater; hele laget skaleres med transform, så en
+   piksel i kunsten blir en hel piksel på skjermen uansett hvor bredt
+   vinduet er.
+
+   Gjenstandene ligger i ett atlasbilde per rom, ikke som femhundre
+   enkeltfiler. Det er ikke bare for vektens skyld: et publisert
+   artifact tar 255 filer, og 546 ville ikke fått plass.
+
+   Det brukeren flytter lagres som avvik fra utgangsstillingen, slik at
+   oppsettet overlever at kartdataene oppdateres.
+   ================================================================== */
+
+function mapRooms() {
+  return (state.maps && state.maps.rooms) || [];
+}
+
+function mapRoomById(id) {
+  return mapRooms().filter((r) => r.id === id)[0] || null;
+}
+
+function currentMapRoom() {
+  const list = mapRooms();
+  if (!list.length) return null;
+  const valgt = state.mapRoom ||
+    (state.progress && state.progress.mapRoom) || "";
+  return mapRoomById(valgt) || list[0];
+}
+
+/* Avvikene fra utgangsstillingen, per rom. */
+function mapStateFor(roomId) {
+  if (!state.progress) return {};
+  if (!state.progress.maps || typeof state.progress.maps !== "object") {
+    state.progress.maps = {};
+  }
+  if (!state.progress.maps[roomId]) state.progress.maps[roomId] = {};
+  return state.progress.maps[roomId];
+}
+
+/* Gjenstanden slik den står nå: utgangsstillingen med avviket lagt på. */
+function propNow(room, item) {
+  const lagret = (mapStateFor(room.id) || {})[item.id] || {};
+  return {
+    x: lagret.x !== undefined ? lagret.x : item.x,
+    y: lagret.y !== undefined ? lagret.y : item.y,
+    r: lagret.r !== undefined ? lagret.r : (item.rotation || 0),
+    z: lagret.z !== undefined ? lagret.z : (item.z || 0),
+    hidden: lagret.h !== undefined ? !!lagret.h : !!item.hiddenByDefault,
+  };
+}
+
+async function setProp(room, item, endring) {
+  const bank = mapStateFor(room.id);
+  const naa = propNow(room, item);
+  const ny = Object.assign({}, naa, endring);
+  const lagret = {};
+  // Bare det som faktisk avviker lagres.
+  if (ny.x !== item.x) lagret.x = ny.x;
+  if (ny.y !== item.y) lagret.y = ny.y;
+  if (ny.r !== (item.rotation || 0)) lagret.r = ny.r;
+  if (ny.z !== (item.z || 0)) lagret.z = ny.z;
+  if (ny.hidden !== !!item.hiddenByDefault) lagret.h = ny.hidden;
+  if (Object.keys(lagret).length) bank[item.id] = lagret;
+  else delete bank[item.id];
+  await saveProgress();
+}
+
+function mapAsset(room, fil) {
+  return "maps/" + room.dir + "/" + fil;
+}
+
+/* Gjenstandene som skal tegnes, i stablerekkefølge. I spillervisning
+   er spor-gjenstandene borte — det er hele poenget med den. */
+function visibleProps(room) {
+  return room.items
+    .map((item) => ({ item: item, st: propNow(room, item) }))
+    .filter((p) => !p.st.hidden)
+    .filter((p) => !(state.mapPlayer && p.item.clue))
+    .sort((a, b) => a.st.z - b.st.z);
+}
+
+function propEl(room, item, st) {
+  const ramme = room.frames[item.sprite];
+  if (!ramme) return null;
+  const [fx, fy, fw, fh] = ramme;
+  const valgt = state.mapSel === item.id;
+  const node = el("div", {
+    class: "mapprop" + (valgt ? " sel" : "") +
+           (item.clue && !state.mapPlayer ? " clueprop" : ""),
+    title: item.name || item.id,
+    "data-prop": item.id,
+    style: "left:" + st.x + "px;top:" + st.y + "px;" +
+           "width:" + fw + "px;height:" + fh + "px;" +
+           "background-image:url(" + mapAsset(room, "sprites.png") + ");" +
+           "background-position:" + (-fx) + "px " + (-fy) + "px;" +
+           "transform:rotate(" + st.r + "deg);" +
+           "z-index:" + (valgt ? 9999 : st.z),
+  });
+  return node;
+}
+
+function gridSvg(room) {
+  const g = (state.maps.units && state.maps.units.gridPx) || 80;
+  const linjer = [];
+  for (let x = g; x < room.widthPx; x += g) {
+    linjer.push('<line x1="' + x + '" y1="0" x2="' + x + '" y2="' +
+                room.heightPx + '"/>');
+  }
+  for (let y = g; y < room.heightPx; y += g) {
+    linjer.push('<line x1="0" y1="' + y + '" x2="' + room.widthPx +
+                '" y2="' + y + '"/>');
+  }
+  return '<svg class="mapgrid" width="' + room.widthPx + '" height="' +
+         room.heightPx + '" viewBox="0 0 ' + room.widthPx + ' ' +
+         room.heightPx + '" stroke="rgba(0,0,0,0.5)" stroke-width="1">' +
+         linjer.join("") + "</svg>";
+}
+
+/* Skalering: laget har rommets piksler som mål, og krympes til den
+   plassen som finnes. Høyden på rammen settes etter samme faktor, så
+   det ikke blir et hull under kartet. */
+let mapFitPending = false;
+function fitMap() {
+  const frame = document.getElementById("mapframe");
+  const layer = document.getElementById("maplayer");
+  if (!frame || !layer) return;
+  const room = currentMapRoom();
+  if (!room) return;
+  const bredde = frame.clientWidth;
+  if (!bredde) return;
+  // La kartet få høyde, men ikke mer enn skjermen tåler på én gang.
+  const tak = Math.max(320, window.innerHeight - 260);
+  const k = Math.min(bredde / room.widthPx, tak / room.heightPx);
+  layer.style.transform = "scale(" + k + ")";
+  frame.style.height = Math.round(room.heightPx * k) + "px";
+  const brukt = Math.round(room.widthPx * k);
+  frame.style.maxWidth = brukt + "px";
+  layer.dataset.scale = String(k);
+}
+
+function armMapFit() {
+  if (mapFitPending) return;
+  mapFitPending = true;
+  window.addEventListener("resize", fitMap);
+}
+
+/* Dra en gjenstand. Pekerbevegelsen regnes om til romkoordinater med
+   skaleringsfaktoren, og den lagres først når pekeren slippes — ellers
+   ville hver eneste piksel blitt en skriving. */
+function armDrag(room, layer) {
+  let drag = null;
+  layer.addEventListener("pointerdown", (e) => {
+    const node = e.target.closest(".mapprop");
+    if (!node) {
+      if (state.mapSel) { state.mapSel = null; render(); }
+      return;
+    }
+    const id = node.dataset.prop;
+    const item = room.items.filter((i) => i.id === id)[0];
+    if (!item) return;
+    state.mapSel = id;
+    const k = parseFloat(layer.dataset.scale) || 1;
+    const st = propNow(room, item);
+    drag = { item: item, node: node, k: k, startX: e.clientX,
+             startY: e.clientY, x: st.x, y: st.y, moved: false };
+    node.setPointerCapture(e.pointerId);
+    // Tegn utvalget med én gang, uten å bygge hele visningen på nytt.
+    layer.querySelectorAll(".mapprop.sel").forEach(
+      (n) => n.classList.remove("sel"));
+    node.classList.add("sel");
+    node.style.zIndex = "9999";
+    oppdaterVerktoy();
+    e.preventDefault();
+  });
+
+  layer.addEventListener("pointermove", (e) => {
+    if (!drag) return;
+    const dx = Math.round((e.clientX - drag.startX) / drag.k);
+    const dy = Math.round((e.clientY - drag.startY) / drag.k);
+    if (dx || dy) drag.moved = true;
+    drag.node.style.left = (drag.x + dx) + "px";
+    drag.node.style.top = (drag.y + dy) + "px";
+  });
+
+  async function slipp(e) {
+    if (!drag) return;
+    const d = drag;
+    drag = null;
+    if (!d.moved) return;
+    const x = parseInt(d.node.style.left, 10);
+    const y = parseInt(d.node.style.top, 10);
+    await setProp(room, d.item, { x: x, y: y });
+    markSaved();
+  }
+  layer.addEventListener("pointerup", slipp);
+  layer.addEventListener("pointercancel", slipp);
+}
+
+function selectedItem(room) {
+  if (!state.mapSel) return null;
+  return room.items.filter((i) => i.id === state.mapSel)[0] || null;
+}
+
+/* Verktøylinja oppdateres uten full tegning, så utvalget ikke river
+   kartet ned og opp igjen hver gang man klikker. */
+function oppdaterVerktoy() {
+  const room = currentMapRoom();
+  const boks = document.getElementById("mapselbox");
+  if (!room || !boks) return;
+  const item = selectedItem(room);
+  boks.classList.toggle("dim", !item);
+  const navn = document.getElementById("mapselname");
+  if (navn) navn.textContent = item ? (item.name || item.id) : "ingenting valgt";
+  const gaa = document.getElementById("mapgoto");
+  if (gaa) {
+    const maal = item && item.linksTo ? mapRoomById(item.linksTo) : null;
+    gaa.hidden = !maal;
+    if (maal) gaa.textContent = "Gå til " + maal.title + " →";
+  }
+}
+
+async function zTopp(room, item, bakerst) {
+  const zs = room.items.map((i) => propNow(room, i).z);
+  const z = bakerst ? Math.min.apply(null, zs) - 1
+                    : Math.max.apply(null, zs) + 1;
+  await setProp(room, item, { z: z });
+  render();
+}
+
+async function byttRom(id) {
+  state.mapRoom = id;
+  state.mapSel = null;
+  state.mapClue = null;
+  if (state.progress) {
+    state.progress.mapRoom = id;
+    await saveProgress();
+  }
+  render();
+}
+
+/* Tastatur når en gjenstand er valgt. Piltastene flytter én piksel,
+   med shift en hel fot — det er den oppløsningen man faktisk trenger
+   når noe skal stå rett ved et bord. */
+function armMapKeys() {
+  if (armMapKeys.on) return;
+  armMapKeys.on = true;
+  document.addEventListener("keydown", async (e) => {
+    if (state.view !== "maps") return;
+    const t = e.target;
+    if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" ||
+              t.isContentEditable)) return;
+    if (!document.getElementById("scrim").hidden) return;
+    const room = currentMapRoom();
+    const item = room && selectedItem(room);
+    if (e.key === "Escape" && state.mapSel) {
+      state.mapSel = null; render(); return;
+    }
+    if (!item) return;
+    const st = propNow(room, item);
+    const steg = e.shiftKey ? 16 : 1;
+    let endring = null;
+    if (e.key === "ArrowLeft") endring = { x: st.x - steg };
+    else if (e.key === "ArrowRight") endring = { x: st.x + steg };
+    else if (e.key === "ArrowUp") endring = { y: st.y - steg };
+    else if (e.key === "ArrowDown") endring = { y: st.y + steg };
+    else if (e.key === "r" || e.key === "R") {
+      endring = { r: (((st.r + (e.shiftKey ? -90 : 90)) % 360) + 360) % 360 };
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      endring = { hidden: true };
+    } else if (e.key === "]") { await zTopp(room, item, false); e.preventDefault(); return; }
+    else if (e.key === "[") { await zTopp(room, item, true); e.preventDefault(); return; }
+    if (!endring) return;
+    e.preventDefault();
+    await setProp(room, item, endring);
+    render();
+  });
+}
+
+function viewMaps(root) {
+  if (!state.maps) {
+    root.appendChild(el("h1", { text: "Kart" }));
+    root.appendChild(emptyBox("Ingen kart bygget inn.",
+      "Kjør scenarios/build_maps.py mot handoff-pakka."));
+    return;
+  }
+  const room = currentMapRoom();
+  if (!room) return;
+  armMapKeys();
+  armMapFit();
+
+  // --- topptekst
+  root.appendChild(el("p", { class: "eyebrow",
+    text: "Kart " + room.no + " · " + room.group +
+          (room.scene ? " · " + room.scene : "") }));
+  root.appendChild(el("h1", { text: room.title }));
+  if (room.note) root.appendChild(el("p", { class: "lede", text: room.note }));
+
+  const wrap = el("div", { class: "maproom" });
+  const main = el("div", { class: "mapmain" });
+  const side = el("div", { class: "mapside" });
+
+  // --- verktøylinje
+  const tools = el("div", { class: "maptools" });
+  const selbox = el("span", { class: "maptools", id: "mapselbox",
+                              style: "margin:0" });
+  selbox.appendChild(el("span", { class: "mapselname", id: "mapselname" }));
+  const gaa = el("button", {
+    class: "btn primary small", type: "button", id: "mapgoto", hidden: "",
+    onclick: () => {
+      const item = selectedItem(room);
+      if (item && item.linksTo) byttRom(item.linksTo);
+    },
+  });
+  selbox.appendChild(gaa);
+  [["Roter", async () => {
+      const item = selectedItem(room);
+      if (!item) return;
+      const st = propNow(room, item);
+      await setProp(room, item, { r: (st.r + 90) % 360 });
+      render();
+    }],
+   ["Fremst", async () => {
+      const item = selectedItem(room);
+      if (item) await zTopp(room, item, false);
+    }],
+   ["Bakerst", async () => {
+      const item = selectedItem(room);
+      if (item) await zTopp(room, item, true);
+    }],
+   ["Skjul", async () => {
+      const item = selectedItem(room);
+      if (!item) return;
+      await setProp(room, item, { hidden: true });
+      state.mapSel = null;
+      render();
+    }]].forEach(([tekst, fn]) => {
+    selbox.appendChild(el("button", { class: "btn small", type: "button",
+                                      text: tekst, onclick: fn }));
+  });
+  tools.appendChild(selbox);
+
+  tools.appendChild(el("span", { class: "chip", text: "·",
+                                 style: "border:none;opacity:.3" }));
+  tools.appendChild(el("button", {
+    class: "chip resp" + (state.mapGrid ? " on" : ""), type: "button",
+    text: "Rutenett", "aria-pressed": String(state.mapGrid),
+    title: "Fem fot per rute",
+    onclick: () => { state.mapGrid = !state.mapGrid; render(); },
+  }));
+  tools.appendChild(el("button", {
+    class: "chip resp" + (state.mapPlayer ? " on" : ""), type: "button",
+    text: "Spillervisning", "aria-pressed": String(state.mapPlayer),
+    title: "Skjuler gjenstandene som røper et spor, så kartet kan vises " +
+           "fram eller skrives ut",
+    onclick: () => { state.mapPlayer = !state.mapPlayer;
+                     state.mapSel = null; render(); },
+  }));
+  tools.appendChild(el("button", {
+    class: "btn small", type: "button", text: "Tilbakestill",
+    title: "Sett alle gjenstandene tilbake dit de sto",
+    onclick: () => confirmThen("Tilbakestill rommet?",
+      "Alt du har flyttet, snudd eller skjult i «" + room.title +
+      "» settes tilbake.", async () => {
+        if (state.progress && state.progress.maps) {
+          delete state.progress.maps[room.id];
+          await saveProgress();
+        }
+        state.mapSel = null;
+        render();
+        toast("Rommet er tilbakestilt");
+      }),
+  }));
+  tools.appendChild(el("button", {
+    class: "btn small", type: "button", text: "Last ned PNG",
+    onclick: () => exportMapPng(room),
+  }));
+  tools.appendChild(el("button", {
+    class: "btn small", type: "button", text: "Skriv ut",
+    title: "Bare kartet kommer på papiret",
+    onclick: () => window.print(),
+  }));
+  main.appendChild(tools);
+
+  // --- selve kartet
+  const frame = el("div", { class: "mapframe", id: "mapframe" });
+  const layer = el("div", { class: "maplayer", id: "maplayer",
+                            style: "width:" + room.widthPx + "px;height:" +
+                                   room.heightPx + "px" });
+  const bg = el("img", { class: "mapbg", src: mapAsset(room, "bg.png"),
+                         width: String(room.widthPx),
+                         height: String(room.heightPx), alt: room.title });
+  layer.appendChild(bg);
+  visibleProps(room).forEach((p) => {
+    const node = propEl(room, p.item, p.st);
+    if (node) layer.appendChild(node);
+  });
+  if (state.mapGrid) {
+    const g = el("div");
+    g.innerHTML = gridSvg(room);
+    layer.appendChild(g.firstChild);
+  }
+  frame.appendChild(layer);
+  main.appendChild(frame);
+
+  main.appendChild(el("p", { class: "mapmeta",
+    text: room.widthFt + " × " + room.heightFt + " fot · 16 piksler = " +
+          "1 fot · rute = 5 fot · dra for å flytte, R for å rotere, " +
+          "piltaster for å dytte" }));
+
+  // --- skjulte gjenstander
+  const skjult = room.items
+    .map((item) => ({ item: item, st: propNow(room, item) }))
+    .filter((p) => p.st.hidden);
+  if (skjult.length) {
+    const rad = el("div", { class: "maphidden" });
+    rad.appendChild(el("span", { class: "mapmeta", text: "Skjult:" }));
+    skjult.forEach((p) => {
+      rad.appendChild(el("button", {
+        class: "chip", type: "button", text: "+ " + (p.item.name || p.item.id),
+        title: "Vis denne igjen",
+        onclick: async () => {
+          await setProp(room, p.item, { hidden: false });
+          state.mapSel = p.item.id;
+          render();
+        },
+      }));
+    });
+    main.appendChild(rad);
+  }
+
+  // --- sporpanelet
+  const spor = room.clues || [];
+  const kort = el("div", { class: "panel" });
+  kort.appendChild(el("div", { class: "row spread",
+                               style: "margin-bottom:8px" }, [
+    el("span", { class: "eyebrow", text: "Spor og ledetråder" }),
+    el("span", { class: "chip", text: "Kun for deg" }),
+  ]));
+  if (!spor.length) {
+    kort.appendChild(el("p", { class: "savestate",
+                               text: "Ingen ledetråder i dette rommet." }));
+  }
+  spor.forEach((c, i) => {
+    const apen = state.mapClue === i;
+    kort.appendChild(el("button", {
+      class: "cluerow", type: "button", "aria-expanded": String(apen),
+      onclick: () => {
+        state.mapClue = apen ? null : i;
+        // Å åpne et spor peker ut gjenstanden det gjelder, når den er
+        // framme — det er hele grunnen til at de henger sammen.
+        if (!apen && c.item) {
+          const item = room.items.filter((x) => x.id === c.item)[0];
+          if (item && !propNow(room, item).hidden) state.mapSel = c.item;
+        }
+        render();
+      },
+    }, [
+      el("span", { class: "ct", text: c.t || "?" }),
+      c.roll ? el("span", { class: "cr", text: c.roll }) : null,
+    ]));
+    if (!apen) return;
+    const kropp = el("div", { class: "cluebody" });
+    if (c.d) kropp.appendChild(el("p", { text: c.d }));
+    const knapper = el("div", { class: "row" });
+    if (c.item && room.items.some((x) => x.id === c.item)) {
+      knapper.appendChild(el("button", {
+        class: "btn small", type: "button", text: "Vis på kartet",
+        onclick: async () => {
+          const item = room.items.filter((x) => x.id === c.item)[0];
+          await setProp(room, item, { hidden: false });
+          state.mapSel = c.item;
+          render();
+        },
+      }));
+    }
+    // Spor funnet ved bordet hører hjemme i øktloggen, som alt annet.
+    if (state.progress) {
+      knapper.appendChild(el("button", {
+        class: "btn small", type: "button", text: "Logg",
+        title: "Skriv at spillerne fant dette",
+        onclick: () => startQuickNote(
+          "Spor funnet: " + (c.t || "") + " (" + room.title + ") — ",
+          { id: room.id, section: "maps", title: c.t || room.title,
+            anchor: (state.progress && state.progress.now) || "" }),
+      }));
+    }
+    kropp.appendChild(knapper);
+    kort.appendChild(kropp);
+  });
+  side.appendChild(kort);
+
+  // --- romlista
+  const nav = el("div", { class: "panel" });
+  nav.appendChild(el("div", { class: "eyebrow", text: "Rom på skipet" }));
+  const liste = el("div", { class: "maprooms" });
+  (state.maps.groups || []).forEach((gruppe) => {
+    const rom = mapRooms().filter((r) => r.group === gruppe);
+    if (!rom.length) return;
+    liste.appendChild(el("div", { class: "rail-group", text: gruppe }));
+    rom.forEach((r) => {
+      liste.appendChild(el("button", {
+        class: "maproomrow", type: "button",
+        "aria-current": String(r.id === room.id),
+        onclick: () => byttRom(r.id),
+      }, [
+        el("span", { class: "no", text: r.no }),
+        el("span", { text: r.title }),
+      ]));
+    });
+  });
+  nav.appendChild(liste);
+  side.appendChild(nav);
+
+  wrap.appendChild(main);
+  wrap.appendChild(side);
+  root.appendChild(wrap);
+
+  // Skaleringen må skje etter at alt står i dokumentet, og på nytt når
+  // bakgrunnen er lastet — da vet vi at rammen har sin rette bredde.
+  setTimeout(fitMap, 0);
+  bg.addEventListener("load", fitMap);
+  armDrag(room, layer);
+  oppdaterVerktoy();
+}
+
+/* Kartet som bildefil. Atlaset gjør dette enkelt: hver gjenstand er et
+   utsnitt av ett bilde som allerede er lastet. */
+async function exportMapPng(room) {
+  const skala = Math.max(2, Math.min(6, Math.floor(4000 / room.widthPx)));
+  const c = document.createElement("canvas");
+  c.width = room.widthPx * skala;
+  c.height = room.heightPx * skala;
+  const g = c.getContext("2d");
+  g.imageSmoothingEnabled = false;
+  g.scale(skala, skala);
+
+  function last(src) {
+    return new Promise((ok, nei) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = nei;
+      i.src = src;
+    });
+  }
+
+  try {
+    const bg = await last(mapAsset(room, "bg.png"));
+    const atlas = await last(mapAsset(room, "sprites.png"));
+    g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
+    visibleProps(room).forEach((p) => {
+      const ramme = room.frames[p.item.sprite];
+      if (!ramme) return;
+      const [fx, fy, fw, fh] = ramme;
+      g.save();
+      g.translate(p.st.x + fw / 2, p.st.y + fh / 2);
+      g.rotate((p.st.r * Math.PI) / 180);
+      g.drawImage(atlas, fx, fy, fw, fh, -fw / 2, -fh / 2, fw, fh);
+      g.restore();
+    });
+    if (state.mapGrid) {
+      const rute = (state.maps.units && state.maps.units.gridPx) || 80;
+      g.strokeStyle = "rgba(0,0,0,0.5)";
+      g.lineWidth = 1 / skala;
+      for (let x = rute; x < room.widthPx; x += rute) {
+        g.beginPath(); g.moveTo(x, 0); g.lineTo(x, room.heightPx); g.stroke();
+      }
+      for (let y = rute; y < room.heightPx; y += rute) {
+        g.beginPath(); g.moveTo(0, y); g.lineTo(room.widthPx, y); g.stroke();
+      }
+    }
+    const blob = await new Promise((ok) => c.toBlob(ok, "image/png"));
+    if (!blob) { toast("Fikk ikke laget bildet"); return; }
+    await downloadBlob(
+      slugify(room.title || room.id) +
+        (state.mapPlayer ? "-spillerkart" : "-kart") + ".png", blob);
+    toast("Lastet ned kartet");
+  } catch (e) {
+    toast("Fikk ikke lest kartbildene");
   }
 }
 
@@ -8947,6 +9663,9 @@ function loadBestiary() {
 
   const kr = loadBundled("bundled-keeper-rules");
   state.keeperRules = (kr && Array.isArray(kr.rules)) ? kr : null;
+
+  const mp = loadBundled("bundled-maps");
+  state.maps = (mp && Array.isArray(mp.rooms) && mp.rooms.length) ? mp : null;
 
   const sk = loadBundled("bundled-skills");
   state.skillBook = (sk && Array.isArray(sk.skills)) ? sk : null;

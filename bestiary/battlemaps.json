@@ -1,0 +1,10170 @@
+{
+ "schema": "eldritch-battlemaps/1",
+ "scenario": "A Slow Boat to China (Pulp Cthulhu, kap. 13)",
+ "ship": "SS President Coolidge",
+ "units": {
+  "pxPerFoot": 16,
+  "gridFeet": 5,
+  "gridPx": 80
+ },
+ "groups": [
+  "Lugarer",
+  "Fellesrom",
+  "Uteområder",
+  "Trapperom",
+  "Lasterom og maskin"
+ ],
+ "rooms": [
+  {
+   "id": "kabin",
+   "no": "01",
+   "group": "Lugarer",
+   "title": "1. klasses kabin, A-dekk",
+   "scene": "The Empty Suit · 6. desember",
+   "note": "Chad Petersons lugar. Den krypende en fortærte ham her den første natten; dressen ligger tom i lenestolen, selvmordsbrevet på skrivebordet.",
+   "widthPx": 328,
+   "heightPx": 264,
+   "widthFt": 20.5,
+   "heightFt": 16.5,
+   "dir": "01-kabin",
+   "atlasW": 241,
+   "atlasH": 286,
+   "frames": {
+    "armchair": [
+     112,
+     92,
+     54,
+     54
+    ],
+    "ashtray": [
+     202,
+     236,
+     20,
+     20
+    ],
+    "bathdoor": [
+     154,
+     266,
+     46,
+     12
+    ],
+    "bathmat": [
+     78,
+     236,
+     30,
+     22
+    ],
+    "bed": [
+     0,
+     92,
+     110,
+     58
+    ],
+    "books": [
+     20,
+     266,
+     22,
+     18
+    ],
+    "decanter": [
+     110,
+     236,
+     26,
+     22
+    ],
+    "desk": [
+     36,
+     200,
+     62,
+     32
+    ],
+    "deskchair": [
+     128,
+     200,
+     30,
+     30
+    ],
+    "door": [
+     0,
+     152,
+     12,
+     46
+    ],
+    "floorlamp": [
+     22,
+     236,
+     26,
+     26
+    ],
+    "hatbox": [
+     50,
+     236,
+     26,
+     26
+    ],
+    "nightstand": [
+     160,
+     200,
+     30,
+     30
+    ],
+    "note": [
+     0,
+     266,
+     18,
+     20
+    ],
+    "palm": [
+     0,
+     200,
+     34,
+     34
+    ],
+    "radiator": [
+     88,
+     266,
+     46,
+     16
+    ],
+    "roach": [
+     136,
+     266,
+     16,
+     16
+    ],
+    "roaches": [
+     168,
+     92,
+     66,
+     54
+    ],
+    "rug": [
+     44,
+     0,
+     118,
+     78
+    ],
+    "settee": [
+     164,
+     0,
+     42,
+     78
+    ],
+    "shoes": [
+     138,
+     236,
+     30,
+     22
+    ],
+    "sink": [
+     170,
+     236,
+     30,
+     22
+    ],
+    "slippers": [
+     44,
+     266,
+     22,
+     18
+    ],
+    "suit": [
+     14,
+     152,
+     38,
+     42
+    ],
+    "suitcase": [
+     192,
+     200,
+     46,
+     30
+    ],
+    "table": [
+     54,
+     152,
+     38,
+     38
+    ],
+    "toilet": [
+     100,
+     200,
+     26,
+     32
+    ],
+    "towel": [
+     0,
+     236,
+     20,
+     28
+    ],
+    "trunk": [
+     94,
+     152,
+     62,
+     38
+    ],
+    "tub": [
+     0,
+     0,
+     42,
+     90
+    ],
+    "wardrobe": [
+     158,
+     152,
+     70,
+     38
+    ],
+    "waste": [
+     68,
+     266,
+     18,
+     18
+    ]
+   },
+   "items": [
+    {
+     "id": "rug",
+     "name": "Teppe (art deco)",
+     "sprite": "rug",
+     "x": 102,
+     "y": 70,
+     "rotation": 0,
+     "z": 1
+    },
+    {
+     "id": "bed",
+     "name": "Seng",
+     "sprite": "bed",
+     "x": 10,
+     "y": 78,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "nightstand",
+     "name": "Nattbord med lampe",
+     "sprite": "nightstand",
+     "x": 10,
+     "y": 50,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "wardrobe",
+     "name": "Garderobeskap",
+     "sprite": "wardrobe",
+     "x": 10,
+     "y": 156,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "desk",
+     "name": "Skrivebord",
+     "sprite": "desk",
+     "x": 98,
+     "y": 16,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "deskchair",
+     "name": "Skrivebordsstol",
+     "sprite": "deskchair",
+     "x": 114,
+     "y": 42,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "waste",
+     "name": "Papirkurv",
+     "sprite": "waste",
+     "x": 84,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "armchair",
+     "name": "Lenestol",
+     "sprite": "armchair",
+     "x": 190,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "floorlamp",
+     "name": "Gulvlampe",
+     "sprite": "floorlamp",
+     "x": 166,
+     "y": 18,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "table",
+     "name": "Salongbord",
+     "sprite": "table",
+     "x": 240,
+     "y": 38,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "decanter",
+     "name": "Whiskykaraffel",
+     "sprite": "decanter",
+     "x": 246,
+     "y": 44,
+     "rotation": 0,
+     "z": 20
+    },
+    {
+     "id": "settee",
+     "name": "Sofa",
+     "sprite": "settee",
+     "x": 274,
+     "y": 16,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "radiator",
+     "name": "Varmeovn",
+     "sprite": "radiator",
+     "x": 34,
+     "y": 16,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "trunk",
+     "name": "Dampkoffert",
+     "sprite": "trunk",
+     "x": 170,
+     "y": 156,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "books",
+     "name": "Bøker",
+     "sprite": "books",
+     "x": 182,
+     "y": 162,
+     "rotation": 0,
+     "z": 20
+    },
+    {
+     "id": "suitcase",
+     "name": "Koffert",
+     "sprite": "suitcase",
+     "x": 76,
+     "y": 164,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "hatbox",
+     "name": "Hatteske",
+     "sprite": "hatbox",
+     "x": 92,
+     "y": 136,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "slippers",
+     "name": "Tøfler",
+     "sprite": "slippers",
+     "x": 58,
+     "y": 134,
+     "rotation": 0,
+     "z": 6
+    },
+    {
+     "id": "door",
+     "name": "Kabindør",
+     "sprite": "door",
+     "x": 126,
+     "y": 150,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "st-a"
+    },
+    {
+     "id": "bathdoor",
+     "name": "Baderomsdør",
+     "sprite": "bathdoor",
+     "x": 234,
+     "y": 118,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "tub",
+     "name": "Badekar",
+     "sprite": "tub",
+     "x": 274,
+     "y": 100,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "towel",
+     "name": "Håndkle",
+     "sprite": "towel",
+     "x": 268,
+     "y": 150,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "sink",
+     "name": "Servant",
+     "sprite": "sink",
+     "x": 240,
+     "y": 98,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "toilet",
+     "name": "Toalett",
+     "sprite": "toilet",
+     "x": 240,
+     "y": 160,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bathmat",
+     "name": "Baderomsmatte",
+     "sprite": "bathmat",
+     "x": 246,
+     "y": 134,
+     "rotation": 0,
+     "z": 2
+    },
+    {
+     "id": "palm",
+     "name": "Palme i messingpotte",
+     "sprite": "palm",
+     "x": 8,
+     "y": 208,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ashtray",
+     "name": "Askebeger på stativ",
+     "sprite": "ashtray",
+     "x": 282,
+     "y": 208,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "suit",
+     "name": "Tom dress",
+     "sprite": "suit",
+     "x": 198,
+     "y": 40,
+     "rotation": 0,
+     "z": 20,
+     "clue": true
+    },
+    {
+     "id": "shoes",
+     "name": "Sko og sokker",
+     "sprite": "shoes",
+     "x": 200,
+     "y": 84,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "note",
+     "name": "Selvmordsbrev",
+     "sprite": "note",
+     "x": 120,
+     "y": 22,
+     "rotation": 0,
+     "z": 20,
+     "clue": true
+    },
+    {
+     "id": "roaches",
+     "name": "Kakerlakksverm",
+     "sprite": "roaches",
+     "x": 174,
+     "y": 68,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "roach1",
+     "name": "Kakerlakk",
+     "sprite": "roach",
+     "x": 236,
+     "y": 88,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "roach2",
+     "name": "Kakerlakk",
+     "sprite": "roach",
+     "x": 160,
+     "y": 120,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "roach3",
+     "name": "Kakerlakk",
+     "sprite": "roach",
+     "x": 122,
+     "y": 62,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    }
+   ],
+   "clues": [
+    {
+     "t": "Den tomme dressen",
+     "item": "suit",
+     "roll": "Ingen (synlig)",
+     "d": "Klærne ligger sammensunket i stolen, dress, vest, skjorte og undertrøye inni hverandre som en russisk dukke, som om kroppen bare har smeltet bort. Det lukter vondt i rommet. Virginia Ridley finner dem like etter kl. 09.45 den 6. desember."
+    },
+    {
+     "t": "Sko og sokker",
+     "item": "shoes",
+     "roll": "Ingen",
+     "d": "Står på gulvet foran dressen, på plass som om Peterson fortsatt hadde dem på."
+    },
+    {
+     "t": "Selvmordsbrevet",
+     "item": "note",
+     "roll": "Art/Craft (kalligrafi) eller Hard Spot Hidden",
+     "d": "Ligger på skrivebordet til stewarden Martin Aimesworthy tar det som bevis samme kveld (Handout 1). Signert bare «Chad», mens Peterson alltid skrev «Charles Chadwick Peterson», «Charles Peterson» eller «C. C. P.». Håndskriften ligner, men med en prøve fra Virginia Ridley eller Charles Astor kan forskjellene påvises. «Hollow millionaire» stemmer ikke: familien slapp unna krakket."
+    },
+    {
+     "t": "Kakerlakker",
+     "item": "roaches",
+     "roll": "Ingen",
+     "d": "Matros Albert Hallander dirket opp den låste døren for å stjele og så tusenvis av kakerlakker pile vekk fra stolen. Han lyver og sier at døren var ulåst og at han hørte en lyd."
+    },
+    {
+     "t": "Albert Hallander (vitne)",
+     "item": null,
+     "roll": "Psychology / Intimidate / Persuade",
+     "d": "Psychology viser at han er sjokkert. Intimidate eller Persuade får ham til å snakke; et nytt Psychology avslører løgnene. Han vil helst forsvinne, men et iherdig press kan få ham til å tilstå."
+    },
+    {
+     "t": "Adgang til lugaren",
+     "item": "door",
+     "roll": "Locksmith / Mechanical Repair",
+     "d": "Seaman Hank Henson vokter døren til dr. Hartman og førstestyrmann Schramm har undersøkt rommet. Førsteklassehelter eller Virginia Ridley som lager bråk får ham til å gi etter. Senere kan døren brytes opp."
+    },
+    {
+     "t": "Ekte lapp fra Chad (Virginia)",
+     "item": null,
+     "roll": "Ingen · gir skriftprøve",
+     "d": "Morgenen 6. desember fant Virginia en ekte lapp fra kjæresten, signert «Your Loving Chad». Den kan brukes som skriftprøve mot selvmordsbrevet. Charles Astor kjenner også Petersons signatur."
+    },
+    {
+     "t": "Virginias magefølelse",
+     "item": null,
+     "roll": "Ingen (hvis hun oppsøkes)",
+     "d": "Hun har ikke snakket med Peterson siden middagen rundt kl. 19 den 5. desember. Rundt kl. 21.30 så hun ham i korridoren, og noe ved gangen eller klærne hans var galt; han virket fortvilet. Hun forteller gjerne om det."
+    },
+    {
+     "t": "Hvorfor «Peterson» forsvant",
+     "item": null,
+     "roll": "Keeper-info",
+     "d": "Den krypende en spiste Peterson like etter avreise og tok skikkelsen hans. Stemmen bruker 48 timer på å utvikle seg i en ny form, så den måtte forlate Peterson-skikkelsen for ikke å bli avslørt av Virginia."
+    },
+    {
+     "t": "Ryktene",
+     "item": null,
+     "roll": "Ingen",
+     "d": "Det går rykter om at Peterson var en «jumper». Politiet i Honolulu konkluderer med at brevet er ekte og at han hoppet fra suitens lille balkong. Den tomme dressen avfeies som tilfeldig."
+    }
+   ]
+  },
+  {
+   "id": "almacan",
+   "no": "02",
+   "group": "Lugarer",
+   "title": "Señor Almacans lugar, A-dekk",
+   "scene": "Missing People · 10.–16. desember",
+   "note": "Den krypende ens tilholdssted, én lugar nedenfor Petersons. Bunny Bates gjemmer seg her; Hardaway lokkes inn og slås ned 12. desember.",
+   "widthPx": 352,
+   "heightPx": 272,
+   "widthFt": 22,
+   "heightFt": 17,
+   "dir": "02-almacan",
+   "atlasW": 208,
+   "atlasH": 310,
+   "frames": {
+    "arm": [
+     112,
+     100,
+     50,
+     50
+    ],
+    "bed": [
+     0,
+     100,
+     110,
+     58
+    ],
+    "bedroll": [
+     0,
+     0,
+     42,
+     98
+    ],
+    "book": [
+     72,
+     286,
+     14,
+     22
+    ],
+    "chair": [
+     116,
+     250,
+     28,
+     28
+    ],
+    "desk": [
+     0,
+     250,
+     66,
+     34
+    ],
+    "door": [
+     148,
+     286,
+     46,
+     12
+    ],
+    "hblood": [
+     116,
+     160,
+     50,
+     38
+    ],
+    "night": [
+     146,
+     250,
+     28,
+     28
+    ],
+    "pelt": [
+     88,
+     286,
+     32,
+     18
+    ],
+    "revolver": [
+     122,
+     286,
+     24,
+     16
+    ],
+    "rope": [
+     68,
+     160,
+     46,
+     46
+    ],
+    "sack": [
+     44,
+     0,
+     54,
+     78
+    ],
+    "swarm": [
+     0,
+     160,
+     66,
+     50
+    ],
+    "swarm2": [
+     0,
+     212,
+     46,
+     36
+    ],
+    "tommy": [
+     0,
+     286,
+     70,
+     24
+    ],
+    "trunk": [
+     48,
+     212,
+     58,
+     36
+    ],
+    "uniforms": [
+     68,
+     250,
+     46,
+     34
+    ],
+    "ward": [
+     108,
+     212,
+     70,
+     36
+    ]
+   },
+   "items": [
+    {
+     "id": "bed",
+     "name": "Seng (urørt)",
+     "sprite": "bed",
+     "x": 14,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "night",
+     "name": "Nattbord",
+     "sprite": "night",
+     "x": 16,
+     "y": 44,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ward",
+     "name": "Garderobe (stjålne uniformer)",
+     "sprite": "ward",
+     "x": 16,
+     "y": 174,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "desk",
+     "name": "Skrivebord med lys",
+     "sprite": "desk",
+     "x": 200,
+     "y": 18,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "book",
+     "name": "Rødjadeboken",
+     "sprite": "book",
+     "x": 226,
+     "y": 22,
+     "rotation": 0,
+     "z": 20,
+     "clue": true
+    },
+    {
+     "id": "chair",
+     "name": "Stol",
+     "sprite": "chair",
+     "x": 220,
+     "y": 50,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "arm",
+     "name": "Lenestol",
+     "sprite": "arm",
+     "x": 290,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "trunk",
+     "name": "Dampkoffert",
+     "sprite": "trunk",
+     "x": 280,
+     "y": 170,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bedroll",
+     "name": "Bates’ soveunderlag",
+     "sprite": "bedroll",
+     "x": 140,
+     "y": 100,
+     "rotation": 0,
+     "z": 5,
+     "clue": true
+    },
+    {
+     "id": "tommy",
+     "name": "Tommy gun-kasse",
+     "sprite": "tommy",
+     "x": 120,
+     "y": 30,
+     "rotation": 0,
+     "z": 10,
+     "clue": true
+    },
+    {
+     "id": "revolver",
+     "name": ".32 revolver",
+     "sprite": "revolver",
+     "x": 182,
+     "y": 164,
+     "rotation": 0,
+     "z": 20,
+     "clue": true
+    },
+    {
+     "id": "uniforms",
+     "name": "Stewarduniformer",
+     "sprite": "uniforms",
+     "x": 90,
+     "y": 172,
+     "rotation": 0,
+     "z": 12,
+     "clue": true
+    },
+    {
+     "id": "rope",
+     "name": "Tau",
+     "sprite": "rope",
+     "x": 238,
+     "y": 150,
+     "rotation": 0,
+     "z": 10,
+     "clue": true
+    },
+    {
+     "id": "sack",
+     "name": "Strisekk",
+     "sprite": "sack",
+     "x": 300,
+     "y": 120,
+     "rotation": 0,
+     "z": 10,
+     "clue": true
+    },
+    {
+     "id": "hblood",
+     "name": "Blodflekk (Hardaway)",
+     "sprite": "hblood",
+     "x": 182,
+     "y": 120,
+     "rotation": 0,
+     "z": 3,
+     "clue": true
+    },
+    {
+     "id": "pelt",
+     "name": "Flådd rotteskinn",
+     "sprite": "pelt",
+     "x": 126,
+     "y": 150,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "pelt2",
+     "name": "Flådd rotteskinn",
+     "sprite": "pelt",
+     "x": 310,
+     "y": 40,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "swarm",
+     "name": "Kakerlakksverm",
+     "sprite": "swarm",
+     "x": 60,
+     "y": 120,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "swarm2",
+     "name": "Kakerlakker",
+     "sprite": "swarm2",
+     "x": 250,
+     "y": 100,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "door",
+     "name": "Lugardør",
+     "sprite": "door",
+     "x": 146,
+     "y": 209,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "st-a"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Uregistrert passasjer",
+     "item": "bed",
+     "roll": "Hard Persuade (manifestet)",
+     "d": "Señor Almacan står ikke i passasjerlisten. Chief Purser Dungass ble drept da han kom for å undersøke saken."
+    },
+    {
+     "t": "Rødjadeboken",
+     "item": "book",
+     "roll": "Ingen",
+     "d": "Hvis Bates holder heltene unna, tar den krypende en boken hit."
+    },
+    {
+     "t": "Bates’ skjulested",
+     "item": "bedroll",
+     "roll": "Ingen",
+     "d": "Bunny Bates gjemmer seg her eller i lasterommene. Fanget babler han om «the voice within» og «the choir of angels». Dominate må fornyes hver natt."
+    },
+    {
+     "t": "Våpen",
+     "item": "tommy",
+     "roll": "Ingen",
+     "d": "Bates har en .32 revolver og en Tommy gun."
+    },
+    {
+     "t": "Hardaways blod",
+     "item": "hblood",
+     "roll": "Spot Hidden",
+     "d": "12. desember lokkes reporter Miles Hardaway hit og slås bevisstløs bakfra av Bates, før han tas til Lasterom 7."
+    },
+    {
+     "t": "Flådde rotteskinn",
+     "item": "pelt",
+     "roll": "Science (Biology/Zoology) eller Art/Craft (Leatherwork)",
+     "d": "Intakte, myke skinn uten sår; kjøtt og organer er borte og små bein rasler inni. Umulig å flå et dyr slik. Spist innenfra av insektformen."
+    },
+    {
+     "t": "Stjålne uniformer",
+     "item": "uniforms",
+     "roll": "Ingen",
+     "d": "Den krypende en og Bates bruker mannskapsklær for å bevege seg fritt."
+    },
+    {
+     "t": "Den tilbaketrukne adelsmannen",
+     "item": null,
+     "roll": "Ingen",
+     "d": "Señor Almacan holder seg mest i lugaren, men kan sees promenere på dekk enkelte kvelder. Han kan skifte mellom alle skikkelser han har spist på én kamprunde."
+    },
+    {
+     "t": "Overraskelsesangrep",
+     "item": "door",
+     "roll": "Spot Hidden / Listen",
+     "d": "Kommer heltene nær denne lugaren, kan Bunny Bates angripe dem plutselig. Med ekstra press tilkaller den krypende en en hunting horror, helst uten vitner."
+    }
+   ]
+  },
+  {
+   "id": "soong",
+   "no": "03",
+   "group": "Lugarer",
+   "title": "Dr. Soongs lugar og Båtdekket",
+   "scene": "The Stolen Book · 7.–8. desember",
+   "note": "Etter midnatt: tyven (Peterson i stewarduniform) dreper Wang Ma, tar boken og løper mellom livbåtene og over rekka ned til Promenadedekket.",
+   "widthPx": 576,
+   "heightPx": 368,
+   "widthFt": 36,
+   "heightFt": 23,
+   "dir": "03-soong",
+   "atlasW": 324,
+   "atlasH": 398,
+   "frames": {
+    "arm": [
+     180,
+     264,
+     46,
+     46
+    ],
+    "bag": [
+     206,
+     370,
+     32,
+     20
+    ],
+    "bathdoor": [
+     228,
+     264,
+     12,
+     46
+    ],
+    "bed": [
+     0,
+     264,
+     110,
+     66
+    ],
+    "bench": [
+     70,
+     370,
+     86,
+     26
+    ],
+    "boat1": [
+     0,
+     104,
+     262,
+     78
+    ],
+    "boat2": [
+     0,
+     184,
+     262,
+     78
+    ],
+    "book": [
+     158,
+     370,
+     14,
+     22
+    ],
+    "box": [
+     0,
+     370,
+     38,
+     28
+    ],
+    "chairtip": [
+     282,
+     264,
+     32,
+     36
+    ],
+    "cot": [
+     0,
+     0,
+     42,
+     102
+    ],
+    "cowl": [
+     242,
+     264,
+     38,
+     38
+    ],
+    "deckchair": [
+     132,
+     0,
+     34,
+     86
+    ],
+    "desk": [
+     172,
+     332,
+     62,
+     32
+    ],
+    "door": [
+     240,
+     370,
+     46,
+     12
+    ],
+    "night": [
+     40,
+     370,
+     28,
+     28
+    ],
+    "papers": [
+     0,
+     332,
+     46,
+     36
+    ],
+    "ring": [
+     264,
+     332,
+     30,
+     30
+    ],
+    "rug": [
+     168,
+     0,
+     126,
+     86
+    ],
+    "sink": [
+     174,
+     370,
+     30,
+     22
+    ],
+    "toilet": [
+     236,
+     332,
+     26,
+     32
+    ],
+    "trunk": [
+     48,
+     332,
+     58,
+     36
+    ],
+    "tub": [
+     88,
+     0,
+     42,
+     90
+    ],
+    "wang": [
+     44,
+     0,
+     42,
+     102
+    ],
+    "wangblood": [
+     112,
+     264,
+     66,
+     54
+    ],
+    "ward": [
+     108,
+     332,
+     62,
+     34
+    ]
+   },
+   "items": [
+    {
+     "id": "rug",
+     "name": "Teppe",
+     "sprite": "rug",
+     "x": 150,
+     "y": 66,
+     "rotation": 0,
+     "z": 1
+    },
+    {
+     "id": "bed",
+     "name": "Dr. Soongs seng",
+     "sprite": "bed",
+     "x": 14,
+     "y": 18,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "night",
+     "name": "Nattbord",
+     "sprite": "night",
+     "x": 16,
+     "y": 84,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cot",
+     "name": "Wang Mas feltseng",
+     "sprite": "cot",
+     "x": 16,
+     "y": 110,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "desk",
+     "name": "Skrivebord",
+     "sprite": "desk",
+     "x": 150,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chairtip",
+     "name": "Veltet stol",
+     "sprite": "chairtip",
+     "x": 184,
+     "y": 48,
+     "rotation": 0,
+     "z": 12,
+     "clue": true
+    },
+    {
+     "id": "ward",
+     "name": "Garderobe",
+     "sprite": "ward",
+     "x": 300,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "trunk",
+     "name": "Dampkoffert",
+     "sprite": "trunk",
+     "x": 300,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "arm",
+     "name": "Lenestol",
+     "sprite": "arm",
+     "x": 320,
+     "y": 60,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bag",
+     "name": "Legeveske",
+     "sprite": "bag",
+     "x": 160,
+     "y": 40,
+     "rotation": 0,
+     "z": 20
+    },
+    {
+     "id": "box",
+     "name": "Tomt lakkskrin (boken)",
+     "sprite": "box",
+     "x": 220,
+     "y": 24,
+     "rotation": 0,
+     "z": 20,
+     "clue": true
+    },
+    {
+     "id": "wangblood",
+     "name": "Blodpøl",
+     "sprite": "wangblood",
+     "x": 84,
+     "y": 136,
+     "rotation": 0,
+     "z": 3,
+     "clue": true
+    },
+    {
+     "id": "wang",
+     "name": "Wang Ma (død)",
+     "sprite": "wang",
+     "x": 100,
+     "y": 90,
+     "rotation": 0,
+     "z": 15,
+     "clue": true
+    },
+    {
+     "id": "papers",
+     "name": "Spredte papirer",
+     "sprite": "papers",
+     "x": 226,
+     "y": 120,
+     "rotation": 0,
+     "z": 4,
+     "clue": true
+    },
+    {
+     "id": "tub",
+     "name": "Badekar",
+     "sprite": "tub",
+     "x": 520,
+     "y": 16,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sink",
+     "name": "Servant",
+     "sprite": "sink",
+     "x": 390,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "toilet",
+     "name": "Toalett",
+     "sprite": "toilet",
+     "x": 390,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Lugardør",
+     "sprite": "door",
+     "x": 174,
+     "y": 189,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "st-boat"
+    },
+    {
+     "id": "bathdoor",
+     "name": "Baderomsdør",
+     "sprite": "bathdoor",
+     "x": 373,
+     "y": 110,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "boat1",
+     "name": "Livbåt 7",
+     "sprite": "boat1",
+     "x": 2,
+     "y": 262,
+     "rotation": 0,
+     "z": 20
+    },
+    {
+     "id": "boat2",
+     "name": "Livbåt 9",
+     "sprite": "boat2",
+     "x": 312,
+     "y": 262,
+     "rotation": 0,
+     "z": 20,
+     "linksTo": "promenade"
+    },
+    {
+     "id": "deckchair",
+     "name": "Dekkstol",
+     "sprite": "deckchair",
+     "x": 60,
+     "y": 186,
+     "rotation": 90,
+     "z": 10
+    },
+    {
+     "id": "deckchair2",
+     "name": "Dekkstol",
+     "sprite": "deckchair",
+     "x": 400,
+     "y": 186,
+     "rotation": 90,
+     "z": 10
+    },
+    {
+     "id": "deckchair3",
+     "name": "Dekkstol",
+     "sprite": "deckchair",
+     "x": 470,
+     "y": 186,
+     "rotation": 90,
+     "z": 10
+    },
+    {
+     "id": "cowl",
+     "name": "Ventilator",
+     "sprite": "cowl",
+     "x": 268,
+     "y": 214,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ring",
+     "name": "Livbøye",
+     "sprite": "ring",
+     "x": 270,
+     "y": 318,
+     "rotation": 0,
+     "z": 21
+    },
+    {
+     "id": "bench",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 160,
+     "y": 228,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "book",
+     "name": "Rødjadeboken (mistet)",
+     "sprite": "book",
+     "x": 282,
+     "y": 296,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    }
+   ],
+   "clues": [
+    {
+     "t": "Wang Ma",
+     "item": "wang",
+     "roll": "Sanity etter Keepers skjønn",
+     "d": "Drept av den krypende en (i Petersons skikkelse og stjålet stewarduniform) da boken ble tatt etter midnatt, mens dr. Soong gikk tur på dekket."
+    },
+    {
+     "t": "Det tomme skrinet",
+     "item": "box",
+     "roll": "Ingen",
+     "d": "Her lå Rødjadeboken (Book of Red Jade), som Soong tok fra en kultistgruppe i San Francisco. Den krypende en mener det er hans eget gamle eksemplar."
+    },
+    {
+     "t": "Rødjadeboken",
+     "item": "book",
+     "roll": "Spot Hidden",
+     "d": "Smal bok, 6 × 12 tommer, 344 treskårne sider på mandarin med okseblodrød tusj. Omslaget har ru lakk som ligner anløpet kobber eller grønn kleberstein, med en messingdrage med tre klør og ett øye. Kan bli liggende igjen hvis tyven blir presset."
+    },
+    {
+     "t": "Flukten",
+     "item": "boat1",
+     "roll": "Listen / Jump",
+     "d": "Listen gir Soongs rop og løpende skritt. Tyven løper mellom livbåtene, hopper over rekka ned til Promenadedekket. Forfølgere: Jump eller 1D6+3 skade. Står noen i veien: Mindblast (motsatt POW mot 100, taper: 5 Sanity og galskap)."
+    },
+    {
+     "t": "Bunny Bates i mørket",
+     "item": null,
+     "roll": "Spot Hidden",
+     "d": "Valgfritt: Bates i stjålet uniform dekker flukten med en .32 revolver eller Tommy gun."
+    },
+    {
+     "t": "Soong så Peterson",
+     "item": null,
+     "roll": "Ingen",
+     "d": "Etter tyveriet nevner dr. Soong at han så Chad Peterson forlate lugaren sin rundt kl. 06.00 søndag 6. desember, altså etter det påståtte selvmordet."
+    },
+    {
+     "t": "Lo Mai overtar",
+     "item": null,
+     "roll": "Ingen",
+     "d": "Etter Wang Mas død overtar Lo Mai som Soongs tjener og tcho-tcho-leder. Dør han også, rykker andre tcho-tchoer inn."
+    }
+   ]
+  },
+  {
+   "id": "tredje",
+   "no": "04",
+   "group": "Lugarer",
+   "title": "Tredjeklasses lugar, C-dekk",
+   "scene": "Cabin Mates · 5. desember",
+   "note": "Delt lugar med 4 køyer, 8 senger. Brødrene Po og matros Olaf Gustavsen har tre av sengene.",
+   "widthPx": 304,
+   "heightPx": 304,
+   "widthFt": 19,
+   "heightFt": 19,
+   "dir": "04-tredje",
+   "atlasW": 181,
+   "atlasH": 268,
+   "frames": {
+    "bunk0": [
+     0,
+     0,
+     46,
+     110
+    ],
+    "bunk1": [
+     48,
+     0,
+     46,
+     110
+    ],
+    "bunk2": [
+     96,
+     0,
+     46,
+     110
+    ],
+    "bunk3": [
+     0,
+     112,
+     46,
+     110
+    ],
+    "coat": [
+     124,
+     112,
+     22,
+     36
+    ],
+    "dice": [
+     146,
+     224,
+     22,
+     16
+    ],
+    "door": [
+     0,
+     256,
+     46,
+     12
+    ],
+    "mirror": [
+     48,
+     256,
+     34,
+     10
+    ],
+    "seabag": [
+     96,
+     112,
+     26,
+     42
+    ],
+    "sink": [
+     90,
+     224,
+     30,
+     22
+    ],
+    "stool": [
+     122,
+     224,
+     22,
+     22
+    ],
+    "suit1": [
+     0,
+     224,
+     46,
+     30
+    ],
+    "suit2": [
+     48,
+     224,
+     40,
+     28
+    ],
+    "table": [
+     48,
+     112,
+     46,
+     46
+    ],
+    "toilet": [
+     148,
+     112,
+     26,
+     32
+    ]
+   },
+   "items": [
+    {
+     "id": "bunk0",
+     "name": "Køye 1 (Po Liang)",
+     "sprite": "bunk0",
+     "x": 14,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bunk1",
+     "name": "Køye 2 (Po Hau)",
+     "sprite": "bunk1",
+     "x": 58,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bunk2",
+     "name": "Køye 3 (Gustavsen)",
+     "sprite": "bunk2",
+     "x": 244,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bunk3",
+     "name": "Køye 4 (ledig)",
+     "sprite": "bunk3",
+     "x": 244,
+     "y": 118,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sink",
+     "name": "Vaskeservant",
+     "sprite": "sink",
+     "x": 180,
+     "y": 12,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "mirror",
+     "name": "Speil",
+     "sprite": "mirror",
+     "x": 178,
+     "y": 10,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "toilet",
+     "name": "Toalett",
+     "sprite": "toilet",
+     "x": 212,
+     "y": 12,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "table",
+     "name": "Bord med Pai Gow-brikker",
+     "sprite": "table",
+     "x": 120,
+     "y": 108,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "stool",
+     "name": "Krakk",
+     "sprite": "stool",
+     "x": 104,
+     "y": 120,
+     "rotation": 0,
+     "z": 9
+    },
+    {
+     "id": "stool2",
+     "name": "Krakk",
+     "sprite": "stool",
+     "x": 164,
+     "y": 96,
+     "rotation": 0,
+     "z": 9
+    },
+    {
+     "id": "stool3",
+     "name": "Krakk",
+     "sprite": "stool",
+     "x": 134,
+     "y": 152,
+     "rotation": 0,
+     "z": 9
+    },
+    {
+     "id": "seabag",
+     "name": "Marinesekk",
+     "sprite": "seabag",
+     "x": 214,
+     "y": 148,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "suit1",
+     "name": "Koffert",
+     "sprite": "suit1",
+     "x": 20,
+     "y": 186,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "suit2",
+     "name": "Koffert",
+     "sprite": "suit2",
+     "x": 66,
+     "y": 194,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "coat",
+     "name": "Frakk på knagg",
+     "sprite": "coat",
+     "x": 110,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "dice",
+     "name": "Spillbrett",
+     "sprite": "dice",
+     "x": 176,
+     "y": 170,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Lugardør",
+     "sprite": "door",
+     "x": 126,
+     "y": 229,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "cr-c"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Lugarkameratene",
+     "item": "table",
+     "roll": "Ingen",
+     "d": "Brødrene Po Liang og Po Hau er Pai Gow-dealere hyret til Casino Night. Olaf Gustavsen er US Navy-matros fra minesveiperen Abilene på vei tilbake til Pearl Harbor. De andre køyene er ledige for heltene."
+    }
+   ]
+  },
+  {
+   "id": "steerage",
+   "no": "05",
+   "group": "Lugarer",
+   "title": "Sovesal, Steerage, D-dekk",
+   "scene": "Cabin Mates · 5. desember",
+   "note": "En av seks sovesaler med 60 køyeplasser. Familien Castor, irske politimenn, tcho-tcho-arbeidere med Lo Mai, filippinske jazzmusikere m.fl.",
+   "widthPx": 704,
+   "heightPx": 480,
+   "widthFt": 44,
+   "heightFt": 30,
+   "dir": "05-steerage",
+   "atlasW": 401,
+   "atlasH": 506,
+   "frames": {
+    "bench": [
+     0,
+     488,
+     230,
+     18
+    ],
+    "cases": [
+     162,
+     336,
+     54,
+     46
+    ],
+    "crib": [
+     104,
+     336,
+     42,
+     62
+    ],
+    "door": [
+     148,
+     336,
+     12,
+     54
+    ],
+    "lantern": [
+     232,
+     488,
+     18,
+     18
+    ],
+    "line": [
+     48,
+     456,
+     246,
+     20
+    ],
+    "mats": [
+     0,
+     336,
+     102,
+     70
+    ],
+    "pot": [
+     232,
+     408,
+     34,
+     34
+    ],
+    "row0": [
+     0,
+     0,
+     174,
+     110
+    ],
+    "row1": [
+     176,
+     0,
+     174,
+     110
+    ],
+    "row2": [
+     0,
+     112,
+     174,
+     110
+    ],
+    "row3": [
+     176,
+     112,
+     174,
+     110
+    ],
+    "row4": [
+     0,
+     224,
+     174,
+     110
+    ],
+    "row5": [
+     176,
+     224,
+     174,
+     110
+    ],
+    "table": [
+     0,
+     408,
+     230,
+     46
+    ],
+    "trunk1": [
+     268,
+     408,
+     54,
+     34
+    ],
+    "trunk2": [
+     324,
+     408,
+     50,
+     32
+    ],
+    "trunk3": [
+     0,
+     456,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "row0",
+     "name": "Køyerekke A",
+     "sprite": "row0",
+     "x": 20,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row1",
+     "name": "Køyerekke B",
+     "sprite": "row1",
+     "x": 216,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row2",
+     "name": "Køyerekke C",
+     "sprite": "row2",
+     "x": 412,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row3",
+     "name": "Køyerekke D",
+     "sprite": "row3",
+     "x": 20,
+     "y": 362,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row4",
+     "name": "Køyerekke E",
+     "sprite": "row4",
+     "x": 216,
+     "y": 362,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row5",
+     "name": "Køyerekke F",
+     "sprite": "row5",
+     "x": 412,
+     "y": 362,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "table",
+     "name": "Langbord",
+     "sprite": "table",
+     "x": 212,
+     "y": 220,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 212,
+     "y": 204,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench2",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 212,
+     "y": 264,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "line",
+     "name": "Klessnor",
+     "sprite": "line",
+     "x": 200,
+     "y": 150,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "line2",
+     "name": "Klessnor",
+     "sprite": "line",
+     "x": 200,
+     "y": 320,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "trunk1",
+     "name": "Dampkoffert",
+     "sprite": "trunk1",
+     "x": 612,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "trunk2",
+     "name": "Dampkoffert",
+     "sprite": "trunk2",
+     "x": 620,
+     "y": 100,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "trunk3",
+     "name": "Koffert",
+     "sprite": "trunk3",
+     "x": 110,
+     "y": 290,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "mats",
+     "name": "Sovematter (tcho-tcho)",
+     "sprite": "mats",
+     "x": 592,
+     "y": 190,
+     "rotation": 0,
+     "z": 5
+    },
+    {
+     "id": "pot",
+     "name": "Kokekar",
+     "sprite": "pot",
+     "x": 560,
+     "y": 220,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "crib",
+     "name": "Barneseng (Castor)",
+     "sprite": "crib",
+     "x": 620,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cases",
+     "name": "Instrumentkasser (jazzband)",
+     "sprite": "cases",
+     "x": 50,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 540,
+     "y": 250,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør",
+     "sprite": "door",
+     "x": 14,
+     "y": 214,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "cr-d"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Medpassasjerene",
+     "item": "mats",
+     "roll": "Ingen",
+     "d": "Familien Castor (sju misjonærer), fire irske politimenn til Shanghai, 13 lykkejegere, tre japanske bryggere, filippinske jazzmusikere, tre barnepiker, ti kinesiske arbeidere og seks av dr. Soongs tcho-tcho-arbeidere med talsmannen Lo Mai."
+    },
+    {
+     "t": "Politiets ransaking",
+     "item": null,
+     "roll": "Ingen",
+     "d": "I Honolulu ransaker politiet steerage på jakt etter Wang Mas morder."
+    },
+    {
+     "t": "Tcho-tchoenes leting",
+     "item": "mats",
+     "roll": "Ingen",
+     "d": "Dr. Soong sender tcho-tchoene for å lete i steerage mens heltene tar maskinrommet og lasterommene. Phyllis Barnes gjør veldedighetsarbeid her og underviser barna."
+    }
+   ]
+  },
+  {
+   "id": "spisesal",
+   "no": "06",
+   "group": "Fellesrom",
+   "title": "1. klasses spisesal, C-dekk",
+   "scene": "Bunny Takes a Hostage · 19. desember",
+   "note": "Bunny Bates tar et gissel her mens den krypende en starter Pipes of Leng i Lasterom 7.",
+   "widthPx": 768,
+   "heightPx": 512,
+   "widthFt": 48,
+   "heightFt": 32,
+   "dir": "06-spisesal",
+   "atlasW": 460,
+   "atlasH": 542,
+   "frames": {
+    "bench": [
+     0,
+     464,
+     22,
+     42
+    ],
+    "broken": [
+     150,
+     464,
+     46,
+     34
+    ],
+    "capt": [
+     108,
+     356,
+     246,
+     98
+    ],
+    "drums": [
+     68,
+     464,
+     46,
+     38
+    ],
+    "lab_st": [
+     292,
+     508,
+     85,
+     18
+    ],
+    "lectern": [
+     184,
+     508,
+     34,
+     26
+    ],
+    "palm": [
+     24,
+     464,
+     42,
+     42
+    ],
+    "piano": [
+     356,
+     356,
+     102,
+     70
+    ],
+    "s0": [
+     0,
+     0,
+     122,
+     122
+    ],
+    "s1": [
+     124,
+     0,
+     122,
+     122
+    ],
+    "s2": [
+     248,
+     0,
+     122,
+     122
+    ],
+    "s3": [
+     0,
+     124,
+     122,
+     122
+    ],
+    "side1": [
+     198,
+     464,
+     134,
+     34
+    ],
+    "side2": [
+     0,
+     508,
+     134,
+     34
+    ],
+    "stands": [
+     220,
+     508,
+     70,
+     26
+    ],
+    "t0": [
+     124,
+     124,
+     106,
+     106
+    ],
+    "t1": [
+     232,
+     124,
+     106,
+     106
+    ],
+    "t2": [
+     340,
+     124,
+     106,
+     106
+    ],
+    "t3": [
+     0,
+     248,
+     106,
+     106
+    ],
+    "t4": [
+     108,
+     248,
+     106,
+     106
+    ],
+    "t5": [
+     216,
+     248,
+     106,
+     106
+    ],
+    "t6": [
+     324,
+     248,
+     106,
+     106
+    ],
+    "t7": [
+     0,
+     356,
+     106,
+     106
+    ],
+    "tipchair": [
+     116,
+     464,
+     32,
+     36
+    ],
+    "trolley": [
+     136,
+     508,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "piano",
+     "name": "Flygel",
+     "sprite": "piano",
+     "x": 300,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench",
+     "name": "Pianokrakk",
+     "sprite": "bench",
+     "x": 290,
+     "y": 44,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "stands",
+     "name": "Notestativer",
+     "sprite": "stands",
+     "x": 400,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "drums",
+     "name": "Trommer",
+     "sprite": "drums",
+     "x": 420,
+     "y": 58,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "capt",
+     "name": "Kapteinens bord",
+     "sprite": "capt",
+     "x": 264,
+     "y": 400,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t0",
+     "name": "Bord for 4",
+     "sprite": "t0",
+     "x": 40,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t1",
+     "name": "Bord for 4",
+     "sprite": "t1",
+     "x": 160,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t2",
+     "name": "Bord for 4",
+     "sprite": "t2",
+     "x": 510,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t3",
+     "name": "Bord for 4",
+     "sprite": "t3",
+     "x": 630,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t4",
+     "name": "Bord for 4",
+     "sprite": "t4",
+     "x": 40,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t5",
+     "name": "Bord for 4",
+     "sprite": "t5",
+     "x": 630,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t6",
+     "name": "Bord for 4",
+     "sprite": "t6",
+     "x": 80,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t7",
+     "name": "Bord for 4",
+     "sprite": "t7",
+     "x": 590,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "s0",
+     "name": "Bord for 6",
+     "sprite": "s0",
+     "x": 250,
+     "y": 210,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "s1",
+     "name": "Bord for 6",
+     "sprite": "s1",
+     "x": 400,
+     "y": 210,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "s2",
+     "name": "Bord for 6",
+     "sprite": "s2",
+     "x": 150,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "s3",
+     "name": "Bord for 6",
+     "sprite": "s3",
+     "x": 500,
+     "y": 290,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "side1",
+     "name": "Skjenk",
+     "sprite": "side1",
+     "x": 40,
+     "y": 462,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "side2",
+     "name": "Skjenk",
+     "sprite": "side2",
+     "x": 600,
+     "y": 462,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 20,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 708,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm3",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 20,
+     "y": 452,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm4",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 708,
+     "y": 452,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lectern",
+     "name": "Hovmesterpult",
+     "sprite": "lectern",
+     "x": 24,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "trolley",
+     "name": "Vintralle",
+     "sprite": "trolley",
+     "x": 700,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "tipchair",
+     "name": "Veltet stol",
+     "sprite": "tipchair",
+     "x": 350,
+     "y": 330,
+     "rotation": 0,
+     "z": 12,
+     "clue": true
+    },
+    {
+     "id": "broken",
+     "name": "Knust glass og vin",
+     "sprite": "broken",
+     "x": 330,
+     "y": 362,
+     "rotation": 0,
+     "z": 4,
+     "clue": true
+    },
+    {
+     "id": "lab_st",
+     "name": "Til hovedtrappen",
+     "sprite": "lab_st",
+     "x": 22,
+     "y": 250,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-c"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Gisseltaket",
+     "item": "tipchair",
+     "roll": "Extreme Persuade/Fast Talk eller Hard Psychoanalysis",
+     "d": "Bates tar første person han ser som gissel og krever å bli satt i land. Han er drapsgal og må tas med makt eller lur forhandling."
+    },
+    {
+     "t": "Avledningen",
+     "item": "broken",
+     "roll": "Ingen",
+     "d": "Mens alle ser på Bates, spiller den krypende en Pipes of Leng i Lasterom 7."
+    },
+    {
+     "t": "Sanity-belønning",
+     "item": null,
+     "roll": "Avslutning",
+     "d": "Heltene hindrer Bates i å drepe gisselet: +1D6 Sanity."
+    },
+    {
+     "t": "Bates’ tilstand",
+     "item": null,
+     "roll": "Psychology",
+     "d": "Når heltene når fram, er Bates enten i et mentalt sammenbrudd eller helt under den krypende ens kontroll."
+    }
+   ]
+  },
+  {
+   "id": "ballroom",
+   "no": "07",
+   "group": "Fellesrom",
+   "title": "Ballsalen, B-dekk",
+   "scene": "Tahitian Ball · 9. desember (og St. Nicholas Night 6. des.)",
+   "note": "Presidential Dance Orchestra spiller hver kveld kl. 21. Tahiti-pynten (palmer, fakler, kranser, bambusbar) kan skjules; juletre og gaver for St. Nicholas Night ligger skjult.",
+   "widthPx": 768,
+   "heightPx": 544,
+   "widthFt": 48,
+   "heightFt": 34,
+   "dir": "07-ballroom",
+   "atlasW": 409,
+   "atlasH": 468,
+   "frames": {
+    "bar": [
+     0,
+     376,
+     182,
+     50
+    ],
+    "bass": [
+     300,
+     204,
+     34,
+     78
+    ],
+    "door": [
+     248,
+     450,
+     86,
+     12
+    ],
+    "drums": [
+     312,
+     376,
+     46,
+     38
+    ],
+    "gifts": [
+     184,
+     376,
+     78,
+     46
+    ],
+    "lab": [
+     22,
+     428,
+     85,
+     18
+    ],
+    "lab2": [
+     109,
+     428,
+     81,
+     18
+    ],
+    "lantern": [
+     360,
+     376,
+     22,
+     22
+    ],
+    "lantern2": [
+     384,
+     376,
+     22,
+     22
+    ],
+    "lei": [
+     0,
+     450,
+     246,
+     18
+    ],
+    "orch": [
+     104,
+     304,
+     246,
+     66
+    ],
+    "palm": [
+     264,
+     376,
+     46,
+     46
+    ],
+    "piano": [
+     0,
+     304,
+     102,
+     70
+    ],
+    "t0": [
+     104,
+     0,
+     98,
+     98
+    ],
+    "t1": [
+     204,
+     0,
+     98,
+     98
+    ],
+    "t2": [
+     304,
+     0,
+     98,
+     98
+    ],
+    "t3": [
+     0,
+     104,
+     98,
+     98
+    ],
+    "t4": [
+     100,
+     104,
+     98,
+     98
+    ],
+    "t5": [
+     200,
+     104,
+     98,
+     98
+    ],
+    "t6": [
+     300,
+     104,
+     98,
+     98
+    ],
+    "t7": [
+     0,
+     204,
+     98,
+     98
+    ],
+    "t8": [
+     100,
+     204,
+     98,
+     98
+    ],
+    "t9": [
+     200,
+     204,
+     98,
+     98
+    ],
+    "torch": [
+     0,
+     428,
+     20,
+     20
+    ],
+    "tree": [
+     0,
+     0,
+     102,
+     102
+    ]
+   },
+   "items": [
+    {
+     "id": "orch",
+     "name": "Orkesterstoler og notestativ",
+     "sprite": "orch",
+     "x": 250,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "piano",
+     "name": "Flygel",
+     "sprite": "piano",
+     "x": 420,
+     "y": 20,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "drums",
+     "name": "Trommer",
+     "sprite": "drums",
+     "x": 480,
+     "y": 72,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "bass",
+     "name": "Kontrabass",
+     "sprite": "bass",
+     "x": 250,
+     "y": 30,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "bar",
+     "name": "Bambusbar",
+     "sprite": "bar",
+     "x": 560,
+     "y": 470,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dobbeltdør",
+     "sprite": "door",
+     "x": 342,
+     "y": 522,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Til hovedtrappen",
+     "sprite": "lab",
+     "x": 330,
+     "y": 500,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-b"
+    },
+    {
+     "id": "lab2",
+     "name": "Serveringsgang",
+     "sprite": "lab2",
+     "x": 680,
+     "y": 270,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "tree",
+     "name": "Juletre (St. Nicholas Night)",
+     "sprite": "tree",
+     "x": 336,
+     "y": 240,
+     "rotation": 0,
+     "z": 20,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "gifts",
+     "name": "Gaver",
+     "sprite": "gifts",
+     "x": 350,
+     "y": 340,
+     "rotation": 0,
+     "z": 19,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "lei",
+     "name": "Blomsterkrans",
+     "sprite": "lei",
+     "x": 40,
+     "y": 118,
+     "rotation": 0,
+     "z": 25
+    },
+    {
+     "id": "lei2",
+     "name": "Blomsterkrans",
+     "sprite": "lei",
+     "x": 490,
+     "y": 118,
+     "rotation": 0,
+     "z": 25
+    },
+    {
+     "id": "t0",
+     "name": "Bord for 4",
+     "sprite": "t0",
+     "x": 30,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t1",
+     "name": "Bord for 4",
+     "sprite": "t1",
+     "x": 130,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t2",
+     "name": "Bord for 4",
+     "sprite": "t2",
+     "x": 560,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t3",
+     "name": "Bord for 4",
+     "sprite": "t3",
+     "x": 660,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t4",
+     "name": "Bord for 4",
+     "sprite": "t4",
+     "x": 30,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t5",
+     "name": "Bord for 4",
+     "sprite": "t5",
+     "x": 650,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t6",
+     "name": "Bord for 4",
+     "sprite": "t6",
+     "x": 30,
+     "y": 340,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t7",
+     "name": "Bord for 4",
+     "sprite": "t7",
+     "x": 650,
+     "y": 340,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t8",
+     "name": "Bord for 4",
+     "sprite": "t8",
+     "x": 60,
+     "y": 450,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "t9",
+     "name": "Bord for 4",
+     "sprite": "t9",
+     "x": 180,
+     "y": 450,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm0",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 20,
+     "y": 130,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm1",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 700,
+     "y": 130,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 20,
+     "y": 470,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm3",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 700,
+     "y": 470,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm4",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 200,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm5",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 520,
+     "y": 120,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "torch0",
+     "name": "Tikifakkel",
+     "sprite": "torch",
+     "x": 164,
+     "y": 132,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "torch1",
+     "name": "Tikifakkel",
+     "sprite": "torch",
+     "x": 590,
+     "y": 132,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "torch2",
+     "name": "Tikifakkel",
+     "sprite": "torch",
+     "x": 164,
+     "y": 430,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "torch3",
+     "name": "Tikifakkel",
+     "sprite": "torch",
+     "x": 590,
+     "y": 430,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "torch4",
+     "name": "Tikifakkel",
+     "sprite": "torch",
+     "x": 300,
+     "y": 446,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "torch5",
+     "name": "Tikifakkel",
+     "sprite": "torch",
+     "x": 460,
+     "y": 446,
+     "rotation": 0,
+     "z": 15
+    },
+    {
+     "id": "lan0",
+     "name": "Papirlykt",
+     "sprite": "lantern",
+     "x": 200,
+     "y": 200,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan1",
+     "name": "Papirlykt",
+     "sprite": "lantern2",
+     "x": 250,
+     "y": 320,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan2",
+     "name": "Papirlykt",
+     "sprite": "lantern",
+     "x": 300,
+     "y": 200,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan3",
+     "name": "Papirlykt",
+     "sprite": "lantern2",
+     "x": 350,
+     "y": 320,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan4",
+     "name": "Papirlykt",
+     "sprite": "lantern",
+     "x": 400,
+     "y": 200,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan5",
+     "name": "Papirlykt",
+     "sprite": "lantern2",
+     "x": 450,
+     "y": 320,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan6",
+     "name": "Papirlykt",
+     "sprite": "lantern",
+     "x": 500,
+     "y": 200,
+     "rotation": 0,
+     "z": 40
+    },
+    {
+     "id": "lan7",
+     "name": "Papirlykt",
+     "sprite": "lantern2",
+     "x": 550,
+     "y": 320,
+     "rotation": 0,
+     "z": 40
+    }
+   ],
+   "clues": [
+    {
+     "t": "Tahiti-ballet",
+     "item": "bar",
+     "roll": "Ingen",
+     "d": "For første og spesialklasse 9. desember. Presidential Dance Orchestra spiller hver kveld kl. 21."
+    },
+    {
+     "t": "St. Nicholas Night",
+     "item": "tree",
+     "roll": "Ingen",
+     "d": "Barnefest for første, spesial og tredje klasse 6. desember."
+    }
+   ]
+  },
+  {
+   "id": "music",
+   "no": "08",
+   "group": "Fellesrom",
+   "title": "Musikkrommet, B-dekk",
+   "scene": "10. desember konsert · Distant Music fra 13. desember",
+   "note": "Phyllis Barnes opptrer her 10. desember. Om natten er rommet tomt når den fjerne musikken høres; Hard Listen viser at lyden kommer nedenfra, gjennom ventilasjonen.",
+   "widthPx": 480,
+   "heightPx": 352,
+   "widthFt": 30,
+   "heightFt": 22,
+   "dir": "08-music",
+   "atlasW": 178,
+   "atlasH": 232,
+   "frames": {
+    "bench": [
+     38,
+     184,
+     42,
+     22
+    ],
+    "cabinet": [
+     0,
+     120,
+     70,
+     30
+    ],
+    "door": [
+     87,
+     214,
+     46,
+     12
+    ],
+    "grand": [
+     0,
+     0,
+     118,
+     78
+    ],
+    "grille": [
+     0,
+     80,
+     38,
+     38
+    ],
+    "harp": [
+     120,
+     0,
+     42,
+     54
+    ],
+    "lab": [
+     0,
+     214,
+     85,
+     18
+    ],
+    "palm": [
+     40,
+     80,
+     38,
+     38
+    ],
+    "row": [
+     0,
+     152,
+     156,
+     30
+    ],
+    "sheets": [
+     0,
+     184,
+     36,
+     28
+    ],
+    "stand": [
+     106,
+     184,
+     26,
+     20
+    ],
+    "stool": [
+     82,
+     184,
+     22,
+     22
+    ],
+    "upright": [
+     80,
+     80,
+     86,
+     34
+    ]
+   },
+   "items": [
+    {
+     "id": "grand",
+     "name": "Flygel",
+     "sprite": "grand",
+     "x": 180,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench",
+     "name": "Pianokrakk",
+     "sprite": "bench",
+     "x": 170,
+     "y": 56,
+     "rotation": 0,
+     "z": 9
+    },
+    {
+     "id": "harp",
+     "name": "Harpe",
+     "sprite": "harp",
+     "x": 330,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "stool",
+     "name": "Krakk",
+     "sprite": "stool",
+     "x": 350,
+     "y": 92,
+     "rotation": 0,
+     "z": 9
+    },
+    {
+     "id": "stand",
+     "name": "Barnes’ notestativ",
+     "sprite": "stand",
+     "x": 300,
+     "y": 100,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "upright",
+     "name": "Piano",
+     "sprite": "upright",
+     "x": 30,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cabinet",
+     "name": "Noteskap",
+     "sprite": "cabinet",
+     "x": 380,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sheets",
+     "name": "Noteark",
+     "sprite": "sheets",
+     "x": 280,
+     "y": 120,
+     "rotation": 0,
+     "z": 6
+    },
+    {
+     "id": "row1",
+     "name": "Stolrad",
+     "sprite": "row",
+     "x": 100,
+     "y": 170,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row2",
+     "name": "Stolrad",
+     "sprite": "row",
+     "x": 100,
+     "y": 206,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row3",
+     "name": "Stolrad",
+     "sprite": "row",
+     "x": 100,
+     "y": 242,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row4",
+     "name": "Stolrad",
+     "sprite": "row",
+     "x": 270,
+     "y": 170,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "row5",
+     "name": "Stolrad",
+     "sprite": "row",
+     "x": 270,
+     "y": 206,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "grille",
+     "name": "Ventilasjonsrist",
+     "sprite": "grille",
+     "x": 420,
+     "y": 200,
+     "rotation": 0,
+     "z": 10,
+     "clue": true
+    },
+    {
+     "id": "palm",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 20,
+     "y": 290,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 424,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 198,
+     "y": 331,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Til hovedtrappen",
+     "sprite": "lab",
+     "x": 182,
+     "y": 312,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-b"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Den fjerne musikken",
+     "item": "grille",
+     "roll": "Listen · Hard Listen",
+     "d": "Fra 13. desember høres dempet, melankolsk kirkemusikk om natten. Rommet er tomt. Hard Listen: lyden kommer fra de nedre dekkene, gjennom ventilasjonen fra Lasterom 7."
+    },
+    {
+     "t": "Phyllis Barnes",
+     "item": "stand",
+     "roll": "Ingen",
+     "d": "Opptrer her 10. desember. 13. desember følger hun lyden ned til lastelukene og blir tatt av Bates."
+    },
+    {
+     "t": "Barnes har sett Peterson",
+     "item": "stand",
+     "roll": "Ingen",
+     "d": "Phyllis Barnes kom godt overens med Peterson og Virginia den første kvelden, men neste morgen syntes han ikke å vite hvem hun var. Hun kaller selvmordet «hogwash» og har sett Peterson flere ganger om bord. Hun lyver også om «voldelige slåsskamper blant kineserne»."
+    }
+   ]
+  },
+  {
+   "id": "smoking",
+   "no": "09",
+   "group": "Fellesrom",
+   "title": "Røykesalongen, 1. klasse, A-dekk",
+   "scene": "Dr. Soong Requests Help",
+   "note": "Gobelin med Rip Van Winkle, valnøttstoler, grønne sofaer, spillebord, gulv av grønne og rødlige gummifliser og en grønn marmorpeis med elektrisk varme. Over peisen glassmaleriet «Lady and the Unicorn».",
+   "widthPx": 576,
+   "heightPx": 400,
+   "widthFt": 36,
+   "heightFt": 25,
+   "dir": "09-smoking",
+   "atlasW": 261,
+   "atlasH": 364,
+   "frames": {
+    "arm0": [
+     104,
+     104,
+     42,
+     42
+    ],
+    "arm1": [
+     148,
+     104,
+     42,
+     42
+    ],
+    "arm2": [
+     192,
+     104,
+     42,
+     42
+    ],
+    "arm3": [
+     0,
+     208,
+     42,
+     42
+    ],
+    "arm4": [
+     44,
+     208,
+     42,
+     42
+    ],
+    "arm5": [
+     88,
+     208,
+     42,
+     42
+    ],
+    "ash": [
+     88,
+     296,
+     20,
+     20
+    ],
+    "bar": [
+     0,
+     296,
+     54,
+     34
+    ],
+    "door": [
+     0,
+     352,
+     46,
+     12
+    ],
+    "fire": [
+     104,
+     252,
+     118,
+     38
+    ],
+    "game1": [
+     0,
+     0,
+     102,
+     102
+    ],
+    "game2": [
+     104,
+     0,
+     102,
+     102
+    ],
+    "game3": [
+     0,
+     104,
+     102,
+     102
+    ],
+    "glass": [
+     118,
+     332,
+     102,
+     14
+    ],
+    "lab": [
+     110,
+     296,
+     85,
+     18
+    ],
+    "settee": [
+     132,
+     208,
+     102,
+     42
+    ],
+    "settee2": [
+     0,
+     252,
+     102,
+     42
+    ],
+    "side": [
+     56,
+     296,
+     30,
+     30
+    ],
+    "tap": [
+     0,
+     332,
+     116,
+     18
+    ]
+   },
+   "items": [
+    {
+     "id": "fire",
+     "name": "Marmorpeis med elektrisk varme",
+     "sprite": "fire",
+     "x": 230,
+     "y": 14,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "glass",
+     "name": "«Lady and the Unicorn»",
+     "sprite": "glass",
+     "x": 238,
+     "y": 4,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "tap",
+     "name": "Gobelin: Rip Van Winkle",
+     "sprite": "tap",
+     "x": 20,
+     "y": 150,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "arm0",
+     "name": "Valnøttstol",
+     "sprite": "arm0",
+     "x": 190,
+     "y": 70,
+     "rotation": 90,
+     "z": 10
+    },
+    {
+     "id": "arm1",
+     "name": "Valnøttstol",
+     "sprite": "arm1",
+     "x": 350,
+     "y": 70,
+     "rotation": 270,
+     "z": 10
+    },
+    {
+     "id": "arm2",
+     "name": "Valnøttstol",
+     "sprite": "arm2",
+     "x": 420,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "arm3",
+     "name": "Valnøttstol",
+     "sprite": "arm3",
+     "x": 470,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "arm4",
+     "name": "Valnøttstol",
+     "sprite": "arm4",
+     "x": 420,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "arm5",
+     "name": "Valnøttstol",
+     "sprite": "arm5",
+     "x": 470,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "settee",
+     "name": "Grønn sofa",
+     "sprite": "settee",
+     "x": 236,
+     "y": 120,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "settee2",
+     "name": "Grønn sofa",
+     "sprite": "settee2",
+     "x": 30,
+     "y": 330,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "side",
+     "name": "Sidebord",
+     "sprite": "side",
+     "x": 278,
+     "y": 84,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "side2",
+     "name": "Sidebord",
+     "sprite": "side",
+     "x": 450,
+     "y": 256,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "game1",
+     "name": "Spillebord (kort)",
+     "sprite": "game1",
+     "x": 60,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "game2",
+     "name": "Spillebord (terninger)",
+     "sprite": "game2",
+     "x": 70,
+     "y": 190,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "game3",
+     "name": "Spillebord (kort)",
+     "sprite": "game3",
+     "x": 210,
+     "y": 220,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ash",
+     "name": "Askebeger",
+     "sprite": "ash",
+     "x": 340,
+     "y": 240,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "ash2",
+     "name": "Askebeger",
+     "sprite": "ash",
+     "x": 150,
+     "y": 330,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "bar",
+     "name": "Drinkvogn",
+     "sprite": "bar",
+     "x": 490,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 266,
+     "y": 379,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Til hovedtrappen",
+     "sprite": "lab",
+     "x": 250,
+     "y": 360,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-a"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Dr. Soong ber om hjelp",
+     "item": "game2",
+     "roll": "Ingen",
+     "d": "Etter Honolulu ber Soong heltene møte ham her eller i biblioteket. Han tror forsvinningene, dødsfallene og boken henger sammen. Han sender tcho-tchoene for å lete i steerage og ber heltene ta maskinrommet og lasterommene."
+    }
+   ]
+  },
+  {
+   "id": "chapel",
+   "no": "10",
+   "group": "Fellesrom",
+   "title": "Skipskapellet",
+   "scene": "Messe 6./13./20. des. · minnegudstjeneste 8. des. · skriftemål 17. des.",
+   "note": "Fader Alvarez holder messe og minnestund for Chad Peterson (8. desember kl. 11). 17. desember bryter Bunny Bates løs fra dominansen og skrifter her.",
+   "widthPx": 384,
+   "heightPx": 480,
+   "widthFt": 24,
+   "heightFt": 30,
+   "dir": "10-chapel",
+   "atlasW": 170,
+   "atlasH": 248,
+   "frames": {
+    "altar": [
+     0,
+     96,
+     134,
+     42
+    ],
+    "candles": [
+     0,
+     140,
+     38,
+     38
+    ],
+    "conf": [
+     0,
+     0,
+     62,
+     94
+    ],
+    "door": [
+     120,
+     232,
+     46,
+     12
+    ],
+    "easel": [
+     64,
+     0,
+     42,
+     50
+    ],
+    "flowers": [
+     40,
+     140,
+     38,
+     30
+    ],
+    "font": [
+     80,
+     140,
+     30,
+     30
+    ],
+    "lab": [
+     0,
+     212,
+     85,
+     18
+    ],
+    "lectern": [
+     112,
+     140,
+     34,
+     30
+    ],
+    "pew": [
+     0,
+     180,
+     142,
+     30
+    ],
+    "rail": [
+     0,
+     232,
+     118,
+     16
+    ]
+   },
+   "items": [
+    {
+     "id": "altar",
+     "name": "Alter",
+     "sprite": "altar",
+     "x": 128,
+     "y": 22,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lectern",
+     "name": "Prekestol",
+     "sprite": "lectern",
+     "x": 290,
+     "y": 90,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "rail",
+     "name": "Knefall",
+     "sprite": "rail",
+     "x": 136,
+     "y": 100,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "conf",
+     "name": "Skriftestol",
+     "sprite": "conf",
+     "x": 300,
+     "y": 300,
+     "rotation": 0,
+     "z": 10,
+     "clue": true
+    },
+    {
+     "id": "easel",
+     "name": "Portrett av Chad Peterson",
+     "sprite": "easel",
+     "x": 60,
+     "y": 90,
+     "rotation": 0,
+     "z": 10,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "flowers",
+     "name": "Blomster (minnestund)",
+     "sprite": "flowers",
+     "x": 60,
+     "y": 136,
+     "rotation": 0,
+     "z": 10,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "candles",
+     "name": "Lysestake",
+     "sprite": "candles",
+     "x": 20,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "font",
+     "name": "Vievannskar",
+     "sprite": "font",
+     "x": 220,
+     "y": 420,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 170,
+     "y": 459,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Til hovedtrappen",
+     "sprite": "lab",
+     "x": 154,
+     "y": 440,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-b"
+    },
+    {
+     "id": "pewL0",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 140,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR0",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 140,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewL1",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 180,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR1",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 180,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewL2",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 220,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR2",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 220,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewL3",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 260,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR3",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 260,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewL4",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR4",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewL5",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 340,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR5",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 340,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewL6",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 22,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "pewR6",
+     "name": "Kirkebenk",
+     "sprite": "pew",
+     "x": 218,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    }
+   ],
+   "clues": [
+    {
+     "t": "Minnestunden",
+     "item": "easel",
+     "roll": "Ingen",
+     "d": "Fader Alvarez holder minnestund for Chad Peterson 8. desember kl. 11."
+    },
+    {
+     "t": "Bates skrifter",
+     "item": "conf",
+     "roll": "Hard Persuade / Hard Psychoanalysis (styrke viljen)",
+     "d": "17. desember bryter Bates kort løs og skrifter for Fader Alvarez eller en helt. Innen en time blir han fullstendig gal, og den krypende en tar ham permanent."
+    },
+    {
+     "t": "Bates’ tilståelse",
+     "item": "conf",
+     "roll": "Ingen",
+     "d": "Han tilstår tyveriet av boken, drapet på Wang Ma og andre forbrytelser han kommer på, og snakker om «voices» som «made him do it». Historiene henger ikke sammen. Etterpå går Fader Alvarez til kapteinen og kan komme i kontakt med heltene."
+    },
+    {
+     "t": "Fader Alvarez",
+     "item": "lectern",
+     "roll": "Ingen",
+     "d": "Jesuitt fra Mexico med erfaring i å granske det paranormale for Roma. Han kjenner litt til Mythos, men sier lite uten bevis. Mulig alliert eller erstatningsfigur."
+    }
+   ]
+  },
+  {
+   "id": "bridge",
+   "no": "11",
+   "group": "Uteområder",
+   "title": "Kommandobroen",
+   "scene": "Meeting the Captain",
+   "note": "Kaptein Henry Nelson forhører plagsomme helter enkeltvis. Overbevis ham (Hard Charm/Persuade) for å få hans tillit, kanskje en stilling som stedfortreder. Telegrafrommet sender Hardaways spekulasjoner i land.",
+   "widthPx": 704,
+   "heightPx": 432,
+   "widthFt": 44,
+   "heightFt": 27,
+   "dir": "11-bridge",
+   "atlasW": 201,
+   "atlasH": 250,
+   "frames": {
+    "binnacle": [
+     68,
+     140,
+     34,
+     34
+    ],
+    "cchair": [
+     32,
+     180,
+     28,
+     28
+    ],
+    "cdesk": [
+     88,
+     0,
+     86,
+     46
+    ],
+    "chart": [
+     0,
+     0,
+     86,
+     54
+    ],
+    "door": [
+     102,
+     232,
+     46,
+     12
+    ],
+    "door2": [
+     150,
+     232,
+     46,
+     12
+    ],
+    "globe": [
+     104,
+     140,
+     30,
+     30
+    ],
+    "lab1": [
+     0,
+     212,
+     92,
+     18
+    ],
+    "lab2": [
+     94,
+     212,
+     64,
+     18
+    ],
+    "lab3": [
+     0,
+     232,
+     68,
+     18
+    ],
+    "lamp": [
+     136,
+     140,
+     30,
+     30
+    ],
+    "radio": [
+     0,
+     100,
+     102,
+     38
+    ],
+    "rdesk": [
+     0,
+     56,
+     118,
+     42
+    ],
+    "repeater": [
+     122,
+     180,
+     26,
+     26
+    ],
+    "sofa": [
+     104,
+     100,
+     86,
+     38
+    ],
+    "tel1": [
+     168,
+     140,
+     30,
+     30
+    ],
+    "tel2": [
+     0,
+     180,
+     30,
+     30
+    ],
+    "tubes": [
+     70,
+     232,
+     30,
+     18
+    ],
+    "vchair": [
+     62,
+     180,
+     28,
+     28
+    ],
+    "vchair2": [
+     92,
+     180,
+     28,
+     28
+    ],
+    "wheel": [
+     0,
+     140,
+     66,
+     38
+    ]
+   },
+   "items": [
+    {
+     "id": "wheel",
+     "name": "Ratt",
+     "sprite": "wheel",
+     "x": 316,
+     "y": 110,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "binnacle",
+     "name": "Kompass (nakterhus)",
+     "sprite": "binnacle",
+     "x": 332,
+     "y": 70,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "tel1",
+     "name": "Maskintelegraf (bb)",
+     "sprite": "tel1",
+     "x": 270,
+     "y": 60,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "tel2",
+     "name": "Maskintelegraf (sb)",
+     "sprite": "tel2",
+     "x": 404,
+     "y": 60,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "tubes",
+     "name": "Talerør",
+     "sprite": "tubes",
+     "x": 450,
+     "y": 24,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "chart",
+     "name": "Kartbord",
+     "sprite": "chart",
+     "x": 140,
+     "y": 140,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lamp",
+     "name": "Signallampe",
+     "sprite": "lamp",
+     "x": 30,
+     "y": 100,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lamp2",
+     "name": "Signallampe",
+     "sprite": "lamp",
+     "x": 650,
+     "y": 100,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "repeater",
+     "name": "Repeterkompass",
+     "sprite": "repeater",
+     "x": 60,
+     "y": 60,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "repeater2",
+     "name": "Repeterkompass",
+     "sprite": "repeater",
+     "x": 624,
+     "y": 60,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "cdesk",
+     "name": "Kapteinens skrivebord",
+     "sprite": "cdesk",
+     "x": 180,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cchair",
+     "name": "Kapteinens stol",
+     "sprite": "cchair",
+     "x": 208,
+     "y": 230,
+     "rotation": 0,
+     "z": 9
+    },
+    {
+     "id": "vchair",
+     "name": "Stol (avhør)",
+     "sprite": "vchair",
+     "x": 192,
+     "y": 296,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "vchair2",
+     "name": "Stol (avhør)",
+     "sprite": "vchair2",
+     "x": 236,
+     "y": 296,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sofa",
+     "name": "Sofa",
+     "sprite": "sofa",
+     "x": 150,
+     "y": 370,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "globe",
+     "name": "Globus",
+     "sprite": "globe",
+     "x": 310,
+     "y": 240,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "radio",
+     "name": "Marconi-telegraf",
+     "sprite": "radio",
+     "x": 420,
+     "y": 236,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "rdesk",
+     "name": "Telegrafistens bord",
+     "sprite": "rdesk",
+     "x": 410,
+     "y": 290,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "vchair3",
+     "name": "Stol",
+     "sprite": "vchair",
+     "x": 448,
+     "y": 330,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 248,
+     "y": 211,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "door2",
+     "name": "Dør",
+     "sprite": "door2",
+     "x": 448,
+     "y": 211,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Kapteinens kontor",
+     "sprite": "lab1",
+     "x": 190,
+     "y": 396,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab2",
+     "name": "Telegrafrom",
+     "sprite": "lab2",
+     "x": 430,
+     "y": 396,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab3",
+     "name": "Til Båtdekket",
+     "sprite": "lab3",
+     "x": 20,
+     "y": 190,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "soong"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Kaptein Nelson",
+     "item": "cdesk",
+     "roll": "Hard Charm eller Persuade",
+     "d": "Plagsomme helter forhøres kort og direkte. Mistenkte kan få lugaren ransaket mens de forhøres, og voldelige kan holdes i lugarene. Overbevis ham for å vinne tilliten, kanskje som stedfortreder."
+    },
+    {
+     "t": "Telegrafen",
+     "item": "radio",
+     "roll": "Ingen",
+     "d": "Hardaway sender spekulasjoner til avisen. Kondolansetelegrammer kommer de neste 24 timene. Politiet i Honolulu lover å telegrafere kapteinen."
+    },
+    {
+     "t": "Kapteinens revolver",
+     "item": "cdesk",
+     "roll": "Locksmith",
+     "d": "Kapteinen har en revolver innelåst i lugaren sin."
+    },
+    {
+     "t": "Bløff mot kapteinen",
+     "item": null,
+     "roll": "Psychology 70 · Fast Talk 95",
+     "d": "Nelson er en dreven pokerspiller. Helter som prøver å lure ham, kan diskret bli fulgt av stewarder."
+    },
+    {
+     "t": "Passasjermanifestet",
+     "item": null,
+     "roll": "Hard Persuade",
+     "d": "Señor Guiterrez de Almacan står ikke oppført blant de betalende passasjerene i noen klasse."
+    },
+    {
+     "t": "Astors forbønn",
+     "item": null,
+     "roll": "Ingen",
+     "d": "Blir heltene venner med Charles Astor, kan han legge inn et godt ord hos kapteinen. Etter Honolulu utlover han 1 000 dollar for nyttig informasjon."
+    }
+   ]
+  },
+  {
+   "id": "promenade",
+   "no": "12",
+   "group": "Uteområder",
+   "title": "Promenadedekket",
+   "scene": "Cabin Mates · The Stolen Book",
+   "note": "Tyven hopper fra Båtdekket ned hit og løper videre. Forfølgere: Jump-kast eller 1D6+3 skade fra fallet. Virginia og Chad kan sees hånd i hånd ved baugen.",
+   "widthPx": 896,
+   "heightPx": 320,
+   "widthFt": 56,
+   "heightFt": 20,
+   "dir": "12-promenade",
+   "atlasW": 144,
+   "atlasH": 230,
+   "frames": {
+    "bench": [
+     32,
+     88,
+     86,
+     26
+    ],
+    "cart": [
+     84,
+     0,
+     54,
+     34
+    ],
+    "chair": [
+     0,
+     0,
+     34,
+     86
+    ],
+    "cue": [
+     0,
+     204,
+     102,
+     12
+    ],
+    "discs": [
+     0,
+     120,
+     42,
+     22
+    ],
+    "door": [
+     0,
+     218,
+     46,
+     12
+    ],
+    "jump": [
+     36,
+     0,
+     46,
+     36
+    ],
+    "lab1": [
+     44,
+     120,
+     73,
+     18
+    ],
+    "lab2": [
+     0,
+     144,
+     97,
+     18
+    ],
+    "lab3": [
+     0,
+     164,
+     88,
+     18
+    ],
+    "lab4": [
+     0,
+     184,
+     73,
+     18
+    ],
+    "ring": [
+     0,
+     88,
+     30,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "chair0",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 110,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair1",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 154,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair2",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 198,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair3",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 242,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair4",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 286,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair5",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 330,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair6",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 374,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "chair7",
+     "name": "Dekkstol",
+     "sprite": "chair",
+     "x": 418,
+     "y": 70,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ring",
+     "name": "Livbøye",
+     "sprite": "ring",
+     "x": 200,
+     "y": 254,
+     "rotation": 0,
+     "z": 21
+    },
+    {
+     "id": "ring2",
+     "name": "Livbøye",
+     "sprite": "ring",
+     "x": 700,
+     "y": 254,
+     "rotation": 0,
+     "z": 21
+    },
+    {
+     "id": "bench",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 40,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench2",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 500,
+     "y": 80,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cart",
+     "name": "Dekkstewardens tralle",
+     "sprite": "cart",
+     "x": 470,
+     "y": 120,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cue",
+     "name": "Shuffleboard-kø",
+     "sprite": "cue",
+     "x": 560,
+     "y": 220,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "discs",
+     "name": "Shuffleboard-skiver",
+     "sprite": "discs",
+     "x": 640,
+     "y": 170,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 22,
+     "y": 13,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "door2",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 438,
+     "y": 13,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Hovedtrappen",
+     "sprite": "lab1",
+     "x": 20,
+     "y": 30,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-a"
+    },
+    {
+     "id": "lab2",
+     "name": "Continental Lounge",
+     "sprite": "lab2",
+     "x": 426,
+     "y": 30,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab3",
+     "name": "Båtdekket over",
+     "sprite": "lab3",
+     "x": 290,
+     "y": 44,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "soong"
+    },
+    {
+     "id": "lab4",
+     "name": "Mot baugen",
+     "sprite": "lab4",
+     "x": 820,
+     "y": 120,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "bow"
+    },
+    {
+     "id": "jump",
+     "name": "Landingssted (skrubbmerker)",
+     "sprite": "jump",
+     "x": 300,
+     "y": 80,
+     "rotation": 0,
+     "z": 4,
+     "clue": true
+    }
+   ],
+   "clues": [
+    {
+     "t": "Landingsstedet",
+     "item": "jump",
+     "roll": "Jump",
+     "d": "Den krypende en hopper ned fra Båtdekket og løper videre uten å nøle. Forfølgere: Jump eller 1D6+3 skade."
+    },
+    {
+     "t": "Almacan på kveldstur",
+     "item": null,
+     "roll": "Spot Hidden",
+     "d": "Señor Almacan promenerer på dekk enkelte kvelder; det er en sjanse til å observere ham."
+    }
+   ]
+  },
+  {
+   "id": "bow",
+   "no": "13",
+   "group": "Uteområder",
+   "title": "Fordekket og baugen",
+   "scene": "Cabin Mates · lasteluke 1",
+   "note": "Ankerspill, kjettinger og luken til Lasterom 1. Paret Ridley og Peterson kan sees hånd i hånd her den første kvelden.",
+   "widthPx": 640,
+   "heightPx": 560,
+   "widthFt": 40,
+   "heightFt": 35,
+   "dir": "13-bow",
+   "atlasW": 206,
+   "atlasH": 244,
+   "frames": {
+    "bell": [
+     158,
+     144,
+     22,
+     22
+    ],
+    "bollard": [
+     72,
+     144,
+     46,
+     26
+    ],
+    "boom": [
+     0,
+     184,
+     206,
+     20
+    ],
+    "coil": [
+     64,
+     80,
+     54,
+     54
+    ],
+    "couple": [
+     120,
+     144,
+     36,
+     26
+    ],
+    "cowl": [
+     0,
+     144,
+     38,
+     38
+    ],
+    "door": [
+     86,
+     226,
+     46,
+     12
+    ],
+    "lab1": [
+     0,
+     206,
+     87,
+     18
+    ],
+    "lab2": [
+     89,
+     206,
+     103,
+     18
+    ],
+    "lab3": [
+     0,
+     226,
+     84,
+     18
+    ],
+    "mast": [
+     0,
+     80,
+     62,
+     62
+    ],
+    "ring": [
+     40,
+     144,
+     30,
+     30
+    ],
+    "winch": [
+     120,
+     80,
+     62,
+     46
+    ],
+    "windlass": [
+     0,
+     0,
+     166,
+     78
+    ]
+   },
+   "items": [
+    {
+     "id": "windlass",
+     "name": "Ankerspill",
+     "sprite": "windlass",
+     "x": 240,
+     "y": 120,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "mast",
+     "name": "Formast",
+     "sprite": "mast",
+     "x": 292,
+     "y": 236,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "boom",
+     "name": "Lastebom",
+     "sprite": "boom",
+     "x": 120,
+     "y": 258,
+     "rotation": 0,
+     "z": 13
+    },
+    {
+     "id": "boom2",
+     "name": "Lastebom",
+     "sprite": "boom",
+     "x": 316,
+     "y": 258,
+     "rotation": 0,
+     "z": 13
+    },
+    {
+     "id": "winch",
+     "name": "Vinsj",
+     "sprite": "winch",
+     "x": 160,
+     "y": 360,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "winch2",
+     "name": "Vinsj",
+     "sprite": "winch",
+     "x": 420,
+     "y": 360,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bollard",
+     "name": "Pullert",
+     "sprite": "bollard",
+     "x": 90,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bollard2",
+     "name": "Pullert",
+     "sprite": "bollard",
+     "x": 510,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bollard3",
+     "name": "Pullert",
+     "sprite": "bollard",
+     "x": 60,
+     "y": 440,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bollard4",
+     "name": "Pullert",
+     "sprite": "bollard",
+     "x": 540,
+     "y": 440,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "coil",
+     "name": "Trosse",
+     "sprite": "coil",
+     "x": 100,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "coil2",
+     "name": "Trosse",
+     "sprite": "coil",
+     "x": 490,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cowl",
+     "name": "Ventilator",
+     "sprite": "cowl",
+     "x": 180,
+     "y": 460,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cowl2",
+     "name": "Ventilator",
+     "sprite": "cowl",
+     "x": 430,
+     "y": 460,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ring",
+     "name": "Livbøye",
+     "sprite": "ring",
+     "x": 30,
+     "y": 470,
+     "rotation": 0,
+     "z": 21
+    },
+    {
+     "id": "bell",
+     "name": "Skipsklokke",
+     "sprite": "bell",
+     "x": 312,
+     "y": 226,
+     "rotation": 0,
+     "z": 14
+    },
+    {
+     "id": "lab1",
+     "name": "Luke: Lasterom 1",
+     "sprite": "lab1",
+     "x": 270,
+     "y": 384,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold1"
+    },
+    {
+     "id": "lab2",
+     "name": "Til Promenadedekket",
+     "sprite": "lab2",
+     "x": 270,
+     "y": 520,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "promenade"
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 298,
+     "y": 494,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Mannskapstrapp",
+     "sprite": "lab3",
+     "x": 40,
+     "y": 520,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "couple",
+     "name": "Virginia og Chad",
+     "sprite": "couple",
+     "x": 300,
+     "y": 60,
+     "rotation": 0,
+     "z": 20,
+     "hiddenByDefault": true
+    }
+   ],
+   "clues": [
+    {
+     "t": "Paret ved baugen",
+     "item": "couple",
+     "roll": "Ingen",
+     "d": "Den første kvelden kan heltene se Virginia Ridley og Chad Peterson holde hender ved baugen."
+    },
+    {
+     "t": "Polyppen angriper",
+     "item": "mast",
+     "roll": "Sanity 1D3/1D20",
+     "d": "Når virvelen dannes, slingrer skipet og passasjerene får panikk. Vindangrepene knuser glass og slynger møbler. Skadet skrog betyr at skipet tar inn vann; tid for livbåtene."
+    }
+   ]
+  },
+  {
+   "id": "stern",
+   "no": "14",
+   "group": "Uteområder",
+   "title": "Akterdekket",
+   "scene": "8.–9. desember · begravelse og leirdueskyting",
+   "note": "Fader Alvarez begraver Wang Ma til sjøs her 8. desember kl. 15. Dagen etter skyter Virginia Ridley leirduer fra akterdekket. Tredjeklasse og steerage røyker her under oppsyn.",
+   "widthPx": 640,
+   "heightPx": 496,
+   "widthFt": 40,
+   "heightFt": 31,
+   "dir": "14-stern",
+   "atlasW": 195,
+   "atlasH": 294,
+   "frames": {
+    "bench": [
+     64,
+     172,
+     86,
+     26
+    ],
+    "board": [
+     0,
+     0,
+     50,
+     126
+    ],
+    "bollard": [
+     0,
+     204,
+     46,
+     26
+    ],
+    "capstan": [
+     0,
+     128,
+     42,
+     42
+    ],
+    "clays": [
+     132,
+     128,
+     38,
+     30
+    ],
+    "coil": [
+     100,
+     0,
+     54,
+     54
+    ],
+    "cowl": [
+     44,
+     128,
+     38,
+     38
+    ],
+    "door": [
+     103,
+     276,
+     46,
+     12
+    ],
+    "flag": [
+     0,
+     172,
+     30,
+     30
+    ],
+    "gun": [
+     0,
+     232,
+     86,
+     22
+    ],
+    "lab1": [
+     0,
+     256,
+     123,
+     18
+    ],
+    "lab2": [
+     0,
+     276,
+     101,
+     18
+    ],
+    "lectern": [
+     48,
+     204,
+     34,
+     26
+    ],
+    "ring": [
+     32,
+     172,
+     30,
+     30
+    ],
+    "sand": [
+     84,
+     204,
+     26,
+     26
+    ],
+    "shells": [
+     88,
+     232,
+     30,
+     22
+    ],
+    "shroud": [
+     52,
+     0,
+     46,
+     110
+    ],
+    "trap": [
+     84,
+     128,
+     46,
+     38
+    ]
+   },
+   "items": [
+    {
+     "id": "flag",
+     "name": "Flaggstang",
+     "sprite": "flag",
+     "x": 308,
+     "y": 452,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "trap",
+     "name": "Leirduekaster",
+     "sprite": "trap",
+     "x": 420,
+     "y": 420,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "clays",
+     "name": "Kasse med leirduer",
+     "sprite": "clays",
+     "x": 470,
+     "y": 400,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "gun",
+     "name": "Haglgeværkasse",
+     "sprite": "gun",
+     "x": 470,
+     "y": 360,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "shells",
+     "name": "Tomhylser",
+     "sprite": "shells",
+     "x": 440,
+     "y": 390,
+     "rotation": 0,
+     "z": 6
+    },
+    {
+     "id": "board",
+     "name": "Begravelsesplanke",
+     "sprite": "board",
+     "x": 200,
+     "y": 360,
+     "rotation": 0,
+     "z": 9,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "shroud",
+     "name": "Wang Ma i seildukssvøp",
+     "sprite": "shroud",
+     "x": 202,
+     "y": 368,
+     "rotation": 0,
+     "z": 15,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "lectern",
+     "name": "Fader Alvarez’ pult",
+     "sprite": "lectern",
+     "x": 150,
+     "y": 330,
+     "rotation": 0,
+     "z": 10,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "bench",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 60,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench2",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 500,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bench3",
+     "name": "Benk",
+     "sprite": "bench",
+     "x": 60,
+     "y": 230,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sand",
+     "name": "Sandbøtte",
+     "sprite": "sand",
+     "x": 150,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sand2",
+     "name": "Sandbøtte",
+     "sprite": "sand",
+     "x": 470,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "capstan",
+     "name": "Gangspill",
+     "sprite": "capstan",
+     "x": 120,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "capstan2",
+     "name": "Gangspill",
+     "sprite": "capstan",
+     "x": 484,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bollard",
+     "name": "Pullert",
+     "sprite": "bollard",
+     "x": 40,
+     "y": 320,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bollard2",
+     "name": "Pullert",
+     "sprite": "bollard",
+     "x": 560,
+     "y": 320,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "coil",
+     "name": "Trosse",
+     "sprite": "coil",
+     "x": 70,
+     "y": 380,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ring",
+     "name": "Livbøye",
+     "sprite": "ring",
+     "x": 560,
+     "y": 220,
+     "rotation": 0,
+     "z": 21
+    },
+    {
+     "id": "cowl",
+     "name": "Ventilator",
+     "sprite": "cowl",
+     "x": 200,
+     "y": 60,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cowl2",
+     "name": "Ventilator",
+     "sprite": "cowl",
+     "x": 420,
+     "y": 60,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 298,
+     "y": 118,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Akterste mannskapstrapp",
+     "sprite": "lab1",
+     "x": 255,
+     "y": 136,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "door2",
+     "name": "Dør",
+     "sprite": "door",
+     "x": 78,
+     "y": 31,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Til C-dekk",
+     "sprite": "lab2",
+     "x": 60,
+     "y": 50,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "tredje"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Wang Mas begravelse",
+     "item": "shroud",
+     "roll": "Ingen",
+     "d": "Fader Alvarez begraver Wang Ma i en kort seremoni akterut kl. 15.00 den 8. desember."
+    },
+    {
+     "t": "Leirdueskyting",
+     "item": "gun",
+     "roll": "Ingen",
+     "d": "Virginia Ridley skyter leirduer fra akterdekket 9. desember."
+    },
+    {
+     "t": "Skyting stoppes",
+     "item": "gun",
+     "roll": "Ingen",
+     "d": "Etter en stund ber stewardene Virginia slutte; skuddene forstyrrer de andre passasjerene. Astor skyter også av og til herfra med sønnen James og butleren Walker."
+    }
+   ]
+  },
+  {
+   "id": "st-boat",
+   "no": "15",
+   "group": "Trapperom",
+   "title": "Hovedtrappen, Båtdekket",
+   "scene": "The Stolen Book",
+   "note": "Øverste repos. Trappene og heisene voktes av stewarder; å gå opp til en høyere klasse krever invitasjon, bestikkelse eller et vellykket Intimidate, Charm, Persuade eller Fast Talk.",
+   "widthPx": 512,
+   "heightPx": 352,
+   "widthFt": 32,
+   "heightFt": 22,
+   "dir": "15-st-boat",
+   "atlasW": 125,
+   "atlasH": 188,
+   "frames": {
+    "doorH": [
+     42,
+     170,
+     46,
+     12
+    ],
+    "doorV": [
+     0,
+     0,
+     12,
+     46
+    ],
+    "lab0": [
+     0,
+     70,
+     85,
+     18
+    ],
+    "lab1": [
+     0,
+     90,
+     78,
+     18
+    ],
+    "lab2": [
+     0,
+     110,
+     87,
+     18
+    ],
+    "lab3": [
+     0,
+     130,
+     94,
+     18
+    ],
+    "lab4": [
+     0,
+     150,
+     86,
+     18
+    ],
+    "liftL": [
+     0,
+     170,
+     40,
+     18
+    ],
+    "palm": [
+     14,
+     0,
+     38,
+     38
+    ],
+    "sign": [
+     0,
+     48,
+     65,
+     20
+    ],
+    "steward": [
+     54,
+     0,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "d0",
+     "name": "Dør: Dr. Soongs lugar",
+     "sprite": "doorH",
+     "x": 56,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Dr. Soongs lugar",
+     "sprite": "lab0",
+     "x": 52,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "soong"
+    },
+    {
+     "id": "d1",
+     "name": "Dør: Båtdekket (ute)",
+     "sprite": "doorH",
+     "x": 216,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Båtdekket (ute)",
+     "sprite": "lab1",
+     "x": 212,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "soong"
+    },
+    {
+     "id": "d2",
+     "name": "Dør: Kommandobroen",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 96,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Kommandobroen",
+     "sprite": "lab2",
+     "x": 24,
+     "y": 112,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "bridge"
+    },
+    {
+     "id": "d3",
+     "name": "Dør: Lugarer, Båtdekket",
+     "sprite": "doorV",
+     "x": 491,
+     "y": 236,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Lugarer, Båtdekket",
+     "sprite": "lab3",
+     "x": 394,
+     "y": 252,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab4",
+     "name": "NED til A-dekk ▼",
+     "sprite": "lab4",
+     "x": 178,
+     "y": 92,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-a"
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: Båtdekket",
+     "sprite": "sign",
+     "x": 20,
+     "y": 312,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "steward",
+     "name": "Stewardpult",
+     "sprite": "steward",
+     "x": 60,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 286,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lift",
+     "name": "Heis (med heisfører)",
+     "sprite": "liftL",
+     "x": 428,
+     "y": 40,
+     "rotation": 0,
+     "z": 30
+    }
+   ],
+   "clues": []
+  },
+  {
+   "id": "st-a",
+   "no": "16",
+   "group": "Trapperom",
+   "title": "Hovedtrappen, A-dekk",
+   "scene": "The Empty Suit",
+   "note": "Førsteklasse-lugarer, røykesalong og promenade. Trappene og heisene voktes av stewarder; å gå opp til en høyere klasse krever invitasjon, bestikkelse eller et vellykket Intimidate, Charm, Persuade eller Fast Talk.",
+   "widthPx": 512,
+   "heightPx": 352,
+   "widthFt": 32,
+   "heightFt": 22,
+   "dir": "16-st-a",
+   "atlasW": 142,
+   "atlasH": 202,
+   "frames": {
+    "doorH": [
+     0,
+     190,
+     46,
+     12
+    ],
+    "doorV": [
+     0,
+     0,
+     12,
+     46
+    ],
+    "lab0": [
+     51,
+     48,
+     81,
+     18
+    ],
+    "lab1": [
+     0,
+     70,
+     80,
+     18
+    ],
+    "lab2": [
+     0,
+     90,
+     90,
+     18
+    ],
+    "lab3": [
+     0,
+     110,
+     79,
+     18
+    ],
+    "lab4": [
+     81,
+     110,
+     51,
+     18
+    ],
+    "lab5": [
+     0,
+     130,
+     97,
+     18
+    ],
+    "lab6": [
+     0,
+     150,
+     86,
+     18
+    ],
+    "lab7": [
+     0,
+     170,
+     99,
+     18
+    ],
+    "liftL": [
+     101,
+     170,
+     40,
+     18
+    ],
+    "palm": [
+     14,
+     0,
+     38,
+     38
+    ],
+    "sign": [
+     0,
+     48,
+     49,
+     20
+    ],
+    "steward": [
+     54,
+     0,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "d0",
+     "name": "Dør: Petersons lugar",
+     "sprite": "doorH",
+     "x": 56,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Petersons lugar",
+     "sprite": "lab0",
+     "x": 52,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "kabin"
+    },
+    {
+     "id": "d1",
+     "name": "Dør: Almacans lugar",
+     "sprite": "doorH",
+     "x": 166,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Almacans lugar",
+     "sprite": "lab1",
+     "x": 162,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "almacan"
+    },
+    {
+     "id": "d2",
+     "name": "Dør: Promenadedekket",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 56,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Promenadedekket",
+     "sprite": "lab2",
+     "x": 24,
+     "y": 72,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "promenade"
+    },
+    {
+     "id": "d3",
+     "name": "Dør: Røykesalongen",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 186,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Røykesalongen",
+     "sprite": "lab3",
+     "x": 24,
+     "y": 202,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "smoking"
+    },
+    {
+     "id": "d4",
+     "name": "Dør: Bibliotek",
+     "sprite": "doorV",
+     "x": 491,
+     "y": 236,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab4",
+     "name": "Bibliotek",
+     "sprite": "lab4",
+     "x": 437,
+     "y": 252,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d5",
+     "name": "Dør: Continental Lounge",
+     "sprite": "doorH",
+     "x": 76,
+     "y": 335,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab5",
+     "name": "Continental Lounge",
+     "sprite": "lab5",
+     "x": 72,
+     "y": 314,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab6",
+     "name": "NED til B-dekk ▼",
+     "sprite": "lab6",
+     "x": 178,
+     "y": 92,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-b"
+    },
+    {
+     "id": "lab7",
+     "name": "OPP til Båtdekket ▲",
+     "sprite": "lab7",
+     "x": 266,
+     "y": 304,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-boat"
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: A-dekk",
+     "sprite": "sign",
+     "x": 20,
+     "y": 312,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "steward",
+     "name": "Stewardpult",
+     "sprite": "steward",
+     "x": 60,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 286,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lift",
+     "name": "Heis (med heisfører)",
+     "sprite": "liftL",
+     "x": 428,
+     "y": 40,
+     "rotation": 0,
+     "z": 30
+    }
+   ],
+   "clues": [
+    {
+     "t": "Skrik i korridoren",
+     "item": "d0",
+     "roll": "Listen",
+     "d": "Like etter kl. 09.45 den 6. desember høres et skrik fra korridoren på A-dekk akterut, nær frisøren og skredderen. Virginia Ridley har funnet den tomme dressen."
+    }
+   ]
+  },
+  {
+   "id": "st-b",
+   "no": "17",
+   "group": "Trapperom",
+   "title": "Hovedtrappen, B-dekk",
+   "scene": "Tahitian Ball · Distant Music",
+   "note": "Ballsal, musikkrom og kapell. Trappene og heisene voktes av stewarder; å gå opp til en høyere klasse krever invitasjon, bestikkelse eller et vellykket Intimidate, Charm, Persuade eller Fast Talk.",
+   "widthPx": 512,
+   "heightPx": 352,
+   "widthFt": 32,
+   "heightFt": 22,
+   "dir": "17-st-b",
+   "atlasW": 136,
+   "atlasH": 182,
+   "frames": {
+    "doorH": [
+     0,
+     170,
+     46,
+     12
+    ],
+    "doorV": [
+     0,
+     0,
+     12,
+     46
+    ],
+    "lab0": [
+     51,
+     48,
+     52,
+     18
+    ],
+    "lab1": [
+     0,
+     70,
+     76,
+     18
+    ],
+    "lab2": [
+     78,
+     70,
+     48,
+     18
+    ],
+    "lab3": [
+     0,
+     90,
+     105,
+     18
+    ],
+    "lab4": [
+     0,
+     110,
+     126,
+     18
+    ],
+    "lab5": [
+     0,
+     130,
+     86,
+     18
+    ],
+    "lab6": [
+     0,
+     150,
+     86,
+     18
+    ],
+    "liftL": [
+     88,
+     150,
+     40,
+     18
+    ],
+    "palm": [
+     14,
+     0,
+     38,
+     38
+    ],
+    "sign": [
+     0,
+     48,
+     49,
+     20
+    ],
+    "steward": [
+     54,
+     0,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "d0",
+     "name": "Dør: Ballsalen",
+     "sprite": "doorH",
+     "x": 56,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Ballsalen",
+     "sprite": "lab0",
+     "x": 52,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "ballroom"
+    },
+    {
+     "id": "d1",
+     "name": "Dør: Musikkrommet",
+     "sprite": "doorH",
+     "x": 166,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Musikkrommet",
+     "sprite": "lab1",
+     "x": 162,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "music"
+    },
+    {
+     "id": "d2",
+     "name": "Dør: Kapellet",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 56,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Kapellet",
+     "sprite": "lab2",
+     "x": 24,
+     "y": 72,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "chapel"
+    },
+    {
+     "id": "d3",
+     "name": "Dør: Spesialklasse-lugarer",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 186,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Spesialklasse-lugarer",
+     "sprite": "lab3",
+     "x": 24,
+     "y": 202,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d4",
+     "name": "Dør: Spesialklassens røykerom",
+     "sprite": "doorV",
+     "x": 491,
+     "y": 236,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab4",
+     "name": "Spesialklassens røykerom",
+     "sprite": "lab4",
+     "x": 362,
+     "y": 252,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab5",
+     "name": "NED til C-dekk ▼",
+     "sprite": "lab5",
+     "x": 178,
+     "y": 92,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-c"
+    },
+    {
+     "id": "lab6",
+     "name": "OPP til A-dekk ▲",
+     "sprite": "lab6",
+     "x": 266,
+     "y": 304,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-a"
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: B-dekk",
+     "sprite": "sign",
+     "x": 20,
+     "y": 312,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "steward",
+     "name": "Stewardpult",
+     "sprite": "steward",
+     "x": 60,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 286,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lift",
+     "name": "Heis (med heisfører)",
+     "sprite": "liftL",
+     "x": 428,
+     "y": 40,
+     "rotation": 0,
+     "z": 30
+    }
+   ],
+   "clues": []
+  },
+  {
+   "id": "st-c",
+   "no": "18",
+   "group": "Trapperom",
+   "title": "Hovedtrappen, C-dekk",
+   "scene": "Bunny Takes a Hostage",
+   "note": "Nederste repos ved veggmaleriet av Dollar Line-rutene, rett inn i 1. klasses spisesal. Trappene og heisene voktes av stewarder; å gå opp til en høyere klasse krever invitasjon, bestikkelse eller et vellykket Intimidate, Charm, Persuade eller Fast Talk.",
+   "widthPx": 512,
+   "heightPx": 352,
+   "widthFt": 32,
+   "heightFt": 22,
+   "dir": "18-st-c",
+   "atlasW": 306,
+   "atlasH": 118,
+   "frames": {
+    "doorH": [
+     0,
+     106,
+     46,
+     12
+    ],
+    "doorV": [
+     0,
+     0,
+     12,
+     46
+    ],
+    "lab0": [
+     153,
+     0,
+     89,
+     18
+    ],
+    "lab1": [
+     0,
+     48,
+     76,
+     18
+    ],
+    "lab2": [
+     78,
+     48,
+     84,
+     18
+    ],
+    "lab3": [
+     164,
+     48,
+     69,
+     18
+    ],
+    "lab4": [
+     0,
+     68,
+     111,
+     18
+    ],
+    "lab5": [
+     113,
+     68,
+     86,
+     18
+    ],
+    "liftL": [
+     201,
+     68,
+     40,
+     18
+    ],
+    "mural": [
+     0,
+     88,
+     306,
+     16
+    ],
+    "palm": [
+     14,
+     0,
+     38,
+     38
+    ],
+    "sign": [
+     102,
+     0,
+     49,
+     20
+    ],
+    "steward": [
+     54,
+     0,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "d0",
+     "name": "Dør: Spisesal 1. klasse",
+     "sprite": "doorH",
+     "x": 56,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Spisesal 1. klasse",
+     "sprite": "lab0",
+     "x": 52,
+     "y": 24,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "spisesal"
+    },
+    {
+     "id": "d1",
+     "name": "Dør: Privat spisesal",
+     "sprite": "doorH",
+     "x": 166,
+     "y": 11,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Privat spisesal",
+     "sprite": "lab1",
+     "x": 162,
+     "y": 24,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d2",
+     "name": "Dør: Hawaiian Saloon",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 56,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Hawaiian Saloon",
+     "sprite": "lab2",
+     "x": 24,
+     "y": 72,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d3",
+     "name": "Dør: Mot 3. klasse",
+     "sprite": "doorV",
+     "x": 9,
+     "y": 186,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Mot 3. klasse",
+     "sprite": "lab3",
+     "x": 24,
+     "y": 202,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "d4",
+     "name": "Dør: Bysse (kun mannskap)",
+     "sprite": "doorV",
+     "x": 491,
+     "y": 236,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab4",
+     "name": "Bysse (kun mannskap)",
+     "sprite": "lab4",
+     "x": 377,
+     "y": 252,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab5",
+     "name": "OPP til B-dekk ▲",
+     "sprite": "lab5",
+     "x": 266,
+     "y": 304,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-b"
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: C-dekk",
+     "sprite": "sign",
+     "x": 20,
+     "y": 312,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "steward",
+     "name": "Stewardpult",
+     "sprite": "steward",
+     "x": 60,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "palm2",
+     "name": "Palme",
+     "sprite": "palm",
+     "x": 354,
+     "y": 286,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lift",
+     "name": "Heis (med heisfører)",
+     "sprite": "liftL",
+     "x": 428,
+     "y": 40,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "mural",
+     "name": "Veggmaleri (Dollar Line-ruter)",
+     "sprite": "mural",
+     "x": 100,
+     "y": 2,
+     "rotation": 0,
+     "z": 11
+    }
+   ],
+   "clues": []
+  },
+  {
+   "id": "cr-c",
+   "no": "19",
+   "group": "Trapperom",
+   "title": "Mannskapstrapp, C-dekk",
+   "scene": "Searching the Ship",
+   "note": "Tredjeklassedekket med de fire forseglede lastlukene. Trappen ned til D-dekk og kjølgangen voktes: Second Mate Knutsen om dagen, Junior Engineer O’Rourke om natten.",
+   "widthPx": 768,
+   "heightPx": 256,
+   "widthFt": 48,
+   "heightFt": 16,
+   "dir": "19-cr-c",
+   "atlasW": 145,
+   "atlasH": 224,
+   "frames": {
+    "doorH": [
+     0,
+     212,
+     46,
+     12
+    ],
+    "hatch0": [
+     0,
+     32,
+     87,
+     18
+    ],
+    "hatch1": [
+     0,
+     52,
+     87,
+     18
+    ],
+    "hatch2": [
+     0,
+     72,
+     87,
+     18
+    ],
+    "hatch3": [
+     0,
+     92,
+     87,
+     18
+    ],
+    "lab0": [
+     0,
+     112,
+     100,
+     18
+    ],
+    "lab1": [
+     0,
+     132,
+     72,
+     18
+    ],
+    "lab2": [
+     74,
+     132,
+     64,
+     18
+    ],
+    "lab3": [
+     0,
+     152,
+     56,
+     18
+    ],
+    "lab4": [
+     0,
+     172,
+     106,
+     18
+    ],
+    "lab5": [
+     0,
+     192,
+     86,
+     18
+    ],
+    "lantern": [
+     88,
+     192,
+     18,
+     18
+    ],
+    "sign": [
+     48,
+     0,
+     49,
+     20
+    ],
+    "steward": [
+     0,
+     0,
+     46,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "hatch0",
+     "name": "Luke: Lasterom 4",
+     "sprite": "hatch0",
+     "x": 50,
+     "y": 138,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold4"
+    },
+    {
+     "id": "hatch1",
+     "name": "Luke: Lasterom 5",
+     "sprite": "hatch1",
+     "x": 234,
+     "y": 138,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold5"
+    },
+    {
+     "id": "hatch2",
+     "name": "Luke: Lasterom 6",
+     "sprite": "hatch2",
+     "x": 418,
+     "y": 138,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold6"
+    },
+    {
+     "id": "hatch3",
+     "name": "Luke: Lasterom 7",
+     "sprite": "hatch3",
+     "x": 602,
+     "y": 138,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold7"
+    },
+    {
+     "id": "d0",
+     "name": "Dør",
+     "sprite": "doorH",
+     "x": 40,
+     "y": 1,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Tredjeklasse-lugarer",
+     "sprite": "lab0",
+     "x": 30,
+     "y": 14,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "tredje"
+    },
+    {
+     "id": "d1",
+     "name": "Dør",
+     "sprite": "doorH",
+     "x": 310,
+     "y": 1,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Spisesal 3. kl.",
+     "sprite": "lab1",
+     "x": 300,
+     "y": 14,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d2",
+     "name": "Dør",
+     "sprite": "doorH",
+     "x": 100,
+     "y": 239,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Akterdekket",
+     "sprite": "lab2",
+     "x": 90,
+     "y": 218,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "stern"
+    },
+    {
+     "id": "d3",
+     "name": "Dør",
+     "sprite": "doorH",
+     "x": 300,
+     "y": 239,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Fordekket",
+     "sprite": "lab3",
+     "x": 290,
+     "y": 218,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "bow"
+    },
+    {
+     "id": "d4",
+     "name": "Dør",
+     "sprite": "doorH",
+     "x": 500,
+     "y": 239,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab4",
+     "name": "Hovedtrappen C-dekk",
+     "sprite": "lab4",
+     "x": 470,
+     "y": 218,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "st-c"
+    },
+    {
+     "id": "lab5",
+     "name": "NED til D-dekk ▼",
+     "sprite": "lab5",
+     "x": 640,
+     "y": 170,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-d"
+    },
+    {
+     "id": "post",
+     "name": "Vaktpost (Knutsen / O’Rourke)",
+     "sprite": "steward",
+     "x": 620,
+     "y": 26,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: C-dekk",
+     "sprite": "sign",
+     "x": 20,
+     "y": 184,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 380,
+     "y": 180,
+     "rotation": 0,
+     "z": 12
+    }
+   ],
+   "clues": [
+    {
+     "t": "Vaktposten",
+     "item": "post",
+     "roll": "Stealth / Charm / Psychology / Persuade / Fast Talk",
+     "d": "Second Mate Gustav Knutsen om dagen, Junior Engineer Barry O’Rourke om natten. Uten kapteinens tillatelse må heltene snike, bestikke eller snakke seg forbi."
+    },
+    {
+     "t": "Lastlukene",
+     "item": "hatch3",
+     "roll": "Ingen",
+     "d": "Fire forseglede lastluker på tredjeklassedekket gir adgang til lasterommene, i tillegg til kjølgangen."
+    },
+    {
+     "t": "Musikk fra lukene",
+     "item": "hatch3",
+     "roll": "Listen",
+     "d": "13. desember følger Phyllis Barnes lyden fra ventilasjonen ned hit. Hun overrasker Bunny Bates i ferd med å slå ned en matros som sjekket lukene, og blir selv tatt."
+    }
+   ]
+  },
+  {
+   "id": "cr-d",
+   "no": "20",
+   "group": "Trapperom",
+   "title": "Mannskapstrapp, D-dekk",
+   "scene": "Cabin Mates · Searching the Ship",
+   "note": "Steerage-dekket akterut, ved de bråkete maskinene. Herfra går trappen videre ned til kjølgangen og lasterommene.",
+   "widthPx": 768,
+   "heightPx": 208,
+   "widthFt": 48,
+   "heightFt": 13,
+   "dir": "20-cr-d",
+   "atlasW": 134,
+   "atlasH": 138,
+   "frames": {
+    "doorHs": [
+     30,
+     122,
+     46,
+     12
+    ],
+    "lab0": [
+     0,
+     22,
+     93,
+     18
+    ],
+    "lab1": [
+     0,
+     42,
+     54,
+     18
+    ],
+    "lab2": [
+     56,
+     42,
+     54,
+     18
+    ],
+    "lab3": [
+     0,
+     62,
+     134,
+     18
+    ],
+    "lab4": [
+     0,
+     82,
+     86,
+     18
+    ],
+    "lab5": [
+     0,
+     102,
+     103,
+     18
+    ],
+    "lantern": [
+     105,
+     102,
+     18,
+     18
+    ],
+    "rat": [
+     0,
+     122,
+     28,
+     16
+    ],
+    "sign": [
+     0,
+     0,
+     49,
+     20
+    ]
+   },
+   "items": [
+    {
+     "id": "d0",
+     "name": "Dør",
+     "sprite": "doorHs",
+     "x": 200,
+     "y": 1,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Sovesal (Steerage)",
+     "sprite": "lab0",
+     "x": 190,
+     "y": 14,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "steerage"
+    },
+    {
+     "id": "d1",
+     "name": "Dør",
+     "sprite": "doorHs",
+     "x": 380,
+     "y": 1,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Sovesal 2",
+     "sprite": "lab1",
+     "x": 370,
+     "y": 14,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d2",
+     "name": "Dør",
+     "sprite": "doorHs",
+     "x": 540,
+     "y": 1,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Sovesal 3",
+     "sprite": "lab2",
+     "x": 530,
+     "y": 14,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "d3",
+     "name": "Dør",
+     "sprite": "doorHs",
+     "x": 300,
+     "y": 191,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Maskinrom (adgang forbudt)",
+     "sprite": "lab3",
+     "x": 270,
+     "y": 170,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "maskin"
+    },
+    {
+     "id": "lab4",
+     "name": "OPP til C-dekk ▲",
+     "sprite": "lab4",
+     "x": 76,
+     "y": 150,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "lab5",
+     "name": "NED til kjølgangen ▼",
+     "sprite": "lab5",
+     "x": 590,
+     "y": 150,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "keel"
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: D-dekk",
+     "sprite": "sign",
+     "x": 90,
+     "y": 40,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 420,
+     "y": 100,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "rat",
+     "name": "Rotte",
+     "sprite": "rat",
+     "x": 480,
+     "y": 150,
+     "rotation": 0,
+     "z": 13
+    }
+   ],
+   "clues": []
+  },
+  {
+   "id": "keel",
+   "no": "21",
+   "group": "Trapperom",
+   "title": "Kjølgangen",
+   "scene": "Searching the Ship",
+   "note": "Gangen langs kjølen gir adgang til alle lasterommene. Dørene er vanntette luker som skal hindre oversvømmelse, og de fleste er låst.",
+   "widthPx": 896,
+   "heightPx": 208,
+   "widthFt": 56,
+   "heightFt": 13,
+   "dir": "21-keel",
+   "atlasW": 130,
+   "atlasH": 160,
+   "frames": {
+    "doorHs": [
+     64,
+     142,
+     46,
+     12
+    ],
+    "lab0": [
+     0,
+     22,
+     61,
+     18
+    ],
+    "lab1": [
+     63,
+     22,
+     61,
+     18
+    ],
+    "lab2": [
+     0,
+     42,
+     61,
+     18
+    ],
+    "lab3": [
+     63,
+     42,
+     61,
+     18
+    ],
+    "lab4": [
+     0,
+     62,
+     61,
+     18
+    ],
+    "lab5": [
+     63,
+     62,
+     61,
+     18
+    ],
+    "lab6": [
+     0,
+     82,
+     61,
+     18
+    ],
+    "lab7": [
+     63,
+     82,
+     60,
+     18
+    ],
+    "lab8": [
+     0,
+     102,
+     44,
+     18
+    ],
+    "lab9": [
+     0,
+     122,
+     86,
+     18
+    ],
+    "lantern": [
+     88,
+     122,
+     18,
+     18
+    ],
+    "pelt": [
+     0,
+     142,
+     32,
+     18
+    ],
+    "rat": [
+     34,
+     142,
+     28,
+     16
+    ],
+    "sign": [
+     0,
+     0,
+     72,
+     20
+    ]
+   },
+   "items": [
+    {
+     "id": "kd0",
+     "name": "Vanntett dør: Lasterom 1",
+     "sprite": "doorHs",
+     "x": 60,
+     "y": 57,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab0",
+     "name": "Lasterom 1",
+     "sprite": "lab0",
+     "x": 56,
+     "y": 36,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold1"
+    },
+    {
+     "id": "kd1",
+     "name": "Vanntett dør: Lasterom 2",
+     "sprite": "doorHs",
+     "x": 150,
+     "y": 140,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab1",
+     "name": "Lasterom 2",
+     "sprite": "lab1",
+     "x": 146,
+     "y": 156,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold2"
+    },
+    {
+     "id": "kd2",
+     "name": "Vanntett dør: Lasterom 3",
+     "sprite": "doorHs",
+     "x": 250,
+     "y": 57,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Lasterom 3",
+     "sprite": "lab2",
+     "x": 246,
+     "y": 36,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold3"
+    },
+    {
+     "id": "kd3",
+     "name": "Vanntett dør: Lasterom 4",
+     "sprite": "doorHs",
+     "x": 340,
+     "y": 140,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab3",
+     "name": "Lasterom 4",
+     "sprite": "lab3",
+     "x": 336,
+     "y": 156,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold4"
+    },
+    {
+     "id": "kd4",
+     "name": "Vanntett dør: Lasterom 5",
+     "sprite": "doorHs",
+     "x": 440,
+     "y": 57,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab4",
+     "name": "Lasterom 5",
+     "sprite": "lab4",
+     "x": 436,
+     "y": 36,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold5"
+    },
+    {
+     "id": "kd5",
+     "name": "Vanntett dør: Lasterom 6",
+     "sprite": "doorHs",
+     "x": 530,
+     "y": 140,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab5",
+     "name": "Lasterom 6",
+     "sprite": "lab5",
+     "x": 526,
+     "y": 156,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold6"
+    },
+    {
+     "id": "kd6",
+     "name": "Vanntett dør: Lasterom 7",
+     "sprite": "doorHs",
+     "x": 630,
+     "y": 57,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab6",
+     "name": "Lasterom 7",
+     "sprite": "lab6",
+     "x": 626,
+     "y": 36,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "hold7"
+    },
+    {
+     "id": "kd7",
+     "name": "Vanntett dør: Maskinrom",
+     "sprite": "doorHs",
+     "x": 720,
+     "y": 140,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab7",
+     "name": "Maskinrom",
+     "sprite": "lab7",
+     "x": 716,
+     "y": 156,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "maskin"
+    },
+    {
+     "id": "kd8",
+     "name": "Vanntett dør: Lensen",
+     "sprite": "doorHs",
+     "x": 800,
+     "y": 57,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab8",
+     "name": "Lensen",
+     "sprite": "lab8",
+     "x": 796,
+     "y": 36,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "bilge"
+    },
+    {
+     "id": "lab9",
+     "name": "OPP til D-dekk ▲",
+     "sprite": "lab9",
+     "x": 16,
+     "y": 176,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-d"
+    },
+    {
+     "id": "sign",
+     "name": "Skilt: Kjølgangen",
+     "sprite": "sign",
+     "x": 16,
+     "y": 12,
+     "rotation": 0,
+     "z": 31
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 380,
+     "y": 92,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lantern2",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 700,
+     "y": 92,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "rat",
+     "name": "Rotte",
+     "sprite": "rat",
+     "x": 600,
+     "y": 110,
+     "rotation": 0,
+     "z": 13
+    },
+    {
+     "id": "pelt",
+     "name": "Flådd rotteskinn",
+     "sprite": "pelt",
+     "x": 260,
+     "y": 116,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    }
+   ],
+   "clues": [
+    {
+     "t": "Låste dører",
+     "item": "kd6",
+     "roll": "Locksmith · Extreme STR (Hard med brekkjern)",
+     "d": "Lasterommene er stengt med vanntette luker som nesten ikke kan brytes opp. Lasterom 1, 4, 5 og 6 er ulåst; 2 er låst; 7 er dobbeltlåst."
+    },
+    {
+     "t": "Bakhold",
+     "item": "lantern",
+     "roll": "Spot Hidden / Listen",
+     "d": "Lasterom og lense egner seg for bakhold fra Bates, et tilkalt monster eller magi."
+    },
+    {
+     "t": "Rotteskinn",
+     "item": "pelt",
+     "roll": "Spot Hidden",
+     "d": "Et intakt, mykt rotteskinn uten sår; kjøtt og organer er borte og små bein rasler inni."
+    }
+   ]
+  },
+  {
+   "id": "hold1",
+   "no": "22",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 1 (baugen)",
+   "scene": "Searching the Ship · tcho-tchoenes møteplass",
+   "note": "Alltid ulåst. Spot Hidden: rester av bål med forkullede bein, og aske fra en opiumspipe. Om natten kan tcho-tchoene være her.",
+   "widthPx": 576,
+   "heightPx": 512,
+   "widthFt": 36,
+   "heightFt": 32,
+   "dir": "22-hold1",
+   "atlasW": 254,
+   "atlasH": 318,
+   "frames": {
+    "ash": [
+     84,
+     272,
+     20,
+     16
+    ],
+    "bones": [
+     36,
+     272,
+     26,
+     20
+    ],
+    "broken": [
+     0,
+     208,
+     102,
+     62
+    ],
+    "c1": [
+     104,
+     0,
+     134,
+     102
+    ],
+    "c2": [
+     0,
+     128,
+     102,
+     78
+    ],
+    "c3": [
+     0,
+     0,
+     102,
+     126
+    ],
+    "coil": [
+     104,
+     208,
+     62,
+     62
+    ],
+    "door": [
+     168,
+     208,
+     12,
+     54
+    ],
+    "fire": [
+     182,
+     208,
+     54,
+     54
+    ],
+    "ladder": [
+     0,
+     272,
+     34,
+     46
+    ],
+    "lantern": [
+     64,
+     272,
+     18,
+     18
+    ],
+    "mats": [
+     104,
+     128,
+     126,
+     78
+    ],
+    "pipe": [
+     106,
+     272,
+     34,
+     14
+    ]
+   },
+   "items": [
+    {
+     "id": "fire",
+     "name": "Bålrester",
+     "sprite": "fire",
+     "x": 126,
+     "y": 356,
+     "rotation": 0,
+     "z": 5,
+     "clue": true
+    },
+    {
+     "id": "bones",
+     "name": "Forkullede bein",
+     "sprite": "bones",
+     "x": 140,
+     "y": 372,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "pipe",
+     "name": "Opiumspipe",
+     "sprite": "pipe",
+     "x": 190,
+     "y": 396,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "ash",
+     "name": "Opiumsaske",
+     "sprite": "ash",
+     "x": 206,
+     "y": 408,
+     "rotation": 0,
+     "z": 5,
+     "clue": true
+    },
+    {
+     "id": "mats",
+     "name": "Sitteunderlag",
+     "sprite": "mats",
+     "x": 60,
+     "y": 400,
+     "rotation": 0,
+     "z": 3
+    },
+    {
+     "id": "broken",
+     "name": "Knuste kasser (bålved)",
+     "sprite": "broken",
+     "x": 60,
+     "y": 300,
+     "rotation": 0,
+     "z": 4
+    },
+    {
+     "id": "c1",
+     "name": "Kassestabel",
+     "sprite": "c1",
+     "x": 400,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c2",
+     "name": "Kassestabel",
+     "sprite": "c2",
+     "x": 420,
+     "y": 410,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c3",
+     "name": "Kassestabel",
+     "sprite": "c3",
+     "x": 330,
+     "y": 140,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "coil",
+     "name": "Trosse",
+     "sprite": "coil",
+     "x": 220,
+     "y": 120,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 170,
+     "y": 340,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 300,
+     "y": 270,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "bow"
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør (mot Lasterom 2)",
+     "sprite": "door",
+     "x": 282,
+     "y": 477,
+     "rotation": 90,
+     "z": 12,
+     "linksTo": "keel"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Bålrester",
+     "item": "fire",
+     "roll": "Spot Hidden",
+     "d": "Et lite bål av knuste kasser, minst 24 timer gammelt. Kald aske med forkullede beinbiter: rester av et tcho-tcho-måltid."
+    },
+    {
+     "t": "Opiumsaske",
+     "item": "ash",
+     "roll": "Spot Hidden, deretter Know eller Science (Chemistry/Pharmacy)",
+     "d": "Brukt aske fra en opiumspipe."
+    },
+    {
+     "t": "Tcho-tchoene",
+     "item": "mats",
+     "roll": "Ingen",
+     "d": "Om natten kan tcho-tchoene være her. De liker ikke inntrengere, med mindre heltene viser at de samarbeider med dr. Soong."
+    }
+   ]
+  },
+  {
+   "id": "hold2",
+   "no": "23",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 2 (bagasje)",
+   "scene": "Searching the Ship",
+   "note": "Låst. Over 2 700 kolli: dampkofferter, skipskister, safer, vesker, brunpapirpakker, hatteesker, kasser med urner og glass, vin, et helt orkesters instrumenter. Passasjerenes våpen oppbevares også her.",
+   "widthPx": 704,
+   "heightPx": 448,
+   "widthFt": 44,
+   "heightFt": 28,
+   "dir": "23-hold2",
+   "atlasW": 391,
+   "atlasH": 495,
+   "frames": {
+    "door": [
+     339,
+     338,
+     12,
+     54
+    ],
+    "guns": [
+     176,
+     441,
+     126,
+     46
+    ],
+    "inst": [
+     181,
+     338,
+     156,
+     70
+    ],
+    "lab": [
+     304,
+     441,
+     61,
+     18
+    ],
+    "lantern": [
+     367,
+     441,
+     18,
+     18
+    ],
+    "p0": [
+     0,
+     122,
+     135,
+     110
+    ],
+    "p1": [
+     0,
+     0,
+     142,
+     120
+    ],
+    "p2": [
+     0,
+     338,
+     179,
+     101
+    ],
+    "p3": [
+     137,
+     122,
+     130,
+     107
+    ],
+    "p4": [
+     144,
+     0,
+     179,
+     112
+    ],
+    "p5": [
+     0,
+     234,
+     170,
+     102
+    ],
+    "p6": [
+     172,
+     234,
+     171,
+     102
+    ],
+    "urns": [
+     0,
+     441,
+     102,
+     54
+    ],
+    "wine": [
+     104,
+     441,
+     70,
+     54
+    ]
+   },
+   "items": [
+    {
+     "id": "p0",
+     "name": "Bagasjestabel",
+     "sprite": "p0",
+     "x": 24,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p1",
+     "name": "Bagasjestabel",
+     "sprite": "p1",
+     "x": 220,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p2",
+     "name": "Bagasjestabel",
+     "sprite": "p2",
+     "x": 420,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p3",
+     "name": "Bagasjestabel",
+     "sprite": "p3",
+     "x": 24,
+     "y": 240,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p4",
+     "name": "Bagasjestabel",
+     "sprite": "p4",
+     "x": 230,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p5",
+     "name": "Bagasjestabel",
+     "sprite": "p5",
+     "x": 440,
+     "y": 260,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p6",
+     "name": "Bagasjestabel",
+     "sprite": "p6",
+     "x": 120,
+     "y": 140,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "guns",
+     "name": "Våpenstativ (passasjerenes våpen)",
+     "sprite": "guns",
+     "x": 560,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "wine",
+     "name": "Franske viner",
+     "sprite": "wine",
+     "x": 380,
+     "y": 160,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "inst",
+     "name": "Orkesterinstrumenter",
+     "sprite": "inst",
+     "x": 520,
+     "y": 370,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "urns",
+     "name": "Kasser med urner og glass",
+     "sprite": "urns",
+     "x": 600,
+     "y": 40,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør (låst)",
+     "sprite": "door",
+     "x": 18,
+     "y": 200,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Kjølgangen",
+     "sprite": "lab",
+     "x": 34,
+     "y": 204,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "keel"
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 320,
+     "y": 226,
+     "rotation": 0,
+     "z": 12
+    }
+   ],
+   "clues": [
+    {
+     "t": "Passasjerenes våpen",
+     "item": "guns",
+     "roll": "Locksmith",
+     "d": "Våpen og gevær som passasjerene leverte inn oppbevares her."
+    },
+    {
+     "t": "Hubbards våpen",
+     "item": "p3",
+     "roll": "Locksmith",
+     "d": "I storviltjegeren Alex Hubbards bagasje: en Winchester-rifle med kikkertsikte, en over-under-hagle med fugleshagl og Baedekers guide til Siam og Indokina."
+    }
+   ]
+  },
+  {
+   "id": "hold3",
+   "no": "24",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 3 (kjølerom)",
+   "scene": "Searching the Ship",
+   "note": "Lukket med et håndtak som lett åpnes. Kjøtt, frukt, melk og andre matvarer, samt blomster, vitenskapelige prøver og medisinsk utstyr. Kokkene henter forsyninger her.",
+   "widthPx": 576,
+   "heightPx": 384,
+   "widthFt": 36,
+   "heightFt": 24,
+   "dir": "24-hold3",
+   "atlasW": 306,
+   "atlasH": 274,
+   "frames": {
+    "apples": [
+     0,
+     0,
+     70,
+     54
+    ],
+    "cart": [
+     144,
+     208,
+     62,
+     38
+    ],
+    "churns": [
+     72,
+     0,
+     78,
+     54
+    ],
+    "door": [
+     152,
+     0,
+     12,
+     54
+    ],
+    "flowers": [
+     208,
+     208,
+     86,
+     38
+    ],
+    "lab": [
+     0,
+     256,
+     61,
+     18
+    ],
+    "lemons": [
+     166,
+     0,
+     70,
+     54
+    ],
+    "meat": [
+     0,
+     112,
+     306,
+     46
+    ],
+    "meat2": [
+     0,
+     160,
+     306,
+     46
+    ],
+    "med": [
+     0,
+     208,
+     86,
+     46
+    ],
+    "oranges": [
+     0,
+     56,
+     70,
+     54
+    ],
+    "samples": [
+     88,
+     208,
+     54,
+     46
+    ]
+   },
+   "items": [
+    {
+     "id": "meat",
+     "name": "Hengende kjøtt",
+     "sprite": "meat",
+     "x": 40,
+     "y": 50,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "meat2",
+     "name": "Hengende kjøtt",
+     "sprite": "meat2",
+     "x": 40,
+     "y": 130,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "oranges",
+     "name": "Appelsiner",
+     "sprite": "oranges",
+     "x": 380,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "apples",
+     "name": "Epler",
+     "sprite": "apples",
+     "x": 460,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lemons",
+     "name": "Sitroner",
+     "sprite": "lemons",
+     "x": 380,
+     "y": 90,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "churns",
+     "name": "Melkespann",
+     "sprite": "churns",
+     "x": 460,
+     "y": 100,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "flowers",
+     "name": "Blomsterkasser",
+     "sprite": "flowers",
+     "x": 40,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "med",
+     "name": "Medisinsk utstyr",
+     "sprite": "med",
+     "x": 150,
+     "y": 290,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "samples",
+     "name": "Vitenskapelige prøver",
+     "sprite": "samples",
+     "x": 260,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cart",
+     "name": "Kokkenes tralle",
+     "sprite": "cart",
+     "x": 380,
+     "y": 250,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "door",
+     "name": "Dør (håndtak)",
+     "sprite": "door",
+     "x": 556,
+     "y": 170,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Kjølgangen",
+     "sprite": "lab",
+     "x": 470,
+     "y": 200,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "keel"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Kokkene",
+     "item": "cart",
+     "roll": "Ingen",
+     "d": "Kokkene kommer ofte hit etter forsyninger, så heltene kan bli overrasket."
+    }
+   ]
+  },
+  {
+   "id": "hold4",
+   "no": "25",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 4",
+   "scene": "Missing People · Phyllis Barnes",
+   "note": "Ulåst. Over 2 000 kasser, skapkofferter og koffert. Barnes’ lik ligger i en av ballasttankene: CON-kast mot stanken, Sanity 0/1D2.",
+   "widthPx": 768,
+   "heightPx": 512,
+   "widthFt": 48,
+   "heightFt": 32,
+   "dir": "25-hold4",
+   "atlasW": 449,
+   "atlasH": 587,
+   "frames": {
+    "c0": [
+     0,
+     0,
+     113,
+     128
+    ],
+    "c1": [
+     0,
+     242,
+     134,
+     105
+    ],
+    "c2": [
+     115,
+     0,
+     137,
+     125
+    ],
+    "c3": [
+     184,
+     445,
+     145,
+     92
+    ],
+    "c4": [
+     130,
+     130,
+     129,
+     107
+    ],
+    "c5": [
+     254,
+     0,
+     141,
+     120
+    ],
+    "c6": [
+     261,
+     130,
+     103,
+     107
+    ],
+    "c7": [
+     0,
+     130,
+     128,
+     110
+    ],
+    "door": [
+     331,
+     445,
+     12,
+     54
+    ],
+    "flies": [
+     148,
+     541,
+     46,
+     36
+    ],
+    "ladder": [
+     345,
+     445,
+     34,
+     46
+    ],
+    "lantern": [
+     196,
+     541,
+     18,
+     18
+    ],
+    "lid": [
+     104,
+     541,
+     42,
+     42
+    ],
+    "lockers": [
+     0,
+     541,
+     102,
+     46
+    ],
+    "tank1": [
+     136,
+     242,
+     182,
+     94
+    ],
+    "tank2": [
+     0,
+     349,
+     182,
+     94
+    ],
+    "tank3": [
+     184,
+     349,
+     182,
+     94
+    ],
+    "tank4": [
+     0,
+     445,
+     182,
+     94
+    ]
+   },
+   "items": [
+    {
+     "id": "tank1",
+     "name": "Ballasttank A",
+     "sprite": "tank1",
+     "x": 24,
+     "y": 404,
+     "rotation": 0,
+     "z": 5
+    },
+    {
+     "id": "tank2",
+     "name": "Ballasttank B",
+     "sprite": "tank2",
+     "x": 208,
+     "y": 404,
+     "rotation": 0,
+     "z": 5
+    },
+    {
+     "id": "tank3",
+     "name": "Ballasttank C (Barnes)",
+     "sprite": "tank3",
+     "x": 392,
+     "y": 404,
+     "rotation": 0,
+     "z": 5,
+     "clue": true
+    },
+    {
+     "id": "tank4",
+     "name": "Ballasttank D",
+     "sprite": "tank4",
+     "x": 576,
+     "y": 404,
+     "rotation": 0,
+     "z": 5
+    },
+    {
+     "id": "lid",
+     "name": "Tanklokk",
+     "sprite": "lid",
+     "x": 530,
+     "y": 360,
+     "rotation": 0,
+     "z": 8,
+     "clue": true
+    },
+    {
+     "id": "flies",
+     "name": "Fluer",
+     "sprite": "flies",
+     "x": 460,
+     "y": 430,
+     "rotation": 0,
+     "z": 30,
+     "clue": true
+    },
+    {
+     "id": "c0",
+     "name": "Kassestabel",
+     "sprite": "c0",
+     "x": 24,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c1",
+     "name": "Kassestabel",
+     "sprite": "c1",
+     "x": 180,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c2",
+     "name": "Kassestabel",
+     "sprite": "c2",
+     "x": 520,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c3",
+     "name": "Kassestabel",
+     "sprite": "c3",
+     "x": 640,
+     "y": 130,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c4",
+     "name": "Kassestabel",
+     "sprite": "c4",
+     "x": 24,
+     "y": 160,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c5",
+     "name": "Kassestabel",
+     "sprite": "c5",
+     "x": 180,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c6",
+     "name": "Kassestabel",
+     "sprite": "c6",
+     "x": 510,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c7",
+     "name": "Kassestabel",
+     "sprite": "c7",
+     "x": 340,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "lockers",
+     "name": "Skipskister",
+     "sprite": "lockers",
+     "x": 340,
+     "y": 320,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 390,
+     "y": 186,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 500,
+     "y": 376,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør",
+     "sprite": "door",
+     "x": 18,
+     "y": 300,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "keel"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Ballasttanken",
+     "item": "tank3",
+     "roll": "CON (stank) · Sanity 0/1D2",
+     "d": "Phyllis Barnes’ lik ble dumpet her 13. desember og oppdages innen en uke på lukten. Når den øvre luken åpnes, slipper en vemmelig gass ut; CON-kast eller oppkast."
+    },
+    {
+     "t": "Fluer",
+     "item": "flies",
+     "roll": "Spot Hidden",
+     "d": "Et tidlig tegn på hvor liket ligger."
+    }
+   ]
+  },
+  {
+   "id": "hold5",
+   "no": "26",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 5 (husdyr og kennel)",
+   "scene": "Searching the Ship · James Hawthorne",
+   "note": "Oppvarmet, bemannet og ulåst. 20 sjøsyke kyr, fem hester, 30+ hunder, 14 katter. Kennelgutten Hawthorne har sett den krypende en oppløses i kryp.",
+   "widthPx": 800,
+   "heightPx": 544,
+   "widthFt": 50,
+   "heightFt": 34,
+   "dir": "26-hold5",
+   "atlasW": 505,
+   "atlasH": 648,
+   "frames": {
+    "bale": [
+     272,
+     412,
+     54,
+     38
+    ],
+    "barrow": [
+     22,
+     412,
+     46,
+     70
+    ],
+    "cats1": [
+     0,
+     620,
+     160,
+     28
+    ],
+    "cats2": [
+     162,
+     620,
+     160,
+     28
+    ],
+    "cows1": [
+     0,
+     148,
+     246,
+     130
+    ],
+    "cows2": [
+     248,
+     148,
+     246,
+     130
+    ],
+    "cows3": [
+     0,
+     280,
+     246,
+     130
+    ],
+    "cows4": [
+     248,
+     280,
+     246,
+     130
+    ],
+    "den": [
+     70,
+     412,
+     78,
+     66
+    ],
+    "dogs0": [
+     0,
+     500,
+     198,
+     38
+    ],
+    "dogs1": [
+     200,
+     500,
+     198,
+     38
+    ],
+    "dogs2": [
+     0,
+     540,
+     198,
+     38
+    ],
+    "dogs3": [
+     200,
+     540,
+     198,
+     38
+    ],
+    "dogs4": [
+     0,
+     580,
+     198,
+     38
+    ],
+    "door": [
+     150,
+     412,
+     12,
+     54
+    ],
+    "fork": [
+     0,
+     412,
+     20,
+     86
+    ],
+    "horses": [
+     0,
+     0,
+     326,
+     146
+    ],
+    "ladder": [
+     164,
+     412,
+     34,
+     46
+    ],
+    "lantern": [
+     324,
+     620,
+     18,
+     18
+    ],
+    "sacks": [
+     200,
+     412,
+     70,
+     46
+    ],
+    "swarm": [
+     200,
+     580,
+     46,
+     36
+    ],
+    "trough": [
+     248,
+     580,
+     118,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "cows1",
+     "name": "Kyr (bås 1–5)",
+     "sprite": "cows1",
+     "x": 20,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cows2",
+     "name": "Kyr (bås 6–10)",
+     "sprite": "cows2",
+     "x": 264,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cows3",
+     "name": "Kyr (bås 11–15)",
+     "sprite": "cows3",
+     "x": 20,
+     "y": 404,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "cows4",
+     "name": "Kyr (bås 16–20)",
+     "sprite": "cows4",
+     "x": 264,
+     "y": 404,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "horses",
+     "name": "Hester",
+     "sprite": "horses",
+     "x": 470,
+     "y": 20,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "dogs0",
+     "name": "Hundebur",
+     "sprite": "dogs0",
+     "x": 560,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "dogs1",
+     "name": "Hundebur",
+     "sprite": "dogs1",
+     "x": 560,
+     "y": 236,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "dogs2",
+     "name": "Hundebur",
+     "sprite": "dogs2",
+     "x": 560,
+     "y": 272,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "dogs3",
+     "name": "Hundebur",
+     "sprite": "dogs3",
+     "x": 560,
+     "y": 308,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "dogs4",
+     "name": "Hundebur",
+     "sprite": "dogs4",
+     "x": 560,
+     "y": 344,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cats1",
+     "name": "Kattebur",
+     "sprite": "cats1",
+     "x": 560,
+     "y": 420,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cats2",
+     "name": "Kattebur",
+     "sprite": "cats2",
+     "x": 560,
+     "y": 446,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bale",
+     "name": "Høyball",
+     "sprite": "bale",
+     "x": 24,
+     "y": 180,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bale2",
+     "name": "Høyball",
+     "sprite": "bale",
+     "x": 76,
+     "y": 180,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bale3",
+     "name": "Høyball",
+     "sprite": "bale",
+     "x": 24,
+     "y": 214,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "den",
+     "name": "Hawthornes krok",
+     "sprite": "den",
+     "x": 24,
+     "y": 250,
+     "rotation": 0,
+     "z": 5
+    },
+    {
+     "id": "trough",
+     "name": "Vanntrau",
+     "sprite": "trough",
+     "x": 270,
+     "y": 170,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "sacks",
+     "name": "Fôrsekker",
+     "sprite": "sacks",
+     "x": 180,
+     "y": 330,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "barrow",
+     "name": "Trillebår",
+     "sprite": "barrow",
+     "x": 450,
+     "y": 330,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "fork",
+     "name": "Høygaffel",
+     "sprite": "fork",
+     "x": 420,
+     "y": 220,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 110,
+     "y": 270,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 390,
+     "y": 246,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "swarm",
+     "name": "Kakerlakker",
+     "sprite": "swarm",
+     "x": 140,
+     "y": 300,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør",
+     "sprite": "door",
+     "x": 786,
+     "y": 250,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "keel"
+    }
+   ],
+   "clues": [
+    {
+     "t": "James Hawthorne",
+     "item": "den",
+     "roll": "Psychology / Psychoanalysis",
+     "d": "17 år gammel kennelgutt, skvetten og ute av seg, med blikket mot gulvet. Han skriker ved synet av edderkopper eller kakerlakker. Rolig prat eller Psychoanalysis: han har sett «creepy crawlies» marsjere som en hær og tror de skal spise ham. Han så den krypende en oppløses. Senere i reisen kan han være ofret."
+    },
+    {
+     "t": "Arthur Pendury",
+     "item": "horses",
+     "roll": "Ingen",
+     "d": "Hestepasser for de fem fullblodshestene. Kommer tre ganger om dagen og sover av og til her."
+    }
+   ]
+  },
+  {
+   "id": "hold6",
+   "no": "27",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 6 (biler og fat)",
+   "scene": "The Tcho-Tcho · hemmelige møter",
+   "note": "Ulåst. Tre Packard, en Hudson, en Bugatti, Oliver-traktorer, postsekker, 12 fat konjakk, 50 fat «Hawaiian Botanical Specimens» og kisten merket «Funeral Supplies».",
+   "widthPx": 1024,
+   "heightPx": 640,
+   "widthFt": 64,
+   "heightFt": 40,
+   "dir": "27-hold6",
+   "atlasW": 506,
+   "atlasH": 758,
+   "frames": {
+    "bot0": [
+     0,
+     538,
+     168,
+     72
+    ],
+    "bot1": [
+     170,
+     538,
+     168,
+     72
+    ],
+    "bot2": [
+     0,
+     612,
+     168,
+     72
+    ],
+    "bot3": [
+     170,
+     612,
+     168,
+     72
+    ],
+    "bot4": [
+     0,
+     686,
+     168,
+     72
+    ],
+    "bugatti": [
+     264,
+     440,
+     214,
+     78
+    ],
+    "coffin": [
+     0,
+     0,
+     62,
+     134
+    ],
+    "cognac": [
+     232,
+     0,
+     136,
+     104
+    ],
+    "door": [
+     170,
+     686,
+     12,
+     54
+    ],
+    "fire": [
+     264,
+     686,
+     38,
+     38
+    ],
+    "hudson": [
+     0,
+     440,
+     262,
+     96
+    ],
+    "ladder": [
+     184,
+     686,
+     34,
+     46
+    ],
+    "lantern": [
+     304,
+     686,
+     18,
+     18
+    ],
+    "mail": [
+     64,
+     0,
+     166,
+     118
+    ],
+    "openbarrel": [
+     220,
+     686,
+     42,
+     42
+    ],
+    "p1": [
+     152,
+     136,
+     278,
+     98
+    ],
+    "p2": [
+     0,
+     240,
+     278,
+     98
+    ],
+    "p3": [
+     0,
+     340,
+     278,
+     98
+    ],
+    "tractor": [
+     0,
+     136,
+     150,
+     102
+    ]
+   },
+   "items": [
+    {
+     "id": "p1",
+     "name": "Packard sedan",
+     "sprite": "p1",
+     "x": 24,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p2",
+     "name": "Packard sedan",
+     "sprite": "p2",
+     "x": 24,
+     "y": 136,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "p3",
+     "name": "Packard sedan",
+     "sprite": "p3",
+     "x": 24,
+     "y": 242,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "hudson",
+     "name": "Hudson touring",
+     "sprite": "hudson",
+     "x": 310,
+     "y": 30,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bugatti",
+     "name": "Bugatti racer",
+     "sprite": "bugatti",
+     "x": 310,
+     "y": 140,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "tractor",
+     "name": "Oliver-traktor",
+     "sprite": "tractor",
+     "x": 24,
+     "y": 400,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "tractor2",
+     "name": "Oliver-traktor",
+     "sprite": "tractor",
+     "x": 24,
+     "y": 500,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "tractor3",
+     "name": "Oliver-traktor",
+     "sprite": "tractor",
+     "x": 176,
+     "y": 400,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "tractor4",
+     "name": "Oliver-traktor",
+     "sprite": "tractor",
+     "x": 176,
+     "y": 500,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "tractor5",
+     "name": "Oliver-traktor",
+     "sprite": "tractor",
+     "x": 328,
+     "y": 500,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "mail",
+     "name": "Postsekker",
+     "sprite": "mail",
+     "x": 600,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "mail2",
+     "name": "Postsekker",
+     "sprite": "mail",
+     "x": 770,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "cognac",
+     "name": "Konjakkfat (12)",
+     "sprite": "cognac",
+     "x": 860,
+     "y": 470,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bot0",
+     "name": "Botaniske fat (10)",
+     "sprite": "bot0",
+     "x": 640,
+     "y": 240,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bot1",
+     "name": "Botaniske fat (10)",
+     "sprite": "bot1",
+     "x": 640,
+     "y": 312,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bot2",
+     "name": "Botaniske fat (10)",
+     "sprite": "bot2",
+     "x": 820,
+     "y": 240,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bot3",
+     "name": "Botaniske fat (10)",
+     "sprite": "bot3",
+     "x": 820,
+     "y": 312,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bot4",
+     "name": "Botaniske fat (10)",
+     "sprite": "bot4",
+     "x": 640,
+     "y": 384,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "coffin",
+     "name": "«Funeral Supplies»",
+     "sprite": "coffin",
+     "x": 950,
+     "y": 150,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "openbarrel",
+     "name": "Åpnet fat",
+     "sprite": "openbarrel",
+     "x": 620,
+     "y": 470,
+     "rotation": 0,
+     "z": 10,
+     "clue": true
+    },
+    {
+     "id": "fire",
+     "name": "Kokebål",
+     "sprite": "fire",
+     "x": 680,
+     "y": 500,
+     "rotation": 0,
+     "z": 8,
+     "clue": true
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 500,
+     "y": 246,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 720,
+     "y": 470,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør",
+     "sprite": "door",
+     "x": 18,
+     "y": 340,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "keel"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Botaniske fat",
+     "item": "bot0",
+     "roll": "Keepers valg",
+     "d": "Femti fat merket «Hawaiian Botanical Specimens», stuet av Lo Mai. Kan inneholde noe ulovlig, i verste fall menneskelik for tcho-tchoenes måltider."
+    },
+    {
+     "t": "Åpnet fat og kokebål",
+     "item": "openbarrel",
+     "roll": "Sanity 1/1D4",
+     "d": "Valgfritt: heltene ser tcho-tchoene åpne et fat og koke og spise innholdet."
+    },
+    {
+     "t": "«Funeral Supplies»",
+     "item": "coffin",
+     "roll": "Spot Hidden (ved lastingen)",
+     "d": "Liket av en tcho-tcho som døde i San Francisco, sendt hjem til Burma for dr. Soongs regning."
+    },
+    {
+     "t": "Peterson møter tcho-tchoene",
+     "item": null,
+     "roll": "Stealth",
+     "d": "«Peterson» tilbyr «beskyttelse og alt kjøttet dere kan spise». Takker de ja, angriper de heltene. Takker de nei, tilkaller den krypende en en hunting horror. En overlevende, Sheng Tsin, kan sverge troskap til heltene. Forvandlingen: Sanity 1D3/2D6, svermen gjør 1D4."
+    }
+   ]
+  },
+  {
+   "id": "hold7",
+   "no": "28",
+   "group": "Lasterom og maskin",
+   "title": "Lasterom 7 (verdisaker)",
+   "scene": "Searching the Ship · The Final Test · 19. desember",
+   "note": "Dobbeltlåst (hengelås: Locksmith; slå: Hard Locksmith). Orgelkassen fra Wm. Wood Pipe Organ Co. skjuler Pipes of Leng, med blod på venstre sidepanel.",
+   "widthPx": 768,
+   "heightPx": 544,
+   "widthFt": 48,
+   "heightFt": 34,
+   "dir": "28-hold7",
+   "atlasW": 426,
+   "atlasH": 558,
+   "frames": {
+    "arms": [
+     288,
+     478,
+     86,
+     34
+    ],
+    "body0": [
+     236,
+     120,
+     50,
+     106
+    ],
+    "body1": [
+     288,
+     120,
+     50,
+     106
+    ],
+    "body2": [
+     340,
+     120,
+     50,
+     106
+    ],
+    "body3": [
+     0,
+     240,
+     50,
+     106
+    ],
+    "body4": [
+     52,
+     240,
+     50,
+     106
+    ],
+    "bronze": [
+     104,
+     240,
+     98,
+     98
+    ],
+    "carboy1": [
+     304,
+     240,
+     122,
+     64
+    ],
+    "carboy2": [
+     0,
+     348,
+     122,
+     64
+    ],
+    "dogpelt": [
+     0,
+     530,
+     54,
+     28
+    ],
+    "door": [
+     406,
+     414,
+     12,
+     54
+    ],
+    "greenbox": [
+     232,
+     478,
+     54,
+     38
+    ],
+    "ladder": [
+     68,
+     478,
+     34,
+     46
+    ],
+    "lantern": [
+     56,
+     530,
+     18,
+     18
+    ],
+    "leng": [
+     0,
+     0,
+     214,
+     118
+    ],
+    "marble": [
+     204,
+     240,
+     98,
+     98
+    ],
+    "organ": [
+     0,
+     120,
+     214,
+     118
+    ],
+    "padlock": [
+     76,
+     530,
+     16,
+     18
+    ],
+    "paint": [
+     124,
+     348,
+     118,
+     62
+    ],
+    "paint2": [
+     244,
+     348,
+     118,
+     62
+    ],
+    "panel": [
+     216,
+     120,
+     18,
+     110
+    ],
+    "pelt": [
+     94,
+     530,
+     32,
+     18
+    ],
+    "pelt2": [
+     128,
+     530,
+     32,
+     18
+    ],
+    "pool": [
+     328,
+     414,
+     76,
+     56
+    ],
+    "redwood": [
+     0,
+     414,
+     326,
+     62
+    ],
+    "screws": [
+     162,
+     530,
+     20,
+     14
+    ],
+    "swarm": [
+     0,
+     478,
+     66,
+     50
+    ],
+    "trail": [
+     104,
+     478,
+     126,
+     46
+    ]
+   },
+   "items": [
+    {
+     "id": "organ",
+     "name": "Orgelkasse (lukket)",
+     "sprite": "organ",
+     "x": 150,
+     "y": 230,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "leng",
+     "name": "Pipes of Leng (åpnet)",
+     "sprite": "leng",
+     "x": 150,
+     "y": 230,
+     "rotation": 0,
+     "z": 11,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "panel",
+     "name": "Blodig sidepanel",
+     "sprite": "panel",
+     "x": 130,
+     "y": 236,
+     "rotation": 0,
+     "z": 12,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "screws",
+     "name": "Løse skruer",
+     "sprite": "screws",
+     "x": 136,
+     "y": 350,
+     "rotation": 0,
+     "z": 8,
+     "clue": true
+    },
+    {
+     "id": "trail",
+     "name": "Blodspor",
+     "sprite": "trail",
+     "x": 20,
+     "y": 320,
+     "rotation": 0,
+     "z": 3,
+     "clue": true
+    },
+    {
+     "id": "pool",
+     "name": "Blodpøl",
+     "sprite": "pool",
+     "x": 150,
+     "y": 350,
+     "rotation": 0,
+     "z": 3,
+     "clue": true
+    },
+    {
+     "id": "greenbox",
+     "name": "Grønn metallkiste",
+     "sprite": "greenbox",
+     "x": 430,
+     "y": 240,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "arms",
+     "name": "Våpenskap",
+     "sprite": "arms",
+     "x": 660,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "paint",
+     "name": "Malerikasser",
+     "sprite": "paint",
+     "x": 24,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "paint2",
+     "name": "Malerikasser",
+     "sprite": "paint2",
+     "x": 24,
+     "y": 90,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "paint3",
+     "name": "Malerikasser",
+     "sprite": "paint",
+     "x": 150,
+     "y": 24,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "paint4",
+     "name": "Malerikasser",
+     "sprite": "paint2",
+     "x": 150,
+     "y": 90,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "bronze",
+     "name": "Bronsestatuer (4)",
+     "sprite": "bronze",
+     "x": 540,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "marble",
+     "name": "Marmorstatuer (4)",
+     "sprite": "marble",
+     "x": 644,
+     "y": 200,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "redwood",
+     "name": "Redwood-plank",
+     "sprite": "redwood",
+     "x": 420,
+     "y": 460,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "redwood2",
+     "name": "Redwood-plank",
+     "sprite": "redwood",
+     "x": 420,
+     "y": 400,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "carboy1",
+     "name": "Glassballonger (eter)",
+     "sprite": "carboy1",
+     "x": 540,
+     "y": 110,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "carboy2",
+     "name": "Glassballonger (saltsyre)",
+     "sprite": "carboy2",
+     "x": 540,
+     "y": 300,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "body0",
+     "name": "Lik under presenning",
+     "sprite": "body0",
+     "x": 30,
+     "y": 410,
+     "rotation": 0,
+     "z": 6,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "body1",
+     "name": "Lik under presenning",
+     "sprite": "body1",
+     "x": 80,
+     "y": 410,
+     "rotation": 0,
+     "z": 6,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "body2",
+     "name": "Lik under presenning",
+     "sprite": "body2",
+     "x": 130,
+     "y": 410,
+     "rotation": 0,
+     "z": 6,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "body3",
+     "name": "Lik under presenning",
+     "sprite": "body3",
+     "x": 180,
+     "y": 410,
+     "rotation": 0,
+     "z": 6,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "body4",
+     "name": "Lik under presenning",
+     "sprite": "body4",
+     "x": 230,
+     "y": 410,
+     "rotation": 0,
+     "z": 6,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "pelt",
+     "name": "Flådd rotteskinn",
+     "sprite": "pelt",
+     "x": 360,
+     "y": 180,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "pelt2",
+     "name": "Flådd rotteskinn",
+     "sprite": "pelt2",
+     "x": 470,
+     "y": 340,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "dogpelt",
+     "name": "Flådd hundeskinn",
+     "sprite": "dogpelt",
+     "x": 300,
+     "y": 380,
+     "rotation": 0,
+     "z": 6,
+     "clue": true
+    },
+    {
+     "id": "swarm",
+     "name": "Kakerlakksverm",
+     "sprite": "swarm",
+     "x": 380,
+     "y": 250,
+     "rotation": 0,
+     "z": 25,
+     "clue": true
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 110,
+     "y": 460,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 390,
+     "y": 46,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "cr-c"
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør (dobbeltlåst)",
+     "sprite": "door",
+     "x": 754,
+     "y": 400,
+     "rotation": 0,
+     "z": 12,
+     "linksTo": "keel"
+    },
+    {
+     "id": "padlock",
+     "name": "Hengelås",
+     "sprite": "padlock",
+     "x": 740,
+     "y": 420,
+     "rotation": 0,
+     "z": 13
+    }
+   ],
+   "clues": [
+    {
+     "t": "Låsene",
+     "item": "door",
+     "roll": "Locksmith / Hard Locksmith",
+     "d": "Hengelås (Locksmith) og slå i luken (Hard Locksmith). Med makt: Extreme STR, med brekkjern Hard STR."
+    },
+    {
+     "t": "Blod på orgelkassen",
+     "item": "organ",
+     "roll": "Hard Spot Hidden (Regular med lys)",
+     "d": "Blodflekker på venstre sidepanel. Skruene er tydelig skrudd ut og inn mange ganger."
+    },
+    {
+     "t": "Pipes of Leng",
+     "item": "leng",
+     "roll": "Ingen",
+     "d": "Ser ut som et kirkeorgel, men dekket av ledninger, sikringsventiler, rør og rare knuter, og av blod. En truende, hviskende summing høres på nært hold. Ødelegges med 50 skadepoeng (rustning 3)."
+    },
+    {
+     "t": "Grønn metallkiste",
+     "item": "greenbox",
+     "roll": "Hard Locksmith/STR · Mechanical Repair · Cthulhu Mythos",
+     "d": "Inneholder tegninger og notater for apparatet. Mechanical Repair eller Science (Engineering) viser at det er byggetegninger. Cthulhu Mythos og to timers studier viser at det skal tilkalle vesener utenfra."
+    },
+    {
+     "t": "Saltsyre",
+     "item": "carboy2",
+     "roll": "Throw",
+     "d": "Kan brukes mot polypen: 1D10 per runde, ignorerer rustning."
+    },
+    {
+     "t": "Ofrene",
+     "item": "body0",
+     "roll": "Sanity",
+     "d": "Med «Additional Mayhem» er likene gjemt her og vekkes som zombier med Graveyard Kiss ved første tegn til trøbbel."
+    },
+    {
+     "t": "Flådde skinn",
+     "item": "dogpelt",
+     "roll": "Spot Hidden · Sanity",
+     "d": "Stadig større dyr finnes flådd og garvet: først en rotte, så en hund, kanskje til slutt en blindpassasjer."
+    },
+    {
+     "t": "Pipes of Madness",
+     "item": null,
+     "roll": "Se s. 234",
+     "d": "Alle innen 100 fot av pipene påvirkes når apparatet spiller. Den flygende polyppen bruker 10 runder på å bryte seg gjennom skroget."
+    },
+    {
+     "t": "Blindpassasjeren",
+     "item": "leng",
+     "roll": "Keeper-info",
+     "d": "Den krypende en kom om bord i San Francisco i insektform, gjemt inne i apparatet."
+    },
+    {
+     "t": "Våpenskapet",
+     "item": "arms",
+     "roll": "Locksmith",
+     "d": "Skipets håndvåpen, rifler og hagler (til leirdueskyting) er innelåst her."
+    },
+    {
+     "t": "Den flygende polyppen",
+     "item": null,
+     "roll": "Sanity 1D3/1D20",
+     "d": "Når pipene spiller, stiger en flygende polypp opp fra havbunnen i en enorm virvel og river seg gjennom skroget. Rustning 4, minimumsskade fra fysiske våpen, men full skade fra ild, elektrisitet og fortryllede våpen. Bind Flying Polyp fra Rødjadeboken: motsatt POW mot 80, koster 1 Sanity; 16 magipoeng gir en bonusterning. Krigsskip utenfor kysten: 10D10 per salve."
+    },
+    {
+     "t": "Gate til Shanghai",
+     "item": null,
+     "roll": "Ingen",
+     "d": "Den krypende en prøver å kaste Gate til Shanghai for å slutte seg til Eight Fortunes Mutual Aid Society, og lar maskinen spille videre. Når polyppen når fram, blåser den pipene i stykker (5D6 skade på alle i nærheten)."
+    },
+    {
+     "t": "Sanity-belønninger",
+     "item": null,
+     "roll": "Avslutning",
+     "d": "Ødelegger apparatet +1D4. Fanger eller dreper den krypende en +2D6. Lar den slippe unna −1D6. Beseirer polyppen +1D20. Redder folk fra å drukne +1D10. Forlater skipet uten tanke på andre −1D10+2."
+    }
+   ]
+  },
+  {
+   "id": "maskin",
+   "no": "29",
+   "group": "Lasterom og maskin",
+   "title": "Maskinrom og kjeler",
+   "scene": "Searching the Ship",
+   "note": "Et inferno midtskips. 45 mann i skift à 15 regulerer maskinene og åpner og stenger rørene som fører diesel til kjelene. Inntrengere stanses; bare Extreme Fast Talk/Persuade overbeviser maskinistene.",
+   "widthPx": 832,
+   "heightPx": 512,
+   "widthFt": 52,
+   "heightFt": 32,
+   "dir": "29-maskin",
+   "atlasW": 521,
+   "atlasH": 598,
+   "frames": {
+    "b0": [
+     0,
+     0,
+     118,
+     158
+    ],
+    "b1": [
+     120,
+     0,
+     118,
+     158
+    ],
+    "b2": [
+     240,
+     0,
+     118,
+     158
+    ],
+    "b3": [
+     360,
+     0,
+     118,
+     158
+    ],
+    "b4": [
+     0,
+     160,
+     118,
+     158
+    ],
+    "b5": [
+     120,
+     160,
+     118,
+     158
+    ],
+    "bench": [
+     402,
+     480,
+     102,
+     38
+    ],
+    "c0": [
+     240,
+     160,
+     118,
+     158
+    ],
+    "c1": [
+     360,
+     160,
+     118,
+     158
+    ],
+    "c2": [
+     0,
+     320,
+     118,
+     158
+    ],
+    "c3": [
+     120,
+     320,
+     118,
+     158
+    ],
+    "c4": [
+     240,
+     320,
+     118,
+     158
+    ],
+    "c5": [
+     360,
+     320,
+     118,
+     158
+    ],
+    "door": [
+     248,
+     480,
+     12,
+     54
+    ],
+    "lab": [
+     168,
+     560,
+     61,
+     18
+    ],
+    "lab2": [
+     231,
+     560,
+     84,
+     18
+    ],
+    "ladder": [
+     262,
+     480,
+     34,
+     46
+    ],
+    "oil": [
+     298,
+     480,
+     102,
+     46
+    ],
+    "panel": [
+     0,
+     560,
+     134,
+     38
+    ],
+    "turbine": [
+     0,
+     480,
+     246,
+     78
+    ],
+    "wheel": [
+     136,
+     560,
+     30,
+     30
+    ]
+   },
+   "items": [
+    {
+     "id": "b0",
+     "name": "Kjele 1",
+     "sprite": "b0",
+     "x": 24,
+     "y": 52,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c0",
+     "name": "Kjele 7",
+     "sprite": "c0",
+     "x": 24,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "b1",
+     "name": "Kjele 2",
+     "sprite": "b1",
+     "x": 154,
+     "y": 52,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c1",
+     "name": "Kjele 8",
+     "sprite": "c1",
+     "x": 154,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "b2",
+     "name": "Kjele 3",
+     "sprite": "b2",
+     "x": 284,
+     "y": 52,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c2",
+     "name": "Kjele 9",
+     "sprite": "c2",
+     "x": 284,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "b3",
+     "name": "Kjele 4",
+     "sprite": "b3",
+     "x": 414,
+     "y": 52,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c3",
+     "name": "Kjele 10",
+     "sprite": "c3",
+     "x": 414,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "b4",
+     "name": "Kjele 5",
+     "sprite": "b4",
+     "x": 544,
+     "y": 52,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c4",
+     "name": "Kjele 11",
+     "sprite": "c4",
+     "x": 544,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "b5",
+     "name": "Kjele 6",
+     "sprite": "b5",
+     "x": 674,
+     "y": 52,
+     "rotation": 0,
+     "z": 10
+    },
+    {
+     "id": "c5",
+     "name": "Kjele 12",
+     "sprite": "c5",
+     "x": 674,
+     "y": 300,
+     "rotation": 180,
+     "z": 10
+    },
+    {
+     "id": "panel",
+     "name": "Kontrollpanel",
+     "sprite": "panel",
+     "x": 600,
+     "y": 240,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "turbine",
+     "name": "Turbogenerator",
+     "sprite": "turbine",
+     "x": 40,
+     "y": 236,
+     "rotation": 0,
+     "z": 11
+    },
+    {
+     "id": "wheel",
+     "name": "Ventilratt",
+     "sprite": "wheel",
+     "x": 300,
+     "y": 244,
+     "rotation": 0,
+     "z": 13
+    },
+    {
+     "id": "wheel2",
+     "name": "Ventilratt",
+     "sprite": "wheel",
+     "x": 340,
+     "y": 254,
+     "rotation": 0,
+     "z": 13
+    },
+    {
+     "id": "bench",
+     "name": "Arbeidsbenk / maskinlogg",
+     "sprite": "bench",
+     "x": 460,
+     "y": 240,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "oil",
+     "name": "Dieselmanifold",
+     "sprite": "oil",
+     "x": 760,
+     "y": 236,
+     "rotation": 90,
+     "z": 12
+    },
+    {
+     "id": "door",
+     "name": "Vanntett dør",
+     "sprite": "door",
+     "x": 18,
+     "y": 230,
+     "rotation": 0,
+     "z": 13
+    },
+    {
+     "id": "lab",
+     "name": "Kjølgangen",
+     "sprite": "lab",
+     "x": 24,
+     "y": 216,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "keel"
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 790,
+     "y": 200,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab2",
+     "name": "Mannskapstrapp",
+     "sprite": "lab2",
+     "x": 730,
+     "y": 180,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "cr-d"
+    }
+   ],
+   "clues": [
+    {
+     "t": "Maskinistene",
+     "item": "panel",
+     "roll": "Stealth · Extreme Fast Talk/Persuade",
+     "d": "Inntrengere konfronteres, holdes tilbake og meldes til kapteinen. Bare Extreme Fast Talk eller Persuade overbeviser dem om at heltene har tillatelse."
+    }
+   ]
+  },
+  {
+   "id": "bilge",
+   "no": "30",
+   "group": "Lasterom og maskin",
+   "title": "Lensen (bunnen av skipet)",
+   "scene": "Searching the Ship · tilfluktssted",
+   "note": "Ballastvann, store dieseltanker og lite annet. Rotter og skadedyr. Tvinges den krypende en inn i insektform, gjemmer den seg her.",
+   "widthPx": 704,
+   "heightPx": 320,
+   "widthFt": 44,
+   "heightFt": 20,
+   "dir": "30-bilge",
+   "atlasW": 127,
+   "atlasH": 160,
+   "frames": {
+    "junk": [
+     0,
+     64,
+     54,
+     38
+    ],
+    "lab": [
+     56,
+     64,
+     61,
+     18
+    ],
+    "lab2": [
+     0,
+     104,
+     58,
+     18
+    ],
+    "lab3": [
+     60,
+     104,
+     58,
+     18
+    ],
+    "ladder": [
+     88,
+     0,
+     34,
+     46
+    ],
+    "lantern": [
+     0,
+     124,
+     18,
+     18
+    ],
+    "pelt": [
+     20,
+     124,
+     32,
+     18
+    ],
+    "rat1": [
+     54,
+     124,
+     28,
+     16
+    ],
+    "rat2": [
+     84,
+     124,
+     28,
+     16
+    ],
+    "rat3": [
+     0,
+     144,
+     28,
+     16
+    ],
+    "swarm": [
+     0,
+     0,
+     86,
+     62
+    ]
+   },
+   "items": [
+    {
+     "id": "rat1",
+     "name": "Rotte",
+     "sprite": "rat1",
+     "x": 200,
+     "y": 120,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "rat2",
+     "name": "Rotte",
+     "sprite": "rat2",
+     "x": 420,
+     "y": 200,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "rat3",
+     "name": "Rotte",
+     "sprite": "rat3",
+     "x": 600,
+     "y": 110,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "junk",
+     "name": "Skrot",
+     "sprite": "junk",
+     "x": 300,
+     "y": 190,
+     "rotation": 0,
+     "z": 8
+    },
+    {
+     "id": "pelt",
+     "name": "Flådd rotteskinn",
+     "sprite": "pelt",
+     "x": 520,
+     "y": 156,
+     "rotation": 0,
+     "z": 9,
+     "clue": true
+    },
+    {
+     "id": "swarm",
+     "name": "Den krypende en (insektform)",
+     "sprite": "swarm",
+     "x": 560,
+     "y": 190,
+     "rotation": 0,
+     "z": 25,
+     "clue": true,
+     "hiddenByDefault": true
+    },
+    {
+     "id": "ladder",
+     "name": "Leider",
+     "sprite": "ladder",
+     "x": 10,
+     "y": 140,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lantern",
+     "name": "Lykt",
+     "sprite": "lantern",
+     "x": 120,
+     "y": 154,
+     "rotation": 0,
+     "z": 12
+    },
+    {
+     "id": "lab",
+     "name": "Kjølgangen",
+     "sprite": "lab",
+     "x": 44,
+     "y": 154,
+     "rotation": 0,
+     "z": 30,
+     "linksTo": "keel"
+    },
+    {
+     "id": "lab2",
+     "name": "Dieseltank",
+     "sprite": "lab2",
+     "x": 300,
+     "y": 20,
+     "rotation": 0,
+     "z": 30
+    },
+    {
+     "id": "lab3",
+     "name": "Dieseltank",
+     "sprite": "lab3",
+     "x": 300,
+     "y": 284,
+     "rotation": 0,
+     "z": 30
+    }
+   ],
+   "clues": [
+    {
+     "t": "Insektformen",
+     "item": "swarm",
+     "roll": "Spot Hidden · Sanity",
+     "d": "Tvinges den krypende en inn i insektform, gjemmer den seg her blant ballastvann og dieseltanker."
+    },
+    {
+     "t": "Rotteskinn",
+     "item": "pelt",
+     "roll": "Spot Hidden",
+     "d": "Et nytt flådd rotteskinn."
+    }
+   ]
+  }
+ ]
+}
