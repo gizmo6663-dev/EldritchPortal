@@ -8,6 +8,7 @@ siden det finnes en skjerm):
 Appen får en egen, tom datamappe i systemets temp-område, så testen
 aldri rører ekte karakterer eller scenarier.
 """
+import json
 import os
 import sys
 import tempfile
@@ -225,6 +226,65 @@ print("  ok    notes autosave reaches disk")
 print("\n== other tabs still build ==")
 for tab in ("img", "snd", "cmb", "rules", "cast", "tool"):
     step(f"tab {tab}", lambda t=tab: (app._tab(t), pump(0.5)))
+
+print("\n== skipskartene ==")
+import base64  # noqa: E402
+import io  # noqa: E402
+import skipskart  # noqa: E402
+from urllib.parse import urlparse  # noqa: E402
+from urllib.request import url2pathname  # noqa: E402
+from kivy.uix.button import Button  # noqa: E402
+
+step("kamp-fanen", lambda: (app._tab("cmb"), pump(0.3)))
+step("kart-underfanen", lambda: (app._cmb_switch("map"), pump(0.3)))
+knapper = [w.text for w in app.root.walk() if isinstance(w, Button)]
+assert "Åpne skipskartene" in knapper, "no button for the ship maps"
+print("  ok    Kamp → Kart har «Åpne skipskartene»")
+
+apnet = []
+skipskart.webbrowser.open = lambda url: apnet.append(url)
+step("åpne skipskartene", app._skipskart_apne)
+assert apnet and "?app=kart" in apnet[0], apnet
+sti = url2pathname(urlparse(apnet[0]).path)
+assert os.path.isfile(sti) and sti.endswith(os.path.join("web", "index.html")), sti
+print("  ok    PC: nettleseren får", os.path.relpath(sti, REPO) + "?app=kart")
+
+dobbel = json.dumps(json.dumps([{"type": "lukk"}, "rot", {"type": "cast"}]))
+assert skipskart.les_meldinger(dobbel) == [{"type": "lukk"}, {"type": "cast"}]
+assert skipskart.les_meldinger(None) == [] and skipskart.les_meldinger("null") == []
+print("  ok    meldingene fra siden leses, også dobbeltkodet")
+
+svar = []
+app._skipskart.svar = lambda t: svar.append(t)
+from PIL import Image as PILImage  # noqa: E402
+buf = io.BytesIO()
+PILImage.new("RGB", (32, 18), (40, 60, 90)).save(buf, "PNG")
+png = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+app.cast.mc = None
+app._skipskart_melding({"type": "cast", "rom": "Lasterom 2", "png": png})
+assert svar and "Chromecast" in svar[-1], svar
+print("  ok    uten Chromecast får Keeperen beskjed:", svar[-1])
+
+castet = []
+app.cast.mc = object()
+app.cast.cast_img = lambda url, cb=None, mime=None: (castet.append(url), cb and cb(True))
+app.server.url = lambda fp: "http://test/" + os.path.relpath(fp, main.BASE_DIR)
+app._skipskart_melding({"type": "cast", "rom": "Lasterom 2", "png": png})
+pump(0.1)
+filer = os.listdir(os.path.join(main.BASE_DIR, "cast"))
+assert castet and "cast/scene-" in castet[0].replace(os.sep, "/"), castet
+assert len(filer) == 1 and filer[0].endswith(".jpg"), filer
+assert svar[-1] == "Lasterom 2 vises på TV-en", svar
+app.cast.mc = None
+print("  ok    scenen lagres som", filer[0], "og castes")
+
+app._skipskart.apen = True
+assert app._tast_tilbake(None, 27) is True and not app._skipskart.apen
+assert app._tast_tilbake(None, 27) is False
+app._skipskart.apen = True
+app._skipskart_melding({"type": "lukk"})
+assert not app._skipskart.apen
+print("  ok    tilbake-knappen og «Tilbake til appen» lukker kartet")
 
 print("\n== scenario switching ==")
 step("library view", lambda: app._scen_switch_view("library"))

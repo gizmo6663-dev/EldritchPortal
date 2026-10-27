@@ -6,9 +6,11 @@ package.domain = org.rpg
 icon.filename = %(source.dir)s/icon.png
 
 source.dir = .
-source.include_exts = py,png,jpg,jpeg,webp,kv,atlas,ttf,otf,json
-# Byggeskriptet for scenariodata hører ikke hjemme i APK-en.
-source.exclude_patterns = scenarios/build_*.py,web/*
+source.include_exts = py,png,jpg,jpeg,webp,kv,atlas,ttf,otf,json,html
+# Byggeskriptene hører ikke hjemme i APK-en. Fra web/ trengs bare
+# index.html og kartbildene i web/maps: skipskartene i appen er den
+# samme siden som nettversjonen (se skipskart.py).
+source.exclude_patterns = scenarios/build_*.py,web/app.html,web/template.html,web/build.py
 
 version = 0.5.0
 

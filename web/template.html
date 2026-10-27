@@ -1210,6 +1210,14 @@ body.quickon { --quickh: 62px; }
 .mapframe.redigerer { touch-action: none; }
 .mapframe:not(.redigerer) .mapprop { cursor: pointer; }
 
+/* Inne i mobilappen: bare kartet. Menyen, topplinja og hurtiglinja
+   hører til nettversjonen; appen har sine egne. */
+html.i-app .rail, html.i-app .masthead, html.i-app .quickbar { display: none !important; }
+html.i-app .shell { display: block; }
+html.i-app .main { padding-top: 10px; }
+.appbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+          margin-bottom: 12px; }
+
 /* Visning eller redigering: to knapper i ett, så det alltid synes
    hvilken man står i. */
 .modusbryter {
@@ -11041,6 +11049,7 @@ function viewMaps(root) {
   if (!room) return;
   armMapKeys();
   armMapFit();
+  if (APP.aktiv) root.appendChild(appLinje(room));
 
   // --- topptekst
   root.appendChild(el("p", { class: "eyebrow",
@@ -11262,15 +11271,18 @@ function viewMaps(root) {
       }),
   }));
   tools.appendChild(skjermKnapper(room));
-  tools.appendChild(el("button", {
-    class: "btn small", type: "button", text: "Last ned PNG",
-    onclick: () => exportMapPng(room),
-  }));
-  tools.appendChild(el("button", {
-    class: "btn small", type: "button", text: "Skriv ut",
-    title: "Bare kartet kommer på papiret",
-    onclick: () => window.print(),
-  }));
+  // En WebView i appen kan verken laste ned filer eller skrive ut.
+  if (!APP.aktiv) {
+    tools.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Last ned PNG",
+      onclick: () => exportMapPng(room),
+    }));
+    tools.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Skriv ut",
+      title: "Bare kartet kommer på papiret",
+      onclick: () => window.print(),
+    }));
+  }
   main.appendChild(tools);
 
   // --- selve kartet
@@ -11838,7 +11850,7 @@ function skjermKnapper(room) {
       class: "btn small", type: "button", text: "Lukk skjermen",
       onclick: lukkSkjermvindu,
     }));
-  } else {
+  } else if (!APP.aktiv) {
     rad.appendChild(el("button", {
       class: "btn small", type: "button", text: "Vis på skjerm",
       title: "Åpner scenen alene i et eget vindu. Dra det over på TV-en " +
@@ -11876,6 +11888,84 @@ async function exportMapPng(room) {
 }
 
 /* ==================================================================
+   INNE I MOBILAPPEN
+
+   Mobilappen viser kartene ved å åpne denne siden med ?app=kart. Da
+   starter siden i kartfanen, uten menyen og topplinja, og med en egen
+   linje øverst: tilbake til appen, og — når appen er koblet til en
+   Chromecast (&cast=1) — send scenen til TV-en.
+
+   En WebView kan ikke kalle Python direkte. Siden legger derfor det den
+   vil si i en kø, og appen henter køen selv et par ganger i sekundet.
+   Svar fra appen kommer tilbake som eldritchApp.svar("…").
+   ================================================================== */
+
+const APP = (() => {
+  try {
+    const p = new URLSearchParams(window.location.search);
+    return { aktiv: p.get("app") === "kart", cast: p.get("cast") === "1" };
+  } catch (e) {
+    return { aktiv: false, cast: false };
+  }
+})();
+
+window.eldritchApp = {
+  ko: [],
+  hent() {
+    const ut = this.ko;
+    this.ko = [];
+    return JSON.stringify(ut);
+  },
+  svar(tekst) { toast(String(tekst || "")); },
+};
+
+function tilApp(melding) {
+  window.eldritchApp.ko.push(melding);
+}
+
+/* Scenen som ett bilde i TV-format, til Chromecast. Spillervisning:
+   sporene er borte. Bildet står stille — Chromecast viser bilder, ikke
+   en side som lever — så det sendes på nytt når noe har endret seg. */
+async function castScene(room) {
+  try {
+    const skala = Math.max(1, Math.min(3, Math.ceil(1920 / room.widthPx)));
+    const kart = await tegnKart(room, skala, true);
+    const W = 1920, H = 1080;
+    const c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    const g = c.getContext("2d");
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, W, H);
+    const k = Math.min(W / kart.width, H / kart.height);
+    g.imageSmoothingEnabled = k < 1;
+    g.drawImage(kart, (W - kart.width * k) / 2, (H - kart.height * k) / 2,
+                kart.width * k, kart.height * k);
+    tilApp({ type: "cast", rom: room.title, png: c.toDataURL("image/png") });
+    toast("Sender scenen til TV-en …");
+  } catch (e) {
+    toast("Fikk ikke laget bildet av scenen");
+  }
+}
+
+/* Linja øverst i kartet når siden står i appen. */
+function appLinje(room) {
+  const rad = el("div", { class: "appbar" });
+  rad.appendChild(el("button", {
+    class: "btn small", type: "button", text: "← Tilbake til appen",
+    onclick: () => tilApp({ type: "lukk" }),
+  }));
+  if (APP.cast) {
+    rad.appendChild(el("button", {
+      class: "btn primary small", type: "button", text: "Cast scenen til TV",
+      title: "Sender kartet slik spillerne skal se det — uten spor — til " +
+             "Chromecasten appen er koblet til. Trykk igjen når noe har endret seg.",
+      onclick: () => castScene(room),
+    }));
+  }
+  return rad;
+}
+
+/* ==================================================================
    OPPSTART
    ================================================================== */
 
@@ -11907,6 +11997,10 @@ async function boot() {
   loadBestiary();
   loadStreamPrefs();
   loadMapPrefs();
+  if (APP.aktiv) {
+    document.documentElement.classList.add("i-app");
+    state.view = "maps";
+  }
 
   // Tegn med lokale data først, slik at siden er brukbar med én gang.
   await loadLibrary();

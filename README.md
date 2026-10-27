@@ -216,10 +216,17 @@ Sub-faner for kampstøtte:
 - Rundevisning med aktiv deltaker markert
 - HP kan vises i trackeren
 
-**Kart** — battlemap for kamp
-- Aktiveres når du har lagt til deltakere i initiativlisten
-- 16:9-tilpasset kartvisning laget for TV-casting
-- Token-plassering og enkel flytting på rutenett
+**Kart** — skipskartene og kamprutenettet
+- «Åpne skipskartene»: de 30 rommene på skipet, med lys og skygge, dag og
+  natt, strømbrudd, vær, animasjon og sporene i hvert rom — den samme
+  kartsiden som nettversjonen, vist i en WebView (på PC: i nettleseren)
+- Starter i visning, så et sveip ikke flytter noe; slå på Redigering for
+  å flytte ting og sette ut lys
+- «Cast scenen til TV» sender kartet slik spillerne skal se det, uten
+  spor, til Chromecasten du har koblet til i Cast-fanen
+- Tilbake-knappen eller «Tilbake til appen» lukker kartet
+- Kamprutenettet aktiveres når du har lagt til deltakere i
+  initiativlisten: token-plassering og enkel flytting på rutenett
 
 ### 🧰 Verktøy
 Sub-faner for forberedelse og oppslag:

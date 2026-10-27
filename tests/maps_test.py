@@ -114,8 +114,12 @@ def test_data():
 
 async def test_view():
     async with async_playwright() as p:
+        # Mobilappens WebView får lese bildefilene inn i et lerret
+        # (setAllowFileAccessFromFileURLs). Samme her, så «Cast scenen»
+        # kan prøves fra fil.
         b = await p.chromium.launch(
-            executable_path=os.environ.get("CHROMIUM_PATH") or None)
+            executable_path=os.environ.get("CHROMIUM_PATH") or None,
+            args=["--allow-file-access-from-files"])
         ctx = await b.new_context(viewport={"width": 1400, "height": 1000})
         errs = []
         pg = await ctx.new_page()
@@ -890,6 +894,39 @@ async def test_view():
         await pg.wait_for_timeout(300)
         r = await pg.evaluate("!!document.getElementById('skjermlag')")
         check("og Esc går tilbake", r, False)
+
+        print("\n== inne i mobilappen ==")
+        app = await ctx.new_page()
+        app.on("pageerror", lambda e: errs.append("APP PAGEERROR: " + str(e)))
+        await app.set_viewport_size({"width": 412, "height": 880})
+        await app.goto(URL + "?app=kart&cast=1")
+        await app.wait_for_timeout(2500)
+        r = await app.evaluate("""() => ({
+            view: state.view,
+            meny: getComputedStyle(document.getElementById('rail')).display,
+            topp: getComputedStyle(document.querySelector('.masthead')).display,
+            knapper: [...document.querySelectorAll('button')].map(b => b.textContent),
+            kart: !!document.getElementById('mapframe') })""")
+        check("appen åpner rett i kartet", [r["view"], r["kart"]], ["maps", True])
+        check("uten nettversjonens meny og topplinje", [r["meny"], r["topp"]], ["none", "none"])
+        check("med tilbake og cast øverst",
+              "← Tilbake til appen" in r["knapper"] and "Cast scenen til TV" in r["knapper"], True)
+        check("men ikke det en WebView ikke kan",
+              [k for k in ("Vis på skjerm", "Last ned PNG", "Skriv ut") if k in r["knapper"]], [])
+        await app.get_by_role("button", name="Cast scenen til TV").click()
+        await app.wait_for_timeout(1500)
+        ko = json.loads(await app.evaluate("window.eldritchApp.hent()"))
+        check("cast legger scenen i køen til appen",
+              [m["type"] for m in ko] == ["cast"] and ko[0]["png"].startswith("data:image/png"), True)
+        check("køen tømmes når appen henter den",
+              await app.evaluate("window.eldritchApp.hent()"), "[]")
+        await app.get_by_role("button", name="← Tilbake til appen").click()
+        check("tilbake sier fra til appen",
+              json.loads(await app.evaluate("window.eldritchApp.hent()")), [{"type": "lukk"}])
+        r = await pg.evaluate("""() => ({ app: APP.aktiv,
+            knapper: [...document.querySelectorAll('button')].some(b => b.textContent === '← Tilbake til appen') })""")
+        check("nettversjonen selv er ikke i app-modus", [r["app"], r["knapper"]], [False, False])
+        await app.close()
 
         print("\n== eksport ==")
         r = await pg.evaluate("""async () => {

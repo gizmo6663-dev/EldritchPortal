@@ -93,6 +93,7 @@ try:
     from kivy.lang import Builder
     from kivy.core.text import LabelBase
     from kivy.graphics.texture import Texture
+    import skipskart
     log("Kivy imported OK")
 
     CAST_AVAILABLE = False
@@ -1915,12 +1916,12 @@ try:
                 if cb:
                     Clock.schedule_once(lambda dt: cb(ok), 0)
             threading.Thread(target=_c, daemon=True).start()
-        def cast_img(self, url, cb=None):
+        def cast_img(self, url, cb=None, mime='image/jpeg'):
             if not self.mc:
                 return
             def _c():
                 try:
-                    self.mc.play_media(url, 'image/jpeg')
+                    self.mc.play_media(url, mime)
                     self.mc.block_until_active()
                     ok = True
                 except:
@@ -2309,6 +2310,9 @@ try:
             self.streamer = SPlayer()
             self.cast = CastMgr()
             self.server = MediaServer()
+            self._skipskart = skipskart.Skipskart(self._skipskart_melding)
+            # Tilbake-knappen på telefonen lukker skipskartene.
+            Window.bind(on_keyboard=self._tast_tilbake)
             self.file_picker = FilePicker()
             self._ambient_source = None
             self._ambient_custom_uri = None
@@ -2942,16 +2946,96 @@ try:
             else:
                 self._mk_cmb_map()
 
+        # ---------- SKIPSKARTENE ----------
+        # De tretti rommene på skipet, med lys, vær og spor, er den samme
+        # siden som i nettversjonen. Se skipskart.py.
+        def _skipskart_apne(self):
+            if not skipskart.finnes():
+                self._skipskart_info.text = (
+                    "Kartene er ikke pakket med appen. "
+                    "Bygg dem med web/build.py.")
+                return
+            hvor = self._skipskart.apne(cast=CAST_AVAILABLE)
+            if hvor == "nettleser":
+                self._skipskart_info.text = "Kartene er åpnet i nettleseren."
+
+        def _skipskart_melding(self, m):
+            """En melding fra kartsiden."""
+            tp = m.get('type')
+            if tp == 'lukk':
+                self._skipskart.lukk()
+            elif tp == 'cast':
+                self._skipskart_cast(m)
+
+        def _skipskart_cast(self, m):
+            """Lagre scenebildet og send det til Chromecasten."""
+            if not self.cast.mc:
+                self._skipskart.svar(
+                    "Ingen Chromecast tilkoblet — koble til i Cast-fanen")
+                return
+            try:
+                import base64
+                import io
+                from PIL import Image as PILImage
+                data = (m.get('png') or '').split(',', 1)[-1]
+                bilde = PILImage.open(io.BytesIO(base64.b64decode(data)))
+                mappe = os.path.join(BASE_DIR, "cast")
+                os.makedirs(mappe, exist_ok=True)
+                # Nytt navn hver gang: Chromecasten husker bilder etter
+                # adresse, og ville ellers vist det forrige.
+                for gammel in os.listdir(mappe):
+                    if gammel.startswith("scene-"):
+                        try:
+                            os.remove(os.path.join(mappe, gammel))
+                        except OSError:
+                            pass
+                sti = os.path.join(mappe, "scene-%d.jpg" % int(time.time()))
+                bilde.convert("RGB").save(sti, "JPEG", quality=90)
+            except Exception as e:
+                log(f"Skipskart cast: {e}")
+                self._skipskart.svar("Fikk ikke lagret bildet av scenen")
+                return
+            self.server.start()
+            rom = m.get('rom') or 'scenen'
+            self.cast.cast_img(
+                self.server.url(sti),
+                cb=lambda ok: self._skipskart.svar(
+                    f"{rom} vises på TV-en" if ok else "Castingen feilet"))
+
+        def _tast_tilbake(self, window, key, *args):
+            """Tilbake-knappen (27) lukker kartet når det er åpent."""
+            if key == 27 and self._skipskart.apen:
+                self._skipskart.lukk()
+                return True
+            return False
+
         def _mk_cmb_map(self):
-            """Kart-sub-tab: åpne battlemap eller vis info om tom liste."""
+            """Kart-sub-tab: skipskartene, og rutenettet for initiativet."""
             p = BoxLayout(orientation='vertical',
                           spacing=dp(10), padding=dp(12))
+
+            # Skipskartene øverst: de trengs uansett om det er kamp.
+            kart_box = RBox(orientation='vertical', bg_color=BG2,
+                            size_hint_y=None, height=dp(150),
+                            padding=dp(12), spacing=dp(6),
+                            radius=dp(10))
+            kart_box.add_widget(mklbl(
+                "SKIPETS KART", color=GOLD, size=13, bold=True, h=22))
+            self._skipskart_info = mklbl(
+                "Tretti rom på skipet, med lys og skygge, dag og natt, "
+                "strømbrudd, vær og sporene i hvert rom.",
+                color=TXT, size=11, wrap=True)
+            kart_box.add_widget(self._skipskart_info)
+            kart_box.add_widget(mkbtn(
+                "Åpne skipskartene", self._skipskart_apne, accent=True,
+                size_hint_y=None, height=dp(48)))
+            p.add_widget(kart_box)
 
             if not self._init_list:
                 p.add_widget(Widget())
                 p.add_widget(mklbl(
-                    "Legg til deltakere i Initiativ-fanen\n"
-                    "for å bruke kartet.",
+                    "Rutenettet for kamp: legg til deltakere i "
+                    "Initiativ-fanen først.",
                     color=DIM, size=13, wrap=True))
                 p.add_widget(Widget())
                 self._cmb_area.add_widget(p)
@@ -3001,12 +3085,12 @@ try:
             p.add_widget(info_box)
 
             # Åpne-knapp
-            p.add_widget(mkbtn("Åpne kart (fullskjerm)",
+            p.add_widget(mkbtn("Åpne kamprutenett",
                                self._bm_open, accent=True,
                                size_hint_y=None, height=dp(56)))
 
             p.add_widget(mklbl(
-                "Kartet åpnes som overlay i full skjermbredde. "
+                "Rutenettet åpnes over appen i full bredde. "
                 "Bruk 'Lukk' for å komme tilbake hit.",
                 color=DIM, size=10, wrap=True, h=40))
 
