@@ -154,6 +154,63 @@ async def test_view():
         check("rutenettet er på", r["rutenett"], True)
         check("kartet er skalert til plassen", r["skala"] > 0, True)
 
+        print("\n== rommenyen og sporpanelet ==")
+        r = await pg.evaluate("""() => ({
+            lukket: document.getElementById('rommeny').hidden,
+            tittel: document.querySelector('h1.romtittel').textContent,
+            romlisteBorte: ![...document.querySelectorAll('.mapside .eyebrow')]
+              .some(e => e.textContent === 'Rom på skipet') })""")
+        check("menyen er lukket fra start", r["lukket"], True)
+        check("og rommet står som overskrift", "1. klasses kabin" in r["tittel"], True)
+        check("den lange romlista er borte fra siden", r["romlisteBorte"], True)
+        await pg.click("#romvelger")
+        r = await pg.evaluate("""() => ({
+            apen: !document.getElementById('rommeny').hidden,
+            ekspandert: document.getElementById('romvelger').getAttribute('aria-expanded'),
+            synlige: [...document.querySelectorAll('#rommeny .maproomrow')]
+              .filter(b => b.offsetParent).length,
+            grupper: document.querySelectorAll('#rommeny .romgruppe').length })""")
+        check("trykk åpner menyen med alle rommene",
+              [r["apen"], r["ekspandert"], r["synlige"]], [True, "true", 30])
+        check("gruppert etter dekk og område", r["grupper"], 5)
+        await pg.mouse.click(5, 5)
+        check("trykk utenfor lukker den",
+              await pg.evaluate("document.getElementById('rommeny').hidden"), True)
+        await pg.click("#romvelger")
+        await pg.keyboard.press("Escape")
+        check("Esc lukker den også",
+              await pg.evaluate("document.getElementById('rommeny').hidden"), True)
+        await pg.click("#romvelger")
+        await pg.click("#rommeny .maproomrow:nth-of-type(3)")
+        await pg.wait_for_timeout(400)
+        r = await pg.evaluate("""() => ({ rom: currentMapRoom().id,
+            lukket: document.getElementById('rommeny').hidden })""")
+        check("et valg bytter rom og lukker menyen", [r["rom"] != "kabin", r["lukket"]], [True, True])
+
+        r = await pg.evaluate("""async () => {
+            await byttRom('kabin');
+            const hode = () => document.querySelector('.sporhode');
+            const apen = hode().getAttribute('aria-expanded');
+            const rader = document.querySelectorAll('.cluerow').length;
+            hode().click();
+            await new Promise(r => setTimeout(r, 200));
+            const etter = { apen: hode().getAttribute('aria-expanded'),
+                            rader: document.querySelectorAll('.cluerow').length,
+                            teller: hode().textContent,
+                            lagret: (lsGet('mapLight') || {}).spor };
+            await byttRom('hold2');
+            const iAnnetRom = document.querySelectorAll('.cluerow').length;
+            hode().click();
+            await new Promise(r => setTimeout(r, 200));
+            await byttRom('kabin');
+            return { apen, rader, etter, iAnnetRom,
+                     tilbake: document.querySelectorAll('.cluerow').length }; }""")
+        check("sporene står åpne fra start", [r["apen"], r["rader"] > 0], ["true", True])
+        check("og kan pakkes sammen", [r["etter"]["apen"], r["etter"]["rader"]], ["false", 0])
+        check("antallet synes i overskriften", "10 · kun for deg" in r["etter"]["teller"], True)
+        check("valget huskes, også i andre rom", [r["etter"]["lagret"], r["iAnnetRom"]], [False, 0])
+        check("og de kan slås ut igjen", r["tilbake"], r["rader"])
+
         print("\n== visning er standard, redigering må slås på ==")
         r = await pg.evaluate("""() => {
             const ramme = document.getElementById('mapframe');

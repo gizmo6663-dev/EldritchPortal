@@ -1206,6 +1206,9 @@ body.quickon { --quickh: 62px; }
   /* I visning ruller et sveip siden som ellers. Bare i redigering tar
      kartet over fingeren, så gjenstandene kan dras. */
   touch-action: pan-x pan-y pinch-zoom;
+  /* Lyslagene har z-index i titusenvis. De skal blande seg med kartet,
+     ikke legge seg over rommenyen. */
+  isolation: isolate;
 }
 .mapframe.redigerer { touch-action: none; }
 .mapframe:not(.redigerer) .mapprop { cursor: pointer; }
@@ -1315,8 +1318,45 @@ html.i-app .main { padding-top: 10px; }
 .maphidden { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
 .maphidden .chip { border-style: dashed; }
 
-/* Romlista. Gruppene er dekk og områder på skipet. */
-.maprooms { max-height: 420px; overflow-y: auto; }
+/* Romvelgeren: rommet man står i, og en meny med alle rommene som
+   åpner seg under når man trykker. Gruppene er dekk og områder. */
+.romvelger-wrap { position: relative; margin-bottom: 12px; max-width: 560px; }
+.romvelger {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 9px 12px; text-align: left; cursor: pointer;
+  border: 1px solid var(--rule); border-radius: 6px; background: var(--ink-2);
+}
+.romvelger:hover { background: var(--ink-3); }
+.romvelger .no { font-family: var(--mono); font-size: 11px; color: var(--brass); }
+.romvelger .navn { flex: 1; font-family: var(--ui); font-weight: 600;
+                   color: var(--parchment); }
+.romvelger .pil, .sporhode .pil { color: var(--brass); transition: transform 0.15s; }
+.romvelger[aria-expanded="true"] .pil,
+.sporhode[aria-expanded="true"] .pil { transform: rotate(180deg); }
+.rommeny {
+  position: absolute; z-index: 40; top: calc(100% + 4px); left: 0; right: 0;
+  max-height: 60vh; overflow-y: auto; padding: 6px;
+  background: var(--ink-2); border: 1px solid var(--rule); border-radius: 6px;
+  box-shadow: 0 14px 34px rgba(0,0,0,0.55);
+}
+.rommeny[hidden] { display: none; }
+.romgruppe {
+  padding: 10px 8px 4px; font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--faint);
+}
+.romgruppe:first-child { padding-top: 4px; }
+/* Velgeren er overskriften på siden. */
+h1.romtittel { margin: 4px 0 10px; font-size: inherit; }
+.romtittel .romvelger .navn { font-weight: 700; line-height: 1.2;
+                              font-size: clamp(19px, 3.4vw, 28px); }
+
+/* Sporpanelet kan pakkes sammen til bare overskriften. */
+.sporhode {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 0; border: 0; background: none; cursor: pointer; text-align: left;
+}
+.sporhode .eyebrow { flex: 1; margin: 0; }
+.sporhode[aria-expanded="true"] { margin-bottom: 8px; }
 .maproomrow {
   display: flex; gap: 8px; width: 100%; text-align: left;
   padding: 5px 8px; border-radius: 3px; font-size: 13px;
@@ -1350,12 +1390,11 @@ html.i-app .main { padding-top: 10px; }
 
 @media (max-width: 860px) {
   .mapside { flex: 1 1 100%; }
-  .maprooms { max-height: 260px; }
 }
 
 @media print {
   /* Bare kartet skal på papiret. */
-  .rail, .masthead, .quickbar, .mapside, .maptools, .maphidden,
+  .rail, .masthead, .quickbar, .mapside, .maptools, .maphidden, .romvelger-wrap,
   .mapmeta { display: none !important; }
   .maproom { display: block; }
   .main { padding: 0 !important; }
@@ -1585,6 +1624,7 @@ const state = {
   mapEdit: false,     // redigering av kartet; starter alltid av
   sceneRoom: null,    // rommet som står på skjermen for spillerne
   mapVaer: "klart",   // klart | regn | storm — været ute
+  mapCluesOpen: true, // sporpanelet slått ut eller pakket sammen
   mapAnim: true,      // stemning i bevegelse: flammer, vær, hav
   mapTime: "dag",     // dag | natt
   mapPower: true,     // strøm på skipet
@@ -2055,7 +2095,8 @@ function saveStreamPrefs() {
 function saveMapPrefs() {
   lsSet("mapLight", { time: state.mapTime, power: state.mapPower,
                       grid: state.mapGrid, decor: state.mapDecor,
-                      vaer: state.mapVaer, anim: state.mapAnim });
+                      vaer: state.mapVaer, anim: state.mapAnim,
+                      spor: state.mapCluesOpen });
 }
 
 function loadMapPrefs() {
@@ -2072,6 +2113,7 @@ function loadMapPrefs() {
   if (typeof saved.decor === "boolean") state.mapDecor = saved.decor;
   if (["klart", "regn", "storm"].indexOf(saved.vaer) !== -1) state.mapVaer = saved.vaer;
   if (typeof saved.anim === "boolean") state.mapAnim = saved.anim;
+  if (typeof saved.spor === "boolean") state.mapCluesOpen = saved.spor;
 }
 
 function loadStreamPrefs() {
@@ -11038,6 +11080,73 @@ function lysHandtak(lys) {
   });
 }
 
+/* Rommet man står i, som en knapp. Trykk, og alle rommene på skipet
+   åpner seg i en meny under, gruppert etter dekk og område. Menyen
+   lukkes når man velger, trykker utenfor eller trykker Esc. */
+function romVelger(room) {
+  const wrap = el("div", { class: "romvelger-wrap" });
+  const meny = el("div", { class: "rommeny", id: "rommeny", hidden: "",
+                           role: "listbox", "aria-label": "Rom på skipet" });
+  const knapp = el("button", {
+    class: "romvelger", type: "button", id: "romvelger",
+    "aria-label": room.title + " — velg et annet rom",
+    "aria-haspopup": "listbox", "aria-expanded": "false",
+    title: "Velg et annet rom",
+  }, [
+    el("span", { class: "no", text: room.no }),
+    el("span", { class: "navn", text: room.title }),
+    el("span", { class: "pil", text: "▾", "aria-hidden": "true" }),
+  ]);
+  const sett = (apen) => {
+    meny.hidden = !apen;
+    knapp.setAttribute("aria-expanded", String(apen));
+    if (apen) {
+      const valgt = meny.querySelector('[aria-current="true"]');
+      if (valgt) valgt.scrollIntoView({ block: "nearest" });
+    }
+  };
+  knapp.addEventListener("click", () => sett(meny.hidden));
+  (state.maps.groups || []).forEach((gruppe) => {
+    const rom = mapRooms().filter((r) => r.group === gruppe);
+    if (!rom.length) return;
+    meny.appendChild(el("div", { class: "romgruppe", text: gruppe }));
+    rom.forEach((r) => {
+      meny.appendChild(el("button", {
+        class: "maproomrow", type: "button", role: "option",
+        "aria-current": String(r.id === room.id),
+        onclick: () => { sett(false); if (r.id !== room.id) byttRom(r.id); },
+      }, [
+        el("span", { class: "no", text: r.no }),
+        el("span", { text: r.title }),
+      ]));
+    });
+  });
+  armRomMeny();
+  wrap.appendChild(el("h1", { class: "romtittel" }, [knapp]));
+  wrap.appendChild(meny);
+  return wrap;
+}
+
+/* Lukk rommenyen ved trykk utenfor og Esc. Bindes én gang. */
+function armRomMeny() {
+  if (armRomMeny.on) return;
+  armRomMeny.on = true;
+  const lukk = () => {
+    const meny = document.getElementById("rommeny");
+    const knapp = document.getElementById("romvelger");
+    if (!meny || meny.hidden) return false;
+    meny.hidden = true;
+    if (knapp) knapp.setAttribute("aria-expanded", "false");
+    return true;
+  };
+  document.addEventListener("pointerdown", (e) => {
+    if (!e.target.closest || !e.target.closest(".romvelger-wrap")) lukk();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && lukk()) e.stopPropagation();
+  }, true);
+}
+
 function viewMaps(root) {
   if (!state.maps) {
     root.appendChild(el("h1", { text: "Kart" }));
@@ -11051,11 +11160,12 @@ function viewMaps(root) {
   armMapFit();
   if (APP.aktiv) root.appendChild(appLinje(room));
 
-  // --- topptekst
+  // --- topptekst: gruppe og scene, og rommet som en meny man kan
+  // velge et annet fra
   root.appendChild(el("p", { class: "eyebrow",
     text: "Kart " + room.no + " · " + room.group +
           (room.scene ? " · " + room.scene : "") }));
-  root.appendChild(el("h1", { text: room.title }));
+  root.appendChild(romVelger(room));
   if (room.note) root.appendChild(el("p", { class: "lede", text: room.note }));
 
   const wrap = el("div", { class: "maproom" });
@@ -11368,17 +11478,27 @@ function viewMaps(root) {
 
   // --- sporpanelet
   const spor = room.clues || [];
-  const kort = el("div", { class: "panel" });
-  kort.appendChild(el("div", { class: "row spread",
-                               style: "margin-bottom:8px" }, [
+  const kort = el("div", { class: "panel sporpanel" });
+  kort.appendChild(el("button", {
+    class: "sporhode", type: "button",
+    "aria-expanded": String(state.mapCluesOpen),
+    title: state.mapCluesOpen ? "Pakk sammen" : "Vis sporene",
+    onclick: () => {
+      state.mapCluesOpen = !state.mapCluesOpen;
+      saveMapPrefs();
+      render();
+    },
+  }, [
     el("span", { class: "eyebrow", text: "Spor og ledetråder" }),
-    el("span", { class: "chip", text: "Kun for deg" }),
+    el("span", { class: "chip", text: (spor.length ? spor.length + " · " : "") +
+                                      "kun for deg" }),
+    el("span", { class: "pil", text: "▾", "aria-hidden": "true" }),
   ]));
-  if (!spor.length) {
+  if (state.mapCluesOpen && !spor.length) {
     kort.appendChild(el("p", { class: "savestate",
                                text: "Ingen ledetråder i dette rommet." }));
   }
-  spor.forEach((c, i) => {
+  (state.mapCluesOpen ? spor : []).forEach((c, i) => {
     const apen = state.mapClue === i;
     kort.appendChild(el("button", {
       class: "cluerow", type: "button", "aria-expanded": String(apen),
@@ -11426,28 +11546,6 @@ function viewMaps(root) {
     kort.appendChild(kropp);
   });
   side.appendChild(kort);
-
-  // --- romlista
-  const nav = el("div", { class: "panel" });
-  nav.appendChild(el("div", { class: "eyebrow", text: "Rom på skipet" }));
-  const liste = el("div", { class: "maprooms" });
-  (state.maps.groups || []).forEach((gruppe) => {
-    const rom = mapRooms().filter((r) => r.group === gruppe);
-    if (!rom.length) return;
-    liste.appendChild(el("div", { class: "rail-group", text: gruppe }));
-    rom.forEach((r) => {
-      liste.appendChild(el("button", {
-        class: "maproomrow", type: "button",
-        "aria-current": String(r.id === room.id),
-        onclick: () => byttRom(r.id),
-      }, [
-        el("span", { class: "no", text: r.no }),
-        el("span", { text: r.title }),
-      ]));
-    });
-  });
-  nav.appendChild(liste);
-  side.appendChild(nav);
 
   wrap.appendChild(main);
   wrap.appendChild(side);
