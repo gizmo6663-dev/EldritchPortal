@@ -104,6 +104,10 @@ def test_data():
     check("lasterom 2 har nødlampene fra verkstedet",
           len(rom["hold2"]["lys"]["nodlamper"]), 4)
     check("lykter og lamper kjennes igjen", bool(d.get("lys")), True)
+    check("havet er funnet i uterommene",
+          [bool(rom[k]["lys"].get("hav")) for k in
+           ("bow", "stern", "promenade", "bridge", "soong")], [True] * 5)
+    check("men ikke inne", bool(rom["kabin"]["lys"].get("hav")), False)
     bil = [i for i in rom["hold6"]["items"] if "Hudson" in (i.get("name") or "")]
     check("en bil er høy, ikke en livbøye", bil and bil[0].get("h"), 60)
 
@@ -580,6 +584,110 @@ async def test_view():
             return Math.round(verst); }""")
         print("        (tregeste rom: %d ms)" % r)
         check("alle rom tegnes på under et sekund", r < 1000, True)
+
+        print("\n== stemning i bevegelse ==")
+        r = await pg.evaluate("""async () => {
+            state.mapAnim = true; state.mapVaer = 'klart';
+            state.mapTime = 'dag'; state.mapPower = false;
+            await byttRom('hold2');
+            await new Promise(r => setTimeout(r, 500));
+            const lag = visLag.lag;
+            const lampe = lysFor(currentMapRoom()).lys[lysFor(currentMapRoom()).flimmer];
+            const px = (c) => c.getContext('2d').getImageData(
+              Math.round(lampe.x), Math.round(lampe.y + 20), 1, 1).data[0];
+            const verdier = [];
+            for (let t = 0; t < 120; t += 0.05) verdier.push(flimmerStyrke(t, fro('hold2')));
+            return { type: lag.anim && lag.anim.type,
+                     lag: document.querySelectorAll('.maplys.flimmer').length,
+                     av: px(lag.anim.kart[0]), paa: px(lag.anim.kart[1]),
+                     morkt: verdier.filter(v => v < 0.1).length,
+                     lyst: verdier.filter(v => v === 1).length,
+                     ramme: !!animasjon.ramme }; }""")
+        check("én nødlampe kan svikte", r["type"], "flimmer")
+        check("gløden og glasset dens ligger i egne lag", r["lag"], 2)
+        check("lyskartet finnes med lampa av og på", r["paa"] > r["av"] + 10, True)
+        check("den lyser mesteparten av tiden", r["lyst"] > r["morkt"] * 3, True)
+        check("men dør ut av og til", r["morkt"] > 0, True)
+        check("animasjonen går", r["ramme"], True)
+
+        r = await pg.evaluate("""async () => {
+            await byttRom('kabin');
+            let lag = null;
+            for (let i = 0; i < 40; i++) {
+              await new Promise(r => setTimeout(r, 150));
+              lag = visLag.lag;
+              if (lag.anim) break;
+            }
+            const sum = (c) => { const d = c.getContext('2d').getImageData(0, 0, c.width, 120).data;
+              let s = 0; for (let i = 0; i < d.length; i += 4) s += d[i] * ((i / 4) % c.width); return s; };
+            return { type: lag.anim && lag.anim.type, n: lag.anim && lag.anim.kart.length,
+                     ulike: lag.anim && sum(lag.anim.kart[0]) !== sum(lag.anim.kart[4]) }; }""")
+        check("solstripene vandrer med skipet", r["type"], "rulling")
+        check("i fem vinkler", r["n"], 5)
+        check("som faktisk er forskjellige", r["ulike"], True)
+
+        r = await pg.evaluate("""async () => {
+            const ut = {};
+            const knapp = () => [...document.querySelectorAll('.chip.resp')]
+              .find(c => ['Klart vær', 'Regn', 'Storm'].includes(c.textContent));
+            await byttRom('bow');
+            state.mapPower = true;
+            render();
+            ut.start = knapp().textContent;
+            knapp().click(); await new Promise(r => setTimeout(r, 200));
+            ut.regn = knapp().textContent;
+            knapp().click(); await new Promise(r => setTimeout(r, 300));
+            ut.storm = knapp().textContent;
+            ut.lagret = (lsGet('mapLight') || {}).vaer;
+            const o = lysFor(currentMapRoom());
+            ut.aktiv = o.aktiv;
+            ut.grått = o.omgivelse;
+            ut.liv = !!document.getElementById('maplyv');
+            const c = document.getElementById('maplyv');
+            const g = c.getContext('2d');
+            const tegn = (t) => { g.setTransform(1,0,0,1,0,0); g.clearRect(0,0,c.width,c.height);
+              g.setTransform(2,0,0,2,0,0); tegnLiv(g, currentMapRoom(), t);
+              const d = g.getImageData(0, 0, c.width, c.height).data;
+              let n = 0, s = 0; for (let i = 3; i < d.length; i += 4) { if (d[i]) n++; s += d[i]; } return [n, s]; };
+            ut.a = tegn(500.25); ut.b = tegn(500.25); ut.c = tegn(503.9);
+            const inne = mapRoomById('hold7');
+            const j = (v) => { state.mapVaer = v; return JSON.stringify(lysFor(inne).lys); };
+            ut.inneLikt = j('klart') === j('storm');
+            ut.harLivInne = harLiv(inne);
+            state.mapVaer = 'storm';
+            return ut; }""")
+        check("værknappen starter på klart vær", r["start"], "Klart vær")
+        check("og går til regn og storm", [r["regn"], r["storm"]], ["Regn", "Storm"])
+        check("været huskes", r["lagret"], "storm")
+        check("storm gjør dekket grått også om dagen",
+              r["aktiv"] and r["grått"][0] < 200, True)
+        check("regn, sprøyt og hav tegnes i eget lag", r["liv"] and r["a"][0] > 500, True)
+        check("det samme tidspunktet gir det samme bildet", r["a"], r["b"])
+        check("og et annet tidspunkt et annet", r["a"] != r["c"], True)
+        check("været merkes ikke inne", r["inneLikt"], True)
+        check("og inne er det ikke noe livslag", r["harLivInne"], False)
+
+        r = await pg.evaluate("""async () => {
+            await byttRom('hold2');
+            state.mapPower = false; render();
+            await new Promise(r => setTimeout(r, 400));
+            const knapp = [...document.querySelectorAll('.chip.resp')]
+              .find(c => c.textContent === 'Animasjon');
+            knapp.click();
+            await new Promise(r => setTimeout(r, 300));
+            const ut = { av: state.mapAnim, ramme: !!animasjon.ramme,
+                         opasitet: [...document.querySelectorAll('.maplys.flimmer')]
+                           .map(c => c.style.opacity || '1'),
+                         lagret: (lsGet('mapLight') || {}).anim };
+            await byttRom('bow');
+            ut.livUten = !!document.getElementById('maplyv');
+            state.mapAnim = true; state.mapVaer = 'klart'; saveMapPrefs();
+            state.mapTime = 'dag'; state.mapPower = true; render();
+            return ut; }""")
+        check("animasjonen kan slås av", [r["av"], r["ramme"], r["lagret"]],
+              [False, False, False])
+        check("og da lyser lampa jevnt", r["opasitet"], ["1", "1"])
+        check("og havet står stille", r["livUten"], False)
 
         print("\n== dekoren kan slås av ==")
         r = await pg.evaluate("""async () => {

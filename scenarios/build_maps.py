@@ -316,6 +316,68 @@ def hoyde(item):
     return HOYDE_STANDARD
 
 
+# ------------------------------------------------------------------
+# Havet. Uterommene har sjø langs kanten, og appen lar den glitre og
+# sprute. Hvor havet er, finnes fra bakgrunnen: blått som henger sammen
+# med kanten av bildet. Blågrått stål midt på dekket — lukerammer,
+# bølgebrytere — henger ikke sammen med kanten, og et vindu som så vidt
+# rører kanten er for lite til å telle.
+# ------------------------------------------------------------------
+
+HAV_CELLE = 4          # piksler per celle i masken
+HAV_MINSTE = 3000      # piksler; mindre blått mot kanten er ikke hav
+
+
+def er_hav(p):
+    r, g, b = p[:3]
+    return b > r + 15 and b > g - 5
+
+
+def finn_hav(bilde):
+    """Havet som rader av celler: [[y, x0, x1], ...], x1 eksklusiv."""
+    bilde = bilde.convert("RGB")
+    W, H = bilde.size
+    px = bilde.load()
+    blatt = [bytearray(1 if er_hav(px[x, y]) else 0 for x in range(W))
+             for y in range(H)]
+    hav = [bytearray(W) for _ in range(H)]
+    kant = [(x, y) for x in range(W) for y in (0, H - 1)] + \
+           [(x, y) for y in range(H) for x in (0, W - 1)]
+    for sx, sy in kant:
+        if not blatt[sy][sx] or hav[sy][sx]:
+            continue
+        # Fyll denne flekken, og behold den bare hvis den er stor nok.
+        flekk = [(sx, sy)]
+        hav[sy][sx] = 2
+        i = 0
+        while i < len(flekk):
+            x, y = flekk[i]
+            i += 1
+            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if 0 <= nx < W and 0 <= ny < H and blatt[ny][nx] and not hav[ny][nx]:
+                    hav[ny][nx] = 2
+                    flekk.append((nx, ny))
+        verdi = 1 if len(flekk) >= HAV_MINSTE else 3
+        for x, y in flekk:
+            hav[y][x] = verdi
+    rader = []
+    c = HAV_CELLE
+    for cy in range(H // c):
+        start = None
+        for cx in range(W // c + 1):
+            fullt = False
+            if cx < W // c:
+                n = sum(1 for y in range(cy * c, cy * c + c)
+                        for x in range(cx * c, cx * c + c) if hav[y][x] == 1)
+                fullt = n >= c * c * 3 // 4
+            if fullt and start is None:
+                start = cx
+            elif not fullt and start is not None:
+                rader.append([cy, start, cx])
+                start = None
+    return rader
+
+
 def legg_paa_lys(ut):
     """Høyder på gjenstandene og lysdataene på rommene."""
     with open(LYS_JSON, encoding="utf-8") as f:
@@ -332,7 +394,12 @@ def legg_paa_lys(ut):
                 item["h"] = h
             else:
                 item.pop("h", None)
-        r["lys"] = lys.get("rom", {}).get(r["id"], {})
+        r["lys"] = dict(lys.get("rom", {}).get(r["id"], {}))
+        if r["lys"].get("ute") or r["lys"].get("rekker"):
+            bg = os.path.join(UT_BILDER, r["dir"], r["bg"])
+            rader = finn_hav(Image.open(bg))
+            if rader:
+                r["lys"]["hav"] = {"celle": HAV_CELLE, "rader": rader}
 
 
 def main():

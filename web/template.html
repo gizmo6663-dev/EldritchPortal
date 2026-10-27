@@ -1576,6 +1576,8 @@ const state = {
   mapSelLight: null,  // valgt lyskilde
   mapEdit: false,     // redigering av kartet; starter alltid av
   sceneRoom: null,    // rommet som står på skjermen for spillerne
+  mapVaer: "klart",   // klart | regn | storm — været ute
+  mapAnim: true,      // stemning i bevegelse: flammer, vær, hav
   mapTime: "dag",     // dag | natt
   mapPower: true,     // strøm på skipet
   charFilter: "all",  // all | pc | npc | enemy
@@ -2044,16 +2046,24 @@ function saveStreamPrefs() {
 
 function saveMapPrefs() {
   lsSet("mapLight", { time: state.mapTime, power: state.mapPower,
-                      grid: state.mapGrid, decor: state.mapDecor });
+                      grid: state.mapGrid, decor: state.mapDecor,
+                      vaer: state.mapVaer, anim: state.mapAnim });
 }
 
 function loadMapPrefs() {
+  // Den som har bedt om mindre bevegelse på enheten, får det her også,
+  // til det slås på igjen.
+  try {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) state.mapAnim = false;
+  } catch (e) { /* gammel nettleser */ }
   const saved = lsGet("mapLight");
   if (!saved || typeof saved !== "object") return;
   if (saved.time === "dag" || saved.time === "natt") state.mapTime = saved.time;
   if (typeof saved.power === "boolean") state.mapPower = saved.power;
   if (typeof saved.grid === "boolean") state.mapGrid = saved.grid;
   if (typeof saved.decor === "boolean") state.mapDecor = saved.decor;
+  if (["klart", "regn", "storm"].indexOf(saved.vaer) !== -1) state.mapVaer = saved.vaer;
+  if (typeof saved.anim === "boolean") state.mapAnim = saved.anim;
 }
 
 function loadStreamPrefs() {
@@ -9856,6 +9866,80 @@ const Lysmotor = (() => {
     g.restore();
   }
 
+  /* Lyskartet: grunnlys, sonene, hvert lys lagt oppå, og vignetten.
+     hopp er et lys som skal stå av — den svikne nødlampa tegnes både
+     med og uten. */
+  function lagKart(W, H, s, opts, lag, hopp) {
+    const kart = lerret(W * s, H * s);
+    const kg = kart.getContext("2d");
+    kg.fillStyle = "rgb(" + opts.omgivelse.join(",") + ")";
+    kg.fillRect(0, 0, kart.width, kart.height);
+    // Soner med annet grunnlys: dekket utenfor lugaren, styrhuset
+    // midt på en åpen bro. Myke kanter, så skillet ikke blir en strek.
+    if (opts.soner && opts.soner.length) {
+      const sl = lerret(W * s, H * s);
+      const sg = sl.getContext("2d");
+      opts.soner.forEach((z) => {
+        sg.fillStyle = "rgb(" + z.farge.join(",") + ")";
+        sg.fillRect(z.r[0] * s, z.r[1] * s, z.r[2] * s, z.r[3] * s);
+      });
+      uskarpt(kg, sl, 0, 0, 3 * s);
+    }
+    kg.globalCompositeOperation = "lighter";
+    lag.forEach((l, i) => {
+      if (l && i !== hopp) uskarpt(kg, l.lag, l.x0 * s, l.y0 * s, opts.uskarp * s);
+    });
+    kg.globalCompositeOperation = "source-over";
+
+    // Mørke kanter: rommet faller bort mot veggene.
+    if (opts.vignett) {
+      kg.globalCompositeOperation = "multiply";
+      const v = kg.createRadialGradient(W * s / 2, H * s * 0.45, Math.min(W, H) * s * 0.3,
+                                        W * s / 2, H * s * 0.45, Math.max(W, H) * s * 0.75);
+      const m = Math.round(255 * (1 - opts.vignett));
+      v.addColorStop(0, "rgb(255,255,255)");
+      v.addColorStop(1, "rgb(" + m + "," + m + "," + m + ")");
+      kg.fillStyle = v;
+      kg.fillRect(0, 0, kart.width, kart.height);
+      kg.globalCompositeOperation = "source-over";
+    }
+    return kart;
+  }
+
+  /* Dis: lysstrålene synes i lufta, ikke bare på gulvet. */
+  function lagDis(W, H, s, opts, lag, hopp) {
+    const dis = lerret(W * s, H * s);
+    const dg = dis.getContext("2d");
+    dg.globalCompositeOperation = "lighter";
+    dg.globalAlpha = opts.dis;
+    lag.forEach((l, i) => {
+      if (l && i !== hopp) uskarpt(dg, l.lag, l.x0 * s, l.y0 * s, opts.uskarp * 2.2 * s);
+    });
+    return dis;
+  }
+
+  function kopi(c) {
+    const k = lerret(c.width, c.height);
+    k.getContext("2d").drawImage(c, 0, 0);
+    return k;
+  }
+
+  /* Bland to varianter inn i et lag: a der f er 0, b der f er 1. Lyset
+     legges sammen, så en blanding av to lyskart er lyskartet med
+     lampa på styrke f — ikke en tilnærming. */
+  function bland(maal, a, b, f) {
+    const g = maal.getContext("2d");
+    g.globalAlpha = 1;
+    g.globalCompositeOperation = "copy";
+    g.drawImage(a, 0, 0);
+    g.globalCompositeOperation = "source-over";
+    if (f > 0.002) {
+      g.globalAlpha = Math.min(1, f);
+      g.drawImage(b, 0, 0);
+      g.globalAlpha = 1;
+    }
+  }
+
   /* Hele lyset for et rom. Ut kommer fire lag, som legges over kartet
      i denne rekkefølgen:
 
@@ -9866,62 +9950,40 @@ const Lysmotor = (() => {
 
      opts.s og opts.sTing er oppløsningen på lagene: lyskartet er mykt
      og trenger ikke mer enn én piksel per rompiksel, glasset og
-     ledningene vil ha flere. */
+     ledningene vil ha flere.
+
+     opts.flimmer er lyset som kan svikte, og opts.flimmerKilde glasset
+     dets. Da kommer også anim: lyskart og dis med lampa av og på, og
+     gløden og glasset dens i egne lag, så de kan blandes fritt.
+     opts.bareKart gir bare lyskart og dis — til rullerammene. */
   function render(W, H, opts) {
     const s = opts.s || 1, st = opts.sTing || s;
     const ut = { aktiv: !!opts.aktiv };
+    const fl = opts.flimmer, flk = opts.flimmerKilde;
 
     if (opts.aktiv) {
-      const kart = lerret(W * s, H * s);
-      const kg = kart.getContext("2d");
-      kg.fillStyle = "rgb(" + opts.omgivelse.join(",") + ")";
-      kg.fillRect(0, 0, kart.width, kart.height);
-      // Soner med annet grunnlys: dekket utenfor lugaren, styrhuset
-      // midt på en åpen bro. Myke kanter, så skillet ikke blir en strek.
-      if (opts.soner && opts.soner.length) {
-        const sl = lerret(W * s, H * s);
-        const sg = sl.getContext("2d");
-        opts.soner.forEach((z) => {
-          sg.fillStyle = "rgb(" + z.farge.join(",") + ")";
-          sg.fillRect(z.r[0] * s, z.r[1] * s, z.r[2] * s, z.r[3] * s);
-        });
-        uskarpt(kg, sl, 0, 0, 3 * s);
+      const lag = opts.lys.map((l) => tegnLys(l, opts.hindre, s, W, H));
+      ut.kart = lagKart(W, H, s, opts, lag, -1);
+      const harLag = lag.some(Boolean);
+      if (opts.dis && harLag) ut.dis = lagDis(W, H, s, opts, lag, -1);
+      if (fl !== undefined && lag[fl]) {
+        ut.anim = { type: "flimmer",
+                    kart: [lagKart(W, H, s, opts, lag, fl), kopi(ut.kart)] };
+        if (ut.dis) ut.anim.dis = [lagDis(W, H, s, opts, lag, fl), kopi(ut.dis)];
       }
-
-      const lag = opts.lys.map((l) => tegnLys(l, opts.hindre, s, W, H)).filter(Boolean);
-      kg.globalCompositeOperation = "lighter";
-      lag.forEach((l) => uskarpt(kg, l.lag, l.x0 * s, l.y0 * s, opts.uskarp * s));
-      kg.globalCompositeOperation = "source-over";
-
-      // Mørke kanter: rommet faller bort mot veggene.
-      if (opts.vignett) {
-        kg.globalCompositeOperation = "multiply";
-        const v = kg.createRadialGradient(W * s / 2, H * s * 0.45, Math.min(W, H) * s * 0.3,
-                                          W * s / 2, H * s * 0.45, Math.max(W, H) * s * 0.75);
-        const m = Math.round(255 * (1 - opts.vignett));
-        v.addColorStop(0, "rgb(255,255,255)");
-        v.addColorStop(1, "rgb(" + m + "," + m + "," + m + ")");
-        kg.fillStyle = v;
-        kg.fillRect(0, 0, kart.width, kart.height);
-        kg.globalCompositeOperation = "source-over";
-      }
-      ut.kart = kart;
-
-      // Dis: lysstrålene synes i lufta, ikke bare på gulvet.
-      if (opts.dis && lag.length) {
-        const dis = lerret(W * s, H * s);
-        const dg = dis.getContext("2d");
-        dg.globalCompositeOperation = "lighter";
-        dg.globalAlpha = opts.dis;
-        lag.forEach((l) => uskarpt(dg, l.lag, l.x0 * s, l.y0 * s, opts.uskarp * 2.2 * s));
-        ut.dis = dis;
-      }
+      if (opts.bareKart) return ut;
 
       if (opts.kilder.length) {
         const glod = lerret(W * st, H * st);
         const gg = glod.getContext("2d");
-        opts.kilder.forEach((k) => tegnGlod(gg, st, k));
+        opts.kilder.forEach((k, i) => { if (i !== flk) tegnGlod(gg, st, k); });
         ut.glod = glod;
+        if (ut.anim && opts.kilder[flk]) {
+          ut.glodFlimmer = lerret(W * st, H * st);
+          tegnGlod(ut.glodFlimmer.getContext("2d"), st, opts.kilder[flk]);
+          ut.tingFlimmer = lerret(W * st, H * st);
+          tegnKjerne(ut.tingFlimmer.getContext("2d"), st, opts.kilder[flk]);
+        }
       }
     }
 
@@ -9934,7 +9996,8 @@ const Lysmotor = (() => {
     (opts.lykter || []).forEach((l) => { tegnLykt(tg, st, l.x, l.y, l.tent && opts.aktiv); tegnet = true; });
     (opts.lommelykter || []).forEach((l) => { tegnLommelykt(tg, st, l.x, l.y, l.rot); tegnet = true; });
     if (opts.aktiv) {
-      opts.kilder.forEach((k) => {
+      opts.kilder.forEach((k, i) => {
+        if (i === flk && ut.anim) return;
         if (k.kjerne || k.form === "rute") { tegnKjerne(tg, st, k); tegnet = true; }
       });
     }
@@ -9942,7 +10005,7 @@ const Lysmotor = (() => {
     return ut;
   }
 
-  return { render: render, hjorner: hjorner, hinder: hinder };
+  return { render: render, hjorner: hjorner, hinder: hinder, bland: bland, kopi: kopi };
 })();
 
 /* ==================================================================
@@ -9973,6 +10036,14 @@ const FARGE = {
 
 // Glassmaleriene i kapellet.
 const GLASSMALERI = [[235, 80, 60], [245, 196, 80], [90, 130, 230], [110, 185, 120]];
+
+/* Været ute. Grunnlyset over dekket i hver tilstand, og hvor mye
+   månen slipper gjennom om natta. */
+const VAER_LYS = {
+  klart: { dag: [255, 255, 255], natt: [46, 56, 88], nattMork: [36, 44, 72], maane: 1 },
+  regn:  { dag: [205, 210, 222], natt: [40, 48, 76], nattMork: [32, 38, 62], maane: 0.5 },
+  storm: { dag: [150, 158, 180], natt: [32, 38, 62], nattMork: [26, 30, 52], maane: 0 },
+};
 
 // Grunnlyset der ingen lamper når.
 const OMGIVELSE = {
@@ -10233,18 +10304,20 @@ function lysFor(room, flytt) {
   const W = room.widthPx, H = room.heightPx;
   const natt = state.mapTime === "natt", strom = !!state.mapPower;
   const nod = !strom && R.harInne && !R.dagsvindu;
+  const vaer = R.harUte ? state.mapVaer : "klart";
   const o = {
-    aktiv: natt ? (strom ? (R.harUte || R.dagsvindu) : true) : (!strom && R.harInne),
+    aktiv: natt ? (strom ? (R.harUte || R.dagsvindu) : true)
+                : ((!strom && R.harInne) || vaer !== "klart"),
     omgivelse: OMGIVELSE.dag, soner: [], lys: [], kilder: [], lykter: [],
     lommelykter: [], lenker: [], vignett: 0, dis: 0, uskarp: 1,
     hindre: hindreFor(room, R, flytt),
   };
 
-  const inneOmg = strom ? OMGIVELSE.inneNatt
+  const inneOmg = strom ? (natt ? OMGIVELSE.inneNatt : OMGIVELSE.dag)
     : nod ? OMGIVELSE.nod
     : natt ? OMGIVELSE.maanebrudd : OMGIVELSE.solbrudd;
-  const uteOmg = !natt ? OMGIVELSE.dag
-    : strom ? OMGIVELSE.uteNatt : OMGIVELSE.uteNattMork;
+  const uteOmg = (VAER_LYS[vaer] || VAER_LYS.klart)[
+    !natt ? "dag" : strom ? "natt" : "nattMork"];
   if (R.ute) {
     o.omgivelse = uteOmg;
     o.soner = R.inneSoner.map((r) => ({ r: r, farge: inneOmg }));
@@ -10252,14 +10325,18 @@ function lysFor(room, flytt) {
     o.omgivelse = inneOmg;
     o.soner = R.uteSoner.map((r) => ({ r: r, farge: uteOmg }));
   }
-  o.vignett = natt ? 0.28 : 0.3;
+  // Overskyet om dagen med strøm: bare et grått lag over dekket, ikke
+  // mørke kanter som i et rom uten lys.
+  o.vignett = natt ? 0.28 : (!strom && R.harInne) ? 0.3 : 0.12;
   o.dis = nod ? 0.10 : !strom ? (natt ? 0.18 : 0.28) : 0.08;
   o.uskarp = nod ? 1.0 : 0.8;
 
-  // Månen over det som er ute, med lange, svake skygger.
-  if (natt && R.harUte) {
+  // Månen over det som er ute, med lange, svake skygger. I regn står
+  // den bak skyene; i storm er den borte.
+  const maane = (VAER_LYS[vaer] || VAER_LYS.klart).maane;
+  if (natt && R.harUte && maane) {
     o.lys.push({ type: "flate", soner: R.ute ? [[0, 0, W, H]] : R.uteSoner,
-                 unntak: R.inneSoner, farge: [34, 38, 52], styrke: 1,
+                 unntak: R.inneSoner, farge: [34, 38, 52], styrke: maane,
                  retning: [0.42, 0.91], skyggelengde: 0.6 });
   }
 
@@ -10282,6 +10359,8 @@ function lysFor(room, flytt) {
                                sol ? null : 1.6);
       if (!sol) { st.lengde *= 0.7; st.skyggelengde = 0.8; }
       if (natt) st.skyggelengde = 1.2;
+      // Skipet ruller, og sola og månen vandrer med — se lagRulling.
+      st.ruller = true;
       if (v.farget) st.farger = GLASSMALERI.map((c) => c.map((k, i) =>
         Math.round(k * 0.7 + farge[i] * 0.3)));
       o.lys.push(st);
@@ -10314,7 +10393,12 @@ function lysFor(room, flytt) {
   // blir hele rommet rødt, uten et eneste mørkt hjørne.
   if (nod) {
     const rekk = Math.max(220, Math.min(330, Math.max(W, H) * 0.55));
-    nodlamper(room, R).forEach(([x, y]) => {
+    // Én av lampene svikter. Hvilken er fast for rommet, så det er den
+    // samme lampa hver gang man kommer tilbake.
+    const lamper = nodlamper(room, R);
+    const svikt = fro(room.id) % lamper.length;
+    lamper.forEach(([x, y], i) => {
+      if (i === svikt) { o.flimmer = o.lys.length; o.flimmerKilde = o.kilder.length; }
       o.lys.push({ type: "punkt", x: x, y: y, radius: rekk, farge: FARGE.rod,
                    styrke: 0.9, hoyde: 110, maksSkygge: 520 });
       o.kilder.push({ x: x, y: y, kjerne: 3.4, glod: 26, haloStyrke: 0.75,
@@ -10414,7 +10498,7 @@ const lysHurtig = new Map();
 
 function lysNokkel(room) {
   return JSON.stringify([
-    room.id, lightMode(), !!state.mapDecor, !!state.mapPlayer,
+    room.id, lightMode(), state.mapVaer, !!state.mapDecor, !!state.mapPlayer,
     visibleProps(room).map((p) => [p.item.id, p.st.x, p.st.y, p.st.r]),
     mapLights(room.id),
   ]);
@@ -10427,26 +10511,37 @@ function lysLag(room, flytt, skala) {
   opts.s = skala || 1;
   opts.sTing = skala || 2;
   const ut = Lysmotor.render(room.widthPx, room.heightPx, opts);
+  // Rullerammene lages først når noen faktisk ser på rommet; de tar
+  // litt tid og en del minne. Oppsettet tas vare på til da.
+  if (!skala && opts.aktiv && opts.lys.some((l) => l.ruller)) ut.rull = opts;
   if (nokkel) {
     lysHurtig.set(nokkel, ut);
     // Bare de siste rommene tas vare på; canvasene er store.
-    while (lysHurtig.size > 8) lysHurtig.delete(lysHurtig.keys().next().value);
+    while (lysHurtig.size > 6) lysHurtig.delete(lysHurtig.keys().next().value);
   }
   return ut;
 }
 
 const LYS_LAG = [["kart", "multiply"], ["dis", "screen"], ["glod", "screen"], ["ting", "normal"]];
 
+// Det som ligger i kartet nå, så animasjonen vet hva den skal røre.
+let visLag = null;
+
 function lysElementer(room, flytt) {
   const lag = lysLag(room, flytt);
+  visLag = { lag: lag, room: room };
   const ut = [];
-  LYS_LAG.forEach(([navn]) => {
-    const c = lag[navn];
-    if (!c) return;
-    c.className = "maplys " + navn;
+  const legg = (c, klasse) => {
+    c.className = "maplys " + klasse;
     c.style.width = room.widthPx + "px";
     c.style.height = room.heightPx + "px";
     ut.push(c);
+  };
+  LYS_LAG.forEach(([navn]) => {
+    if (lag[navn]) legg(lag[navn], navn);
+    // Gløden og glasset til lampa som svikter, i egne lag over.
+    if (navn === "glod" && lag.glodFlimmer) legg(lag.glodFlimmer, "glod flimmer");
+    if (navn === "ting" && lag.tingFlimmer) legg(lag.tingFlimmer, "ting flimmer");
   });
   return ut;
 }
@@ -10464,11 +10559,385 @@ function oppdaterLysLag(room, flytt) {
     const layer = document.getElementById("maplayer");
     if (!v || !layer) return;
     const nye = lysElementer(v.room, v.flytt);
-    layer.querySelectorAll(".maplys").forEach((c) => c.remove());
-    const foran = layer.querySelector(".mapgrid, .maplyshandle");
+    layer.querySelectorAll(".maplys:not(.liv)").forEach((c) => c.remove());
+    const foran = layer.querySelector(".maplys.liv, .mapgrid, .maplyshandle");
     nye.forEach((c) => layer.insertBefore(c, foran));
   });
 }
+
+/* ==================================================================
+   STEMNING I BEVEGELSE
+
+   Det som rører seg på kartet:
+
+     nødlampa som svikter   én rød lampe som flimrer og dør ut av og til
+     strålene som vandrer   skipet ruller, og sol- og månestripene
+                            gjennom vinduene svinger sakte fram og
+                            tilbake
+     havet                  glitrer i sola, glimter svakt under månen,
+                            og får skumtopper i storm
+     været                  regn og plask på dekk; i storm også
+                            sjøsprøyt over rekka og lyn
+
+   Lyskartet med skyggene tegnes ikke på nytt for hver ramme — det ville
+   blitt for tungt på et nettbrett. Lysmotoren lager i stedet noen få
+   varianter (lampa av og på, strålene i fem vinkler), og hver ramme
+   blandes de to nærmeste inn i laget som vises. Lys legges sammen, så
+   blandingen er riktig, ikke en tilnærming.
+
+   Været og havet er små partikler tegnet i et eget lag. Alt regnes ut
+   fra klokka, ikke fra hva som skjedde forrige ramme: da viser kartet
+   og skjermen spillerne ser på det samme, og ingenting hoper seg opp om
+   fanen har ligget i bakgrunnen.
+   ================================================================== */
+
+const VAER = ["klart", "regn", "storm"];
+const VAER_NAVN = { klart: "Klart vær", regn: "Regn", storm: "Storm" };
+
+/* Et fast tall mellom 0 og 1 for to heltall. Samme svar hver gang. */
+function tilfeldig(a, b) {
+  let h = Math.imul((a | 0) ^ 0x9e3779b9, 0x85ebca6b) ^
+          Math.imul(((b | 0) + 0x632be5ab) | 0, 0xc2b2ae35);
+  h ^= h >>> 15;
+  h = Math.imul(h, 0x2c1b3c6d);
+  h ^= h >>> 12;
+  h = Math.imul(h, 0x297a2d39);
+  h ^= h >>> 15;
+  return (h >>> 0) / 4294967296;
+}
+
+function fro(tekst) {
+  let h = 2166136261;
+  for (const c of String(tekst)) {
+    h ^= c.codePointAt(0);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function rest(a, n) { return ((a % n) + n) % n; }
+
+/* Hvor sterk den svikne nødlampa er akkurat nå, 0–1. Mesteparten av
+   tiden lyser den; i korte anfall flimrer den, og av og til dør den
+   helt et øyeblikk før den kommer tilbake. */
+function flimmerStyrke(t, frø) {
+  const periode = 6;
+  const n = Math.floor(t / periode);
+  if (tilfeldig(n, frø) < 0.2) return 1;
+  const start = tilfeldig(n, frø + 1) * (periode - 2.2);
+  const lengde = 0.35 + tilfeldig(n, frø + 2) * 1.5;
+  const inne = t - n * periode - start;
+  if (inne < 0 || inne > lengde) return 1;
+  if (tilfeldig(n, frø + 4) < 0.25 && inne < lengde * 0.6) return 0.02;
+  const r = tilfeldig(Math.floor(t * 16), frø + 3);
+  return r < 0.42 ? 0.03 : r < 0.62 ? 0.45 : 1;
+}
+
+/* Rullingen: fem vinkler, og en hel svingning på elleve sekunder. */
+const RULL_UTSLAG = [-2.5, -1.25, 0, 1.25, 2.5];
+const RULL_PERIODE = 11;
+
+/* Lag rullerammene for et lag, litt om gangen, så kartet ikke henger
+   mens de regnes ut. */
+function lagRulling(lag, room) {
+  if (lag.rullStartet || !lag.rull) return;
+  lag.rullStartet = true;
+  const opts = lag.rull;
+  const kart = [], dis = [];
+  let i = 0;
+  const neste = () => {
+    if (i >= RULL_UTSLAG.length) {
+      lag.anim = { type: "rulling", kart: kart, dis: dis.length === kart.length ? dis : null };
+      return;
+    }
+    const utslag = RULL_UTSLAG[i];
+    i += 1;
+    const o2 = Object.assign({}, opts, {
+      bareKart: true, flimmer: undefined,
+      lys: opts.lys.map((l) => l.ruller ? Object.assign({}, l, { vinkel: l.vinkel + utslag }) : l),
+    });
+    const r = Lysmotor.render(room.widthPx, room.heightPx, o2);
+    kart.push(r.kart);
+    if (r.dis) dis.push(r.dis);
+    setTimeout(neste, 20);
+  };
+  setTimeout(neste, 120);
+}
+
+/* Bland lagets varianter etter klokka. Gir styrken til den svikne
+   lampa, eller null når laget ikke har noe som beveger seg. */
+function oppdaterAnim(lag, t, frø) {
+  if (!lag || !lag.anim) return null;
+  const A = lag.anim;
+  let a = 0, b = 1, f = 1;
+  if (A.type === "flimmer") {
+    f = flimmerStyrke(t, frø);
+  } else {
+    const x = (Math.sin(2 * Math.PI * t / RULL_PERIODE) + 1) / 2 * (A.kart.length - 1);
+    a = Math.floor(x);
+    b = Math.min(A.kart.length - 1, a + 1);
+    f = x - a;
+  }
+  const merke = a + ":" + b + ":" + f.toFixed(2);
+  if (lag.sistMerke !== merke) {
+    lag.sistMerke = merke;
+    Lysmotor.bland(lag.kart, A.kart[a], A.kart[b], f);
+    if (A.dis && lag.dis) Lysmotor.bland(lag.dis, A.dis[a], A.dis[b], f);
+  }
+  return A.type === "flimmer" ? f : null;
+}
+
+/* Tilbake til ro: lampa på, strålene i midten. */
+function nullstillAnim(lag) {
+  if (!lag || !lag.anim) return;
+  const A = lag.anim;
+  const m = A.type === "flimmer" ? 1 : Math.floor(A.kart.length / 2);
+  const [a, b, f] = A.type === "flimmer" ? [0, 1, 1] : [m, m, 0];
+  Lysmotor.bland(lag.kart, A.kart[a], A.kart[b], f);
+  if (A.dis && lag.dis) Lysmotor.bland(lag.dis, A.dis[a], A.dis[b], f);
+  lag.sistMerke = null;
+}
+
+/* --- havet og været ------------------------------------------------ */
+
+const livHurtig = new Map();
+
+/* Det partiklene trenger å vite om rommet: havcellene og punkter langs
+   rekka med retningen inn over dekket. */
+function livData(room) {
+  if (livHurtig.has(room.id)) return livHurtig.get(room.id);
+  const R = romLys(room);
+  const hav = (R.L.hav && R.L.hav.rader) || [];
+  const celler = [];
+  hav.forEach(([y, x0, x1]) => { for (let x = x0; x < x1; x += 1) celler.push([x, y]); });
+  const mx = room.widthPx / 2, my = room.heightPx / 2;
+  const rekke = [];
+  R.rekker.forEach((linje) => {
+    langsLinje(linje, 12, 6).forEach(([x, y]) => {
+      const d = Math.hypot(mx - x, my - y) || 1;
+      rekke.push({ x: x, y: y, nx: (mx - x) / d, ny: (my - y) / d });
+    });
+  });
+  const ut = { R: R, celle: (R.L.hav && R.L.hav.celle) || 4, celler: celler, rekke: rekke };
+  livHurtig.set(room.id, ut);
+  return ut;
+}
+
+/* Trenger rommet et livslag i det hele tatt? */
+function harLiv(room) {
+  const d = livData(room);
+  return d.R.harUte && (d.celler.length > 0 || state.mapVaer !== "klart");
+}
+
+function tegnGlitter(g, d, t, natt, vaer) {
+  const c = d.celle;
+  let n = Math.min(260, Math.round(d.celler.length / 10));
+  if (natt) n = Math.round(n * 0.45);
+  if (vaer === "regn") n = Math.round(n * 0.6);
+  if (vaer === "storm") n = Math.round(n * 0.35);
+  const farge = natt ? "205,220,255" : vaer === "klart" ? "255,255,255" : "225,232,240";
+  const maks = natt ? 0.55 : vaer === "klart" ? 0.95 : 0.6;
+  for (let i = 0; i < n; i += 1) {
+    const p = 1.1 + tilfeldig(i, 11) * 1.9;
+    const tt = t + tilfeldig(i, 12) * p;
+    const slot = Math.floor(tt / p);
+    const fase = tt / p - slot;
+    if (fase > 0.45) continue;
+    const celle = d.celler[Math.floor(tilfeldig(i * 7 + slot, 13) * d.celler.length)];
+    const x = (celle[0] + tilfeldig(i, slot + 14)) * c;
+    const y = (celle[1] + tilfeldig(slot, i + 15)) * c;
+    const a = Math.pow(Math.sin(fase / 0.45 * Math.PI), 2) * maks;
+    // Havet i kunsten har alt hvite bølgestreker, så glimtet må være
+    // større og klarere enn dem: en liten stjerne med et skjær rundt.
+    const st = 1.2 + tilfeldig(i, 16) * 1.8;
+    g.fillStyle = "rgba(" + farge + "," + (a * 0.28).toFixed(3) + ")";
+    g.beginPath();
+    g.arc(x, y, st * 0.9, 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = "rgba(" + farge + "," + a.toFixed(3) + ")";
+    g.fillRect(x - st, y - 0.4, st * 2, 0.8);
+    g.fillRect(x - 0.4, y - st * 0.7, 0.8, st * 1.4);
+  }
+  // Skumtopper i storm: hvite flekker som driver med vinden.
+  if (vaer === "storm") {
+    const m = Math.min(140, Math.round(d.celler.length / 22));
+    for (let i = 0; i < m; i += 1) {
+      const p = 2.2 + tilfeldig(i, 17) * 1.6;
+      const tt = t + tilfeldig(i, 18) * p;
+      const slot = Math.floor(tt / p);
+      const fase = tt / p - slot;
+      const celle = d.celler[Math.floor(tilfeldig(i * 5 + slot, 19) * d.celler.length)];
+      const x = (celle[0] + 0.5) * c + fase * 14;
+      const y = (celle[1] + 0.5) * c + fase * 8;
+      const a = Math.sin(fase * Math.PI) * (natt ? 0.4 : 0.65);
+      g.fillStyle = "rgba(236,242,248," + a.toFixed(3) + ")";
+      g.beginPath();
+      g.ellipse(x, y, 3 + tilfeldig(i, 20) * 4, 1.4 + tilfeldig(i, 21) * 2, 0.5, 0, Math.PI * 2);
+      g.fill();
+    }
+  }
+}
+
+function tegnRegn(g, room, t, natt, storm) {
+  const W = room.widthPx, H = room.heightPx;
+  const n = Math.round(W * H / (storm ? 650 : 1500));
+  const fart = storm ? 560 : 320, len = storm ? 15 : 8;
+  const retning = storm ? [0.84, 0.54] : [0.26, 0.97];
+  const vx = retning[0] * fart, vy = retning[1] * fart;
+  g.strokeStyle = natt ? "rgba(170,190,228,0.32)" : "rgba(214,228,246,0.45)";
+  g.lineWidth = storm ? 0.9 : 0.7;
+  g.beginPath();
+  for (let i = 0; i < n; i += 1) {
+    const k = 0.8 + tilfeldig(i, 23) * 0.4;
+    const x = rest(tilfeldig(i, 21) * (W + 80) + vx * k * t, W + 80) - 40;
+    const y = rest(tilfeldig(i, 22) * (H + 80) + vy * k * t, H + 80) - 40;
+    g.moveTo(x, y);
+    g.lineTo(x - retning[0] * len * k, y - retning[1] * len * k);
+  }
+  g.stroke();
+  // Plask: små ringer der dråpene treffer dekket.
+  const m = Math.round(n / 3);
+  g.strokeStyle = natt ? "rgba(170,190,228,1)" : "rgba(226,236,250,1)";
+  g.lineWidth = 0.6;
+  for (let j = 0; j < m; j += 1) {
+    const p = 0.45;
+    const tt = t + tilfeldig(j, 31) * p;
+    const slot = Math.floor(tt / p);
+    const fase = tt / p - slot;
+    const x = tilfeldig(j * 3 + slot, 32) * W, y = tilfeldig(slot, j * 3 + 33) * H;
+    g.globalAlpha = (1 - fase) * (natt ? 0.3 : 0.45);
+    g.beginPath();
+    g.arc(x, y, 0.8 + fase * 3.5, 0, Math.PI * 2);
+    g.stroke();
+  }
+  g.globalAlpha = 1;
+}
+
+/* Sjøsprøyt: en bølge slår mot skroget, og en sky av dråper står inn
+   over rekka. */
+function tegnSproyt(g, d, t, natt) {
+  if (!d.rekke.length) return;
+  const baner = Math.max(4, Math.round(d.rekke.length / 12));
+  for (let b = 0; b < baner; b += 1) {
+    const p = 1.8 + tilfeldig(b, 41) * 1.6;
+    const tt = t + tilfeldig(b, 42) * p;
+    const slot = Math.floor(tt / p);
+    const tid = tt - slot * p;
+    if (tid > 1.1) continue;
+    const fase = tid / 1.1;
+    const pt = d.rekke[Math.floor(tilfeldig(b * 13 + slot, 43) * d.rekke.length)];
+    const sx = pt.x + pt.nx * fase * 16, sy = pt.y + pt.ny * fase * 16;
+    const r = 8 + fase * 32;
+    const sky = g.createRadialGradient(sx, sy, 0, sx, sy, r);
+    sky.addColorStop(0, "rgba(232,240,248," + ((1 - fase) * (natt ? 0.32 : 0.5)).toFixed(3) + ")");
+    sky.addColorStop(1, "rgba(232,240,248,0)");
+    g.fillStyle = sky;
+    g.fillRect(sx - r, sy - r, r * 2, r * 2);
+    const vinkel = Math.atan2(pt.ny, pt.nx);
+    g.fillStyle = "rgba(240,246,252," + ((1 - fase) * (natt ? 0.6 : 0.85)).toFixed(3) + ")";
+    for (let k = 0; k < 28; k += 1) {
+      const v = vinkel + (tilfeldig(k, slot * 7 + b) - 0.5) * 1.5;
+      const fart = 50 + tilfeldig(k, slot * 5 + b + 1) * 150;
+      const avstand = fart * tid * (1 - fase * 0.45);
+      const st = 1 + tilfeldig(k, b + 44) * 1.6;
+      g.fillRect(pt.x + Math.cos(v) * avstand - st / 2, pt.y + Math.sin(v) * avstand - st / 2, st, st);
+    }
+  }
+}
+
+/* Lyn: to eller tre raske blink med noen sekunders mellomrom. */
+function lynStyrke(t, natt) {
+  const p = 8;
+  const n = Math.floor(t / p);
+  if (tilfeldig(n, 51) < 0.35) return 0;
+  const x = t - n * p - (0.5 + tilfeldig(n, 52) * (p - 1.5));
+  if (x < 0 || x > 0.6) return 0;
+  const a = x < 0.07 ? 1 : x < 0.14 ? 0.2 : x < 0.22 ? 0.75
+          : Math.max(0, 0.5 * (1 - (x - 0.22) / 0.38));
+  return (natt ? 0.45 : 0.32) * a;
+}
+
+/* Hele livslaget for et rom, i romkoordinater. Klippes til det som er
+   ute: regnet faller på dekk, ikke inne i styrhuset. */
+function tegnLiv(g, room, t) {
+  const d = livData(room);
+  if (!d.R.harUte) return;
+  const natt = state.mapTime === "natt", vaer = state.mapVaer;
+  g.save();
+  g.beginPath();
+  d.R.uteSoner.forEach(([x, y, w, h]) => g.rect(x, y, w, h));
+  d.R.inneSoner.forEach(([x, y, w, h]) => g.rect(x, y, w, h));
+  g.clip("evenodd");
+  if (d.celler.length) tegnGlitter(g, d, t, natt, vaer);
+  if (vaer !== "klart") tegnRegn(g, room, t, natt, vaer === "storm");
+  if (vaer === "storm") {
+    tegnSproyt(g, d, t, natt);
+    const lyn = lynStyrke(t, natt);
+    if (lyn > 0) {
+      g.fillStyle = "rgba(226,234,255," + lyn.toFixed(3) + ")";
+      g.fillRect(0, 0, room.widthPx, room.heightPx);
+    }
+  }
+  g.restore();
+}
+
+/* --- løkka i kartfanen --------------------------------------------- */
+
+const animasjon = { ramme: null, sist: 0 };
+
+function naa() { return performance.now() / 1000; }
+
+function startAnimasjon() {
+  if (animasjon.ramme || !state.mapAnim) return;
+  animasjon.ramme = requestAnimationFrame(animRamme);
+}
+
+function animRamme(ts) {
+  animasjon.ramme = null;
+  if (!state.mapAnim || state.view !== "maps" || document.hidden) return;
+  const layer = document.getElementById("maplayer");
+  const room = currentMapRoom();
+  if (!layer || !room) return;
+  const lag = visLag && visLag.room === room ? visLag.lag : null;
+  const liv = document.getElementById("maplyv");
+  // Ingenting som rører seg: stopp, så nettbrettet får hvile.
+  if (!liv && !(lag && (lag.anim || lag.rull))) return;
+  if (ts - animasjon.sist >= 1000 / 30) {
+    animasjon.sist = ts;
+    const t = naa();
+    if (lag) {
+      if (lag.rull && !lag.rullStartet) lagRulling(lag, room);
+      const f = oppdaterAnim(lag, t, fro(room.id));
+      if (f !== null) {
+        layer.querySelectorAll(".maplys.flimmer").forEach((c) => {
+          c.style.opacity = f.toFixed(2);
+        });
+      }
+    }
+    if (liv) {
+      const g = liv.getContext("2d");
+      g.setTransform(1, 0, 0, 1, 0, 0);
+      g.clearRect(0, 0, liv.width, liv.height);
+      g.setTransform(liv.width / room.widthPx, 0, 0, liv.height / room.heightPx, 0, 0);
+      tegnLiv(g, room, t);
+    }
+  }
+  animasjon.ramme = requestAnimationFrame(animRamme);
+}
+
+function stoppAnimasjon() {
+  if (animasjon.ramme) cancelAnimationFrame(animasjon.ramme);
+  animasjon.ramme = null;
+  if (visLag) nullstillAnim(visLag.lag);
+  if (skjerm.forberedt) nullstillAnim(skjerm.forberedt.lag);
+  document.querySelectorAll(".maplys.flimmer").forEach((c) => { c.style.opacity = "1"; });
+  const liv = document.getElementById("maplyv");
+  if (liv) liv.getContext("2d").clearRect(0, 0, liv.width, liv.height);
+}
+
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) { startAnimasjon(); startSkjermAnim(); }
+});
 
 /* Håndtaket til et lys man har satt ut: en ring man kan ta tak i. */
 function lysHandtak(lys) {
@@ -10597,6 +11066,30 @@ function viewMaps(root) {
       saveMapPrefs(); render();
     },
   }));
+  tools.appendChild(el("button", {
+    class: "chip resp" + (state.mapVaer !== "klart" ? " on" : ""),
+    type: "button", text: VAER_NAVN[state.mapVaer],
+    "aria-pressed": String(state.mapVaer !== "klart"),
+    title: "Været ute: klart, regn eller storm. Gjelder dekkene og alt " +
+           "annet som er ute; inne merkes det ikke.",
+    onclick: () => {
+      state.mapVaer = VAER[(VAER.indexOf(state.mapVaer) + 1) % VAER.length];
+      saveMapPrefs(); render();
+    },
+  }));
+  tools.appendChild(el("button", {
+    class: "chip resp" + (state.mapAnim ? " on" : ""),
+    type: "button", text: "Animasjon", "aria-pressed": String(state.mapAnim),
+    title: "Nødlampe som svikter, solstriper som vandrer med skipet, " +
+           "glitrende hav, regn, sjøsprøyt og lyn",
+    onclick: () => {
+      state.mapAnim = !state.mapAnim;
+      if (!state.mapAnim) stoppAnimasjon();
+      saveMapPrefs(); render();
+      if (state.mapAnim) startSkjermAnim();
+      else { skjerm.sist = ""; oppdaterSkjerm(); }
+    },
+  }));
 
   // Lyskilder man setter ut selv.
   const lysvalgt = selectedLight(room);
@@ -10717,6 +11210,14 @@ function viewMaps(root) {
   // Lyset legges over gjenstandene, men under rutenettet — rutene skal
   // være lesbare også når det er stummende mørkt.
   lysElementer(room).forEach((c) => layer.appendChild(c));
+  // Havet og været rører seg i et eget lag over lyset.
+  if (state.mapAnim && harLiv(room)) {
+    layer.appendChild(el("canvas", {
+      class: "maplys liv", id: "maplyv",
+      width: String(room.widthPx * 2), height: String(room.heightPx * 2),
+      style: "width:" + room.widthPx + "px;height:" + room.heightPx + "px",
+    }));
+  }
   if (state.mapGrid) {
     const g = el("div");
     g.innerHTML = gridSvg(room);
@@ -10746,7 +11247,11 @@ function viewMaps(root) {
   main.appendChild(el("p", { class: "mapmeta",
     text: "Lys: " + (natt ? "natt" : "dag") +
           (state.mapPower ? "" : " · strømbrudd") +
-          " · rommet har " + LYS_NAVN[sort] + forklaring }));
+          " · rommet har " + LYS_NAVN[sort] + forklaring +
+          (state.mapVaer !== "klart"
+            ? (romLys(room).harUte ? " · " + VAER_NAVN[state.mapVaer].toLowerCase() + " ute"
+                                   : " · været ute merkes ikke her inne")
+            : "") }));
 
   // --- skjulte gjenstander
   const skjult = room.items
@@ -10864,6 +11369,7 @@ function viewMaps(root) {
   oppdaterVerktoy();
   // Det som står på skjermen hos spillerne følger med.
   oppdaterSkjerm();
+  startAnimasjon();
 }
 
 /* ==================================================================
@@ -10888,7 +11394,8 @@ function lastBilde(src) {
   return bildeLager.get(src);
 }
 
-async function tegnKart(room, skala, spiller) {
+/* Bakgrunnen og gjenstandene, uten lys. */
+async function tegnBase(room, skala, spiller) {
   const bg = await lastBilde(mapAsset(room, "bg"));
   const atlas = await lastBilde(mapAsset(room, "sprites"));
   const c = document.createElement("canvas");
@@ -10898,12 +11405,7 @@ async function tegnKart(room, skala, spiller) {
   g.imageSmoothingEnabled = false;
   g.scale(skala, skala);
   g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
-
-  // Resten tegnes uten pause, så spillervisningen kan slås på og av
-  // rundt det uten at noe annet rekker å se den.
-  const var_ = state.mapPlayer;
-  if (spiller !== undefined) state.mapPlayer = spiller;
-  try {
+  medSpiller(spiller, () => {
     visibleProps(room).forEach((p) => {
       const ramme = room.frames[p.item.sprite];
       if (!ramme) return;
@@ -10914,35 +11416,60 @@ async function tegnKart(room, skala, spiller) {
       g.drawImage(atlas, fx, fy, fw, fh, -fw / 2, -fh / 2, fw, fh);
       g.restore();
     });
+  });
+  return c;
+}
 
-    // Lyset tegnes i bildets oppløsning, så skyggekantene blir like
-    // skarpe som kunsten. Lagene legges på slik nettleseren gjør det
-    // på skjermen.
-    const lag = lysLag(room, null, skala);
-    g.save();
-    g.setTransform(1, 0, 0, 1, 0, 0);
-    [["kart", "multiply"], ["dis", "screen"], ["glod", "screen"],
-     ["ting", "source-over"]].forEach(([navn, blanding]) => {
+/* Kjør noe med spillervisningen satt, og sett den tilbake etterpå.
+   Det skjer uten pause, så ingenting annet rekker å se den. */
+function medSpiller(spiller, fn) {
+  const var_ = state.mapPlayer;
+  if (spiller !== undefined) state.mapPlayer = spiller;
+  try { return fn(); } finally { state.mapPlayer = var_; }
+}
+
+/* Lyslagene og rutenettet lagt over en base, i romkoordinater. g må
+   være skalert slik at én rompiksel er én enhet. flimmer er styrken
+   til lampa som svikter. */
+function leggLysOver(g, room, lag, flimmer, t) {
+  const W = room.widthPx, H = room.heightPx;
+  g.save();
+  g.imageSmoothingEnabled = true;
+  [["kart", "multiply"], ["dis", "screen"], ["glod", "screen"],
+   ["glodFlimmer", "screen"], ["ting", "source-over"], ["tingFlimmer", "source-over"]]
+    .forEach(([navn, blanding]) => {
       if (!lag[navn]) return;
       g.globalCompositeOperation = blanding;
-      g.drawImage(lag[navn], 0, 0, c.width, c.height);
+      g.globalAlpha = /Flimmer$/.test(navn) && flimmer !== null && flimmer !== undefined
+        ? flimmer : 1;
+      g.drawImage(lag[navn], 0, 0, W, H);
     });
-    g.restore();
-  } finally {
-    state.mapPlayer = var_;
-  }
-
+  g.restore();
+  if (t !== undefined && state.mapAnim) tegnLiv(g, room, t);
   if (state.mapGrid) {
     const rute = (state.maps.units && state.maps.units.gridPx) || 80;
+    const k = g.getTransform().a || 1;
+    g.save();
     g.strokeStyle = "rgba(0,0,0,0.5)";
-    g.lineWidth = 1 / skala;
-    for (let x = rute; x < room.widthPx; x += rute) {
-      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, room.heightPx); g.stroke();
+    g.lineWidth = 1 / k;
+    for (let x = rute; x < W; x += rute) {
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke();
     }
-    for (let y = rute; y < room.heightPx; y += rute) {
-      g.beginPath(); g.moveTo(0, y); g.lineTo(room.widthPx, y); g.stroke();
+    for (let y = rute; y < H; y += rute) {
+      g.beginPath(); g.moveTo(0, y); g.lineTo(W, y); g.stroke();
     }
+    g.restore();
   }
+}
+
+/* Hele kartet som ett bilde — til PNG-eksporten. Lyset tegnes i
+   bildets oppløsning, så skyggekantene blir like skarpe som kunsten. */
+async function tegnKart(room, skala, spiller) {
+  const c = await tegnBase(room, skala, spiller);
+  const g = c.getContext("2d");
+  const lag = medSpiller(spiller, () => lysLag(room, null, skala));
+  g.setTransform(skala, 0, 0, skala, 0, 0);
+  leggLysOver(g, room, lag, 1);
   return c;
 }
 
@@ -10966,7 +11493,8 @@ async function tegnKart(room, skala, spiller) {
    som flyttes i rommet følger med med én gang.
    ================================================================== */
 
-const skjerm = { vindu: null, lag: null, sist: "", venter: null };
+const skjerm = { vindu: null, lag: null, sist: "", venter: null,
+                 forberedt: null, ramme: null };
 
 function skjermApen() {
   if (skjerm.vindu && skjerm.vindu.closed) skjermLukket();
@@ -10988,47 +11516,87 @@ function oppdaterSkjerm() {
 async function tegnSkjerm() {
   const room = skjermRom();
   if (!room || !skjermApen()) return;
+  const flater = skjermFlater();
+  if (!flater.length) return;
+
+  // Bakgrunnen i den oppløsningen den største flaten trenger. Lyset er
+  // mykt og deles med kartfanen; det tegnes i romoppløsning og skaleres.
+  const behov = Math.max.apply(null, flater.map((f) =>
+    Math.min(f.w / room.widthPx, f.h / room.heightPx) * f.dpr));
+  const skala = Math.max(1, Math.min(3, Math.ceil(behov)));
+  const nokkel = medSpiller(true, () => lysNokkel(room)) + "|" + state.mapGrid +
+                 "|" + state.mapAnim + "|" + skala + "|" +
+                 flater.map((f) => f.w + "x" + f.h).join(",");
+  if (nokkel === skjerm.sist) return;
+  let base;
+  try {
+    base = await tegnBase(room, skala, true);
+  } catch (e) {
+    return;
+  }
+  skjerm.sist = nokkel;
+  skjerm.forberedt = { room: room, base: base,
+                       lag: medSpiller(true, () => lysLag(room)) };
+  tegnSkjermRamme();
+  startSkjermAnim();
+}
+
+function skjermFlater() {
   const flater = [];
-  if (skjerm.vindu) {
+  if (skjerm.vindu && !skjerm.vindu.closed) {
     const c = skjerm.vindu.document.getElementById("scene");
     if (c) flater.push({ c: c, w: skjerm.vindu.innerWidth, h: skjerm.vindu.innerHeight,
                          dpr: skjerm.vindu.devicePixelRatio || 1 });
   }
   if (skjerm.lag) {
-    const c = skjerm.lag.querySelector("canvas");
-    flater.push({ c: c, w: window.innerWidth, h: window.innerHeight,
-                  dpr: window.devicePixelRatio || 1 });
+    flater.push({ c: skjerm.lag.querySelector("canvas"), w: window.innerWidth,
+                  h: window.innerHeight, dpr: window.devicePixelRatio || 1 });
   }
-  if (!flater.length) return;
+  return flater;
+}
 
-  // Én tegning, i den oppløsningen den største flaten trenger.
-  const behov = Math.max.apply(null, flater.map((f) =>
-    Math.min(f.w / room.widthPx, f.h / room.heightPx) * f.dpr));
-  const skala = Math.max(1, Math.min(3, Math.ceil(behov)));
-  const var_ = state.mapPlayer;
-  state.mapPlayer = true;
-  const nokkel = lysNokkel(room) + "|" + state.mapGrid + "|" + skala + "|" +
-                 flater.map((f) => f.w + "x" + f.h).join(",");
-  state.mapPlayer = var_;
-  if (nokkel === skjerm.sist) return;
-  let bilde;
-  try {
-    bilde = await tegnKart(room, skala, true);
-  } catch (e) {
-    return;
-  }
-  skjerm.sist = nokkel;
-  flater.forEach((f) => {
-    f.c.width = Math.round(f.w * f.dpr);
-    f.c.height = Math.round(f.h * f.dpr);
+/* Én ramme på skjermen: base, lys og vær, rett inn i hver flate. */
+function tegnSkjermRamme() {
+  const f0 = skjerm.forberedt;
+  if (!f0) return;
+  const room = f0.room;
+  const t = naa();
+  const flimmer = state.mapAnim ? oppdaterAnim(f0.lag, t, fro(room.id)) : null;
+  skjermFlater().forEach((f) => {
+    const bw = Math.round(f.w * f.dpr), bh = Math.round(f.h * f.dpr);
+    if (f.c.width !== bw) f.c.width = bw;
+    if (f.c.height !== bh) f.c.height = bh;
     const g = f.c.getContext("2d");
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    g.globalCompositeOperation = "source-over";
+    g.globalAlpha = 1;
     g.fillStyle = "#000";
-    g.fillRect(0, 0, f.c.width, f.c.height);
-    const k = Math.min(f.c.width / bilde.width, f.c.height / bilde.height);
-    const bw = bilde.width * k, bh = bilde.height * k;
-    g.imageSmoothingEnabled = k < 1;
-    g.drawImage(bilde, (f.c.width - bw) / 2, (f.c.height - bh) / 2, bw, bh);
+    g.fillRect(0, 0, bw, bh);
+    const k = Math.min(bw / room.widthPx, bh / room.heightPx);
+    g.setTransform(k, 0, 0, k, (bw - room.widthPx * k) / 2, (bh - room.heightPx * k) / 2);
+    g.imageSmoothingEnabled = k * room.widthPx < f0.base.width;
+    g.drawImage(f0.base, 0, 0, room.widthPx, room.heightPx);
+    leggLysOver(g, room, f0.lag, flimmer, t);
   });
+}
+
+/* Skjermen har sin egen løkke, i sitt eget vindu: den skal gå videre
+   selv om Keeperen har appen liggende bak noe annet. */
+function startSkjermAnim() {
+  if (skjerm.ramme || !state.mapAnim || !skjerm.forberedt) return;
+  const vindu = skjerm.vindu && !skjerm.vindu.closed ? skjerm.vindu : window;
+  let sist = 0;
+  const steg = () => {
+    skjerm.ramme = null;
+    const f0 = skjerm.forberedt;
+    if (!skjermApen() || !state.mapAnim || !f0) return;
+    if (!(f0.lag.anim || f0.lag.rull || harLiv(f0.room))) return;
+    if (f0.lag.rull && !f0.lag.rullStartet) lagRulling(f0.lag, f0.room);
+    const n = performance.now();
+    if (n - sist >= 1000 / 30) { sist = n; tegnSkjermRamme(); }
+    skjerm.ramme = vindu.requestAnimationFrame(steg);
+  };
+  skjerm.ramme = vindu.requestAnimationFrame(steg);
 }
 
 function sendTilSkjerm(room) {
@@ -11108,7 +11676,10 @@ function apneSkjermvindu(room) {
 function skjermLukket() {
   if (!skjerm.vindu) return;
   skjerm.vindu = null;
-  if (!skjerm.lag) state.sceneRoom = null;
+  // Løkka gikk i vinduet som nå er borte.
+  skjerm.ramme = null;
+  if (!skjerm.lag) { state.sceneRoom = null; skjerm.forberedt = null; }
+  else { skjerm.sist = ""; oppdaterSkjerm(); }
   if (state.view === "maps") render();
 }
 
@@ -11146,7 +11717,7 @@ function lukkFullskjerm() {
   skjerm.lag = null;
   if (document.fullscreenElement === lag) document.exitFullscreen().catch(() => {});
   lag.remove();
-  if (!skjerm.vindu) state.sceneRoom = null;
+  if (!skjerm.vindu) { state.sceneRoom = null; skjerm.forberedt = null; }
   skjerm.sist = "";
   if (state.view === "maps") render();
 }
