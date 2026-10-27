@@ -689,6 +689,71 @@ async def test_view():
         check("og da lyser lampa jevnt", r["opasitet"], ["1", "1"])
         check("og havet står stille", r["livUten"], False)
 
+        print("\n== lys som overlapper, stråler og storm ==")
+        r = await pg.evaluate("""() => {
+            const px = (c, x, y) => c.getContext('2d').getImageData(x, y, 1, 1).data[0];
+            const felles = { aktiv: true, omgivelse: [0, 0, 0], soner: [], kilder: [],
+                             vignett: 0, dis: 0, uskarp: 0.5, hindre: [] };
+            const lampe = (x) => ({ type: 'punkt', x: x, y: 50, radius: 80,
+              farge: [200, 200, 200], styrke: 1, hoyde: 80, maksSkygge: 100 });
+            const en = Lysmotor.render(100, 100, Object.assign({}, felles, { lys: [lampe(50)] }));
+            const to = Lysmotor.render(100, 100, Object.assign({}, felles, { lys: [lampe(50), lampe(50)] }));
+            // Bland: halvveis mellom svart og 200 er 100.
+            const mk = (v) => { const c = document.createElement('canvas'); c.width = c.height = 4;
+              const g = c.getContext('2d'); g.fillStyle = 'rgb(' + v + ',' + v + ',' + v + ')';
+              g.fillRect(0, 0, 4, 4); return c; };
+            const maal = mk(0);
+            Lysmotor.bland(maal, mk(0), mk(200), 0.5);
+            const halv = px(maal, 1, 1);
+            Lysmotor.bland(maal, mk(0), mk(200), 0.99);
+            const nesten = px(maal, 1, 1);
+            // En stråle oppover: tingen under vinduet er ute og skygger ikke.
+            const ute = [Lysmotor.hinder(Lysmotor.hjorner(40, 70, 20, 20, 0), 60, 'stol')];
+            const opp = Lysmotor.render(100, 100, Object.assign({}, felles, { hindre: ute,
+              lys: [{ type: 'stråle', x: 50, y: 60, vinkel: 180, lengde: 60, bredde: 40,
+                      spredning: 1, langs: [1, 0], farge: [255, 255, 255], styrke: 1,
+                      skyggelengde: 1 }] }));
+            const uten = Lysmotor.render(100, 100, Object.assign({}, felles,
+              { lys: [{ type: 'stråle', x: 50, y: 60, vinkel: 180, lengde: 60, bredde: 40,
+                        spredning: 1, langs: [1, 0], farge: [255, 255, 255], styrke: 1,
+                        skyggelengde: 1 }] }));
+            return { en: px(en.kart, 50, 50), to: px(to.kart, 50, 50), halv, nesten,
+                     opp: px(opp.kart, 50, 30), oppUten: px(uten.kart, 50, 30) }; }""")
+        check("to lys på samme sted blir ikke dobbelt så sterke",
+              abs(r["to"] - r["en"]) <= 3, True)
+        check("overgangen mellom to varianter er jevn",
+              [abs(r["halv"] - 100) <= 2, abs(r["nesten"] - 198) <= 2], [True, True])
+        check("ting på utsiden av vinduet skygger ikke inne",
+              abs(r["opp"] - r["oppUten"]) <= 2, True)
+
+        r = await pg.evaluate("""() => {
+            const kabin = mapRoomById('kabin'), soong = mapRoomById('soong');
+            state.mapTime = 'dag'; state.mapPower = false;
+            const straale = (rom) => lysFor(rom).lys.find(l => l.type === 'stråle');
+            state.mapVaer = 'klart';
+            const klart = straale(kabin), soongKlart = straale(soong);
+            const lynKlart = lysFor(kabin).lyn.length;
+            state.mapVaer = 'storm';
+            const storm = straale(kabin);
+            const lynDag = lysFor(kabin);
+            state.mapTime = 'natt';
+            const natt = lysFor(kabin);
+            state.mapVaer = 'klart'; state.mapTime = 'dag'; state.mapPower = true;
+            const kald = (f) => f[2] - f[0];
+            return { langs: soongKlart.langs, svakere: storm.styrke < klart.styrke,
+                     kaldere: kald(storm.farge) > kald(klart.farge),
+                     lynKlart, lynStorm: lynDag.lyn.length, faktorDag: lynDag.lynFaktor,
+                     faktorNatt: natt.lynFaktor,
+                     maaneIStorm: natt.lys.filter(l => l.type === 'stråle').length }; }""")
+        check("strålene inn hos Soong starter langs vinduet", r["langs"], [1, 0])
+        check("i storm er lyset gjennom vinduene svakere", r["svakere"], True)
+        check("og kaldere", r["kaldere"], True)
+        check("lynet slår inn gjennom vinduene i storm",
+              [r["lynKlart"], r["lynStorm"]], [0, 4])
+        check("sterkest om natta ved strømbrudd",
+              r["faktorNatt"] > r["faktorDag"] > 0, True)
+        check("og månen er borte bak stormskyene", r["maaneIStorm"], 0)
+
         print("\n== dekoren kan slås av ==")
         r = await pg.evaluate("""async () => {
             // Finn et rom som faktisk har dekor.
