@@ -3,9 +3,10 @@
     python3 tools/lysmotor/lag_demo.py kabin tools/lysmotor/kabin_oppsett.js /tmp/kabin.html
     python3 tools/lysmotor/ta_bilde.py /tmp/kabin.html /tmp/kabin.png
 
-Prototype. Lysmotoren er ikke koblet inn i appen ennå; dette er
-verkstedet der utseendet prøves ut rom for rom før den erstatter
-lyslagene i kartfanen.
+Verkstedet der utseendet ble prøvd ut rom for rom. Motoren i appen
+(web/template.html, «LYS OG SKYGGE») bygger på lysmotor.js her, men har
+fått mer: lag per lys, flere lystyper og lysdataene fra
+bestiary/lys_rom.json. Det som godkjennes her, flyttes dit for hånd.
 
 Oppsettfila er JavaScript som returnerer lyskildene, grunnlyset og
 eventuelle innervegger for rommet. Vegger er bakt inn i bakgrunnen, så

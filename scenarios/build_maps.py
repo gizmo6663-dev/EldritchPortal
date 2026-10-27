@@ -19,6 +19,14 @@ av vekten uten å endre et eneste piksel man kan se. Hver fil leses
 tilbake og sammenlignes før den godtas; går det ikke opp, skrives PNG
 i stedet.
 
+Hver gjenstand får også en høyde (h, i rompiksler), og hvert rom får
+lysdataene sine fra bestiary/lys_rom.json: vinduer, innervegger,
+rekker og hvor nødlampene henger. Det er det lysmotoren i appen
+trenger for å kaste skygger. Høydene og lysdataene kan legges på
+alene, uten handoff-pakka:
+
+    python3 scenarios/build_maps.py --bare-lys
+
 Ut:
     bestiary/battlemaps.json
     web/maps/<no>-<id>/bg.webp
@@ -41,6 +49,7 @@ import re
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UT_JSON = os.path.join(REPO, "bestiary", "battlemaps.json")
 UT_BILDER = os.path.join(REPO, "web", "maps")
+LYS_JSON = os.path.join(REPO, "bestiary", "lys_rom.json")
 
 # Luft mellom spritene i atlaset, så nærmeste-nabo-skalering ikke
 # drar en pikselrad fra naboen med seg inn i kanten.
@@ -197,15 +206,161 @@ def skriv(bilde, mappe, stamme):
     return stamme + ".png", os.path.getsize(png)
 
 
+# ------------------------------------------------------------------
+# Høyder. Lysmotoren kaster skygger fra gjenstandene, og hvor lang
+# skyggen blir avhenger av hvor høy tingen er. Kunsten har ingen
+# høyder, så de gjettes fra navnet: 16 piksler er én fot, så en stol
+# er 44 og et skap 96. Ting som ligger på gulvet (z under 7) eller
+# står oppå noe annet (z 15 og over) kaster ingen egen skygge.
+# ------------------------------------------------------------------
+
+# Navngitte unntak, som sjekkes før alt annet. Det er her gjettingen
+# gikk galt første gang: «Hudson touring» traff «ring» (livbøye) og
+# fikk en halv fot, og «Pianokrakk» traff «piano».
+HOYDE_FORST = [
+    (r"hudson|touring|packard|sedan|traktor", 60), (r"bugatti", 48),
+    (r"lastebom|veggmaleri|frakk på knagg|flaggstang|høygaffel|rotte|"
+     r"shuffleboard|spillbrett|tanklokk|speil|lykt|kokebål|bålrester", 0),
+    (r"pianokrakk", 44), (r"ventilratt", 40), (r"arbeidsbenk", 40),
+    (r"maskintelegraf", 48), (r"vitenskapelige", 56), (r"haglgevær", 40),
+    (r"talerør", 40), (r"appelsin|epler|sitron", 40), (r"høyball", 40),
+    (r"tralle", 40), (r"skjenk", 44), (r"harpe", 64), (r"globus", 44),
+    (r"hengende kjøtt", 72), (r"kokekar", 24), (r"kontrollpanel", 56),
+    (r"leirduekaster", 30), (r"medisinsk", 44), (r"skrot", 20),
+    (r"trillebår", 28), (r"vaktpost", 64), (r"vanntrau", 24),
+    (r"vievann", 40), (r"funeral", 40), (r"stewarduniform", 56),
+    (r"portrett", 56), (r"blomster \(", 30),
+    # Ord i HOYDE_FLATE som også står inne i navnet på noe høyt:
+    # «lamp» i floorlamp, «oil» i toilet, «aske» i vaskeservant,
+    # «note» i noteskap, «glass» i glassballonger.
+    (r"gulvlampe", 80), (r"skrivebord", 44), (r"koffert", 24),
+    (r"toalett", 26), (r"servant", 44), (r"kartbord", 28),
+    (r"noteskap", 96), (r"notestativ", 40), (r"orkesterstoler", 44),
+    (r"papirkurv", 18), (r"glassballong", 40), (r"kasser med", 48),
+    (r"pipes of leng", 48), (r"knefall", 20), (r"dieselmanifold", 40),
+]
+
+HOYDE_FLATE = re.compile(
+    r"dør|door|skilt|\blab|sign|teppe|matte|rug|avis|papir|brev|flekk|"
+    r"blod|søl|oil|strø|straw|tau|rope|kjetting|chain|presenning|tarp|"
+    r"pall|pallet|\blik\b|body|skinn|pelt|skrue|leider|ladder|hengelås|"
+    r"padlock|kart|map|spor|trail|pool|luke|hatch|rist|grate|kakerlakk|"
+    r"roach|swarm|sverm|lys|lamp(?!e)|shroud|klut|håndkle|towel|note|"
+    r"lapp|sko|shoe|tøfler|slipper|bok|book|glass|kopp|cup|flaske|"
+    r"bottle|karaffel|decanter|pipe|sigar|aske(?!beger)|dress|suit", re.I)
+
+# Ting som ligger lavt, men likevel står i veien for lyset.
+HOYDE_SOLIDE = [
+    (r"oljefat|drum", 46), (r"løs kasse|smallcrate", 30),
+    (r"sekk|sack", 20), (r"verktøykasse|toolbox", 16),
+    (r"bøtte|bucket", 20),
+]
+
+HOYDE_TABELL = [
+    (r"skap|garderobe|wardrobe|kabinett|cabinet|hylle|shelf|reol", 96),
+    (r"gulvlampe|floorlamp|stålampe", 80),
+    (r"orgel|organ|piano|flygel", 64), (r"statue", 72),
+    (r"palme|palm|plante|plant", 64), (r"bagasje|luggage", 64),
+    (r"våpenstativ|våpenskap|guns|arms|gevær", 80),
+    (r"maskin|motor|kjele|boiler|turbin|dynamo", 96),
+    (r"pumpe|pump", 48), (r"maleri|paint", 56),
+    (r"bar\b|disk|counter", 48), (r"lenestol|armchair", 46),
+    (r"stol|chair|benk|bench|krakk|stool", 44),
+    (r"sofa|settee|divan", 42), (r"servant|sink", 44),
+    (r"askebeger|ashtray", 40),
+    (r"skrivebord|desk|pult|alter|altar|prekestol|lectern|talerstol", 44),
+    (r"nattbord|nightstand", 36),
+    (r"dampkoffert|trunk|kiste|chest|greenbox", 36),
+    (r"seng|bed|køye|bunk|hengekøye", 30), (r"badekar|tub", 30),
+    (r"ovn|radiator|komfyr|stove|peis|fire", 32),
+    (r"bord|table", 28), (r"koffert|suitcase|veske|bag", 24),
+    (r"toalett|toilet", 26), (r"kurv|waste|basket", 18),
+    (r"hatteske|hatbox|eske|box", 20), (r"kasse|crate|kasser", 48),
+    (r"fat|tønne|barrel|keg", 48), (r"vin|wine", 44),
+    (r"instrument|kontrabass|cello|tromme|drum kit", 48),
+    (r"urne|urns|vase", 30), (r"ballong|carboy", 40),
+    (r"plank|redwood|tømmer", 22),
+    (r"bil\b|car\b|automobil|limousin", 56),
+    (r"hest|horse|ku\b|cow|okse|bur|cage|binge|pen\b|kyr", 60),
+    (r"vinsj|winch|ankerspill|windlass|spill\b|capstan|pullert|bollard|"
+     r"bitt", 36),
+    (r"livbåt|lifeboat|båt|boat", 64),
+    (r"ventil|vent|luftrør|cowl|ventilator", 60),
+    (r"mast|kran|crane|bom\b|boom", 96),
+    (r"rorhjul|ratt|wheel|kompass|binnacle|telegraf", 48),
+    (r"klokke|bell|klokka", 40), (r"livbøye|lifebuoy|ring", 8),
+    (r"trapp|stair|rekke|rail|rekkverk", 0),
+]
+
+# Det som ikke treffer noe, får en vanlig møbelhøyde.
+HOYDE_STANDARD = 28
+
+
+def hoyde(item):
+    """Hvor høy gjenstanden er, i rompiksler."""
+    n = ((item.get("name") or "") + " " + (item.get("sprite") or "")).lower()
+    z = item.get("z") or 0
+    if z >= 15:
+        return 0
+    for monster, h in HOYDE_FORST:
+        if re.search(monster, n):
+            return h
+    for monster, h in HOYDE_SOLIDE:
+        if re.search(monster, n):
+            return h
+    if HOYDE_FLATE.search(n) or z <= 6:
+        return 0
+    for monster, h in HOYDE_TABELL:
+        if re.search(monster, n):
+            return h
+    return HOYDE_STANDARD
+
+
+def legg_paa_lys(ut):
+    """Høyder på gjenstandene og lysdataene på rommene."""
+    with open(LYS_JSON, encoding="utf-8") as f:
+        lys = json.load(f)
+    ut["lys"] = lys.get("proplys", [])
+    ukjente = set(lys.get("rom", {})) - {r["id"] for r in ut["rooms"]}
+    if ukjente:
+        sys.exit("lys_rom.json nevner rom som ikke finnes: " +
+                 ", ".join(sorted(ukjente)))
+    for r in ut["rooms"]:
+        for item in r["items"]:
+            h = hoyde(item)
+            if h:
+                item["h"] = h
+            else:
+                item.pop("h", None)
+        r["lys"] = lys.get("rom", {}).get(r["id"], {})
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--src", required=True,
+    ap.add_argument("--src",
                     help="den utpakkede handoff-mappa "
                          "(den med assets/ og data/ i seg)")
     ap.add_argument("--behold", action="store_true",
                     help="ikke tøm web/maps først")
+    ap.add_argument("--bare-lys", action="store_true",
+                    help="legg bare høyder og lysdata på den eksisterende "
+                         "battlemaps.json")
     args = ap.parse_args()
+
+    if args.bare_lys:
+        with open(UT_JSON, encoding="utf-8") as f:
+            ut = json.load(f, object_pairs_hook=collections.OrderedDict)
+        legg_paa_lys(ut)
+        with open(UT_JSON, "w", encoding="utf-8") as f:
+            json.dump(ut, f, ensure_ascii=False, indent=1)
+            f.write("\n")
+        hoyder = sum(1 for r in ut["rooms"] for i in r["items"] if i.get("h"))
+        print("%d gjenstander har høyde, %d rom har lysdata"
+              % (hoyder, sum(1 for r in ut["rooms"] if r["lys"])))
+        return
+    if not args.src:
+        ap.error("--src trengs, med mindre det er --bare-lys")
 
     kilde = os.path.abspath(args.src)
     data_fil = os.path.join(kilde, "data", "sbtc-scenario.json")
@@ -273,6 +428,7 @@ def main():
         r["clues"] = inn["clues"].get(rom["id"], [])
         ut["rooms"].append(r)
 
+    legg_paa_lys(ut)
     with open(UT_JSON, "w", encoding="utf-8") as f:
         json.dump(ut, f, ensure_ascii=False, indent=1)
         f.write("\n")

@@ -1221,7 +1221,7 @@ body.quickon { --quickh: 62px; }
   outline: 2px dashed var(--brass);
   outline-offset: 2px;
   cursor: grabbing;
-  z-index: 10001 !important;
+  z-index: 9999 !important;
 }
 .mapprop.clueprop::after {
   content: ""; position: absolute; inset: 0;
@@ -1233,34 +1233,33 @@ body.quickon { --quickh: 62px; }
   z-index: 10002;
 }
 
-/* Lyslagene. Kunsten er ferdig bakt med lys oppe fra venstre, så
-   gradientene her peker samme vei — ellers ville de to kranglet.
-   Tonelaget mørkner med multiply, dagslyset løfter med screen, og
-   vignetten legger seg over begge. */
-.maplight {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+/* Lyslagene fra lysmotoren. Lyskartet multipliseres over kunsten, dis
+   og glød legges på med screen, og lyktene og ledningene tegnes oppå.
+   De må ligge over alle gjenstandene — ellers mørkner gulvet mens
+   møblene står og lyser — men under rutenettet, som skal kunne leses
+   også når det er stummende mørkt. */
+.maplys {
+  position: absolute; top: 0; left: 0;
   pointer-events: none;
-  /* Gjenstandene har sin egen z-index, så lyset må ligge over dem
-     alle — ellers mørkner gulvet mens møblene står og lyser. */
   z-index: 10000;
 }
-.maplight.tone { mix-blend-mode: multiply; }
-.maplight.loft { mix-blend-mode: screen; }
-.maplight.vignett { mix-blend-mode: normal; }
+.maplys.kart { mix-blend-mode: multiply; }
+.maplys.dis, .maplys.glod { mix-blend-mode: screen; }
 
-/* En lyskilde man har satt ut selv kan dras. Den valgte får en ring,
-   ellers ville den vært umulig å få tak i igjen. */
-.maplight.kilde { z-index: 10003; }
-.maplight.kilde[data-lys] { pointer-events: auto; cursor: grab; }
-.maplight.kilde.sel {
-  outline: 1px dashed var(--brass);
-  outline-offset: -1px;
+/* Et lys man har satt ut selv kan dras etter håndtaket. Den valgte får
+   en ring, ellers ville den vært umulig å få tak i igjen. */
+.maplyshandle {
+  position: absolute; width: 28px; height: 28px;
+  border-radius: 50%;
+  z-index: 10003;
+  cursor: grab;
+  box-shadow: inset 0 0 0 1px rgba(224,180,81,0.25);
 }
-
-/* Skyggen under hver gjenstand. Spritene har en bakt skygge for
-   dagslys; denne legges oppå og vokser når lyset blir lavt. */
-.maplayer { --propskygge: 0 0 0 rgba(0,0,0,0); }
-.mapprop { filter: drop-shadow(var(--propskygge)); }
+.maplyshandle:hover { box-shadow: inset 0 0 0 1px rgba(224,180,81,0.6); }
+.maplyshandle.sel {
+  outline: 2px dashed var(--brass);
+  outline-offset: 1px;
+}
 
 /* Verktøylinja over kartet. Den delen som gjelder en valgt gjenstand
    blir blek når ingenting er valgt, i stedet for å forsvinne — da
@@ -9221,9 +9220,9 @@ function armMapFit() {
 function armDrag(room, layer) {
   let drag = null;
   layer.addEventListener("pointerdown", (e) => {
-    // En lyskilde man har satt ut selv tas først: den ligger øverst,
-    // og det er den man sikter på når man klikker i glorien.
-    const lysnode = e.target.closest(".maplight.kilde[data-lys]");
+    // En lyskilde man har satt ut selv tas først: håndtaket ligger
+    // øverst, og det er det man sikter på når man klikker på lykta.
+    const lysnode = e.target.closest(".maplyshandle[data-lys]");
     if (lysnode) {
       const id = lysnode.dataset.lys;
       const lys = mapLights(room.id).filter((l) => l.id === id)[0];
@@ -9234,7 +9233,10 @@ function armDrag(room, layer) {
         drag = { lys: lys, node: lysnode, k: k, startX: e.clientX,
                  startY: e.clientY, x: lys.x, y: lys.y, moved: false };
         lysnode.setPointerCapture(e.pointerId);
-        render();
+        layer.querySelectorAll(".maplyshandle.sel, .mapprop.sel").forEach(
+          (n) => n.classList.remove("sel"));
+        lysnode.classList.add("sel");
+        oppdaterVerktoy();
         e.preventDefault();
         return;
       }
@@ -9246,6 +9248,7 @@ function armDrag(room, layer) {
       }
       return;
     }
+    const varLys = !!state.mapSelLight;
     state.mapSelLight = null;
     const id = node.dataset.prop;
     const item = room.items.filter((i) => i.id === id)[0];
@@ -9254,10 +9257,11 @@ function armDrag(room, layer) {
     const k = parseFloat(layer.dataset.scale) || 1;
     const st = propNow(room, item);
     drag = { item: item, node: node, k: k, startX: e.clientX,
-             startY: e.clientY, x: st.x, y: st.y, moved: false };
+             startY: e.clientY, x: st.x, y: st.y, moved: false, varLys: varLys,
+             lyser: lysLag(room).aktiv || mapLights(room.id).length > 0 };
     node.setPointerCapture(e.pointerId);
     // Tegn utvalget med én gang, uten å bygge hele visningen på nytt.
-    layer.querySelectorAll(".mapprop.sel").forEach(
+    layer.querySelectorAll(".mapprop.sel, .maplyshandle.sel").forEach(
       (n) => n.classList.remove("sel"));
     node.classList.add("sel");
     node.style.zIndex = "9999";
@@ -9270,36 +9274,39 @@ function armDrag(room, layer) {
     const dx = Math.round((e.clientX - drag.startX) / drag.k);
     const dy = Math.round((e.clientY - drag.startY) / drag.k);
     if (dx || dy) drag.moved = true;
+    if (!drag.moved) return;
     if (drag.lys) {
-      // Gloria er tegnet rundt midtpunktet, så den flyttes derfra.
-      const spec = LYS_TYPER[drag.lys.t] || {};
-      const r = drag.lys.r || spec.r || 0;
-      if (drag.lys.t === "lenke") {
-        drag.node.style.left = (drag.x + dx) + "px";
-        drag.node.style.top = (drag.y + dy - LENKE_HOYDE / 2) + "px";
-      } else {
-        drag.node.style.left = (drag.x + dx - r) + "px";
-        drag.node.style.top = (drag.y + dy - r) + "px";
-      }
+      drag.node.style.left = (drag.x + dx - 14) + "px";
+      drag.node.style.top = (drag.y + dy - 14) + "px";
+      const flytt = { lys: {} };
+      flytt.lys[drag.lys.id] = { x: drag.x + dx, y: drag.y + dy };
+      oppdaterLysLag(room, flytt);
       return;
     }
     drag.node.style.left = (drag.x + dx) + "px";
     drag.node.style.top = (drag.y + dy) + "px";
+    // Skyggene følger med mens tingen dras.
+    if (drag.lyser) {
+      const flytt = { props: {} };
+      flytt.props[drag.item.id] = { x: drag.x + dx, y: drag.y + dy };
+      oppdaterLysLag(room, flytt);
+    }
   });
 
   async function slipp(e) {
     if (!drag) return;
     const d = drag;
     drag = null;
-    if (!d.moved) return;
+    // Lysverktøyene står i verktøylinja, som må tegnes på nytt når
+    // utvalget går til eller fra et lys.
+    if (!d.moved) {
+      if (d.lys || d.varLys) render();
+      return;
+    }
     if (d.lys) {
-      const spec = LYS_TYPER[d.lys.t] || {};
-      const r = d.lys.r || spec.r || 0;
-      const venstre = parseInt(d.node.style.left, 10);
-      const topp = parseInt(d.node.style.top, 10);
-      await setLight(room, d.lys.id, d.lys.t === "lenke"
-        ? { x: venstre, y: topp + LENKE_HOYDE / 2 }
-        : { x: venstre + r, y: topp + r });
+      await setLight(room, d.lys.id, {
+        x: parseInt(d.node.style.left, 10) + 14,
+        y: parseInt(d.node.style.top, 10) + 14 });
       markSaved();
       render();
       return;
@@ -9308,6 +9315,8 @@ function armDrag(room, layer) {
     const y = parseInt(d.node.style.top, 10);
     await setProp(room, d.item, { x: x, y: y });
     markSaved();
+    if (d.varLys) render();
+    else if (d.lyser) oppdaterLysLag(room);
   }
   layer.addEventListener("pointerup", slipp);
   layer.addEventListener("pointercancel", slipp);
@@ -9422,52 +9431,530 @@ function armMapKeys() {
 /* ==================================================================
    LYS OG SKYGGE
 
-   Kunsten er ferdig bakt, så lyset legges på som lag over kartet. Det
-   betyr at det ikke kan kaste ekte skygger fra veggene — men det kan
-   gjøre det som faktisk betyr noe ved bordet: si om det er dag eller
-   natt, og hva som skjer når strømmen går.
+   Lys som stoppes av ting. Kunsten er ferdig bakt og lyst, så lyset
+   legges på som et lyskart som multipliseres over kartet: der lyset
+   når, står kunsten som tegnet; der det ikke når, ligger rommet i
+   skygge. Hver lyskilde tegnes i sitt eget lag, og skyggene skjæres
+   ut der gjenstander står i veien.
 
-   Hvor mye dagslys et rom får bestemmes av hvor dypt i skipet det
-   ligger. Det er ikke pynt: i lasterommet på E-dekk ser det likt ut
-   klokka to om natta og klokka to om dagen, og når strømmen går er
-   det stummende mørkt uansett. Ute på dekk er strømbrudd midt på
-   dagen ingenting å bry seg om.
+   Skyggene regnes som i et ovenfra-sett spill: hver gjenstand er en
+   firkant med en høyde (h, fra byggeskriptet), og for hver kant som
+   vender bort fra lyset strekkes en firkant ut bort fra lyset.
+   Gjenstandens egen topp ligger ikke i skyggen — den er jo opplyst.
+   Vegger er bakt inn i bakgrunnen, så de oppgis i lysdataene
+   (bestiary/lys_rom.json) og behandles som høye gjenstander.
 
-       ute    — åpent dekk, fullt dagslys
-       vindu  — koøyer eller vinduer: Båtdekket, Promenadedekket,
-                A-, B- og C-dekk
-       svakt  — D-dekk, så vidt dagslys
-       dypt   — E-dekk, lensen, og alle lasterom og maskinrom:
-                ingen dagslys i det hele tatt
+   Vinduer gir retningslys: parallelle skygger, slik sola gjennom et
+   koøye gir. Lamper og lykter gir punktlys: skyggene sprer seg ut fra
+   lampa og blir lengre jo lavere den henger.
 
-   Lyset legges mellom gjenstandene og rutenettet, så rutene holder
-   seg lesbare også i mørket.
+   Utseendet ble prøvd fram rom for rom i tools/lysmotor/ før det kom
+   hit; kabinen og lasterom 2 er de to som ble godkjent.
    ================================================================== */
+
+const Lysmotor = (() => {
+  "use strict";
+
+  function lerret(w, h) {
+    const c = document.createElement("canvas");
+    c.width = Math.max(1, Math.ceil(w));
+    c.height = Math.max(1, Math.ceil(h));
+    return c;
+  }
+
+  // Safari fikk filter på canvas sent. Uten det blir uskarpheten laget
+  // ved å krympe og forstørre laget, som er grovere, men ser likt ut på
+  // avstand.
+  const KAN_FILTER = (() => {
+    try { return "filter" in lerret(1, 1).getContext("2d"); }
+    catch (e) { return false; }
+  })();
+
+  function uskarpt(g, kilde, x, y, px) {
+    if (px <= 0.05) { g.drawImage(kilde, x, y); return; }
+    if (KAN_FILTER) {
+      g.filter = "blur(" + px + "px)";
+      g.drawImage(kilde, x, y);
+      g.filter = "none";
+      return;
+    }
+    const f = 1 / (1 + px * 0.6);
+    const liten = lerret(kilde.width * f, kilde.height * f);
+    const lg = liten.getContext("2d");
+    lg.imageSmoothingEnabled = true;
+    lg.drawImage(kilde, 0, 0, liten.width, liten.height);
+    const glatt = g.imageSmoothingEnabled;
+    g.imageSmoothingEnabled = true;
+    g.drawImage(liten, x, y, kilde.width, kilde.height);
+    g.imageSmoothingEnabled = glatt;
+  }
+
+  /* Hjørnene i en rotert firkant, i rekkefølge rundt. */
+  function hjorner(x, y, w, h, grader) {
+    const cx = x + w / 2, cy = y + h / 2;
+    const a = (grader || 0) * Math.PI / 180;
+    const cos = Math.cos(a), sin = Math.sin(a);
+    return [[x, y], [x + w, y], [x + w, y + h], [x, y + h]].map(([px, py]) => {
+      const dx = px - cx, dy = py - cy;
+      return [cx + dx * cos - dy * sin, cy + dx * sin + dy * cos];
+    });
+  }
+
+  function omriss(poly) {
+    const xs = poly.map((p) => p[0]), ys = poly.map((p) => p[1]);
+    return { x0: Math.min.apply(null, xs), y0: Math.min.apply(null, ys),
+             x1: Math.max.apply(null, xs), y1: Math.max.apply(null, ys) };
+  }
+
+  function overlapper(a, b) {
+    return a.x0 < b.x1 && a.x1 > b.x0 && a.y0 < b.y1 && a.y1 > b.y0;
+  }
+
+  /* Et hinder: polygonet, høyden og omrisset, regnet ut én gang. slag
+     er "vegg" for vegger, og "vindusvegg" for veggbitene mellom
+     vinduene: de stopper lampelys, men ikke strålene gjennom vinduene i
+     dem — ellers kaster hver bit en kile av skygge mellom strålene. */
+  function hinder(poly, hoyde, id, slag) {
+    return { poly: poly, hoyde: hoyde, id: id || null, slag: slag || null,
+             bb: omriss(poly) };
+  }
+
+  /* Kantene som vender bort fra lyset: [a, b]. */
+  function bakkanter(poly, vendt) {
+    let mx = 0, my = 0;
+    poly.forEach(([x, y]) => { mx += x; my += y; });
+    mx /= poly.length; my /= poly.length;
+    const ut = [];
+    for (let i = 0; i < poly.length; i += 1) {
+      const a = poly[i], b = poly[(i + 1) % poly.length];
+      let nx = b[1] - a[1], ny = -(b[0] - a[0]);
+      const ex = (a[0] + b[0]) / 2 - mx, ey = (a[1] + b[1]) / 2 - my;
+      if (nx * ex + ny * ey < 0) { nx = -nx; ny = -ny; }
+      if (vendt(nx, ny, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2)) ut.push([a, b]);
+    }
+    return ut;
+  }
+
+  /* Fyll et polygon gitt i romkoordinater, på et lag som starter i
+     (ox, oy) og har skala s. */
+  function fyll(g, s, ox, oy, pts) {
+    g.beginPath();
+    g.moveTo((pts[0][0] - ox) * s, (pts[0][1] - oy) * s);
+    for (let i = 1; i < pts.length; i += 1) {
+      g.lineTo((pts[i][0] - ox) * s, (pts[i][1] - oy) * s);
+    }
+    g.closePath();
+    g.fill();
+  }
+
+  /* Skygger fra retningslys: alle strekkes samme vei, så langt som
+     høyden tilsier. */
+  function skyggerRetning(g, s, ox, oy, hindre, dx, dy, faktor) {
+    hindre.forEach((h) => {
+      const len = h.hoyde * faktor;
+      const vx = dx * len, vy = dy * len;
+      bakkanter(h.poly, (nx, ny) => nx * dx + ny * dy > 0).forEach(([a, b]) => {
+        fyll(g, s, ox, oy, [a, b, [b[0] + vx, b[1] + vy], [a[0] + vx, a[1] + vy]]);
+      });
+    });
+  }
+
+  /* Skygger fra punktlys: strekkes ut fra lampa. Jo høyere gjenstanden
+     er i forhold til lampa, jo lengre skygge. */
+  function skyggerPunkt(g, s, ox, oy, hindre, lx, ly, lampehoyde, maks) {
+    hindre.forEach((h) => {
+      const tak = Math.max(4, lampehoyde - h.hoyde);
+      const strekk = (p) => {
+        const dx = p[0] - lx, dy = p[1] - ly;
+        const d = Math.sqrt(dx * dx + dy * dy) || 1;
+        const len = Math.min(maks, d * h.hoyde / tak);
+        return [p[0] + dx / d * len, p[1] + dy / d * len];
+      };
+      bakkanter(h.poly, (nx, ny, mx, my) => nx * (mx - lx) + ny * (my - ly) > 0)
+        .forEach(([a, b]) => fyll(g, s, ox, oy, [a, b, strekk(b), strekk(a)]));
+    });
+  }
+
+  function rgba(c, a) {
+    return "rgba(" + c[0] + "," + c[1] + "," + c[2] + "," + a + ")";
+  }
+
+  /* Hjørnene i en lysstråle fra et vindu: smal ved glasset, bredere
+     innover. */
+  function straale(lys) {
+    const dx = Math.sin(lys.vinkel * Math.PI / 180);
+    const dy = Math.cos(lys.vinkel * Math.PI / 180);
+    const px = -dy, py = dx;
+    const x1 = lys.x + dx * lys.lengde, y1 = lys.y + dy * lys.lengde;
+    const w0 = lys.bredde / 2, w1 = lys.bredde * lys.spredning / 2;
+    return { dx: dx, dy: dy, px: px, py: py, x1: x1, y1: y1, w0: w0, w1: w1,
+             hj: [[lys.x + px * w0, lys.y + py * w0], [lys.x - px * w0, lys.y - py * w0],
+                  [x1 - px * w1, y1 - py * w1], [x1 + px * w1, y1 + py * w1]] };
+  }
+
+  /* Hvor et lys kan nå, i romkoordinater. */
+  function rekkevidde(lys) {
+    if (lys.type === "stråle") return omriss(straale(lys).hj);
+    if (lys.type === "flate") {
+      const m = lys.myk || 0;
+      const bb = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+      lys.soner.forEach(([x, y, w, h]) => {
+        bb.x0 = Math.min(bb.x0, x - m); bb.y0 = Math.min(bb.y0, y - m);
+        bb.x1 = Math.max(bb.x1, x + w + m); bb.y1 = Math.max(bb.y1, y + h + m);
+      });
+      return bb;
+    }
+    return { x0: lys.x - lys.radius, y0: lys.y - lys.radius,
+             x1: lys.x + lys.radius, y1: lys.y + lys.radius };
+  }
+
+  /* Ett lys i sitt eget lag, med skyggene skåret ut. Laget er bare så
+     stort som lyset rekker, så tjue lyspærer langs rekka koster ikke
+     tjue fullskjermslag. */
+  function tegnLys(lys, hindre, s, W, H) {
+    const r = rekkevidde(lys);
+    const x0 = Math.max(0, Math.floor(r.x0) - 2), y0 = Math.max(0, Math.floor(r.y0) - 2);
+    const x1 = Math.min(W, Math.ceil(r.x1) + 2), y1 = Math.min(H, Math.ceil(r.y1) + 2);
+    if (x1 <= x0 || y1 <= y0) return null;
+    const bb = { x0: x0, y0: y0, x1: x1, y1: y1 };
+    const lag = lerret((x1 - x0) * s, (y1 - y0) * s);
+    const g = lag.getContext("2d");
+    const naere = hindre.filter((h) => h.id !== lys.selv && overlapper(h.bb, bb));
+
+    if (lys.type === "stråle") {
+      const st = straale(lys);
+      // Glassmaleri: strålen deles i striper på langs, hver i sin farge.
+      const farger = lys.farger || [lys.farge];
+      farger.forEach((farge, i) => {
+        const a = i / farger.length, b = (i + 1) / farger.length;
+        const kant = (f, w) => [lys.x + st.px * w * (1 - 2 * f), lys.y + st.py * w * (1 - 2 * f)];
+        const ytre = (f, w) => [st.x1 + st.px * w * (1 - 2 * f), st.y1 + st.py * w * (1 - 2 * f)];
+        const grad = g.createLinearGradient((lys.x - x0) * s, (lys.y - y0) * s,
+                                            (st.x1 - x0) * s, (st.y1 - y0) * s);
+        grad.addColorStop(0, rgba(farge, lys.styrke));
+        grad.addColorStop(0.45, rgba(farge, lys.styrke * 0.72));
+        grad.addColorStop(1, rgba(farge, 0));
+        g.fillStyle = grad;
+        fyll(g, s, x0, y0, [kant(a, st.w0), kant(b, st.w0), ytre(b, st.w1), ytre(a, st.w1)]);
+      });
+      g.globalCompositeOperation = "destination-out";
+      g.fillStyle = "#000";
+      skyggerRetning(g, s, x0, y0, naere.filter((h) => h.slag !== "vindusvegg"),
+                     st.dx, st.dy, lys.skyggelengde);
+    } else if (lys.type === "flate") {
+      // Et område fylt med lys: dagslys ute på dekk, eller månen.
+      g.fillStyle = rgba(lys.farge, lys.styrke);
+      lys.soner.forEach(([x, y, w, h]) => g.fillRect((x - x0) * s, (y - y0) * s, w * s, h * s));
+      g.globalCompositeOperation = "destination-out";
+      g.fillStyle = "#000";
+      (lys.unntak || []).forEach(([x, y, w, h]) =>
+        g.fillRect((x - x0) * s, (y - y0) * s, w * s, h * s));
+      if (lys.retning) {
+        // Månen kaster skygger fra tingene på dekk, men ikke fra
+        // veggene: en dekksbygning som kaster skygge over halve dekket
+        // gjør kartet ulesbart.
+        skyggerRetning(g, s, x0, y0, naere.filter((h) => !h.slag), lys.retning[0],
+                       lys.retning[1], lys.skyggelengde || 1);
+      }
+    } else {
+      // Punktlys: lampe, lykt, nødlys, lommelykt.
+      const cx = (lys.x - x0) * s, cy = (lys.y - y0) * s, rr = lys.radius * s;
+      const grad = g.createRadialGradient(cx, cy, 0, cx, cy, rr);
+      grad.addColorStop(0, rgba(lys.farge, lys.styrke));
+      grad.addColorStop(0.25, rgba(lys.farge, lys.styrke * 0.62));
+      grad.addColorStop(0.6, rgba(lys.farge, lys.styrke * 0.22));
+      grad.addColorStop(1, rgba(lys.farge, 0));
+      g.fillStyle = grad;
+      if (lys.kjegle) {
+        // Lommelykta: bare en vifte av lyset. Retning 0 er rett opp.
+        const midt = (lys.kjegle.retning - 90) * Math.PI / 180;
+        const halv = lys.kjegle.vidde / 2 * Math.PI / 180;
+        g.beginPath();
+        g.moveTo(cx, cy);
+        g.arc(cx, cy, rr, midt - halv, midt + halv);
+        g.closePath();
+        g.fill();
+      } else {
+        g.fillRect(0, 0, lag.width, lag.height);
+      }
+      g.globalCompositeOperation = "destination-out";
+      g.fillStyle = "#000";
+      skyggerPunkt(g, s, x0, y0, naere, lys.x, lys.y, lys.hoyde, lys.maksSkygge || 400);
+    }
+    return { lag: lag, x0: x0, y0: y0 };
+  }
+
+  /* Gløden rundt en lyskilde, på sitt eget lag. */
+  function tegnGlod(g, s, k) {
+    const r = k.glod;
+    if (!r) return;
+    const x = k.x * s, y = k.y * s;
+    g.save();
+    g.globalCompositeOperation = "lighter";
+    if (k.form === "rute") {
+      // Et vindu: gløden blir avlang, langs glasset.
+      g.translate(x, y);
+      g.scale(k.w > k.h ? 1 + k.w / (2 * r) : 1, k.h > k.w ? 1 + k.h / (2 * r) : 1);
+      const halo = g.createRadialGradient(0, 0, 0, 0, 0, r * s);
+      halo.addColorStop(0, rgba(k.farge, k.haloStyrke));
+      halo.addColorStop(0.35, rgba(k.farge, k.haloStyrke * 0.35));
+      halo.addColorStop(1, rgba(k.farge, 0));
+      g.fillStyle = halo;
+      g.fillRect(-r * s, -r * s, r * 2 * s, r * 2 * s);
+    } else {
+      const halo = g.createRadialGradient(x, y, 0, x, y, r * s);
+      halo.addColorStop(0, rgba(k.farge, k.haloStyrke));
+      halo.addColorStop(0.35, rgba(k.farge, k.haloStyrke * 0.35));
+      halo.addColorStop(1, rgba(k.farge, 0));
+      g.fillStyle = halo;
+      g.fillRect(x - r * s, y - r * s, r * 2 * s, r * 2 * s);
+    }
+    g.restore();
+  }
+
+  /* Selve glasset som lyser: nesten hvitt i midten, farget mot kanten. */
+  function tegnKjerne(g, s, k) {
+    const kf = k.kjerneFarge || [[255, 253, 245], [255, 240, 205], [255, 222, 160]];
+    g.save();
+    if (k.form === "rute") {
+      const x = (k.x - k.w / 2) * s, y = (k.y - k.h / 2) * s;
+      const grad = k.w >= k.h
+        ? g.createLinearGradient(0, y, 0, y + k.h * s)
+        : g.createLinearGradient(x, 0, x + k.w * s, 0);
+      grad.addColorStop(0, "rgba(" + kf[2].join(",") + ",0.95)");
+      grad.addColorStop(0.5, "rgba(" + kf[0].join(",") + ",1)");
+      grad.addColorStop(1, "rgba(" + kf[2].join(",") + ",0.95)");
+      g.fillStyle = grad;
+      g.fillRect(x, y, k.w * s, k.h * s);
+    } else if (k.kjerne) {
+      const c = g.createRadialGradient(k.x * s, k.y * s, 0, k.x * s, k.y * s, k.kjerne * s);
+      c.addColorStop(0, "rgba(" + kf[0].join(",") + ",1)");
+      c.addColorStop(0.7, "rgba(" + kf[1].join(",") + ",1)");
+      c.addColorStop(1, "rgba(" + kf[2].join(",") + ",0.95)");
+      g.fillStyle = c;
+      g.beginPath();
+      g.arc(k.x * s, k.y * s, k.kjerne * s, 0, Math.PI * 2);
+      g.fill();
+    }
+    g.restore();
+  }
+
+  /* En oljelykt sett ovenfra: jernramme, glass og bøyle. */
+  function tegnLykt(g, s, x, y, tent) {
+    g.save();
+    g.translate(x * s, y * s);
+    g.scale(s, s);
+    g.fillStyle = "rgba(20,16,14,0.55)";
+    g.beginPath(); g.ellipse(1.5, 2, 6.5, 5, 0, 0, Math.PI * 2); g.fill();
+    g.fillStyle = "#2a221d";
+    g.fillRect(-4.5, -4.5, 9, 9);
+    g.fillStyle = tent ? "#f0b862" : "#6f6656";
+    g.fillRect(-3, -3, 6, 6);
+    if (tent) {
+      g.fillStyle = "#fff3d2";
+      g.fillRect(-1.5, -1.5, 3, 3);
+    }
+    g.lineWidth = 1;
+    g.strokeStyle = "#4a3d33";
+    g.beginPath(); g.arc(0, -5, 3, Math.PI, 0); g.stroke();
+    g.restore();
+  }
+
+  /* Lommelykta: en mørk sylinder som peker dit lyset går. */
+  function tegnLommelykt(g, s, x, y, grader) {
+    g.save();
+    g.translate(x * s, y * s);
+    g.rotate(grader * Math.PI / 180);
+    g.scale(s, s);
+    g.fillStyle = "rgba(20,16,14,0.5)";
+    g.fillRect(-2, -3, 6, 13);
+    g.fillStyle = "#2b2b2e";
+    g.fillRect(-3, -2, 6, 12);
+    g.fillStyle = "#8a8a90";
+    g.fillRect(-3.5, -4, 7, 3);
+    g.fillStyle = "#fff6dc";
+    g.fillRect(-2.5, -4.5, 5, 1.5);
+    g.restore();
+  }
+
+  /* Lyslenka: ledningen henger i små buer mellom pærene. */
+  function tegnLenke(g, s, punkter, tent) {
+    if (punkter.length < 2) return;
+    g.save();
+    g.strokeStyle = "rgba(28,22,18,0.85)";
+    g.lineWidth = Math.max(1, s * 0.75);
+    g.beginPath();
+    g.moveTo(punkter[0][0] * s, punkter[0][1] * s);
+    for (let i = 1; i < punkter.length; i += 1) {
+      const a = punkter[i - 1], b = punkter[i];
+      const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2 + 2.5;
+      g.quadraticCurveTo(mx * s, my * s, b[0] * s, b[1] * s);
+    }
+    g.stroke();
+    punkter.forEach(([x, y]) => {
+      g.fillStyle = tent ? "#fff1c8" : "#8c826c";
+      g.beginPath(); g.arc(x * s, (y + 1) * s, 1.8 * s, 0, Math.PI * 2); g.fill();
+    });
+    g.restore();
+  }
+
+  /* Hele lyset for et rom. Ut kommer fire lag, som legges over kartet
+     i denne rekkefølgen:
+
+       kart   lyskartet, multipliseres over kunsten
+       dis    lysstrålene i lufta, legges på med screen
+       glod   gløden rundt lyskildene, screen
+       ting   lykter, ledninger og glass, tegnes vanlig oppå
+
+     opts.s og opts.sTing er oppløsningen på lagene: lyskartet er mykt
+     og trenger ikke mer enn én piksel per rompiksel, glasset og
+     ledningene vil ha flere. */
+  function render(W, H, opts) {
+    const s = opts.s || 1, st = opts.sTing || s;
+    const ut = { aktiv: !!opts.aktiv };
+
+    if (opts.aktiv) {
+      const kart = lerret(W * s, H * s);
+      const kg = kart.getContext("2d");
+      kg.fillStyle = "rgb(" + opts.omgivelse.join(",") + ")";
+      kg.fillRect(0, 0, kart.width, kart.height);
+      // Soner med annet grunnlys: dekket utenfor lugaren, styrhuset
+      // midt på en åpen bro. Myke kanter, så skillet ikke blir en strek.
+      if (opts.soner && opts.soner.length) {
+        const sl = lerret(W * s, H * s);
+        const sg = sl.getContext("2d");
+        opts.soner.forEach((z) => {
+          sg.fillStyle = "rgb(" + z.farge.join(",") + ")";
+          sg.fillRect(z.r[0] * s, z.r[1] * s, z.r[2] * s, z.r[3] * s);
+        });
+        uskarpt(kg, sl, 0, 0, 3 * s);
+      }
+
+      const lag = opts.lys.map((l) => tegnLys(l, opts.hindre, s, W, H)).filter(Boolean);
+      kg.globalCompositeOperation = "lighter";
+      lag.forEach((l) => uskarpt(kg, l.lag, l.x0 * s, l.y0 * s, opts.uskarp * s));
+      kg.globalCompositeOperation = "source-over";
+
+      // Mørke kanter: rommet faller bort mot veggene.
+      if (opts.vignett) {
+        kg.globalCompositeOperation = "multiply";
+        const v = kg.createRadialGradient(W * s / 2, H * s * 0.45, Math.min(W, H) * s * 0.3,
+                                          W * s / 2, H * s * 0.45, Math.max(W, H) * s * 0.75);
+        const m = Math.round(255 * (1 - opts.vignett));
+        v.addColorStop(0, "rgb(255,255,255)");
+        v.addColorStop(1, "rgb(" + m + "," + m + "," + m + ")");
+        kg.fillStyle = v;
+        kg.fillRect(0, 0, kart.width, kart.height);
+        kg.globalCompositeOperation = "source-over";
+      }
+      ut.kart = kart;
+
+      // Dis: lysstrålene synes i lufta, ikke bare på gulvet.
+      if (opts.dis && lag.length) {
+        const dis = lerret(W * s, H * s);
+        const dg = dis.getContext("2d");
+        dg.globalCompositeOperation = "lighter";
+        dg.globalAlpha = opts.dis;
+        lag.forEach((l) => uskarpt(dg, l.lag, l.x0 * s, l.y0 * s, opts.uskarp * 2.2 * s));
+        ut.dis = dis;
+      }
+
+      if (opts.kilder.length) {
+        const glod = lerret(W * st, H * st);
+        const gg = glod.getContext("2d");
+        opts.kilder.forEach((k) => tegnGlod(gg, st, k));
+        ut.glod = glod;
+      }
+    }
+
+    // Tingene som synes også i fullt dagslys: lyktene, ledningene,
+    // lommelyktene. Glasset lyser bare når lyset er på.
+    const ting = lerret(W * st, H * st);
+    const tg = ting.getContext("2d");
+    let tegnet = false;
+    (opts.lenker || []).forEach((l) => { tegnLenke(tg, st, l.punkter, l.tent && opts.aktiv); tegnet = true; });
+    (opts.lykter || []).forEach((l) => { tegnLykt(tg, st, l.x, l.y, l.tent && opts.aktiv); tegnet = true; });
+    (opts.lommelykter || []).forEach((l) => { tegnLommelykt(tg, st, l.x, l.y, l.rot); tegnet = true; });
+    if (opts.aktiv) {
+      opts.kilder.forEach((k) => {
+        if (k.kjerne || k.form === "rute") { tegnKjerne(tg, st, k); tegnet = true; }
+      });
+    }
+    if (tegnet) ut.ting = ting;
+    return ut;
+  }
+
+  return { render: render, hjorner: hjorner, hinder: hinder };
+})();
 
 /* ==================================================================
-   LYSKILDER
+   LYSET I ROMMENE
 
-   Tonen og vignetten sier hvor mørkt det er. Lyskildene sier hvor det
-   likevel er lyst: lykta noen bærer, lommelykta som peker ned i
-   lasterommet, lyslenka over promenaden, og det røde nødlyset som slår
-   inn når strømmen går.
+   Fire tilstander: dag eller natt, strøm eller strømbrudd. Hva hver
+   av dem betyr kommer an på rommet:
 
-   Alle lyskilder legges med screen etter vignetten. Det er med vilje:
-   en lykt skal kunne skjære gjennom mørket i hjørnet, ikke ligge under
-   det.
+     dag/på    kunsten som tegnet, uten noe lag over
+     natt/på   inne: taklampene. Ute: månelys og lyslenker langs rekka.
+               Rom uten vinduer ser likt ut hele døgnet.
+     dag/av    rom med vinduer: sola skinner inn gjennom dem, resten
+               ligger i skygge. Rom uten vinduer: rødt nødlys. Ute
+               merkes ikke strømbruddet før det blir mørkt.
+     natt/av   rom med vinduer: månestriper. Uten vinduer: nødlys. Ute:
+               månelys, og oljelyktene på rekka er tent.
 
-   Noen er automatiske — ute på dekk om natta henger det lykter og
-   lyslenker uten at Keeperen skal måtte sette dem ut. Resten setter
-   man selv, og de lagres med rommet.
+   Vinduene, veggene og rekkene står i rommets lysdata (room.lys, fra
+   bestiary/lys_rom.json). Lykter, lamper og bål som står på kartet
+   lyser selv, og flytter lyset med seg når de flyttes.
    ================================================================== */
 
+const FARGE = {
+  sol: [255, 228, 182], himmel: [205, 215, 238], maane: [150, 175, 230],
+  lampe: [255, 214, 160], rod: [255, 44, 34], olje: [255, 176, 96],
+  lenke: [255, 205, 135], lommelykt: [255, 240, 205],
+};
+
+// Glassmaleriene i kapellet.
+const GLASSMALERI = [[235, 80, 60], [245, 196, 80], [90, 130, 230], [110, 185, 120]];
+
+// Grunnlyset der ingen lamper når.
+const OMGIVELSE = {
+  inneNatt: [140, 118, 100],      // natt med lampene på
+  solbrudd: [82, 66, 62],         // strømbrudd om dagen, rom med vinduer
+  maanebrudd: [40, 46, 64],       // strømbrudd om natta, rom med vinduer
+  nod: [50, 40, 44],              // nødlys
+  dag: [255, 255, 255],
+  uteNatt: [46, 56, 88],          // under månelyset, der det er skygge
+  uteNattMork: [36, 44, 72],
+};
+
+/* Lys som står på kartet som gjenstander. «elektrisk» lyser bare når
+   strømmen står på; olje, stearinlys og bål brenner uansett. */
+const PROPLYS = {
+  olje:      { farge: FARGE.olje, radius: 180, styrke: 0.85, hoyde: 34, maks: 260,
+               kjerne: 2.4, glod: 22, halo: 0.6 },
+  lys:       { farge: [255, 190, 110], radius: 140, styrke: 0.7, hoyde: 40, maks: 200,
+               kjerne: 1.6, glod: 16, halo: 0.55 },
+  baal:      { farge: [255, 140, 60], radius: 230, styrke: 0.95, hoyde: 16, maks: 320,
+               kjerne: 0, glod: 34, halo: 0.55 },
+  glor:      { farge: [255, 90, 40], radius: 90, styrke: 0.5, hoyde: 6, maks: 120,
+               kjerne: 0, glod: 22, halo: 0.4 },
+  elektrisk: { farge: FARGE.lampe, radius: 170, styrke: 0.75, hoyde: 60, maks: 220,
+               kjerne: 2.6, glod: 20, halo: 0.5, strom: true },
+  papir:     { farge: [255, 196, 140], radius: 120, styrke: 0.55, hoyde: 200, maks: 80,
+               kjerne: 0, glod: 18, halo: 0.45, strom: true },
+  varme:     { farge: [255, 130, 70], radius: 140, styrke: 0.6, hoyde: 30, maks: 160,
+               kjerne: 0, glod: 26, halo: 0.4, strom: true },
+  signal:    { farge: [235, 240, 255], radius: 120, styrke: 0.6, hoyde: 60, maks: 160,
+               kjerne: 2.6, glod: 18, halo: 0.55, strom: true },
+};
+
+/* Lyskildene Keeperen setter ut selv. r er rekkevidden; for lyslenka
+   er det lengden. */
 const LYS_TYPER = {
-  lykt: { navn: "Lykt", farge: "255,196,110", r: 110, styrke: 0.42 },
-  lommelykt: { navn: "Lommelykt", farge: "255,240,205", r: 300,
-               styrke: 0.52, kjegle: 42 },
-  lenke: { navn: "Lyslenke", farge: "255,205,135", r: 70, styrke: 0.34,
-           lenke: true },
-  nod: { navn: "Nødlys", farge: "255,70,60", r: 170, styrke: 0.34 },
+  lykt: { navn: "Lykt", r: 180 },
+  lommelykt: { navn: "Lommelykt", r: 300, kjegle: 40 },
+  lenke: { navn: "Lyslenke", r: 320 },
+  nod: { navn: "Nødlys", r: 300 },
 };
 
 function mapLights(roomId) {
@@ -9493,6 +9980,8 @@ async function addLight(room, type) {
     r: spec.r,
     rot: 0,
   };
+  // Lyslenka henger fra punktet og bortover, så den starter til venstre.
+  if (type === "lenke") lys.x = Math.max(16, Math.round((room.widthPx - spec.r) / 2));
   liste.push(lys);
   state.mapSelLight = lys.id;
   state.mapSel = null;
@@ -9527,301 +10016,410 @@ function selectedLight(room) {
   return mapLights(room.id).filter((l) => l.id === state.mapSelLight)[0] || null;
 }
 
-/* Lysene som hører til skipet, ikke til Keeperen: lyktene på dekk,
-   lyslenka, månen, og nødlampene nede i skroget. De settes ikke ut av
-   noen, de er der.
-
-   Alt blir vanlige punktlys, så både skjermen og eksporten tegner dem
-   med den samme koden. Det var det som gikk galt første gang: lyslenka
-   var en egen gradient som tegnet konsentriske ringer i stedet for
-   pærer. */
-function autoLights(room) {
-  const sort = roomLight(room);
-  const W = room.widthPx, H = room.heightPx;
-  const ut = [];
-
-  // --- nødlamper nede i skroget, der det ikke finnes vinduer
-  if (!state.mapPower && sort === "dypt") {
-    const antall = Math.max(2, Math.min(6, Math.round(W / 260)));
-    for (let i = 0; i < antall; i += 1) {
-      const x = Math.round((W * (i + 0.5)) / antall);
-      // En lampe på hver langvegg, slik de henger i et lasterom.
-      ut.push({ t: "nod", x: x, y: Math.round(H * 0.08),
-                r: 105, styrke: 0.40, auto: true });
-      ut.push({ t: "nod", x: x, y: Math.round(H * 0.92),
-                r: 105, styrke: 0.32, auto: true });
-    }
-    return ut;
-  }
-
-  if (sort !== "ute" || state.mapTime !== "natt") return ut;
-
-  if (state.mapPower) {
-    // Dekkslykter langs rekka. Små og tette nok til at det er mørkt
-    // mellom dem — ellers er det ikke natt.
-    const avstand = 300;
-    const antall = Math.max(2, Math.round(W / avstand));
-    for (let i = 0; i < antall; i += 1) {
-      ut.push({ t: "lykt", x: Math.round((W * (i + 0.5)) / antall),
-                y: Math.round(H * 0.16), r: 105, styrke: 0.38, auto: true });
-    }
-    // Lyslenka henger høyt, over dekksstolene, ikke oppå dem.
-    ut.push({ t: "lenke", x: 0, y: Math.round(H * 0.07),
-              r: 60, bredde: W, styrke: 0.30, auto: true });
-  } else {
-    // Uten strøm står bare månen igjen.
-    ut.push({ t: "maane", x: Math.round(W * 0.5), y: Math.round(H * 0.08),
-              r: Math.max(W, H) * 0.8, auto: true });
-  }
-  return ut;
-}
-
-/* Vinduene. Når strømmen går om dagen er det disse som gir lys, og da
-   skal det se ut som striper inn i rommet — ikke som en jevn gradient
-   over alt. Koøyene sitter mot skutesiden, altså langs øvre kant på
-   disse plantegningene. */
-function windowShafts(room) {
-  const sort = roomLight(room);
-  if (sort !== "vindu" && sort !== "svakt") return [];
-  if (state.mapPower || state.mapTime !== "dag") return [];
-  const W = room.widthPx, H = room.heightPx;
-  const styrke = sort === "vindu" ? 0.52 : 0.34;
-  const antall = Math.max(2, Math.min(6, Math.round(W / 190)));
-  const ut = [];
-  for (let i = 0; i < antall; i += 1) {
-    ut.push({ x: Math.round((W * (i + 0.5)) / antall),
-              y: 0,
-              bredde: Math.round(W / (antall * 2.6)),
-              hoyde: Math.round(H * 0.5),
-              styrke: styrke });
-  }
-  return ut;
-}
-
-/* Pærene i en lyslenke, som egne punkter. */
-const LENKE_HOYDE = 70;
-
-function lenkePaerer(lys) {
-  const bredde = lys.bredde || 600;
-  const steg = 44;
-  const ut = [];
-  for (let x = steg / 2; x < bredde; x += steg) {
-    ut.push({ x: Math.round(lys.x + x), y: lys.y });
-  }
-  return ut;
-}
-
-function lightCss(lys) {
-  const spec = LYS_TYPER[lys.t];
-  const styrke = lys.styrke !== undefined
-    ? lys.styrke : (spec ? spec.styrke : 0.6);
-
-  if (lys.t === "maane") {
-    return "left:0;top:0;right:0;bottom:0;background:" +
-           "radial-gradient(" + Math.round(lys.r) + "px " +
-           Math.round(lys.r * 0.8) + "px at " + lys.x + "px " + lys.y +
-           "px,rgba(150,180,235,0.15) 0%,rgba(120,150,210,0.06) 45%," +
-           "rgba(0,0,0,0) 100%)";
-  }
-
-  if (lys.t === "lenke") {
-    // Lyslenke: én gradient per pære. repeating-radial-gradient ble
-    // prøvd først, men den gjentar seg i ringer utover og ble til
-    // striper tvers over dekket.
-    const bredde = lys.bredde || 600;
-    const hoyde = LENKE_HOYDE;
-    const paerer = lenkePaerer({ x: 0, y: hoyde / 2, bredde: bredde });
-    const lag = paerer.map((pt) =>
-      "radial-gradient(circle " + Math.round(hoyde / 2) + "px at " +
-      pt.x + "px " + pt.y + "px," +
-      "rgba(255,236,190," + styrke + ") 0%," +
-      "rgba(" + spec.farge + "," + (styrke * 0.55).toFixed(3) + ") 18%," +
-      "rgba(" + spec.farge + ",0) 100%)");
-    return "left:" + lys.x + "px;top:" + (lys.y - hoyde / 2) + "px;width:" +
-           bredde + "px;height:" + hoyde + "px;background:" +
-           lag.join(",");
-  }
-
-  if (lys.t === "lommelykt") {
-    // Kjegle: en rund glød klippet til en vifte, snudd dit lykta peker.
-    const r = lys.r || spec.r;
-    const halv = (spec.kjegle || 40) / 2;
-    const pts = [];
-    pts.push("50% 50%");
-    for (let a = -halv; a <= halv; a += 4) {
-      const rad = (a * Math.PI) / 180;
-      pts.push((50 + 50 * Math.sin(rad)).toFixed(2) + "% " +
-               (50 - 50 * Math.cos(rad)).toFixed(2) + "%");
-    }
-    return "left:" + (lys.x - r) + "px;top:" + (lys.y - r) + "px;" +
-           "width:" + (r * 2) + "px;height:" + (r * 2) + "px;" +
-           "transform:rotate(" + (lys.rot || 0) + "deg);" +
-           "clip-path:polygon(" + pts.join(",") + ");" +
-           "background:radial-gradient(circle at 50% 50%," +
-           "rgba(" + spec.farge + "," + styrke + ") 0%," +
-           "rgba(" + spec.farge + "," + (styrke * 0.5).toFixed(3) +
-           ") 35%,rgba(" + spec.farge + ",0) 72%)";
-  }
-
-  const r = lys.r || spec.r;
-  return "left:" + (lys.x - r) + "px;top:" + (lys.y - r) + "px;" +
-         "width:" + (r * 2) + "px;height:" + (r * 2) + "px;" +
-         "background:radial-gradient(circle at 50% 50%," +
-         "rgba(" + spec.farge + "," + styrke + ") 0%," +
-         "rgba(" + spec.farge + "," + (styrke * 0.45).toFixed(3) +
-         ") 30%,rgba(" + spec.farge + ",0) 70%)";
+/* Rommets lysdata, med alt som kan mangle fylt inn. */
+function romLys(room) {
+  const L = room.lys || {};
+  const ute = L.ute === true;
+  const uteSoner = ute ? [[0, 0, room.widthPx, room.heightPx]] : (L.ute || []);
+  const inneSoner = ute ? (L.inne || []) : [];
+  const vinduer = L.vinduer || [];
+  return {
+    ute: ute, uteSoner: uteSoner, inneSoner: inneSoner, vinduer: vinduer,
+    vegger: L.vegger || [], rekker: L.rekker || [],
+    dagsvindu: vinduer.some((v) => v.dag),
+    harInne: !ute || inneSoner.length > 0,
+    harUte: ute || uteSoner.length > 0,
+    L: L,
+  };
 }
 
 function roomLight(room) {
-  if (room.group === "Uteområder") return "ute";
-  // Lasterom, kjølerom og maskinrom har ingen koøyer, uansett dekk.
-  if (room.group === "Lasterom og maskin") return "dypt";
-  const m = String(room.title || "").match(
-    /Båtdekket|Promenadedekket|under E-dekk|[A-E]-dekk/);
-  const dekk = m ? m[0] : "";
-  if (dekk === "under E-dekk" || dekk === "E-dekk") return "dypt";
-  if (dekk === "D-dekk") return "svakt";
-  return "vindu";
+  const R = romLys(room);
+  if (R.ute && !R.inneSoner.length) return "ute";
+  return R.dagsvindu ? "vindu" : "dypt";
 }
 
-const LYS_NAVN = {
-  ute: "åpent dekk", vindu: "koøyer", svakt: "så vidt dagslys",
-  dypt: "ingen dagslys",
-};
-
-/* Fire tilstander ganger fire romtyper.
-
-   tone     mørkner alt (multiply)
-   loft     løfter der lyset kommer inn (screen)
-   vignett  mørkner kantene
-   skygge   hvor langt gjenstandene kaster
-   lampe    varm glød fra taklampene, bare når strømmen står på */
-const LYS_TABELL = {
-  "dag/på": {
-    ute:   { tone: null, loft: 0.10, vignett: 0.10, skygge: [1, 2, 2, 0.22] },
-    vindu: { tone: null, loft: 0.08, vignett: 0.14, skygge: [1, 2, 2, 0.24] },
-    svakt: { tone: "rgba(150,165,190,0.12)", loft: 0.05, vignett: 0.22,
-             skygge: [1, 2, 3, 0.3], lampe: 0.10 },
-    dypt:  { tone: "rgba(105,78,42,0.26)", loft: 0, vignett: 0.40,
-             skygge: [2, 4, 5, 0.42], lampe: 0.20 },
-  },
-  "natt/på": {
-    ute:   { tone: "rgba(26,44,86,0.84)", loft: 0, vignett: 0.52,
-             skygge: [2, 4, 6, 0.5] },
-    vindu: { tone: "rgba(92,60,28,0.62)", loft: 0, vignett: 0.46,
-             skygge: [2, 4, 5, 0.45], lampe: 0.18 },
-    svakt: { tone: "rgba(78,50,22,0.68)", loft: 0, vignett: 0.52,
-             skygge: [2, 4, 6, 0.48], lampe: 0.16 },
-    // Samme som om dagen: her nede finnes det ikke dagslys å miste.
-    dypt:  { tone: "rgba(105,78,42,0.26)", loft: 0, vignett: 0.40,
-             skygge: [2, 4, 5, 0.42], lampe: 0.20 },
-  },
-  "dag/av": {
-    // Ute merkes ikke strømbrudd før det blir mørkt — altså ikke i
-    // det hele tatt om dagen. Tallene er de samme som med strøm på.
-    ute:   { tone: null, loft: 0.10, vignett: 0.10, skygge: [1, 2, 2, 0.22] },
-    // Lyset kommer gjennom koøyene nå, ikke som en jevn gradient —
-    // se windowShafts(). Derfor står loft på null her.
-    vindu: { tone: "rgba(62,76,104,0.82)", loft: 0, vignett: 0.62,
-             skygge: [2, 4, 7, 0.5] },
-    svakt: { tone: "rgba(44,54,78,0.90)", loft: 0, vignett: 0.70,
-             skygge: [3, 5, 9, 0.55] },
-    dypt:  { tone: "rgba(10,8,11,0.89)", loft: 0, vignett: 0.66,
-             skygge: [3, 6, 11, 0.6], nodlys: true },
-  },
-  "natt/av": {
-    ute:   { tone: "rgba(12,22,48,0.88)", loft: 0.05, vignett: 0.64,
-             skygge: [3, 5, 8, 0.55] },
-    vindu: { tone: "rgba(10,16,36,0.88)", loft: 0.06, vignett: 0.70,
-             skygge: [3, 6, 10, 0.6] },
-    svakt: { tone: "rgba(7,10,22,0.91)", loft: 0.03, vignett: 0.76,
-             skygge: [3, 6, 11, 0.6] },
-    // Og i mørket er det like svart uansett hva klokka er — med det
-    // samme røde nødlyset.
-    dypt:  { tone: "rgba(10,8,11,0.89)", loft: 0, vignett: 0.66,
-             skygge: [3, 6, 11, 0.6], nodlys: true },
-  },
-};
+const LYS_NAVN = { ute: "åpent dekk", vindu: "vinduer", dypt: "ingen vinduer" };
 
 function lightMode() {
   return state.mapTime + "/" + (state.mapPower ? "på" : "av");
 }
 
-function lightFor(room) {
-  const tabell = LYS_TABELL[lightMode()] || LYS_TABELL["dag/på"];
-  return tabell[roomLight(room)] || tabell.vindu;
+/* Punkter med fast avstand langs en polylinje. */
+function langsLinje(pts, steg, start) {
+  const ut = [];
+  let igjen = start;
+  for (let i = 1; i < pts.length; i += 1) {
+    const a = pts[i - 1], b = pts[i];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    let t = igjen;
+    while (t <= len) {
+      ut.push([a[0] + (b[0] - a[0]) * t / len, a[1] + (b[1] - a[1]) * t / len]);
+      t += steg;
+    }
+    igjen = t - len;
+  }
+  return ut;
 }
 
-/* Lagene, i den rekkefølgen de skal tegnes. */
-function lightLayers(room) {
-  const L = lightFor(room);
+function iSone(x, y, soner) {
+  return soner.some(([sx, sy, w, h]) => x >= sx && x < sx + w && y >= sy && y < sy + h);
+}
+
+/* Taklampene: et jevnt rutenett over rommet, med mindre rommet sier
+   hvor de henger. */
+function taklamper(room, R) {
+  if (R.L.taklamper) return R.L.taklamper;
+  const soner = R.ute ? R.inneSoner : [[0, 0, room.widthPx, room.heightPx]];
   const ut = [];
-
-  // Tonen: hele rommet mørknes og farges.
-  if (L.tone) {
-    ut.push({ klasse: "tone", css: "background:" + L.tone });
-  }
-
-  // Lampene: varm glød ovenfra, som når taklyset står på.
-  if (L.lampe) {
-    ut.push({ klasse: "loft", css:
-      "background:radial-gradient(120% 90% at 50% 0%," +
-      "rgba(255,206,130," + L.lampe + ") 0%," +
-      "rgba(255,206,130,0) 70%)" });
-  }
-
-  // Dagslyset: kommer inn ovenfra og fra venstre, samme vei som
-  // kunsten allerede er lyssatt.
-  if (L.loft) {
-    ut.push({ klasse: "loft", css:
-      "background:linear-gradient(145deg," +
-      "rgba(190,210,240," + L.loft + ") 0%," +
-      "rgba(190,210,240,0) 55%)" });
-  }
-
-  // Vignetten: kantene faller bort, og det gir rommet dybde.
-  if (L.vignett) {
-    ut.push({ klasse: "vignett", css:
-      "background:radial-gradient(ellipse 78% 78% at 48% 42%," +
-      "rgba(0,0,0,0) 40%,rgba(0,0,0," + L.vignett + ") 100%)" });
-  }
-
-  // Nødlyset er lamper langs veggene — se autoLights. Her legges bare
-  // det svake røde skjæret som fyller rommet mellom dem.
-  if (L.nodlys) {
-    ut.push({ klasse: "loft", css:
-      "background:linear-gradient(rgba(120,18,14,0.11)," +
-      "rgba(120,18,14,0.11))" });
-  }
-
-  // Dagslys gjennom koøyene: striper inn i rommet fra skutesiden.
-  windowShafts(room).forEach((v) => {
-    ut.push({ klasse: "loft", css:
-      "left:" + (v.x - v.bredde) + "px;top:0;width:" + (v.bredde * 2) +
-      "px;height:" + v.hoyde + "px;right:auto;bottom:auto;background:" +
-      "radial-gradient(ellipse 48% 100% at 50% 0%," +
-      "rgba(208,224,255," + v.styrke + ") 0%," +
-      "rgba(190,210,245," + (v.styrke * 0.45).toFixed(3) + ") 35%," +
-      "rgba(0,0,0,0) 100%)" });
-  });
-
-  // Lyskildene øverst: lykter, lommelykter og lyslenker skal kunne
-  // skjære gjennom alt det andre.
-  autoLights(room).forEach((l) => {
-    ut.push({ klasse: "loft kilde", css: lightCss(l) });
-  });
-  mapLights(room.id).forEach((l) => {
-    ut.push({ klasse: "loft kilde" +
-                      (state.mapSelLight === l.id ? " sel" : ""),
-              css: lightCss(l), id: l.id });
+  soner.forEach(([sx, sy, w, h]) => {
+    const nx = Math.max(1, Math.round(w / 280)), ny = Math.max(1, Math.round(h / 260));
+    for (let i = 0; i < nx; i += 1) {
+      for (let j = 0; j < ny; j += 1) {
+        const x = Math.round(sx + w * (i + 0.5) / nx), y = Math.round(sy + h * (j + 0.5) / ny);
+        if (!R.ute && iSone(x, y, R.uteSoner)) continue;
+        ut.push([x, y]);
+      }
+    }
   });
   return ut;
 }
 
-function propShadowCss(room) {
-  const sk = lightFor(room).skygge || [0, 0, 0, 0];
-  return sk[0] + "px " + sk[1] + "px " + sk[2] + "px rgba(0,0,0," +
-         sk[3] + ")";
+/* Nødlampene henger på veggene, litt skjevt fordelt, slik de gjør i et
+   lasterom. Lasterom 2 har sine egne, prøvd fram i verkstedet. */
+function nodlamper(room, R) {
+  if (R.L.nodlamper) return R.L.nodlamper;
+  const W = room.widthPx, H = room.heightPx;
+  const ut = [];
+  const topp = Math.max(1, Math.round(W / 350));
+  for (let i = 0; i < topp; i += 1) {
+    const skjev = topp === 1 ? -0.1 : (i % 2 ? 0.05 : -0.05);
+    ut.push([Math.round(W * ((i + 0.5) / topp + skjev)), 7]);
+  }
+  ut.push([6, Math.round(H * 0.40)]);
+  ut.push([W - 6, Math.round(H * 0.49)]);
+  if (H > 500) {
+    const bunn = Math.max(1, Math.round(W / 450));
+    for (let i = 0; i < bunn; i += 1) {
+      ut.push([Math.round(W * (i + 0.5) / bunn + W * 0.08), H - 7]);
+    }
+  }
+  return ut;
+}
+
+/* Skyggesiden av skipet får himmellys, ikke sol. Sola står i vest, så
+   alle strålene heller samme vei. */
+const VINKEL = { s: 0, e: 90, n: 180, w: 270 };
+const SKJEV = { s: 1, e: -1, n: -1, w: 1 };
+
+function vindusStraale(room, v, retning, farge, styrke, skjev, spredning) {
+  const W = room.widthPx, H = room.heightPx;
+  const dybde = { s: H - v.y, n: v.y, e: W - v.x, w: v.x }[retning];
+  const inn = { s: [0, 4], n: [0, -4], e: [4, 0], w: [-4, 0] }[retning];
+  return {
+    type: "stråle", x: v.x + inn[0], y: v.y + inn[1],
+    vinkel: VINKEL[retning] + SKJEV[retning] * skjev,
+    lengde: Math.min(dybde * 0.9, 180 + v.b * 1.3),
+    bredde: v.b,
+    spredning: spredning || (v.b < 20 ? 2.3 : v.b < 45 ? 1.7 : 1.45),
+    farge: farge, styrke: styrke, skyggelengde: 1.35,
+  };
+}
+
+function vindusGlass(v, retning, farge, styrke) {
+  const liggende = retning === "s" || retning === "n";
+  if (v.b < 20) {
+    return { x: v.x, y: v.y, kjerne: Math.min(5.6, v.b / 2), glod: 22, haloStyrke: styrke,
+             farge: farge };
+  }
+  return { form: "rute", x: v.x, y: v.y, w: liggende ? v.b : 5, h: liggende ? 5 : v.b,
+           glod: 26, haloStyrke: styrke * 0.8, farge: farge };
+}
+
+/* Hindrene: gjenstandene som står, og veggene. flytt er en midlertidig
+   posisjon mens noe dras. */
+function hindreFor(room, R, flytt) {
+  const ut = [];
+  visibleProps(room).forEach((p) => {
+    const h = p.item.h || 0;
+    if (!h) return;
+    const ramme = room.frames[p.item.sprite];
+    if (!ramme) return;
+    const pos = (flytt && flytt.props && flytt.props[p.item.id]) || p.st;
+    // Spritene har en piksel kontur og fire piksler bakt skygge nede
+    // til høyre; selve tingen er litt mindre enn bildet.
+    ut.push(Lysmotor.hinder(
+      Lysmotor.hjorner(pos.x + 1, pos.y + 1, ramme[2] - 5, ramme[3] - 5, p.st.r),
+      h, p.item.id));
+  });
+  R.vegger.forEach((v) => ut.push(Lysmotor.hinder(
+    Lysmotor.hjorner(v[0], v[1], v[2], v[3], 0), v[4] || 160, null, "vegg")));
+  (R.L.vindusvegger || []).forEach((v) => ut.push(Lysmotor.hinder(
+    Lysmotor.hjorner(v[0], v[1], v[2], v[3], 0), v[4] || 160, null, "vindusvegg")));
+  return ut;
+}
+
+function proplysType(item) {
+  const regler = (state.maps && state.maps.lys) || [];
+  for (const r of regler) {
+    if (r.navn && String(item.name || "").indexOf(r.navn) === 0) return r;
+    if (r.sprite && item.sprite === r.sprite && !r.navn) return r;
+  }
+  return null;
+}
+
+/* Alt motoren trenger for å tegne lyset i rommet akkurat nå. */
+function lysFor(room, flytt) {
+  const R = romLys(room);
+  const W = room.widthPx, H = room.heightPx;
+  const natt = state.mapTime === "natt", strom = !!state.mapPower;
+  const nod = !strom && R.harInne && !R.dagsvindu;
+  const o = {
+    aktiv: natt ? (strom ? (R.harUte || R.dagsvindu) : true) : (!strom && R.harInne),
+    omgivelse: OMGIVELSE.dag, soner: [], lys: [], kilder: [], lykter: [],
+    lommelykter: [], lenker: [], vignett: 0, dis: 0, uskarp: 1,
+    hindre: hindreFor(room, R, flytt),
+  };
+
+  const inneOmg = strom ? OMGIVELSE.inneNatt
+    : nod ? OMGIVELSE.nod
+    : natt ? OMGIVELSE.maanebrudd : OMGIVELSE.solbrudd;
+  const uteOmg = !natt ? OMGIVELSE.dag
+    : strom ? OMGIVELSE.uteNatt : OMGIVELSE.uteNattMork;
+  if (R.ute) {
+    o.omgivelse = uteOmg;
+    o.soner = R.inneSoner.map((r) => ({ r: r, farge: inneOmg }));
+  } else {
+    o.omgivelse = inneOmg;
+    o.soner = R.uteSoner.map((r) => ({ r: r, farge: uteOmg }));
+  }
+  o.vignett = natt ? 0.28 : 0.3;
+  o.dis = nod ? 0.10 : !strom ? (natt ? 0.18 : 0.28) : 0.08;
+  o.uskarp = nod ? 1.0 : 0.8;
+
+  // Månen over det som er ute, med lange, svake skygger.
+  if (natt && R.harUte) {
+    o.lys.push({ type: "flate", soner: R.ute ? [[0, 0, W, H]] : R.uteSoner,
+                 unntak: R.inneSoner, farge: [34, 38, 52], styrke: 1,
+                 retning: [0.42, 0.91], skyggelengde: 0.6 });
+  }
+
+  // Vinduene.
+  R.vinduer.forEach((v) => {
+    if (!strom && v.dag) {
+      if (v.gardin) {
+        // Trukket for: gardinen gløder rødt, og litt lys siver inn.
+        o.lys.push({ type: "punkt", x: v.x, y: v.y + 6, radius: 170,
+                     farge: natt ? [150, 130, 170] : [255, 130, 105],
+                     styrke: natt ? 0.45 : 0.75, hoyde: 70, maksSkygge: 160 });
+        o.kilder.push({ x: v.x, y: v.y, kjerne: 0, glod: 18, haloStyrke: natt ? 0.25 : 0.55,
+                        farge: [255, 110, 90] });
+        return;
+      }
+      const sol = v.sol !== false;
+      const farge = natt ? FARGE.maane : sol ? FARGE.sol : FARGE.himmel;
+      const styrke = natt ? (sol ? 0.6 : 0.35) : (sol ? 1.0 : 0.55);
+      const st = vindusStraale(room, v, v.dag, farge, styrke, sol ? 18 : 8,
+                               sol ? null : 1.6);
+      if (!sol) { st.lengde *= 0.7; st.skyggelengde = 0.8; }
+      if (natt) st.skyggelengde = 1.2;
+      if (v.farget) st.farger = GLASSMALERI.map((c) => c.map((k, i) =>
+        Math.round(k * 0.7 + farge[i] * 0.3)));
+      o.lys.push(st);
+      o.kilder.push(vindusGlass(v, v.dag, natt ? [190, 205, 240] : [255, 226, 170],
+                                natt ? 0.35 : 0.6));
+    }
+    if (strom && natt && v.natt) {
+      // Lampelyset innenfra faller ut på dekk.
+      // Mykt og bredt: vinduene står tett, og smale striper med mørke
+      // kiler imellom ser ut som noe annet enn lys fra en salong.
+      const st = vindusStraale(room, v, v.natt, FARGE.lampe, 0.45, 0, 2.2);
+      st.lengde = Math.min(st.lengde, 70 + v.b * 0.8);
+      st.skyggelengde = 1.0;
+      o.lys.push(st);
+      o.kilder.push(vindusGlass(v, v.natt, [255, 214, 160], 0.5));
+    }
+  });
+
+  // Taklampene, når strømmen står på og det er natt.
+  if (strom && natt && R.harInne) {
+    taklamper(room, R).forEach(([x, y]) => {
+      o.lys.push({ type: "punkt", x: x, y: y, radius: 250, farge: FARGE.lampe,
+                   styrke: 0.6, hoyde: 150, maksSkygge: 90 });
+      o.kilder.push({ x: x, y: y, kjerne: 2.2, glod: 16, haloStyrke: 0.35,
+                      farge: FARGE.lampe });
+    });
+  }
+
+  // Nødlyset. I en liten lugar når lampene ikke like langt — ellers
+  // blir hele rommet rødt, uten et eneste mørkt hjørne.
+  if (nod) {
+    const rekk = Math.max(220, Math.min(330, Math.max(W, H) * 0.55));
+    nodlamper(room, R).forEach(([x, y]) => {
+      o.lys.push({ type: "punkt", x: x, y: y, radius: rekk, farge: FARGE.rod,
+                   styrke: 0.9, hoyde: 110, maksSkygge: 520 });
+      o.kilder.push({ x: x, y: y, kjerne: 3.4, glod: 26, haloStyrke: 0.75,
+                      farge: [255, 60, 44],
+                      kjerneFarge: [[255, 210, 200], [255, 70, 55], [200, 20, 14]] });
+    });
+  }
+
+  // Ute om natta: lyslenker langs rekka når strømmen står på,
+  // oljelykter når den er borte.
+  if (natt) {
+    const mx = W / 2, my = H / 2;
+    R.rekker.forEach((linje) => {
+      if (strom) {
+        const paerer = langsLinje(linje, 24, 12);
+        paerer.forEach(([x, y]) => {
+          o.lys.push({ type: "punkt", x: x, y: y, radius: 62, farge: FARGE.lenke,
+                       styrke: 0.5, hoyde: 70, maksSkygge: 80 });
+          o.kilder.push({ x: x, y: y + 1, kjerne: 0, glod: 9, haloStyrke: 0.5,
+                          farge: FARGE.lenke });
+        });
+        o.lenker.push({ punkter: paerer, tent: true });
+      } else {
+        langsLinje(linje, 210, 105).forEach(([x, y]) => {
+          const d = Math.hypot(mx - x, my - y) || 1;
+          const lx = x + (mx - x) / d * 7, ly = y + (my - y) / d * 7;
+          const p = PROPLYS.olje;
+          o.lys.push({ type: "punkt", x: lx, y: ly, radius: 160, farge: p.farge,
+                       styrke: 0.8, hoyde: p.hoyde, maksSkygge: p.maks });
+          o.kilder.push({ x: lx, y: ly, kjerne: p.kjerne, glod: p.glod, haloStyrke: p.halo,
+                          farge: p.farge });
+          o.lykter.push({ x: lx, y: ly, tent: true });
+        });
+      }
+    });
+  }
+
+  // Lykter, lamper og bål som står på kartet.
+  visibleProps(room).forEach((p) => {
+    const regel = proplysType(p.item);
+    if (!regel) return;
+    const t = PROPLYS[regel.type];
+    if (!t || (t.strom && !strom)) return;
+    const ramme = room.frames[p.item.sprite] || [0, 0, 0, 0];
+    const pos = (flytt && flytt.props && flytt.props[p.item.id]) || p.st;
+    const x = pos.x + ramme[2] / 2 + (regel.dx || 0);
+    const y = pos.y + ramme[3] / 2 + (regel.dy || 0);
+    o.lys.push({ type: "punkt", x: x, y: y, radius: t.radius, farge: t.farge,
+                 styrke: t.styrke, hoyde: t.hoyde, maksSkygge: t.maks, selv: p.item.id });
+    o.kilder.push({ x: x, y: y, kjerne: t.kjerne, glod: t.glod, haloStyrke: t.halo,
+                    farge: t.farge });
+  });
+
+  // Lysene Keeperen har satt ut.
+  mapLights(room.id).forEach((l0) => {
+    const l = Object.assign({}, l0, (flytt && flytt.lys && flytt.lys[l0.id]) || {});
+    const r = l.r || (LYS_TYPER[l.t] || {}).r || 180;
+    if (l.t === "lommelykt") {
+      o.lys.push({ type: "punkt", x: l.x, y: l.y, radius: r, farge: FARGE.lommelykt,
+                   styrke: 0.95, hoyde: 50, maksSkygge: 400,
+                   kjegle: { retning: l.rot || 0, vidde: LYS_TYPER.lommelykt.kjegle } });
+      o.lommelykter.push({ x: l.x, y: l.y, rot: l.rot || 0 });
+    } else if (l.t === "lenke") {
+      const a = (l.rot || 0) * Math.PI / 180;
+      const linje = [[l.x, l.y], [l.x + Math.cos(a) * r, l.y + Math.sin(a) * r]];
+      const paerer = langsLinje(linje, 24, 0);
+      paerer.forEach(([x, y]) => {
+        o.lys.push({ type: "punkt", x: x, y: y, radius: 62, farge: FARGE.lenke,
+                     styrke: 0.5, hoyde: 70, maksSkygge: 80 });
+        o.kilder.push({ x: x, y: y + 1, kjerne: 0, glod: 9, haloStyrke: 0.5,
+                        farge: FARGE.lenke });
+      });
+      o.lenker.push({ punkter: paerer, tent: true });
+    } else if (l.t === "nod") {
+      o.lys.push({ type: "punkt", x: l.x, y: l.y, radius: r, farge: FARGE.rod,
+                   styrke: 0.9, hoyde: 110, maksSkygge: 520 });
+      o.kilder.push({ x: l.x, y: l.y, kjerne: 3.4, glod: 26, haloStyrke: 0.75,
+                      farge: [255, 60, 44],
+                      kjerneFarge: [[255, 210, 200], [255, 70, 55], [200, 20, 14]] });
+    } else {
+      const p = PROPLYS.olje;
+      o.lys.push({ type: "punkt", x: l.x, y: l.y, radius: r, farge: p.farge,
+                   styrke: p.styrke, hoyde: p.hoyde, maksSkygge: p.maks });
+      o.kilder.push({ x: l.x, y: l.y, kjerne: p.kjerne, glod: p.glod, haloStyrke: p.halo,
+                      farge: p.farge });
+      o.lykter.push({ x: l.x, y: l.y, tent: true });
+    }
+  });
+  return o;
+}
+
+/* Lagene for et rom, som canvas-elementer klare til å legges i kartet.
+   De samme lagene brukes om igjen så lenge ingenting har endret seg:
+   å klikke på en gjenstand tegner hele visningen på nytt, men lyset
+   trenger ikke regnes ut igjen for det. */
+const lysHurtig = new Map();
+
+function lysNokkel(room) {
+  return JSON.stringify([
+    room.id, lightMode(), !!state.mapDecor, !!state.mapPlayer,
+    visibleProps(room).map((p) => [p.item.id, p.st.x, p.st.y, p.st.r]),
+    mapLights(room.id),
+  ]);
+}
+
+function lysLag(room, flytt, skala) {
+  const nokkel = !flytt && !skala ? lysNokkel(room) : null;
+  if (nokkel && lysHurtig.has(nokkel)) return lysHurtig.get(nokkel);
+  const opts = lysFor(room, flytt);
+  opts.s = skala || 1;
+  opts.sTing = skala || 2;
+  const ut = Lysmotor.render(room.widthPx, room.heightPx, opts);
+  if (nokkel) {
+    lysHurtig.set(nokkel, ut);
+    // Bare de siste rommene tas vare på; canvasene er store.
+    while (lysHurtig.size > 8) lysHurtig.delete(lysHurtig.keys().next().value);
+  }
+  return ut;
+}
+
+const LYS_LAG = [["kart", "multiply"], ["dis", "screen"], ["glod", "screen"], ["ting", "normal"]];
+
+function lysElementer(room, flytt) {
+  const lag = lysLag(room, flytt);
+  const ut = [];
+  LYS_LAG.forEach(([navn]) => {
+    const c = lag[navn];
+    if (!c) return;
+    c.className = "maplys " + navn;
+    c.style.width = room.widthPx + "px";
+    c.style.height = room.heightPx + "px";
+    ut.push(c);
+  });
+  return ut;
+}
+
+/* Bytt lyslagene i kartet uten å tegne resten på nytt. Brukes mens noe
+   dras, så skyggene følger med. */
+let lysVenter = null;
+function oppdaterLysLag(room, flytt) {
+  lysVenter = { room: room, flytt: flytt || null };
+  if (oppdaterLysLag.ramme) return;
+  oppdaterLysLag.ramme = requestAnimationFrame(() => {
+    oppdaterLysLag.ramme = null;
+    const v = lysVenter;
+    lysVenter = null;
+    const layer = document.getElementById("maplayer");
+    if (!v || !layer) return;
+    const nye = lysElementer(v.room, v.flytt);
+    layer.querySelectorAll(".maplys").forEach((c) => c.remove());
+    const foran = layer.querySelector(".mapgrid, .maplyshandle");
+    nye.forEach((c) => layer.insertBefore(c, foran));
+  });
+}
+
+/* Håndtaket til et lys man har satt ut: en ring man kan ta tak i. */
+function lysHandtak(lys) {
+  const valgt = state.mapSelLight === lys.id;
+  return el("div", {
+    class: "maplyshandle" + (valgt ? " sel" : ""),
+    "data-lys": lys.id,
+    title: (LYS_TYPER[lys.t] || {}).navn || "Lys",
+    style: "left:" + (lys.x - 14) + "px;top:" + (lys.y - 14) + "px",
+  });
 }
 
 function viewMaps(root) {
@@ -9933,7 +10531,7 @@ function viewMaps(root) {
     const spec = LYS_TYPER[lysvalgt.t] || {};
     lysrad.appendChild(el("span", { class: "mapselname",
       text: spec.navn + " " + Math.round((lysvalgt.r || 0) / 16) + " fot" }));
-    if (spec.kjegle) {
+    if (spec.kjegle || lysvalgt.t === "lenke") {
       lysrad.appendChild(el("button", {
         class: "btn small", type: "button", text: "Snu",
         title: "R snur 15 grader, shift+R andre veien",
@@ -10026,23 +10624,19 @@ function viewMaps(root) {
                          width: String(room.widthPx),
                          height: String(room.heightPx), alt: room.title });
   layer.appendChild(bg);
-  layer.style.setProperty("--propskygge", propShadowCss(room));
   visibleProps(room).forEach((p) => {
     const node = propEl(room, p.item, p.st);
     if (node) layer.appendChild(node);
   });
   // Lyset legges over gjenstandene, men under rutenettet — rutene skal
   // være lesbare også når det er stummende mørkt.
-  lightLayers(room).forEach((l) => {
-    layer.appendChild(el("div", { class: "maplight " + l.klasse,
-                                  style: l.css,
-                                  "data-lys": l.id || null }));
-  });
+  lysElementer(room).forEach((c) => layer.appendChild(c));
   if (state.mapGrid) {
     const g = el("div");
     g.innerHTML = gridSvg(room);
     layer.appendChild(g.firstChild);
   }
+  mapLights(room.id).forEach((l) => layer.appendChild(lysHandtak(l)));
   frame.appendChild(layer);
   main.appendChild(frame);
 
@@ -10051,17 +10645,17 @@ function viewMaps(root) {
           "1 fot · rute = 5 fot · dra for å flytte, R for å rotere, " +
           "piltaster for å dytte" }));
   const sort = roomLight(room);
+  const natt = state.mapTime === "natt";
+  const forklaring = {
+    "dypt/på": ", så her ser det likt ut hele døgnet",
+    "dypt/av": " — nødlyset er alt som står igjen",
+    "ute/av": natt ? " — bare oljelyktene er tent" : ", så strømbruddet merkes ikke før det blir mørkt",
+    "vindu/av": natt ? " — bare månelyset kommer inn" : " — sola skinner inn gjennom dem",
+  }[sort + "/" + (state.mapPower ? "på" : "av")] || "";
   main.appendChild(el("p", { class: "mapmeta",
-    text: "Lys: " + (state.mapTime === "natt" ? "natt" : "dag") +
+    text: "Lys: " + (natt ? "natt" : "dag") +
           (state.mapPower ? "" : " · strømbrudd") +
-          " · rommet har " + LYS_NAVN[sort] +
-          (sort === "dypt"
-            ? (state.mapPower
-                ? ", så her ser det likt ut hele døgnet"
-                : " — nødlyset er alt som står igjen")
-            : sort === "ute" && !state.mapPower
-              ? ", så strømbruddet merkes ikke før det blir mørkt"
-              : "") }));
+          " · rommet har " + LYS_NAVN[sort] + forklaring }));
 
   // --- skjulte gjenstander
   const skjult = room.items
@@ -10204,150 +10798,30 @@ async function exportMapPng(room) {
     const atlas = await last(mapAsset(room, "sprites"));
     g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
 
-    const L = lightFor(room);
-    const sk = L.skygge || [0, 0, 0, 0];
     visibleProps(room).forEach((p) => {
       const ramme = room.frames[p.item.sprite];
       if (!ramme) return;
       const [fx, fy, fw, fh] = ramme;
       g.save();
-      if (sk[3]) {
-        g.shadowColor = "rgba(0,0,0," + sk[3] + ")";
-        g.shadowOffsetX = sk[0];
-        g.shadowOffsetY = sk[1];
-        g.shadowBlur = sk[2];
-      }
       g.translate(p.st.x + fw / 2, p.st.y + fh / 2);
       g.rotate((p.st.r * Math.PI) / 180);
       g.drawImage(atlas, fx, fy, fw, fh, -fw / 2, -fh / 2, fw, fh);
       g.restore();
     });
 
-    // Samme lag som på skjermen, i samme rekkefølge.
-    const W = room.widthPx, H = room.heightPx;
-    if (L.tone) {
-      g.save();
-      g.globalCompositeOperation = "multiply";
-      g.fillStyle = L.tone;
-      g.fillRect(0, 0, W, H);
-      g.restore();
-    }
-    if (L.lampe) {
-      g.save();
-      g.globalCompositeOperation = "screen";
-      const r = Math.max(W * 0.6, H * 0.9);
-      const grad = g.createRadialGradient(W / 2, 0, 0, W / 2, 0, r);
-      grad.addColorStop(0, "rgba(255,206,130," + L.lampe + ")");
-      grad.addColorStop(0.7, "rgba(255,206,130,0)");
-      grad.addColorStop(1, "rgba(255,206,130,0)");
-      g.fillStyle = grad;
-      g.fillRect(0, 0, W, H);
-      g.restore();
-    }
-    if (L.loft) {
-      g.save();
-      g.globalCompositeOperation = "screen";
-      // 145 grader: ovenfra og fra venstre, som på skjermen.
-      const grad = g.createLinearGradient(0, 0, W * 0.6, H * 0.85);
-      grad.addColorStop(0, "rgba(190,210,240," + L.loft + ")");
-      grad.addColorStop(0.55, "rgba(190,210,240,0)");
-      grad.addColorStop(1, "rgba(190,210,240,0)");
-      g.fillStyle = grad;
-      g.fillRect(0, 0, W, H);
-      g.restore();
-    }
-    if (L.vignett) {
-      g.save();
-      const cx = W * 0.48, cy = H * 0.42;
-      const r = Math.max(W, H) * 0.78;
-      const grad = g.createRadialGradient(cx, cy, r * 0.4, cx, cy, r);
-      grad.addColorStop(0, "rgba(0,0,0,0)");
-      grad.addColorStop(1, "rgba(0,0,0," + L.vignett + ")");
-      g.fillStyle = grad;
-      g.fillRect(0, 0, W, H);
-      g.restore();
-    }
-
-    // Nødlyset: to lamper og et svakt rødt skjær over alt.
-    if (L.nodlys) {
-      g.save();
-      g.globalCompositeOperation = "screen";
-      g.fillStyle = "rgba(120,18,14,0.11)";
-      g.fillRect(0, 0, W, H);
-      g.restore();
-    }
-
-    // Dagslys gjennom koøyene.
-    windowShafts(room).forEach((v) => {
-      g.save();
-      g.globalCompositeOperation = "screen";
-      const grad = g.createRadialGradient(v.x, 0, 0, v.x, 0, v.hoyde);
-      grad.addColorStop(0, "rgba(208,224,255," + v.styrke + ")");
-      grad.addColorStop(0.35, "rgba(190,210,245," +
-                               (v.styrke * 0.45).toFixed(3) + ")");
-      grad.addColorStop(1, "rgba(0,0,0,0)");
-      g.fillStyle = grad;
-      g.fillRect(v.x - v.bredde, 0, v.bredde * 2, v.hoyde);
-      g.restore();
+    // Lyset tegnes på nytt i bildets oppløsning, så skyggekantene blir
+    // like skarpe som kunsten. Lagene legges på slik nettleseren gjør
+    // det på skjermen.
+    const lag = lysLag(room, null, skala);
+    g.save();
+    g.setTransform(1, 0, 0, 1, 0, 0);
+    [["kart", "multiply"], ["dis", "screen"], ["glod", "screen"],
+     ["ting", "source-over"]].forEach(([navn, blanding]) => {
+      if (!lag[navn]) return;
+      g.globalCompositeOperation = blanding;
+      g.drawImage(lag[navn], 0, 0, c.width, c.height);
     });
-
-    // Lyskildene, både de automatiske og de man har satt ut.
-    autoLights(room).concat(mapLights(room.id)).forEach((lys) => {
-      const spec = LYS_TYPER[lys.t];
-      const styrke = lys.styrke !== undefined
-        ? lys.styrke : (spec ? spec.styrke : 0.6);
-      g.save();
-      g.globalCompositeOperation = "screen";
-      if (lys.t === "maane") {
-        const grad = g.createRadialGradient(lys.x, lys.y, 0,
-                                            lys.x, lys.y, lys.r);
-        grad.addColorStop(0, "rgba(150,180,235,0.15)");
-        grad.addColorStop(0.45, "rgba(120,150,210,0.06)");
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-        g.fillStyle = grad;
-        g.fillRect(0, 0, W, H);
-      } else if (lys.t === "lenke") {
-        const r = 35;
-        lenkePaerer(lys).forEach((pt) => {
-          const grad = g.createRadialGradient(pt.x, pt.y, 0, pt.x, pt.y, r);
-          grad.addColorStop(0, "rgba(255,236,190," + styrke + ")");
-          grad.addColorStop(0.18, "rgba(" + spec.farge + "," +
-                                   (styrke * 0.55).toFixed(3) + ")");
-          grad.addColorStop(1, "rgba(" + spec.farge + ",0)");
-          g.fillStyle = grad;
-          g.fillRect(pt.x - r, pt.y - r, r * 2, r * 2);
-        });
-      } else if (lys.t === "lommelykt") {
-        const r = lys.r || spec.r;
-        const halv = ((spec.kjegle || 40) / 2) * Math.PI / 180;
-        // Kjegla peker oppover når rot er null, som på skjermen.
-        const midt = (((lys.rot || 0) - 90) * Math.PI) / 180;
-        g.beginPath();
-        g.moveTo(lys.x, lys.y);
-        g.arc(lys.x, lys.y, r, midt - halv, midt + halv);
-        g.closePath();
-        g.clip();
-        const grad = g.createRadialGradient(lys.x, lys.y, 0, lys.x, lys.y, r);
-        grad.addColorStop(0, "rgba(" + spec.farge + "," + styrke + ")");
-        grad.addColorStop(0.35, "rgba(" + spec.farge + "," +
-                                 (styrke * 0.5).toFixed(3) + ")");
-        grad.addColorStop(0.72, "rgba(" + spec.farge + ",0)");
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-        g.fillStyle = grad;
-        g.fillRect(lys.x - r, lys.y - r, r * 2, r * 2);
-      } else {
-        const r = lys.r || spec.r;
-        const grad = g.createRadialGradient(lys.x, lys.y, 0, lys.x, lys.y, r);
-        grad.addColorStop(0, "rgba(" + spec.farge + "," + styrke + ")");
-        grad.addColorStop(0.30, "rgba(" + spec.farge + "," +
-                                 (styrke * 0.45).toFixed(3) + ")");
-        grad.addColorStop(0.70, "rgba(" + spec.farge + ",0)");
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-        g.fillStyle = grad;
-        g.fillRect(lys.x - r, lys.y - r, r * 2, r * 2);
-      }
-      g.restore();
-    });
+    g.restore();
 
     if (state.mapGrid) {
       const rute = (state.maps.units && state.maps.units.gridPx) || 80;
