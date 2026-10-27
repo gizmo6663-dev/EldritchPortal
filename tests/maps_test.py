@@ -146,6 +146,82 @@ async def test_view():
         check("rutenettet er på", r["rutenett"], True)
         check("kartet er skalert til plassen", r["skala"] > 0, True)
 
+        print("\n== visning er standard, redigering må slås på ==")
+        r = await pg.evaluate("""() => {
+            const ramme = document.getElementById('mapframe');
+            const knapper = [...document.querySelectorAll('button')].map(b => b.textContent);
+            const modus = [...document.querySelectorAll('.modusknapp')]
+              .map(b => b.textContent + ':' + b.getAttribute('aria-pressed'));
+            return { edit: state.mapEdit, modus,
+                     klasse: ramme.classList.contains('redigerer'),
+                     touch: getComputedStyle(ramme).touchAction,
+                     roter: knapper.includes('Roter'),
+                     tilbake: knapper.includes('Tilbakestill'),
+                     lys: knapper.some(t => t.startsWith('+ ')) }; }""")
+        check("appen starter i visning", r["edit"], False)
+        check("bryteren viser det", r["modus"], ["Visning:true", "Redigering:false"])
+        check("et sveip ruller siden", r["touch"] != "none" and not r["klasse"], True)
+        check("redigeringsknappene er borte",
+              [r["roter"], r["tilbake"], r["lys"]], [False, False, False])
+
+        async def dra(prop_id, dx, dy):
+            b = await pg.evaluate("""(id) => {
+                const n = document.querySelector('[data-prop="' + id + '"]');
+                n.scrollIntoView({ block: 'center' });
+                const r = n.getBoundingClientRect();
+                return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; }""", prop_id)
+            await pg.mouse.move(b["x"], b["y"])
+            await pg.mouse.down()
+            await pg.mouse.move(b["x"] + dx, b["y"] + dy, steps=6)
+            await pg.mouse.up()
+            await pg.wait_for_timeout(300)
+
+        it = await pg.evaluate("""() => {
+            const rom = currentMapRoom();
+            const it = visibleProps(rom).map(p => p.item)
+              .find(i => (i.h || 0) > 0 && !i.linksTo);
+            return { id: it.id, x: propNow(rom, it).x }; }""")
+        await dra(it["id"], 60, 30)
+        r = await pg.evaluate("""(id) => {
+            const rom = currentMapRoom();
+            const it = rom.items.find(i => i.id === id);
+            return propNow(rom, it).x; }""", it["id"])
+        check("i visning kan ingenting dras", r, it["x"])
+        await dra(it["id"], 0, 0)
+        r = await pg.evaluate("""async (id) => {
+            const valgt = state.mapSel;
+            const navn = document.getElementById('mapselname').textContent;
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true }));
+            await new Promise(r => setTimeout(r, 200));
+            const rom = currentMapRoom();
+            const st = propNow(rom, rom.items.find(i => i.id === id));
+            return { valgt, navn, x: st.x, skjult: st.hidden }; }""", it["id"])
+        check("et trykk velger tingen og viser navnet",
+              r["valgt"] == it["id"] and r["navn"] != "ingenting valgt", True)
+        check("men piltaster og Delete gjør ingenting",
+              [r["x"], r["skjult"]], [it["x"], False])
+
+        await pg.get_by_role("button", name="Redigering", exact=True).click()
+        await pg.wait_for_timeout(300)
+        r = await pg.evaluate("""() => ({
+            klasse: document.getElementById('mapframe').classList.contains('redigerer'),
+            touch: getComputedStyle(document.getElementById('mapframe')).touchAction,
+            roter: [...document.querySelectorAll('button')].some(b => b.textContent === 'Roter') })""")
+        check("redigering slås på med bryteren",
+              [r["klasse"], r["touch"], r["roter"]], [True, "none", True])
+        await dra(it["id"], 64, 0)
+        r = await pg.evaluate("""async (id) => {
+            const rom = currentMapRoom();
+            const item = rom.items.find(i => i.id === id);
+            const x = propNow(rom, item).x;
+            await setProp(rom, item, { x: item.x, y: item.y });
+            return x; }""", it["id"])
+        k = await pg.evaluate("parseFloat(document.getElementById('maplayer').dataset.scale)")
+        check("og da kan tingen dras", abs(r - (it["x"] + round(64 / k))) <= 1, True)
+        await pg.get_by_role("button", name="Visning", exact=True).click()
+        await pg.wait_for_timeout(300)
+
         print("\n== en gjenstand kan flyttes ==")
         r = await pg.evaluate("""async () => {
             const rom = currentMapRoom();
@@ -165,6 +241,8 @@ async def test_view():
 
         print("\n== rotere, skjule og hente fram igjen ==")
         r = await pg.evaluate("""async () => {
+            // Lista over skjulte ting hører til redigeringen.
+            state.mapEdit = true;
             const rom = currentMapRoom();
             const it = rom.items.find(i => !i.hiddenByDefault);
             await setProp(rom, it, { r: 90 });
@@ -389,6 +467,7 @@ async def test_view():
         r = await pg.evaluate("""async () => {
             await byttRom('hold7');
             state.mapTime = 'natt'; state.mapPower = false;
+            state.mapEdit = true;
             if (state.progress) state.progress.mapLights = {};
             render(); await new Promise(r => setTimeout(r, 400));
             const for_ = document.querySelectorAll('.maplyshandle').length;
@@ -565,6 +644,80 @@ async def test_view():
         check("og sier hvor den går", r["tekst"].startswith("Gå til"), True)
         check("man havner i riktig rom", r["naa"], r["maal"])
 
+        print("\n== scenen alene på skjermen ==")
+        await pg.evaluate("""async () => {
+            state.mapEdit = false; state.mapPlayer = false;
+            state.mapTime = 'dag'; state.mapPower = true;
+            await byttRom('kabin'); }""")
+        await pg.wait_for_timeout(400)
+        async with pg.expect_popup() as vent:
+            await pg.get_by_role("button", name="Vis på skjerm", exact=True).click()
+        pop = await vent.value
+        await pop.set_viewport_size({"width": 960, "height": 540})
+        await pg.wait_for_timeout(1500)
+        r = await pop.evaluate("""() => {
+            const c = document.getElementById('scene');
+            return { w: c.width, h: c.height,
+                     annet: document.body.children.length,
+                     verktoy: !!document.querySelector('button, .maptools') }; }""")
+        check("skjermvinduet har et lerret i full størrelse", r["w"] >= 960 and r["h"] >= 540, True)
+        check("og ingen knapper eller verktøy", r["verktoy"], False)
+        try:
+            from PIL import Image, ImageStat
+            import io
+            bilde = Image.open(io.BytesIO(await pop.screenshot())).convert("L")
+            midt = bilde.crop((bilde.width // 3, bilde.height // 3,
+                               bilde.width * 2 // 3, bilde.height * 2 // 3))
+            lys = ImageStat.Stat(midt).mean[0]
+            check("scenen er tegnet i vinduet", lys > 30, True)
+        except ImportError:
+            pass
+        r = await pg.evaluate("""async () => {
+            const for_ = state.sceneRoom;
+            await byttRom('hold2');
+            await new Promise(r => setTimeout(r, 300));
+            const blir = state.sceneRoom;
+            const knapp = [...document.querySelectorAll('button')]
+              .find(b => b.textContent === 'Send hit');
+            const navn = (document.getElementById('skjermnavn') || {}).textContent;
+            knapp.click();
+            await new Promise(r => setTimeout(r, 300));
+            return { for_, blir, navn, etter: state.sceneRoom }; }""")
+        check("skjermen viser rommet som ble sendt dit", r["for_"], "kabin")
+        check("og blir der når Keeperen blar videre", r["blir"], "kabin")
+        check("verktøylinja sier hva som står på skjermen",
+              "1. klasses kabin" in (r["navn"] or ""), True)
+        check("Send hit bytter rommet på skjermen", r["etter"], "hold2")
+        r = await pg.evaluate("""async () => {
+            // Skjermen viser alltid spillervisning, uansett hva Keeperen
+            // har på selv — og det endrer ikke Keeperens valg.
+            const ekte = visibleProps;
+            const sett = [];
+            visibleProps = (rom) => { sett.push(state.mapPlayer); return ekte(rom); };
+            try { await tegnKart(mapRoomById('kabin'), 1, true); }
+            finally { visibleProps = ekte; }
+            return { underveis: [...new Set(sett)], etter: state.mapPlayer }; }""")
+        check("skjermen skjuler sporene", r["underveis"], [True])
+        check("Keeperen ser dem fortsatt", r["etter"], False)
+        await pg.get_by_role("button", name="Lukk skjermen", exact=True).click()
+        await pg.wait_for_timeout(400)
+        r = await pg.evaluate("""() => ({ apen: skjermApen(), rom: state.sceneRoom,
+            knapp: [...document.querySelectorAll('button')].some(b => b.textContent === 'Vis på skjerm') })""")
+        check("skjermen kan lukkes", [r["apen"], r["rom"], r["knapp"]], [False, None, True])
+
+        await pg.get_by_role("button", name="Fullskjerm", exact=True).click()
+        await pg.wait_for_timeout(1200)
+        r = await pg.evaluate("""() => {
+            const lag = document.getElementById('skjermlag');
+            const c = lag && lag.querySelector('canvas');
+            return { lag: !!lag, w: c ? c.width : 0, z: lag ? getComputedStyle(lag).zIndex : 0 }; }""")
+        check("fullskjerm legger scenen over alt",
+              r["lag"] and r["w"] > 0 and int(r["z"]) > 10000, True)
+        await pg.keyboard.press("Escape")
+        await pg.wait_for_timeout(300)
+        r = await pg.evaluate("!!document.getElementById('skjermlag')")
+        check("og Esc går tilbake", r, False)
+
         print("\n== eksport ==")
         r = await pg.evaluate("""async () => {
             const rom = currentMapRoom();
@@ -601,6 +754,8 @@ async def test_view():
             return { x: propNow(rom, it).x, rom: currentMapRoom().id }; }""", r)
         check("flyttingen står", etter["x"], r["x"])
         check("og rommet huskes", etter["rom"], r["rom"])
+        check("men appen starter i visning igjen",
+              await pg.evaluate("state.mapEdit"), False)
 
         await pg.evaluate("setView('maps')")
         await pg.wait_for_timeout(1200)

@@ -1214,8 +1214,39 @@ body.quickon { --quickh: 62px; }
   background: var(--ink);
   box-shadow: 0 0 0 1px var(--rule);
   border-radius: 3px;
-  touch-action: none;          /* dra gjenstander, ikke sida */
+  /* I visning ruller et sveip siden som ellers. Bare i redigering tar
+     kartet over fingeren, så gjenstandene kan dras. */
+  touch-action: pan-x pan-y pinch-zoom;
 }
+.mapframe.redigerer { touch-action: none; }
+.mapframe:not(.redigerer) .mapprop { cursor: pointer; }
+
+/* Visning eller redigering: to knapper i ett, så det alltid synes
+   hvilken man står i. */
+.modusbryter {
+  display: inline-flex; border: 1px solid var(--rule);
+  border-radius: 999px; overflow: hidden;
+}
+.modusknapp {
+  padding: 5px 12px; border: 0; background: transparent;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--faint); cursor: pointer;
+}
+.modusknapp[aria-pressed="true"] { background: var(--brass); color: var(--ink); }
+.modusknapp:focus-visible { outline: 2px solid var(--brass); outline-offset: -2px; }
+
+/* Scenen alene, til spillerne: i fullskjerm i dette vinduet. */
+#skjermlag {
+  position: fixed; inset: 0; z-index: 100000;
+  background: #000; cursor: none;
+}
+#skjermlag canvas { display: block; width: 100%; height: 100%; }
+#skjermlag .lukk {
+  position: absolute; top: 12px; right: 12px; cursor: pointer;
+  opacity: 0; transition: opacity 0.3s;
+}
+#skjermlag.vis-lukk { cursor: default; }
+#skjermlag.vis-lukk .lukk { opacity: 1; }
 .maplayer { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
 .maplayer img, .mapprop {
   image-rendering: pixelated;
@@ -1555,6 +1586,8 @@ const state = {
   mapPlayer: false,   // spillervisning: spor-gjenstander skjult
   mapDecor: true,     // pynt og rot som ikke betyr noe
   mapSelLight: null,  // valgt lyskilde
+  mapEdit: false,     // redigering av kartet; starter alltid av
+  sceneRoom: null,    // rommet som står på skjermen for spillerne
   mapTime: "dag",     // dag | natt
   mapPower: true,     // strøm på skipet
   charFilter: "all",  // all | pc | npc | enemy
@@ -9138,6 +9171,7 @@ async function setProp(room, item, endring) {
   if (Object.keys(lagret).length) bank[item.id] = lagret;
   else delete bank[item.id];
   await saveProgress();
+  oppdaterSkjerm();
 }
 
 function mapAsset(room, hva) {
@@ -9231,7 +9265,16 @@ function armMapFit() {
    ville hver eneste piksel blitt en skriving. */
 function armDrag(room, layer) {
   let drag = null;
+  let trykk = null;
   layer.addEventListener("pointerdown", (e) => {
+    // I visning drar man ingenting. Trykket huskes, og blir et valg
+    // først når fingeren slippes uten å ha flyttet seg — ellers var det
+    // et sveip, og det skal rulle siden.
+    if (!state.mapEdit) {
+      const node = e.target.closest(".mapprop");
+      trykk = { id: node ? node.dataset.prop : null, x: e.clientX, y: e.clientY };
+      return;
+    }
     // En lyskilde man har satt ut selv tas først: håndtaket ligger
     // øverst, og det er det man sikter på når man klikker på lykta.
     const lysnode = e.target.closest(".maplyshandle[data-lys]");
@@ -9332,6 +9375,19 @@ function armDrag(room, layer) {
   }
   layer.addEventListener("pointerup", slipp);
   layer.addEventListener("pointercancel", slipp);
+
+  layer.addEventListener("pointerup", (e) => {
+    if (state.mapEdit || !trykk) return;
+    const t = trykk;
+    trykk = null;
+    if (Math.hypot(e.clientX - t.x, e.clientY - t.y) > 8) return;
+    state.mapSel = t.id;
+    layer.querySelectorAll(".mapprop.sel").forEach((n) => n.classList.remove("sel"));
+    const node = t.id && layer.querySelector('[data-prop="' + t.id + '"]');
+    if (node) node.classList.add("sel");
+    oppdaterVerktoy();
+  });
+  layer.addEventListener("pointercancel", () => { trykk = null; });
 }
 
 function selectedItem(room) {
@@ -9392,6 +9448,8 @@ function armMapKeys() {
     if (e.key === "Escape" && (state.mapSel || state.mapSelLight)) {
       state.mapSel = null; state.mapSelLight = null; render(); return;
     }
+    // Tastene flytter og sletter. Det skal ikke skje i visning.
+    if (!state.mapEdit) return;
 
     // En valgt lyskilde flyttes, snus og skaleres med de samme tastene
     // som en gjenstand.
@@ -10021,6 +10079,7 @@ async function setLight(room, id, endring) {
   if (!lys) return;
   Object.assign(lys, endring);
   await saveProgress();
+  oppdaterSkjerm();
 }
 
 function selectedLight(room) {
@@ -10459,6 +10518,28 @@ function viewMaps(root) {
 
   // --- verktøylinje
   const tools = el("div", { class: "maptools" });
+
+  // Visning er standard: da kan ingenting flyttes ved et uhell når man
+  // ruller nedover siden. Redigering må slås på.
+  const modus = el("span", { class: "modusbryter", role: "group",
+                             "aria-label": "Modus" });
+  [[false, "Visning", "Se på kartet. Et sveip ruller siden, og ingenting " +
+                      "kan flyttes ved et uhell."],
+   [true, "Redigering", "Flytt, snu og skjul gjenstander, og sett ut lys."]]
+    .forEach(([verdi, tekst, tittel]) => {
+      modus.appendChild(el("button", {
+        class: "modusknapp", type: "button", text: tekst, title: tittel,
+        "aria-pressed": String(state.mapEdit === verdi),
+        onclick: () => {
+          if (state.mapEdit === verdi) return;
+          state.mapEdit = verdi;
+          state.mapSelLight = null;
+          render();
+        },
+      }));
+    });
+  tools.appendChild(modus);
+
   const selbox = el("span", { class: "maptools", id: "mapselbox",
                               style: "margin:0" });
   selbox.appendChild(el("span", { class: "mapselname", id: "mapselname" }));
@@ -10492,6 +10573,7 @@ function viewMaps(root) {
       state.mapSel = null;
       render();
     }]].forEach(([tekst, fn]) => {
+    if (!state.mapEdit) return;
     selbox.appendChild(el("button", { class: "btn small", type: "button",
                                       text: tekst, onclick: fn }));
   });
@@ -10574,9 +10656,11 @@ function viewMaps(root) {
     lysrad.appendChild(el("span", { class: "mapselname",
       text: satt + (satt === 1 ? " lys satt ut" : " lys satt ut") }));
   }
-  tools.appendChild(el("span", { class: "chip", text: "·",
-                                 style: "border:none;opacity:.3" }));
-  tools.appendChild(lysrad);
+  if (state.mapEdit) {
+    tools.appendChild(el("span", { class: "chip", text: "·",
+                                   style: "border:none;opacity:.3" }));
+    tools.appendChild(lysrad);
+  }
 
   const dekor = room.items.filter((i) => i.decor).length;
   if (dekor) {
@@ -10596,7 +10680,7 @@ function viewMaps(root) {
     onclick: () => { state.mapPlayer = !state.mapPlayer;
                      state.mapSel = null; render(); },
   }));
-  tools.appendChild(el("button", {
+  if (state.mapEdit) tools.appendChild(el("button", {
     class: "btn small", type: "button", text: "Tilbakestill",
     title: "Sett alle gjenstandene tilbake dit de sto",
     onclick: () => confirmThen("Tilbakestill rommet?",
@@ -10616,6 +10700,7 @@ function viewMaps(root) {
         toast("Rommet er tilbakestilt");
       }),
   }));
+  tools.appendChild(skjermKnapper(room));
   tools.appendChild(el("button", {
     class: "btn small", type: "button", text: "Last ned PNG",
     onclick: () => exportMapPng(room),
@@ -10628,7 +10713,8 @@ function viewMaps(root) {
   main.appendChild(tools);
 
   // --- selve kartet
-  const frame = el("div", { class: "mapframe", id: "mapframe" });
+  const frame = el("div", { class: "mapframe" + (state.mapEdit ? " redigerer" : ""),
+                            id: "mapframe" });
   const layer = el("div", { class: "maplayer", id: "maplayer",
                             style: "width:" + room.widthPx + "px;height:" +
                                    room.heightPx + "px" });
@@ -10648,14 +10734,19 @@ function viewMaps(root) {
     g.innerHTML = gridSvg(room);
     layer.appendChild(g.firstChild);
   }
-  mapLights(room.id).forEach((l) => layer.appendChild(lysHandtak(l)));
+  if (state.mapEdit) {
+    mapLights(room.id).forEach((l) => layer.appendChild(lysHandtak(l)));
+  }
   frame.appendChild(layer);
   main.appendChild(frame);
 
   main.appendChild(el("p", { class: "mapmeta",
     text: room.widthFt + " × " + room.heightFt + " fot · 16 piksler = " +
-          "1 fot · rute = 5 fot · dra for å flytte, R for å rotere, " +
-          "piltaster for å dytte" }));
+          "1 fot · rute = 5 fot · " +
+          (state.mapEdit
+            ? "dra for å flytte, R for å rotere, piltaster for å dytte"
+            : "visning: trykk på en dør for å gå videre, slå på " +
+              "Redigering for å flytte ting") }));
   const sort = roomLight(room);
   const natt = state.mapTime === "natt";
   const forklaring = {
@@ -10673,7 +10764,7 @@ function viewMaps(root) {
   const skjult = room.items
     .map((item) => ({ item: item, st: propNow(room, item) }))
     .filter((p) => p.st.hidden);
-  if (skjult.length) {
+  if (skjult.length && state.mapEdit) {
     const rad = el("div", { class: "maphidden" });
     rad.appendChild(el("span", { class: "mapmeta", text: "Skjult:" }));
     skjult.forEach((p) => {
@@ -10783,33 +10874,48 @@ function viewMaps(root) {
   bg.addEventListener("load", fitMap);
   armDrag(room, layer);
   oppdaterVerktoy();
+  // Det som står på skjermen hos spillerne følger med.
+  oppdaterSkjerm();
 }
 
-/* Kartet som bildefil. Atlaset gjør dette enkelt: hver gjenstand er et
-   utsnitt av ett bilde som allerede er lastet. */
-async function exportMapPng(room) {
-  const skala = Math.max(2, Math.min(6, Math.floor(4000 / room.widthPx)));
+/* ==================================================================
+   KARTET SOM ÉTT BILDE
+
+   Bakgrunn, gjenstander, lys og rutenett tegnet sammen på ett lerret.
+   Brukes både av PNG-eksporten og av skjermen spillerne ser på.
+   spiller=true skjuler gjenstandene som røper et spor, uansett hva
+   Keeperen selv har slått på.
+   ================================================================== */
+
+const bildeLager = new Map();
+function lastBilde(src) {
+  if (!bildeLager.has(src)) {
+    bildeLager.set(src, new Promise((ok, nei) => {
+      const i = new Image();
+      i.onload = () => ok(i);
+      i.onerror = () => { bildeLager.delete(src); nei(new Error(src)); };
+      i.src = src;
+    }));
+  }
+  return bildeLager.get(src);
+}
+
+async function tegnKart(room, skala, spiller) {
+  const bg = await lastBilde(mapAsset(room, "bg"));
+  const atlas = await lastBilde(mapAsset(room, "sprites"));
   const c = document.createElement("canvas");
   c.width = room.widthPx * skala;
   c.height = room.heightPx * skala;
   const g = c.getContext("2d");
   g.imageSmoothingEnabled = false;
   g.scale(skala, skala);
+  g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
 
-  function last(src) {
-    return new Promise((ok, nei) => {
-      const i = new Image();
-      i.onload = () => ok(i);
-      i.onerror = nei;
-      i.src = src;
-    });
-  }
-
+  // Resten tegnes uten pause, så spillervisningen kan slås på og av
+  // rundt det uten at noe annet rekker å se den.
+  const var_ = state.mapPlayer;
+  if (spiller !== undefined) state.mapPlayer = spiller;
   try {
-    const bg = await last(mapAsset(room, "bg"));
-    const atlas = await last(mapAsset(room, "sprites"));
-    g.drawImage(bg, 0, 0, room.widthPx, room.heightPx);
-
     visibleProps(room).forEach((p) => {
       const ramme = room.frames[p.item.sprite];
       if (!ramme) return;
@@ -10821,9 +10927,9 @@ async function exportMapPng(room) {
       g.restore();
     });
 
-    // Lyset tegnes på nytt i bildets oppløsning, så skyggekantene blir
-    // like skarpe som kunsten. Lagene legges på slik nettleseren gjør
-    // det på skjermen.
+    // Lyset tegnes i bildets oppløsning, så skyggekantene blir like
+    // skarpe som kunsten. Lagene legges på slik nettleseren gjør det
+    // på skjermen.
     const lag = lysLag(room, null, skala);
     g.save();
     g.setTransform(1, 0, 0, 1, 0, 0);
@@ -10834,18 +10940,289 @@ async function exportMapPng(room) {
       g.drawImage(lag[navn], 0, 0, c.width, c.height);
     });
     g.restore();
+  } finally {
+    state.mapPlayer = var_;
+  }
 
-    if (state.mapGrid) {
-      const rute = (state.maps.units && state.maps.units.gridPx) || 80;
-      g.strokeStyle = "rgba(0,0,0,0.5)";
-      g.lineWidth = 1 / skala;
-      for (let x = rute; x < room.widthPx; x += rute) {
-        g.beginPath(); g.moveTo(x, 0); g.lineTo(x, room.heightPx); g.stroke();
-      }
-      for (let y = rute; y < room.heightPx; y += rute) {
-        g.beginPath(); g.moveTo(0, y); g.lineTo(room.widthPx, y); g.stroke();
-      }
+  if (state.mapGrid) {
+    const rute = (state.maps.units && state.maps.units.gridPx) || 80;
+    g.strokeStyle = "rgba(0,0,0,0.5)";
+    g.lineWidth = 1 / skala;
+    for (let x = rute; x < room.widthPx; x += rute) {
+      g.beginPath(); g.moveTo(x, 0); g.lineTo(x, room.heightPx); g.stroke();
     }
+    for (let y = rute; y < room.heightPx; y += rute) {
+      g.beginPath(); g.moveTo(0, y); g.lineTo(room.widthPx, y); g.stroke();
+    }
+  }
+  return c;
+}
+
+/* ==================================================================
+   SKJERMEN
+
+   Scenen alene, for spillerne: bare kartet, uten verktøy, uten spor.
+   To måter å få den ut på:
+
+     Eget vindu   Åpnes ved siden av appen. Dras over på TV-en eller
+                  projektoren (HDMI), eller castes fra nettleserens
+                  meny. Der nettleseren kan, havner vinduet på den
+                  andre skjermen av seg selv. Keeperen fortsetter i
+                  appen, og vinduet følger med.
+     Fullskjerm   Scenen over hele dette vinduet. Til et nettbrett som
+                  speiles over HDMI, eller en fane som castes.
+
+   Skjermen viser rommet som ble sendt dit, ikke det Keeperen står i.
+   Da kan Keeperen bla seg fram til neste rom uten at spillerne ser det,
+   og sende det over når det er tid. Dag, natt, strømbrudd, lys og alt
+   som flyttes i rommet følger med med én gang.
+   ================================================================== */
+
+const skjerm = { vindu: null, lag: null, sist: "", venter: null };
+
+function skjermApen() {
+  if (skjerm.vindu && skjerm.vindu.closed) skjermLukket();
+  return !!(skjerm.vindu || skjerm.lag);
+}
+
+function skjermRom() {
+  return mapRoomById(state.sceneRoom) || currentMapRoom();
+}
+
+/* Tegn på nytt, men ikke oftere enn nødvendig: en flytting gir mange
+   små endringer på rad. */
+function oppdaterSkjerm() {
+  if (!skjermApen()) return;
+  clearTimeout(skjerm.venter);
+  skjerm.venter = setTimeout(tegnSkjerm, 60);
+}
+
+async function tegnSkjerm() {
+  const room = skjermRom();
+  if (!room || !skjermApen()) return;
+  const flater = [];
+  if (skjerm.vindu) {
+    const c = skjerm.vindu.document.getElementById("scene");
+    if (c) flater.push({ c: c, w: skjerm.vindu.innerWidth, h: skjerm.vindu.innerHeight,
+                         dpr: skjerm.vindu.devicePixelRatio || 1 });
+  }
+  if (skjerm.lag) {
+    const c = skjerm.lag.querySelector("canvas");
+    flater.push({ c: c, w: window.innerWidth, h: window.innerHeight,
+                  dpr: window.devicePixelRatio || 1 });
+  }
+  if (!flater.length) return;
+
+  // Én tegning, i den oppløsningen den største flaten trenger.
+  const behov = Math.max.apply(null, flater.map((f) =>
+    Math.min(f.w / room.widthPx, f.h / room.heightPx) * f.dpr));
+  const skala = Math.max(1, Math.min(3, Math.ceil(behov)));
+  const var_ = state.mapPlayer;
+  state.mapPlayer = true;
+  const nokkel = lysNokkel(room) + "|" + state.mapGrid + "|" + skala + "|" +
+                 flater.map((f) => f.w + "x" + f.h).join(",");
+  state.mapPlayer = var_;
+  if (nokkel === skjerm.sist) return;
+  let bilde;
+  try {
+    bilde = await tegnKart(room, skala, true);
+  } catch (e) {
+    return;
+  }
+  skjerm.sist = nokkel;
+  flater.forEach((f) => {
+    f.c.width = Math.round(f.w * f.dpr);
+    f.c.height = Math.round(f.h * f.dpr);
+    const g = f.c.getContext("2d");
+    g.fillStyle = "#000";
+    g.fillRect(0, 0, f.c.width, f.c.height);
+    const k = Math.min(f.c.width / bilde.width, f.c.height / bilde.height);
+    const bw = bilde.width * k, bh = bilde.height * k;
+    g.imageSmoothingEnabled = k < 1;
+    g.drawImage(bilde, (f.c.width - bw) / 2, (f.c.height - bh) / 2, bw, bh);
+  });
+}
+
+function sendTilSkjerm(room) {
+  state.sceneRoom = room.id;
+  skjerm.sist = "";
+  oppdaterSkjerm();
+}
+
+/* Eget vindu. Det åpnes med én gang, mens trykket fortsatt gjelder —
+   ellers stopper nettleseren det — og flyttes til den andre skjermen
+   etterpå, der nettleseren lar oss se hvilke skjermer som finnes. */
+function apneSkjermvindu(room) {
+  if (skjerm.vindu && !skjerm.vindu.closed) {
+    sendTilSkjerm(room);
+    skjerm.vindu.focus();
+    return;
+  }
+  const w = window.open("", "eldritch-skjerm", "popup,width=1280,height=720");
+  if (!w) {
+    toast("Nettleseren stoppet vinduet — bruk Fullskjerm i stedet");
+    return;
+  }
+  // Inne i en innebygd side kan vinduet åpnes, men være stengt for oss.
+  try {
+    void w.document.body;
+  } catch (e) {
+    w.close();
+    toast("Fikk ikke tegne i vinduet — bruk Fullskjerm i stedet");
+    return;
+  }
+  w.document.open();
+  w.document.write('<!doctype html><html lang="no"><head><meta charset="utf-8">' +
+    "<title>Scene</title><style>" +
+    "html,body{margin:0;height:100%;background:#000;overflow:hidden}" +
+    "canvas{display:block;width:100vw;height:100vh}" +
+    "#tips{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);" +
+    "font:14px system-ui,sans-serif;color:#d8c9a8;background:rgba(0,0,0,.7);" +
+    "padding:8px 14px;border-radius:6px;transition:opacity .6s}" +
+    "body.stille{cursor:none}body.stille #tips{opacity:0}" +
+    '</style></head><body><canvas id="scene"></canvas>' +
+    '<div id="tips">Dobbeltklikk for fullskjerm</div></body></html>');
+  w.document.close();
+  skjerm.vindu = w;
+  skjerm.sist = "";
+  state.sceneRoom = room.id;
+
+  const doc = w.document;
+  let stille = null;
+  const vekk = () => {
+    doc.body.classList.remove("stille");
+    clearTimeout(stille);
+    stille = setTimeout(() => doc.body.classList.add("stille"), 3000);
+  };
+  vekk();
+  doc.addEventListener("mousemove", vekk);
+  doc.addEventListener("dblclick", () => {
+    if (doc.fullscreenElement) doc.exitFullscreen();
+    else doc.documentElement.requestFullscreen().catch(() => {});
+  });
+  w.addEventListener("resize", () => { skjerm.sist = ""; oppdaterSkjerm(); });
+  w.addEventListener("pagehide", () => setTimeout(skjermLukket, 0));
+
+  // Den andre skjermen, om nettleseren vil si hvilken det er.
+  if (typeof window.getScreenDetails === "function") {
+    window.getScreenDetails().then((d) => {
+      const andre = d.screens.filter((sk) => sk !== d.currentScreen);
+      const ut = andre.filter((sk) => sk.isExternal)[0] || andre[0];
+      if (!ut || w.closed) return;
+      w.moveTo(ut.availLeft, ut.availTop);
+      w.resizeTo(ut.availWidth, ut.availHeight);
+    }).catch(() => {});
+  }
+  oppdaterSkjerm();
+  render();
+}
+
+function skjermLukket() {
+  if (!skjerm.vindu) return;
+  skjerm.vindu = null;
+  if (!skjerm.lag) state.sceneRoom = null;
+  if (state.view === "maps") render();
+}
+
+function lukkSkjermvindu() {
+  if (skjerm.vindu && !skjerm.vindu.closed) skjerm.vindu.close();
+  skjermLukket();
+}
+
+/* Fullskjerm i dette vinduet. Esc, eller et trykk og så Lukk, går
+   tilbake. */
+function apneFullskjerm(room) {
+  if (skjerm.lag) return;
+  state.sceneRoom = room.id;
+  const lag = el("div", { id: "skjermlag", role: "dialog", "aria-label": "Scene" });
+  lag.appendChild(el("canvas"));
+  const lukk = el("button", { class: "btn small lukk", type: "button", text: "Lukk",
+                              onclick: (e) => { e.stopPropagation(); lukkFullskjerm(); } });
+  lag.appendChild(lukk);
+  let skjul = null;
+  lag.addEventListener("pointerdown", () => {
+    lag.classList.add("vis-lukk");
+    clearTimeout(skjul);
+    skjul = setTimeout(() => lag.classList.remove("vis-lukk"), 3000);
+  });
+  document.body.appendChild(lag);
+  skjerm.lag = lag;
+  skjerm.sist = "";
+  if (lag.requestFullscreen) lag.requestFullscreen().catch(() => {});
+  oppdaterSkjerm();
+}
+
+function lukkFullskjerm() {
+  if (!skjerm.lag) return;
+  const lag = skjerm.lag;
+  skjerm.lag = null;
+  if (document.fullscreenElement === lag) document.exitFullscreen().catch(() => {});
+  lag.remove();
+  if (!skjerm.vindu) state.sceneRoom = null;
+  skjerm.sist = "";
+  if (state.view === "maps") render();
+}
+
+function armSkjerm() {
+  if (armSkjerm.on) return;
+  armSkjerm.on = true;
+  document.addEventListener("fullscreenchange", () => {
+    if (skjerm.lag && document.fullscreenElement !== skjerm.lag) lukkFullskjerm();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && skjerm.lag) { e.stopImmediatePropagation(); lukkFullskjerm(); }
+  }, true);
+  window.addEventListener("resize", () => { if (skjerm.lag) { skjerm.sist = ""; oppdaterSkjerm(); } });
+  window.addEventListener("pagehide", () => {
+    if (skjerm.vindu && !skjerm.vindu.closed) skjerm.vindu.close();
+  });
+}
+
+/* Knappene i verktøylinja. */
+function skjermKnapper(room) {
+  armSkjerm();
+  const rad = el("span", { class: "maptools", style: "margin:0" });
+  rad.appendChild(el("span", { class: "chip", text: "·",
+                               style: "border:none;opacity:.3" }));
+  if (skjerm.vindu && !skjerm.vindu.closed) {
+    const vist = skjermRom();
+    rad.appendChild(el("span", { class: "mapselname", id: "skjermnavn",
+      text: "På skjermen: " + (vist ? vist.title : "–") }));
+    if (vist && vist.id !== room.id) {
+      rad.appendChild(el("button", {
+        class: "btn primary small", type: "button", text: "Send hit",
+        title: "Vis dette rommet på skjermen i stedet",
+        onclick: () => { sendTilSkjerm(room); render(); },
+      }));
+    }
+    rad.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Lukk skjermen",
+      onclick: lukkSkjermvindu,
+    }));
+  } else {
+    rad.appendChild(el("button", {
+      class: "btn small", type: "button", text: "Vis på skjerm",
+      title: "Åpner scenen alene i et eget vindu. Dra det over på TV-en " +
+             "eller projektoren (HDMI) og dobbeltklikk for fullskjerm — " +
+             "eller cast vinduet fra nettleserens meny. Spillerne ser " +
+             "ingen spor.",
+      onclick: () => apneSkjermvindu(room),
+    }));
+  }
+  rad.appendChild(el("button", {
+    class: "btn small", type: "button", text: "Fullskjerm",
+    title: "Bare scenen, over hele skjermen. Til et nettbrett som speiles " +
+           "over HDMI, eller en fane som castes. Esc går tilbake.",
+    onclick: () => apneFullskjerm(room),
+  }));
+  return rad;
+}
+
+/* Kartet som bildefil, slik Keeperen ser det. */
+async function exportMapPng(room) {
+  const skala = Math.max(2, Math.min(6, Math.floor(4000 / room.widthPx)));
+  try {
+    const c = await tegnKart(room, skala);
     const blob = await new Promise((ok) => c.toBlob(ok, "image/png"));
     if (!blob) { toast("Fikk ikke laget bildet"); return; }
     await downloadBlob(
