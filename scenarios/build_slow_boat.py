@@ -28,7 +28,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 # Økes når innholdet endres, slik at appene bytter ut sin lagrede kopi
 # ved neste oppstart. Fremdriften røres ikke.
-VERSION = 8
+VERSION = 9
 
 # --------------------------------------------------------------- meta
 
@@ -3828,6 +3828,356 @@ data["tactics"] = [
         "et skip i det hele tatt.",
         "Tar tyngden av jakten uten å ta bort plottet.",
         None),
+]
+
+# ------------------------------------------------------------------
+# EGET TILLEGG — HARTMAN OG STORMEN
+#
+# Ikke fra boka. Skrevet for vår gruppe etter øktene 7.–9. desember:
+# spilleren bak dr. Ash må stå over en stund, og Ash skrives
+# midlertidig ut av historien. Skipslegen Hartman blir gal etter å ha
+# knust brystkassen på helsesekretæren Margareth, tar Ash, og hopper av
+# i Honolulu — så han kan komme tilbake som motstander i et senere
+# scenario. Samtidig får Beefcake en kamp i ballsalen.
+#
+# Alt her har id-er som begynner med «egen-», og scenene ligger i en
+# egen akt, så det aldri blandes sammen med det som står i boka.
+# Replikkene er merket source="forslag".
+# ------------------------------------------------------------------
+
+EGEN_AKT = "Eget tillegg — Hartman og stormen"
+
+EGEN_TIDSLINJE = [
+    ev("egen-tl-ash-tatt", "Ons. 9. des", "kveld",
+       "Eget: Dr. Ash blir tatt",
+       "Ash går fra drinken på broen før Franz, for å hente noe i "
+       "lugaren. Hartman venter i korridoren med eter. Han tar også med "
+       "seg medisinblandingen Ash laget, og bruker den til å holde ham "
+       "bedøvet — medisinskapet på kontoret er jo tomt.",
+       ["egen-beat-ash-borte", "egen-clue-speil"], "villain"),
+    ev("egen-tl-stormen", "Ons. 9. des", "kveld",
+       "Eget: Stormen i ballsalen",
+       "Mens Tahiti-ballet pågår, går Pipes of Leng for full styrke nede "
+       "i lasterom 7. Kallet når havet: en storm fra ingensteds, med en "
+       "vind som uler i toner, blåser inn vinduene i Grand Salon. "
+       "Skytteren klatrer inn fra sjøen.",
+       ["egen-beat-stormen", "egen-npc-skytteren"], "event"),
+    ev("egen-tl-lensen", "Tor. 10. des", "natt, før ankomst",
+       "Eget: Hartman gjør Ash klar i lensen",
+       "Ash bindes fast i det knedype vannet i lensen. Hartman skjærer "
+       "en note inn i huden ved hvert innstikk og lar blodet dryppe "
+       "langsomt ned i små glass merket med toner. Han regner med å "
+       "være tilbake om noen timer.",
+       ["egen-beat-lensen", "egen-clue-ash"], "villain"),
+    ev("egen-tl-hartman-i-land", "Tor. 10. des", "formiddag",
+       "Eget: Hartman går i land",
+       "Skipet ligger i karantene, og ingen går i land — unntatt "
+       "skipslegen, som har med havnelegen å gjøre. Hartman forteller "
+       "at medisinskapet er tømt (det er sant) og får følge med "
+       "havnelegens båt for å hente forsyninger. Han kommer aldri "
+       "tilbake. Dryppet i lensen fortsetter.",
+       ["egen-beat-hartman-borte", "egen-clue-handleliste"], "villain"),
+    ev("egen-tl-hartman-borte", "Fre. 11. des", "avgang",
+       "Eget: Avgang uten skipslegen",
+       "Coolidge går fra Honolulu uten Hartman. Kapteinen: «Han gikk i "
+       "land med havnelegen for å hente medisiner. Vi kunne ikke "
+       "vente.» Skipet har ingen lege resten av reisen — bortsett fra "
+       "dr. Ash og dr. Soong.",
+       ["egen-beat-hartman-borte"], "voyage"),
+]
+
+# Tidslinja vises i den rekkefølgen den står, så tilleggene settes inn
+# der de hører hjemme i tid — ikke bakerst etter klimakset.
+_ETTER = {
+    "egen-tl-ash-tatt": "tl-tahitian-ball",
+    "egen-tl-stormen": "egen-tl-ash-tatt",
+    "egen-tl-hartman-i-land": "tl-arrive-honolulu---quarantine",
+    "egen-tl-hartman-borte": "tl-suicide-ruling---depart-honolulu",
+}
+_FOR = {"egen-tl-lensen": "tl-phyllis-barnes-performs"}
+for e in EGEN_TIDSLINJE:
+    ids = [t["id"] for t in data["timeline"]]
+    if e["id"] in _ETTER:
+        data["timeline"].insert(ids.index(_ETTER[e["id"]]) + 1, e)
+    else:
+        data["timeline"].insert(ids.index(_FOR[e["id"]]), e)
+
+data["beats"] += [
+    beat("egen-beat-stormen", "Eget: Stormen i ballsalen", EGEN_AKT,
+         "Onsdag 9. desember, kveld. Tahiti-ballet i Grand Salon på "
+         "Promenadedekket.\n\n"
+         "STORMEN. Vinden kommer fra ingensteds og uler i toner, som et "
+         "orgel. Vinduene langs salen blåses inn, papirlyktene slukker og "
+         "palmene velter. Alle passasjerene flykter ut — men Beefcake får "
+         "øye på noe i salen.\n\n"
+         "SKYTTEREN. Mannen som bablet om englekoret og dro Beefcake med "
+         "seg over rekka, klatrer inn gjennom de knuste vinduene: "
+         "oppsvulmet, tang i håret, uten øyne (Sanity 0/1D6). Se NPC "
+         "«Skytteren (druknet)» og kampkortet «Eget: Kampen i "
+         "ballsalen».\n\n"
+         "FRANZ står på broen med kapteinen og ser vinduene under seg "
+         "blåse inn. Kapteinen sender ham ned.\n\n"
+         "DAGRUN OG SKJOLDVÅR står i trapperommet ved lasterom 7 og "
+         "hører orgelet stige mot et crescendo — og så stoppe brått. "
+         "Skipet krenger. Folk kommer løpende ned trappa forbi dem, og "
+         "kakerlakker strømmer ut av veggene og oppover. De flykter også "
+         "fra noe.\n\n"
+         "SLUTTEN. Når Skytteren faller, renner han ut i sjøvann og tang, "
+         "og stormen stilner i samme øyeblikk. Taper Beefcake, ender det "
+         "med at Skytteren drar ham mot vinduet mens de andre kommer inn "
+         "døra.\n\n"
+         "PÅ KARTET: Ballsalen, natt, strømbrudd og storm — da slår "
+         "lynet inn gjennom vinduene.",
+         ["egen-tl-stormen", "egen-npc-skytteren", "egen-beat-ash-borte"],
+         [say("Skytteren", "Koret … slipper ikke.", source="forslag"),
+          say("En flyktende passasjer",
+              "Den store karen deres slåss med noe der oppe!",
+              "Til Dagrun og Skjoldvår i trappa.", source="forslag"),
+          say("Kapteinen", "Gå ned og se hva i helvete som skjer i salongen!",
+              "Til Franz på broen.", source="forslag")],
+         "Spill stormen som lyd: tonene i vinden, glass som knuses, "
+         "sjøvann som slår inn. Gi Beefcake rommet alene i to runder før "
+         "noen andre dukker opp."),
+    beat("egen-beat-ash-borte", "Eget: Hvor er dr. Ash?", EGEN_AKT,
+         "Rett etter kampen, mens de puster ut: «Hvor er Ash?» Franz "
+         "forteller at Ash gikk fra broen før ham, for å hente noe i "
+         "lugaren.\n\n"
+         "LUGAREN. Søt lukt av eter. Legevesken og medisinblandingen "
+         "hans er borte. På speilet står fem streker med noter, skrevet "
+         "med jodtinktur (se sporet «Eget: Notene på speilet»).",
+         ["egen-tl-ash-tatt", "egen-clue-speil", "egen-beat-sporene"],
+         [say("Franz", "Han gikk før meg. Sa han skulle hente noe i lugaren.",
+              source="forslag")],
+         "La stillheten etter kampen henge et øyeblikk før noen spør. "
+         "Lugaren skal føles forlatt midt i en bevegelse: lampa står på, "
+         "senga er urørt, og eterlukten sitter i gardinene."),
+    beat("egen-beat-sporene", "Eget: Sporene etter Hartman", EGEN_AKT,
+         "Flere veier fører ned i lensen, så de aldri står fast på ett "
+         "spor:\n\n"
+         "• Journalen på legekontoret (handout «Eget: Hartmans journal»).\n"
+         "• Margareth i kjølerommet, med blod og sjøvann som leder mot "
+         "trapperommet på E-dekk.\n"
+         "• Maskinsjefen: Hartman lånte nøkkelen til lensen «for å se "
+         "etter rotter».\n"
+         "• James Hawthorne har hørt «doktoren synge inne i veggene».\n"
+         "• Fido går med til luka, men vil ikke ned leideren.\n\n"
+         "Torsdag 10. desember ligger skipet i karantene i Honolulu, og "
+         "politiet er om bord i to timer. Hele skipet er i oppstandelse "
+         "mens de leter.",
+         ["egen-clue-journal", "egen-clue-margareth", "egen-clue-blodspor",
+          "egen-clue-nokkel", "egen-clue-hawthorne", "egen-clue-fido",
+          "egen-beat-lensen"],
+         [say("Maskinsjefen",
+              "Doktoren? Han lånte nøkkelen til lensen i går kveld. Rotter, "
+              "sa han.", source="forslag"),
+          say("James Hawthorne",
+              "Han synger. Inne i veggene. Den samme sangen, om og om "
+              "igjen — og den går nedover.", source="forslag")],
+         "Spill skipet i oppstandelse: karantene, politi i korridorene, "
+         "rykter om likene. Ingen har tid til dem, og det er det som gjør "
+         "det vanskelig."),
+    beat("egen-beat-lensen", "Eget: Nede i lensen", EGEN_AKT,
+         "Knedypt, svart vann og én oljelykt. Hver gang orgelet går et "
+         "sted over dem, synger hele skroget med (Sanity 0/1D4).\n\n"
+         "ASH er bundet fast, halvt i vannet, med kanyler i armer og bein. "
+         "Ved hvert innstikk er en note skåret inn i huden. Slangene går "
+         "til små medisinglass merket C, E, G og videre — ett av dem står "
+         "tomt, merket med den siste tonen (Sanity 1/1D6).\n\n"
+         "KLOKKE: Hartman stilte dryppet langsomt fordi han skulle være "
+         "tilbake om noen timer. Han kommer ikke. For hver fjerde time "
+         "slår du CON for Ash; mislykkes det, mister han 1D3 HP.\n\n"
+         "BLI FOR LENGE: de første kakerlakkene kommer krypende i vannet. "
+         "Skapningen hører det også.\n\n"
+         "HARTMAN ER IKKE HER. Legevesken hans står igjen, med "
+         "handlelisten i (handout «Eget: Hartmans handleliste»).",
+         ["egen-clue-ash", "egen-clue-handleliste", "egen-clue-tonearr",
+          "egen-tl-lensen"],
+         [say("Dr. Ash, halvt bevisstløs",
+              "C … E … Han sa jeg hørte den. Jeg hørte den ikke.",
+              "Bare hvis spilleren er tilbake.", source="forslag")],
+         "Lyd først: drypping i glass, vann som skvulper, og et øyeblikk "
+         "der lykta svinger og de tror Hartman står der. Han gjør ikke "
+         "det. La tomheten være det verste."),
+    beat("egen-beat-hartman-borte", "Eget: Hartman går i land", EGEN_AKT,
+         "Torsdag 10. desember, karantene i Honolulu. Hartman går i land "
+         "med havnelegen for å hente utstyret han ikke kan stjele om "
+         "bord, og rekker ikke tilbake før skipet går fredag 11.\n\n"
+         "KROKEN TIL ET SENERE SCENARIO: tonene han skar inn i huden til "
+         "Ash gror til arr. Hartman tror at arrene synger, og at han kan "
+         "høre dem på avstand. Han blir besatt av å finne Ash igjen for å "
+         "gjøre verket ferdig.",
+         ["egen-tl-hartman-i-land", "egen-tl-hartman-borte",
+          "egen-clue-tonearr", "npc-erik-hartman"],
+         [say("Kapteinen",
+              "Han gikk i land med havnelegen for å hente medisiner. Vi "
+              "kunne ikke vente.", source="forslag")],
+         "Kapteinen vil dysse det ned, og han er flau. Spill det som et "
+         "byråkratisk skuldertrekk — det er det som gjør det verre."),
+]
+
+data["clues"] += [
+    clue("egen-clue-speil", "Eget: Notene på speilet", "Dr. Ashs lugar",
+         "Fem streker med noter, skrevet med jodtinktur på speilet. Det "
+         "er melodien fra lasterom 7 — den samme Dagrun og Skjoldvår "
+         "hørte. Den som skrev dette, lytter til det som spilles der "
+         "nede.",
+         "Art/Craft (musikk) · Psychology · Idea",
+         ["egen-beat-ash-borte", "egen-clue-journal"]),
+    clue("egen-clue-journal", "Eget: Hartmans journal", "Legekontoret",
+         "Innleggene glir fra klinisk til vanvittig, med skisser av "
+         "brystkasser tegnet som orgelpiper. Anatomien er korrekt — og "
+         "det er det som er så forferdelig. Siste innlegg: «der skroget "
+         "synger lavest». Skipets laveste punkt er lensen (Navigate, "
+         "eller spør kapteinen).",
+         "Medicine · Sanity 0/1D3 · Navigate",
+         ["egen-handout-journal", "egen-beat-lensen"]),
+    clue("egen-clue-margareth", "Eget: Margareth i kjølerommet",
+         "Lasterom 3 — kjølerommet",
+         "Liket er borte fra sykestua; døde om bord oppbevares i "
+         "kjølerommet til skipet når havn (en stuert vet det). Brystet "
+         "hennes er åpnet, og katgut er spent over ribbeina som strenger. "
+         "En stemmegaffel ligger ved siden av.",
+         "Spot Hidden · Sanity 1/1D4",
+         ["egen-clue-blodspor", "egen-npc-margareth"]),
+    clue("egen-clue-blodspor", "Eget: Blod og sjøvann",
+         "Lasterom 3 og trapperommet på E-dekk",
+         "Dråper av blod og sjøvann fra kjølerommet til trapperommet på "
+         "E-dekk, og videre til luka ned til lensen.",
+         "Spot Hidden · Track", ["egen-beat-lensen"]),
+    clue("egen-clue-nokkel", "Eget: Lensenøkkelen", "Maskinrommet",
+         "Maskinsjefen forteller at doktoren lånte nøkkelen til lensen i "
+         "går kveld, «for å se etter rotter». Han har ikke levert den "
+         "tilbake.", "Persuade · Charm", ["egen-beat-lensen"]),
+    clue("egen-clue-hawthorne", "Eget: Doktoren synger i veggene",
+         "Kennelen (James Hawthorne)",
+         "James Hawthorne har hørt doktoren synge inne i veggene om "
+         "natta — lavt, den samme melodien om og om igjen, og nedover.",
+         "", ["egen-beat-lensen"]),
+    clue("egen-clue-fido", "Eget: Fido ved luka", "Trapperommet på E-dekk",
+         "Hunden følger sporet til luka ned til lensen, men vil ikke ned "
+         "leideren. Han står og piper.", "Animal Handling · Track",
+         ["egen-beat-lensen"]),
+    clue("egen-clue-ash", "Eget: Dr. Ash i lensen", "Lensen",
+         "Bundet, bedøvet med sin egen medisinblanding, med kanyler og "
+         "slanger til glass merket med toner. Notene er skåret inn i "
+         "huden ved hvert innstikk. First Aid eller Medicine for å få "
+         "kanylene ut uten at han blør mer.",
+         "Sanity 1/1D6 · First Aid · Medicine",
+         ["egen-beat-lensen", "egen-clue-tonearr"]),
+    clue("egen-clue-handleliste", "Eget: Hartmans handleliste", "Lensen",
+         "I legevesken Hartman lot stå igjen. Den sier hvorfor han dro, "
+         "og at han har tenkt å gjøre arbeidet ferdig.",
+         "", ["egen-handout-handleliste", "egen-beat-hartman-borte"]),
+    clue("egen-clue-tonearr", "Eget: Tonene i huden", "Dr. Ash",
+         "Notene Hartman skar inn i huden gror til arr. Ash får en "
+         "vedvarende fobi, og arrene blir merket Hartman skal følge i et "
+         "senere scenario: han tror at de synger.",
+         "", ["egen-beat-hartman-borte", "npc-erik-hartman"]),
+]
+
+data["handouts"] += [
+    {"id": "egen-handout-journal", "title": "Eget: Hartmans journal",
+     "found": False,
+     "description": "Skipslegens journal, på skrivebordet på "
+                    "legekontoret. Lesingen koster Sanity 0/1D3.",
+     "read_aloud":
+         "  9. des. Pasient: helsesekretær Margareth, 74 år.\n"
+         "  Myocardinfarkt. HLR i 14 min. Sternum gav etter. Exitus.\n\n"
+         "  Lyden. Det var ikke ben. Det var en tone — en dyp c.\n"
+         "  Noe svarte. Jeg har ikke sovet.\n\n"
+         "  Thorax er et instrument. Costae er piper.\n"
+         "  Hvorfor lærte de oss aldri det?\n\n"
+         "  Koret vil ha ham som hørte den første tonen.\n"
+         "  Han sto ved skapet. Han hørte den. Jeg så ham.\n\n"
+         "  Jeg tar ham ned der skroget synger lavest,\n"
+         "  til pipene er stemt.",
+     "aside": "Skissene av brystkasser som orgelpiper står i margen. "
+              "Medicine ser at anatomien er korrekt.",
+     "connects_to": ["egen-clue-journal"]},
+    {"id": "egen-handout-handleliste", "title": "Eget: Hartmans handleliste",
+     "found": False,
+     "description": "I legevesken Hartman lot stå igjen i lensen.",
+     "read_aloud":
+         "  Til Honolulu:\n"
+         "  Pianotråd, stål, 0,5 mm\n"
+         "  Kanyler nr. 18, ett dusin\n"
+         "  Gummislange, 4 m\n"
+         "  Stemmegafler: C, E, G\n"
+         "  Sølvnitrat",
+     "aside": "Det tomme glasset i lensen er merket med den siste tonen. "
+              "Han mangler én.",
+     "connects_to": ["egen-clue-handleliste"]},
+]
+
+# Hartman fra boka beholdes; tillegget legges oppå.
+for n in data["npcs"]:
+    if n["id"] == "npc-erik-hartman":
+        n["notes"] = (n.get("notes", "") + "\n\nEGET TILLEGG: Han ble gal da "
+            "brystkassen til Margareth ga etter under hendene hans. Han "
+            "hørte en tone, og noe svarte: englekoret — Pipes of Leng som "
+            "stemmes i lasterom 7. Han tror brystkassen er et instrument "
+            "og at pipene må fôres med liv. Han så dr. Ash ved "
+            "medisinskapet, og tror Ash hørte den første tonen. Tar Ash "
+            "onsdag kveld, binder ham i lensen og går i land i Honolulu "
+            "torsdag for å skaffe utstyr. Kommer ikke tilbake — han er "
+            "spart til et senere scenario.")
+        n["stats"] = {"STR": "55", "CON": "60", "SIZ": "60", "DEX": "60",
+                      "INT": "80", "POW": "45", "EDU": "85", "HP": "12",
+                      "DB": "+0", "Move": "8", "SAN": "0 (gal)"}
+        n["combat"] = ["Skalpell 40 %, 1D4",
+                       "Sprøyte med Ash sin medisinblanding: CON-slag, "
+                       "ellers bevisstløs i 1D6 timer",
+                       "Ingen kriger — flykter heller enn å slåss"]
+
+data["npcs"] += [
+    npc("egen-npc-skytteren", "Skytteren (druknet)", "Antagonist",
+        "Kommer tilbake fra sjøen i stormen",
+        "Mannen som bablet om englekoret og dro Beefcake med seg over "
+        "rekka. Nå klatrer han inn gjennom vinduene i ballsalen: "
+        "oppsvulmet, tang i håret, uten øyne.",
+        stats={"STR": "90", "CON": "100", "SIZ": "75", "DEX": "45",
+               "INT": "—", "POW": "50", "HP": "17", "DB": "+1D4",
+               "Build": "1", "Move": "7", "Armor": "2"},
+        combat=["Slag 55 %, 1D3+1D4",
+                "Grep 55 %: prøver å dra offeret ut gjennom vinduet — "
+                "slik han gjorde forrige gang",
+                "Kjenner ikke smerte, og blir ikke slått bevisstløs av "
+                "en Major Wound"],
+        special="Når han treffes, renner det sjøvann og småkrabber ut "
+                "av ham. Når han faller, renner han ut i sjøvann og tang, "
+                "og stormen stilner i samme øyeblikk.",
+        sanity_loss="0/1D6",
+        stats_note="Eget tillegg — juster etter Beefcake.",
+        notes="Eget tillegg. Se scenen «Eget: Stormen i ballsalen».\n\n"
+              "«Englekoret har befalt meg» er Bunny Bates' replikk i boka. "
+              "Var Skytteren Bates, er han død etter denne kampen — og da "
+              "dominerer skapningen stuert Martin Aimesworthy i stedet, "
+              "som overtar Bates' rolle i alle senere scener."),
+    npc("egen-npc-margareth", "Margareth", "Mannskap",
+        "Helsesekretær — død 9. desember",
+        "En gammel, gammel dame som hadde vært helsesekretær lenger enn "
+        "dr. Hartman hadde vært lege. Fikk hjerteinfarkt da hun så "
+        "Beefcake igjen. Hartman knuste brystkassen hennes under "
+        "gjenopplivingen.",
+        notes="Eget tillegg. Ligger i kjølerommet, med brystet åpnet og "
+              "katgut spent over ribbeina."),
+]
+
+data["tactics"] += [
+    tac("egen-tac-ballsalen", "Eget: Kampen i ballsalen", "Motstander",
+        "Skytteren mot Beefcake med bare nevene, i et rom som er i ferd "
+        "med å rives i stykker av stormen.",
+        "RUNDE 1–2: Beefcake alene. Glassbiter på et dansegulv som er "
+        "glatt av regn — DEX-slag for å stå. Vindkast velter palmene. "
+        "Papirlyktene svinger, og en kan ta fyr.\n\n"
+        "SKYTTEREN vil ikke drepe — han vil ha Beefcake med seg ut. Hvert "
+        "vellykket grep drar ham ett skritt nærmere de knuste vinduene; "
+        "tre skritt, og han er ute.\n\n"
+        "RUNDE 3: Franz kommer fra broen. RUNDE 4: Dagrun og Skjoldvår. "
+        "Kontrabassen bandet etterlot seg er et godt improvisert våpen.",
+        "STR 99 mot havet som vil ha ham tilbake — og en klokke i form av "
+        "vinduene.",
+        ["egen-beat-stormen", "egen-npc-skytteren"]),
 ]
 
 with open(OUT, "w", encoding="utf-8") as fh:

@@ -1,0 +1,166 @@
+{
+ "_om": "Egne gjenstander og spor på kartene, utenfor handoff-pakka: tillegget «Hartman og stormen» (se scenarios/build_slow_boat.py). «fra» er rommet og spriten bildet hentes fra; byggeskriptet kopierer det inn i rommets atlas. Alt her merkes «eget» og vises som eget tillegg i sporpanelet. Bygges inn med scenarios/build_maps.py --bare-lys. clue=true skjuler tingen i spillervisning (den røper et spor); Skytteren, Margareth og Ash er det spillerne ser, og står derfor uten.",
+ "rom": {
+  "ballroom": {
+   "ting": [
+    {
+     "id": "egen-skytteren",
+     "name": "Skytteren (druknet)",
+     "fra": [
+      "soong",
+      "wang"
+     ],
+     "x": 300,
+     "y": 150,
+     "rotation": 15,
+     "z": 25,
+     "h": 64,
+     "hiddenByDefault": true,
+     "clue": false
+    },
+    {
+     "id": "egen-glass",
+     "name": "Knuste vinduer",
+     "fra": [
+      "spisesal",
+      "broken"
+     ],
+     "x": 236,
+     "y": 14,
+     "rotation": 0,
+     "z": 4,
+     "h": 0,
+     "hiddenByDefault": true
+    }
+   ],
+   "spor": [
+    {
+     "t": "Stormen og Skytteren",
+     "item": "egen-skytteren",
+     "roll": "Sanity 0/1D6 · DEX på glatt gulv",
+     "d": "Vinden uler i toner og blåser inn vinduene. Skytteren klatrer inn fra sjøen — oppsvulmet, tang i håret, uten øyne. Han vil dra Beefcake ut gjennom vinduet: tre vellykkede grep, og han er ute. Franz kommer i runde 3, Dagrun og Skjoldvår i runde 4. Når han faller, renner han ut i sjøvann og tang, og stormen stilner."
+    }
+   ]
+  },
+  "hold3": {
+   "ting": [
+    {
+     "id": "egen-margareth",
+     "name": "Margareth (under laken)",
+     "fra": [
+      "hold7",
+      "body0"
+     ],
+     "x": 250,
+     "y": 186,
+     "rotation": 90,
+     "z": 12,
+     "h": 0,
+     "clue": false
+    },
+    {
+     "id": "egen-blodspor",
+     "name": "Blod og sjøvann",
+     "fra": [
+      "hold7",
+      "trail"
+     ],
+     "x": 410,
+     "y": 182,
+     "rotation": 0,
+     "z": 3,
+     "h": 0,
+     "clue": true
+    }
+   ],
+   "spor": [
+    {
+     "t": "Margareth",
+     "item": "egen-margareth",
+     "roll": "Spot Hidden · Sanity 1/1D4",
+     "d": "Brystet hennes er åpnet, og katgut er spent over ribbeina som strenger. En stemmegaffel ligger ved siden av. Døde om bord oppbevares her til skipet når havn."
+    },
+    {
+     "t": "Blod og sjøvann",
+     "item": "egen-blodspor",
+     "roll": "Spot Hidden · Track",
+     "d": "Dråper av blod og sjøvann fra liket og ut døra, mot trapperommet på E-dekk."
+    }
+   ]
+  },
+  "st-e": {
+   "ting": [
+    {
+     "id": "egen-blodspor",
+     "name": "Blod og sjøvann",
+     "fra": [
+      "hold7",
+      "trail"
+     ],
+     "x": 70,
+     "y": 300,
+     "rotation": -35,
+     "z": 3,
+     "h": 0,
+     "clue": true
+    }
+   ],
+   "spor": [
+    {
+     "t": "Sporet mot lensen",
+     "item": "egen-blodspor",
+     "roll": "Spot Hidden · Track · Animal Handling",
+     "d": "Dråpene leder til døra ned til lensen. Fido følger sporet hit, men vil ikke ned leideren. Han står og piper."
+    }
+   ]
+  },
+  "bilge": {
+   "ting": [
+    {
+     "id": "egen-ash",
+     "name": "Dr. Ash (bundet)",
+     "fra": [
+      "soong",
+      "wang"
+     ],
+     "x": 250,
+     "y": 40,
+     "rotation": 90,
+     "z": 12,
+     "h": 0,
+     "clue": false
+    },
+    {
+     "id": "egen-ashblod",
+     "name": "Blod i vannet",
+     "fra": [
+      "hold7",
+      "pool"
+     ],
+     "x": 250,
+     "y": 80,
+     "rotation": 0,
+     "z": 3,
+     "h": 0
+    }
+   ],
+   "spor": [
+    {
+     "t": "Dr. Ash",
+     "item": "egen-ash",
+     "roll": "Sanity 1/1D6 · First Aid · Medicine",
+     "d": "Bundet i det knedype vannet, bedøvet med sin egen medisinblanding. Kanyler i armer og bein, og en note skåret inn i huden ved hvert innstikk. Slangene går til små glass merket C, E, G og videre — ett står tomt, merket med den siste tonen. CON for hver fjerde time; mislykkes det, mister han 1D3 HP. Legevesken til Hartman står igjen, med handlelisten i."
+    }
+   ]
+  },
+  "maskin": {
+   "spor": [
+    {
+     "t": "Lensenøkkelen",
+     "roll": "Persuade · Charm",
+     "d": "Maskinsjefen forteller at doktoren lånte nøkkelen til lensen i går kveld, «for å se etter rotter». Han har ikke levert den tilbake."
+    }
+   ]
+  }
+ }
+}

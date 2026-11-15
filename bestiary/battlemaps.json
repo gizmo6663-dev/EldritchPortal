@@ -3628,7 +3628,7 @@
    "dir": "07-ballroom",
    "bg": "bg.webp",
    "atlas": "sprites.webp",
-   "atlasW": 422,
+   "atlasW": 518,
    "atlasH": 482,
    "frames": {
     "bar": [
@@ -3810,6 +3810,18 @@
      0,
      104,
      104
+    ],
+    "soong-wang": [
+     424,
+     0,
+     44,
+     104
+    ],
+    "spisesal-broken": [
+     470,
+     0,
+     48,
+     36
     ]
    },
    "items": [
@@ -4274,6 +4286,30 @@
      "rotation": 90,
      "z": 3,
      "decor": true
+    },
+    {
+     "id": "egen-skytteren",
+     "name": "Skytteren (druknet)",
+     "x": 300,
+     "y": 150,
+     "rotation": 15,
+     "z": 25,
+     "h": 64,
+     "hiddenByDefault": true,
+     "clue": false,
+     "sprite": "soong-wang",
+     "eget": true
+    },
+    {
+     "id": "egen-glass",
+     "name": "Knuste vinduer",
+     "x": 236,
+     "y": 14,
+     "rotation": 0,
+     "z": 4,
+     "hiddenByDefault": true,
+     "sprite": "spisesal-broken",
+     "eget": true
     }
    ],
    "clues": [
@@ -4288,6 +4324,13 @@
      "item": "tree",
      "roll": "Ingen",
      "d": "Barnefest for første, spesial og tredje klasse 6. desember."
+    },
+    {
+     "t": "Stormen og Skytteren",
+     "item": "egen-skytteren",
+     "roll": "Sanity 0/1D6 · DEX på glatt gulv",
+     "d": "Vinden uler i toner og blåser inn vinduene. Skytteren klatrer inn fra sjøen — oppsvulmet, tang i håret, uten øyne. Han vil dra Beefcake ut gjennom vinduet: tre vellykkede grep, og han er ute. Franz kommer i runde 3, Dagrun og Skjoldvår i runde 4. Når han faller, renner han ut i sjøvann og tang, og stormen stilner.",
+     "eget": true
     }
    ],
    "lys": {
@@ -13436,7 +13479,7 @@
    "dir": "21-st-e",
    "bg": "bg.webp",
    "atlas": "sprites.webp",
-   "atlasW": 155,
+   "atlasW": 285,
    "atlasH": 202,
    "frames": {
     "aft": [
@@ -13552,6 +13595,12 @@
      184,
      82,
      18
+    ],
+    "hold7-trail": [
+     157,
+     0,
+     128,
+     48
     ]
    },
    "items": [
@@ -13784,6 +13833,17 @@
      "z": 3,
      "decor": true,
      "h": 30
+    },
+    {
+     "id": "egen-blodspor",
+     "name": "Blod og sjøvann",
+     "x": 70,
+     "y": 300,
+     "rotation": -35,
+     "z": 3,
+     "clue": true,
+     "sprite": "hold7-trail",
+     "eget": true
     }
    ],
    "clues": [
@@ -13804,6 +13864,13 @@
      "item": "d3",
      "roll": "Stealth · Extreme Fast Talk/Persuade",
      "d": "45 mann i skift à 15 holder vakt ved kjelene og maskinene; inntrengere stanses og meldes til kapteinen."
+    },
+    {
+     "t": "Sporet mot lensen",
+     "item": "egen-blodspor",
+     "roll": "Spot Hidden · Track · Animal Handling",
+     "d": "Dråpene leder til døra ned til lensen. Fido følger sporet hit, men vil ikke ned leideren. Han står og piper.",
+     "eget": true
     }
    ],
    "lys": {}
@@ -14824,7 +14891,7 @@
    "dir": "24-hold3",
    "bg": "bg.webp",
    "atlas": "sprites.webp",
-   "atlasW": 308,
+   "atlasW": 492,
    "atlasH": 324,
    "frames": {
     "apples": [
@@ -14933,6 +15000,18 @@
      90,
      216,
      56,
+     48
+    ],
+    "hold7-body0": [
+     310,
+     0,
+     52,
+     108
+    ],
+    "hold7-trail": [
+     364,
+     0,
+     128,
      48
     ]
    },
@@ -15120,6 +15199,28 @@
      "z": 3,
      "decor": true,
      "h": 30
+    },
+    {
+     "id": "egen-margareth",
+     "name": "Margareth (under laken)",
+     "x": 250,
+     "y": 186,
+     "rotation": 90,
+     "z": 12,
+     "clue": false,
+     "sprite": "hold7-body0",
+     "eget": true
+    },
+    {
+     "id": "egen-blodspor",
+     "name": "Blod og sjøvann",
+     "x": 410,
+     "y": 182,
+     "rotation": 0,
+     "z": 3,
+     "clue": true,
+     "sprite": "hold7-trail",
+     "eget": true
     }
    ],
    "clues": [
@@ -15128,6 +15229,20 @@
      "item": "cart",
      "roll": "Ingen",
      "d": "Kokkene kommer ofte hit etter forsyninger, så heltene kan bli overrasket."
+    },
+    {
+     "t": "Margareth",
+     "item": "egen-margareth",
+     "roll": "Spot Hidden · Sanity 1/1D4",
+     "d": "Brystet hennes er åpnet, og katgut er spent over ribbeina som strenger. En stemmegaffel ligger ved siden av. Døde om bord oppbevares her til skipet når havn.",
+     "eget": true
+    },
+    {
+     "t": "Blod og sjøvann",
+     "item": "egen-blodspor",
+     "roll": "Spot Hidden · Track",
+     "d": "Dråper av blod og sjøvann fra liket og ut døra, mot trapperommet på E-dekk.",
+     "eget": true
     }
    ],
    "lys": {}
@@ -18050,6 +18165,12 @@
      "item": "panel",
      "roll": "Stealth · Extreme Fast Talk/Persuade",
      "d": "Inntrengere konfronteres, holdes tilbake og meldes til kapteinen. Bare Extreme Fast Talk eller Persuade overbeviser dem om at heltene har tillatelse."
+    },
+    {
+     "t": "Lensenøkkelen",
+     "roll": "Persuade · Charm",
+     "d": "Maskinsjefen forteller at doktoren lånte nøkkelen til lensen i går kveld, «for å se etter rotter». Han har ikke levert den tilbake.",
+     "eget": true
     }
    ],
    "lys": {}
@@ -18068,7 +18189,7 @@
    "dir": "30-bilge",
    "bg": "bg.webp",
    "atlas": "sprites.webp",
-   "atlasW": 133,
+   "atlasW": 259,
    "atlasH": 166,
    "frames": {
     "junk": [
@@ -18136,6 +18257,18 @@
      0,
      88,
      64
+    ],
+    "soong-wang": [
+     135,
+     0,
+     44,
+     104
+    ],
+    "hold7-pool": [
+     181,
+     0,
+     78,
+     58
     ]
    },
    "items": [
@@ -18243,6 +18376,27 @@
      "y": 284,
      "rotation": 0,
      "z": 30
+    },
+    {
+     "id": "egen-ash",
+     "name": "Dr. Ash (bundet)",
+     "x": 250,
+     "y": 40,
+     "rotation": 90,
+     "z": 12,
+     "clue": false,
+     "sprite": "soong-wang",
+     "eget": true
+    },
+    {
+     "id": "egen-ashblod",
+     "name": "Blod i vannet",
+     "x": 250,
+     "y": 80,
+     "rotation": 0,
+     "z": 3,
+     "sprite": "hold7-pool",
+     "eget": true
     }
    ],
    "clues": [
@@ -18257,6 +18411,13 @@
      "item": "pelt",
      "roll": "Spot Hidden",
      "d": "Et nytt flådd rotteskinn."
+    },
+    {
+     "t": "Dr. Ash",
+     "item": "egen-ash",
+     "roll": "Sanity 1/1D6 · First Aid · Medicine",
+     "d": "Bundet i det knedype vannet, bedøvet med sin egen medisinblanding. Kanyler i armer og bein, og en note skåret inn i huden ved hvert innstikk. Slangene går til små glass merket C, E, G og videre — ett står tomt, merket med den siste tonen. CON for hver fjerde time; mislykkes det, mister han 1D3 HP. Legevesken til Hartman står igjen, med handlelisten i.",
+     "eget": true
     }
    ],
    "lys": {}

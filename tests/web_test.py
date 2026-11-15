@@ -240,7 +240,8 @@ async def main():
         await pg.evaluate("closeAllModals()")
 
         # Replikkene skal kunne søkes opp.
-        await pg.evaluate("""() => { state.query='englekoret'; render(); }""")
+        # Et ord som bare står i en av Bunny Bates' replikker.
+        await pg.evaluate("""() => { state.query='herregud'; render(); }""")
         await pg.wait_for_timeout(300)
         found=await pg.evaluate(
             "() => [...document.querySelectorAll('#main .entry-title')].map(x=>x.textContent)")

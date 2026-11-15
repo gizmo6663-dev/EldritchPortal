@@ -11514,7 +11514,12 @@ function viewMaps(root) {
       },
     }, [
       el("span", { class: "ct", text: c.t || "?" }),
-      c.roll ? el("span", { class: "cr", text: c.roll }) : null,
+      // Keeperens egne tillegg (bestiary/kart_tillegg.json) merkes, så
+      // det aldri er tvil om hva som står i boka.
+      c.roll || c.eget
+        ? el("span", { class: "cr", text: (c.roll || "") +
+                         (c.eget ? (c.roll ? " · " : "") + "eget tillegg" : "") })
+        : null,
     ]));
     if (!apen) return;
     const kropp = el("div", { class: "cluebody" });

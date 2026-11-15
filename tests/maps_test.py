@@ -71,13 +71,14 @@ def test_data():
                     break
             tatt.append((x, y, w, h))
         for it in r["items"]:
-            props += 1
+            # Keeperens egne tillegg telles for seg, under.
+            props += 0 if it.get("eget") else 1
             if it["sprite"] not in r["frames"]:
                 mangler.append("%s/%s: sprite %s" %
                                (r["id"], it["id"], it["sprite"]))
             if it.get("linksTo") and it["linksTo"] not in romIder:
                 doder += 1
-        spor += len(r["clues"])
+        spor += sum(1 for c in r["clues"] if not c.get("eget"))
         for c in r["clues"]:
             if c.get("item") and not any(i["id"] == c["item"] for i in r["items"]):
                 doder += 1
@@ -87,7 +88,8 @@ def test_data():
     check("ingen ruter overlapper hverandre", dubletter, [])
     check("alle gjenstandene er med", props, 839)
     check("alle sporene er med", spor, 96)
-    dekor = sum(1 for r in d["rooms"] for i in r["items"] if i.get("decor"))
+    dekor = sum(1 for r in d["rooms"] for i in r["items"]
+                if i.get("decor") and not i.get("eget"))
     check("dekoren er merket som dekor", dekor, 184)
     check("ingen døde dører eller sporpekere", doder, 0)
 
@@ -110,6 +112,17 @@ def test_data():
     check("men ikke inne", bool(rom["kabin"]["lys"].get("hav")), False)
     bil = [i for i in rom["hold6"]["items"] if "Hudson" in (i.get("name") or "")]
     check("en bil er høy, ikke en livbøye", bil and bil[0].get("h"), 60)
+
+    # Tillegget «Hartman og stormen» (bestiary/kart_tillegg.json).
+    egne = {r["id"]: [i["id"] for i in r["items"] if i.get("eget")] for r in d["rooms"]}
+    check("Skytteren står i ballsalen", "egen-skytteren" in egne["ballroom"], True)
+    check("Margareth ligger i kjølerommet", "egen-margareth" in egne["hold3"], True)
+    check("og Ash i lensen", "egen-ash" in egne["bilge"], True)
+    rammer = [(r["id"], i["sprite"]) for r in d["rooms"] for i in r["items"]
+              if i.get("eget") and i["sprite"] not in r["frames"]]
+    check("bildene til tillegget ligger i rommenes egne atlas", rammer, [])
+    egnespor = sum(1 for r in d["rooms"] for c in r["clues"] if c.get("eget"))
+    check("og sporene deres står i sporpanelet", egnespor, 6)
 
 
 async def test_view():

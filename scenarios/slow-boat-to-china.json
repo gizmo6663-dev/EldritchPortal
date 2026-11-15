@@ -1,6 +1,6 @@
 {
   "id": "slow-boat-to-china",
-  "version": 8,
+  "version": 9,
   "title": "A Slow Boat to China",
   "system": "Pulp Cthulhu / Call of Cthulhu 7e",
   "source": "Pulp Cthulhu, kapittel 13 (Chaosium)",
@@ -182,6 +182,45 @@
       "tag": "social"
     },
     {
+      "id": "egen-tl-ash-tatt",
+      "day": "Ons. 9. des",
+      "when": "kveld",
+      "title": "Eget: Dr. Ash blir tatt",
+      "description": "Ash går fra drinken på broen før Franz, for å hente noe i lugaren. Hartman venter i korridoren med eter. Han tar også med seg medisinblandingen Ash laget, og bruker den til å holde ham bedøvet — medisinskapet på kontoret er jo tomt.",
+      "triggered": false,
+      "connects_to": [
+        "egen-beat-ash-borte",
+        "egen-clue-speil"
+      ],
+      "tag": "villain"
+    },
+    {
+      "id": "egen-tl-stormen",
+      "day": "Ons. 9. des",
+      "when": "kveld",
+      "title": "Eget: Stormen i ballsalen",
+      "description": "Mens Tahiti-ballet pågår, går Pipes of Leng for full styrke nede i lasterom 7. Kallet når havet: en storm fra ingensteds, med en vind som uler i toner, blåser inn vinduene i Grand Salon. Skytteren klatrer inn fra sjøen.",
+      "triggered": false,
+      "connects_to": [
+        "egen-beat-stormen",
+        "egen-npc-skytteren"
+      ],
+      "tag": "event"
+    },
+    {
+      "id": "egen-tl-lensen",
+      "day": "Tor. 10. des",
+      "when": "natt, før ankomst",
+      "title": "Eget: Hartman gjør Ash klar i lensen",
+      "description": "Ash bindes fast i det knedype vannet i lensen. Hartman skjærer en note inn i huden ved hvert innstikk og lar blodet dryppe langsomt ned i små glass merket med toner. Han regner med å være tilbake om noen timer.",
+      "triggered": false,
+      "connects_to": [
+        "egen-beat-lensen",
+        "egen-clue-ash"
+      ],
+      "tag": "villain"
+    },
+    {
       "id": "tl-phyllis-barnes-performs",
       "day": "Tor. 10. des",
       "when": "dagtid",
@@ -204,6 +243,19 @@
         "beat-honolulu-and-beyond"
       ],
       "tag": "event"
+    },
+    {
+      "id": "egen-tl-hartman-i-land",
+      "day": "Tor. 10. des",
+      "when": "formiddag",
+      "title": "Eget: Hartman går i land",
+      "description": "Skipet ligger i karantene, og ingen går i land — unntatt skipslegen, som har med havnelegen å gjøre. Hartman forteller at medisinskapet er tømt (det er sant) og får følge med havnelegens båt for å hente forsyninger. Han kommer aldri tilbake. Dryppet i lensen fortsetter.",
+      "triggered": false,
+      "connects_to": [
+        "egen-beat-hartman-borte",
+        "egen-clue-handleliste"
+      ],
+      "tag": "villain"
     },
     {
       "id": "tl-sacrifice-1:-takishi-suroda",
@@ -230,6 +282,18 @@
         "npc-charles-astor"
       ],
       "tag": "event"
+    },
+    {
+      "id": "egen-tl-hartman-borte",
+      "day": "Fre. 11. des",
+      "when": "avgang",
+      "title": "Eget: Avgang uten skipslegen",
+      "description": "Coolidge går fra Honolulu uten Hartman. Kapteinen: «Han gikk i land med havnelegen for å hente medisiner. Vi kunne ikke vente.» Skipet har ingen lege resten av reisen — bortsett fra dr. Ash og dr. Soong.",
+      "triggered": false,
+      "connects_to": [
+        "egen-beat-hartman-borte"
+      ],
+      "tag": "voyage"
     },
     {
       "id": "tl-cross-the-international-date-line",
@@ -1104,6 +1168,130 @@
         }
       ],
       "roleplay": "Gi hver spiller ett spørsmål å svare på i båten, før du sier noe om hva som skjer videre:\n  • Hva tok du med deg?\n  • Hvem så du sist?\n  • Hva kommer du til å si når noen spør?\n\nSvarene deres er epilogen. Du trenger ikke skrive den.\n\nOverlevende plukkes opp i løpet av noen timer. Avisene skriver om en monsterbølge, og rederiet avviser alt. Ingen av heltene blir trodd, og det er riktig slik — det er prisen for å ha vært der.\n\nSlapp skapningen unna gjennom en Gate til Shanghai, slutter den seg til Eight Fortunes Mutual Aid Society, og den har et regnskap å gjøre opp. Den kan ikke snakke. Den kan skrive. Et telegram uten avsender er en perfekt siste scene, og en perfekt første scene i neste scenario."
+    },
+    {
+      "id": "egen-beat-stormen",
+      "title": "Eget: Stormen i ballsalen",
+      "act": "Eget tillegg — Hartman og stormen",
+      "description": "Onsdag 9. desember, kveld. Tahiti-ballet i Grand Salon på Promenadedekket.\n\nSTORMEN. Vinden kommer fra ingensteds og uler i toner, som et orgel. Vinduene langs salen blåses inn, papirlyktene slukker og palmene velter. Alle passasjerene flykter ut — men Beefcake får øye på noe i salen.\n\nSKYTTEREN. Mannen som bablet om englekoret og dro Beefcake med seg over rekka, klatrer inn gjennom de knuste vinduene: oppsvulmet, tang i håret, uten øyne (Sanity 0/1D6). Se NPC «Skytteren (druknet)» og kampkortet «Eget: Kampen i ballsalen».\n\nFRANZ står på broen med kapteinen og ser vinduene under seg blåse inn. Kapteinen sender ham ned.\n\nDAGRUN OG SKJOLDVÅR står i trapperommet ved lasterom 7 og hører orgelet stige mot et crescendo — og så stoppe brått. Skipet krenger. Folk kommer løpende ned trappa forbi dem, og kakerlakker strømmer ut av veggene og oppover. De flykter også fra noe.\n\nSLUTTEN. Når Skytteren faller, renner han ut i sjøvann og tang, og stormen stilner i samme øyeblikk. Taper Beefcake, ender det med at Skytteren drar ham mot vinduet mens de andre kommer inn døra.\n\nPÅ KARTET: Ballsalen, natt, strømbrudd og storm — da slår lynet inn gjennom vinduene.",
+      "done": false,
+      "connects_to": [
+        "egen-tl-stormen",
+        "egen-npc-skytteren",
+        "egen-beat-ash-borte"
+      ],
+      "dialogue": [
+        {
+          "who": "Skytteren",
+          "line": "Koret … slipper ikke.",
+          "source": "forslag"
+        },
+        {
+          "who": "En flyktende passasjer",
+          "line": "Den store karen deres slåss med noe der oppe!",
+          "source": "forslag",
+          "note": "Til Dagrun og Skjoldvår i trappa."
+        },
+        {
+          "who": "Kapteinen",
+          "line": "Gå ned og se hva i helvete som skjer i salongen!",
+          "source": "forslag",
+          "note": "Til Franz på broen."
+        }
+      ],
+      "roleplay": "Spill stormen som lyd: tonene i vinden, glass som knuses, sjøvann som slår inn. Gi Beefcake rommet alene i to runder før noen andre dukker opp."
+    },
+    {
+      "id": "egen-beat-ash-borte",
+      "title": "Eget: Hvor er dr. Ash?",
+      "act": "Eget tillegg — Hartman og stormen",
+      "description": "Rett etter kampen, mens de puster ut: «Hvor er Ash?» Franz forteller at Ash gikk fra broen før ham, for å hente noe i lugaren.\n\nLUGAREN. Søt lukt av eter. Legevesken og medisinblandingen hans er borte. På speilet står fem streker med noter, skrevet med jodtinktur (se sporet «Eget: Notene på speilet»).",
+      "done": false,
+      "connects_to": [
+        "egen-tl-ash-tatt",
+        "egen-clue-speil",
+        "egen-beat-sporene"
+      ],
+      "dialogue": [
+        {
+          "who": "Franz",
+          "line": "Han gikk før meg. Sa han skulle hente noe i lugaren.",
+          "source": "forslag"
+        }
+      ],
+      "roleplay": "La stillheten etter kampen henge et øyeblikk før noen spør. Lugaren skal føles forlatt midt i en bevegelse: lampa står på, senga er urørt, og eterlukten sitter i gardinene."
+    },
+    {
+      "id": "egen-beat-sporene",
+      "title": "Eget: Sporene etter Hartman",
+      "act": "Eget tillegg — Hartman og stormen",
+      "description": "Flere veier fører ned i lensen, så de aldri står fast på ett spor:\n\n• Journalen på legekontoret (handout «Eget: Hartmans journal»).\n• Margareth i kjølerommet, med blod og sjøvann som leder mot trapperommet på E-dekk.\n• Maskinsjefen: Hartman lånte nøkkelen til lensen «for å se etter rotter».\n• James Hawthorne har hørt «doktoren synge inne i veggene».\n• Fido går med til luka, men vil ikke ned leideren.\n\nTorsdag 10. desember ligger skipet i karantene i Honolulu, og politiet er om bord i to timer. Hele skipet er i oppstandelse mens de leter.",
+      "done": false,
+      "connects_to": [
+        "egen-clue-journal",
+        "egen-clue-margareth",
+        "egen-clue-blodspor",
+        "egen-clue-nokkel",
+        "egen-clue-hawthorne",
+        "egen-clue-fido",
+        "egen-beat-lensen"
+      ],
+      "dialogue": [
+        {
+          "who": "Maskinsjefen",
+          "line": "Doktoren? Han lånte nøkkelen til lensen i går kveld. Rotter, sa han.",
+          "source": "forslag"
+        },
+        {
+          "who": "James Hawthorne",
+          "line": "Han synger. Inne i veggene. Den samme sangen, om og om igjen — og den går nedover.",
+          "source": "forslag"
+        }
+      ],
+      "roleplay": "Spill skipet i oppstandelse: karantene, politi i korridorene, rykter om likene. Ingen har tid til dem, og det er det som gjør det vanskelig."
+    },
+    {
+      "id": "egen-beat-lensen",
+      "title": "Eget: Nede i lensen",
+      "act": "Eget tillegg — Hartman og stormen",
+      "description": "Knedypt, svart vann og én oljelykt. Hver gang orgelet går et sted over dem, synger hele skroget med (Sanity 0/1D4).\n\nASH er bundet fast, halvt i vannet, med kanyler i armer og bein. Ved hvert innstikk er en note skåret inn i huden. Slangene går til små medisinglass merket C, E, G og videre — ett av dem står tomt, merket med den siste tonen (Sanity 1/1D6).\n\nKLOKKE: Hartman stilte dryppet langsomt fordi han skulle være tilbake om noen timer. Han kommer ikke. For hver fjerde time slår du CON for Ash; mislykkes det, mister han 1D3 HP.\n\nBLI FOR LENGE: de første kakerlakkene kommer krypende i vannet. Skapningen hører det også.\n\nHARTMAN ER IKKE HER. Legevesken hans står igjen, med handlelisten i (handout «Eget: Hartmans handleliste»).",
+      "done": false,
+      "connects_to": [
+        "egen-clue-ash",
+        "egen-clue-handleliste",
+        "egen-clue-tonearr",
+        "egen-tl-lensen"
+      ],
+      "dialogue": [
+        {
+          "who": "Dr. Ash, halvt bevisstløs",
+          "line": "C … E … Han sa jeg hørte den. Jeg hørte den ikke.",
+          "source": "forslag",
+          "note": "Bare hvis spilleren er tilbake."
+        }
+      ],
+      "roleplay": "Lyd først: drypping i glass, vann som skvulper, og et øyeblikk der lykta svinger og de tror Hartman står der. Han gjør ikke det. La tomheten være det verste."
+    },
+    {
+      "id": "egen-beat-hartman-borte",
+      "title": "Eget: Hartman går i land",
+      "act": "Eget tillegg — Hartman og stormen",
+      "description": "Torsdag 10. desember, karantene i Honolulu. Hartman går i land med havnelegen for å hente utstyret han ikke kan stjele om bord, og rekker ikke tilbake før skipet går fredag 11.\n\nKROKEN TIL ET SENERE SCENARIO: tonene han skar inn i huden til Ash gror til arr. Hartman tror at arrene synger, og at han kan høre dem på avstand. Han blir besatt av å finne Ash igjen for å gjøre verket ferdig.",
+      "done": false,
+      "connects_to": [
+        "egen-tl-hartman-i-land",
+        "egen-tl-hartman-borte",
+        "egen-clue-tonearr",
+        "npc-erik-hartman"
+      ],
+      "dialogue": [
+        {
+          "who": "Kapteinen",
+          "line": "Han gikk i land med havnelegen for å hente medisiner. Vi kunne ikke vente.",
+          "source": "forslag"
+        }
+      ],
+      "roleplay": "Kapteinen vil dysse det ned, og han er flau. Spill det som et byråkratisk skuldertrekk — det er det som gjør det verre."
     }
   ],
   "clues": [
@@ -1458,6 +1646,129 @@
         "npc-almacan",
         "clue-manifest-gap"
       ]
+    },
+    {
+      "id": "egen-clue-speil",
+      "title": "Eget: Notene på speilet",
+      "where": "Dr. Ashs lugar",
+      "description": "Fem streker med noter, skrevet med jodtinktur på speilet. Det er melodien fra lasterom 7 — den samme Dagrun og Skjoldvår hørte. Den som skrev dette, lytter til det som spilles der nede.",
+      "points": "sant",
+      "found": false,
+      "roll": "Art/Craft (musikk) · Psychology · Idea",
+      "connects_to": [
+        "egen-beat-ash-borte",
+        "egen-clue-journal"
+      ]
+    },
+    {
+      "id": "egen-clue-journal",
+      "title": "Eget: Hartmans journal",
+      "where": "Legekontoret",
+      "description": "Innleggene glir fra klinisk til vanvittig, med skisser av brystkasser tegnet som orgelpiper. Anatomien er korrekt — og det er det som er så forferdelig. Siste innlegg: «der skroget synger lavest». Skipets laveste punkt er lensen (Navigate, eller spør kapteinen).",
+      "points": "sant",
+      "found": false,
+      "roll": "Medicine · Sanity 0/1D3 · Navigate",
+      "connects_to": [
+        "egen-handout-journal",
+        "egen-beat-lensen"
+      ]
+    },
+    {
+      "id": "egen-clue-margareth",
+      "title": "Eget: Margareth i kjølerommet",
+      "where": "Lasterom 3 — kjølerommet",
+      "description": "Liket er borte fra sykestua; døde om bord oppbevares i kjølerommet til skipet når havn (en stuert vet det). Brystet hennes er åpnet, og katgut er spent over ribbeina som strenger. En stemmegaffel ligger ved siden av.",
+      "points": "sant",
+      "found": false,
+      "roll": "Spot Hidden · Sanity 1/1D4",
+      "connects_to": [
+        "egen-clue-blodspor",
+        "egen-npc-margareth"
+      ]
+    },
+    {
+      "id": "egen-clue-blodspor",
+      "title": "Eget: Blod og sjøvann",
+      "where": "Lasterom 3 og trapperommet på E-dekk",
+      "description": "Dråper av blod og sjøvann fra kjølerommet til trapperommet på E-dekk, og videre til luka ned til lensen.",
+      "points": "sant",
+      "found": false,
+      "roll": "Spot Hidden · Track",
+      "connects_to": [
+        "egen-beat-lensen"
+      ]
+    },
+    {
+      "id": "egen-clue-nokkel",
+      "title": "Eget: Lensenøkkelen",
+      "where": "Maskinrommet",
+      "description": "Maskinsjefen forteller at doktoren lånte nøkkelen til lensen i går kveld, «for å se etter rotter». Han har ikke levert den tilbake.",
+      "points": "sant",
+      "found": false,
+      "roll": "Persuade · Charm",
+      "connects_to": [
+        "egen-beat-lensen"
+      ]
+    },
+    {
+      "id": "egen-clue-hawthorne",
+      "title": "Eget: Doktoren synger i veggene",
+      "where": "Kennelen (James Hawthorne)",
+      "description": "James Hawthorne har hørt doktoren synge inne i veggene om natta — lavt, den samme melodien om og om igjen, og nedover.",
+      "points": "sant",
+      "found": false,
+      "connects_to": [
+        "egen-beat-lensen"
+      ]
+    },
+    {
+      "id": "egen-clue-fido",
+      "title": "Eget: Fido ved luka",
+      "where": "Trapperommet på E-dekk",
+      "description": "Hunden følger sporet til luka ned til lensen, men vil ikke ned leideren. Han står og piper.",
+      "points": "sant",
+      "found": false,
+      "roll": "Animal Handling · Track",
+      "connects_to": [
+        "egen-beat-lensen"
+      ]
+    },
+    {
+      "id": "egen-clue-ash",
+      "title": "Eget: Dr. Ash i lensen",
+      "where": "Lensen",
+      "description": "Bundet, bedøvet med sin egen medisinblanding, med kanyler og slanger til glass merket med toner. Notene er skåret inn i huden ved hvert innstikk. First Aid eller Medicine for å få kanylene ut uten at han blør mer.",
+      "points": "sant",
+      "found": false,
+      "roll": "Sanity 1/1D6 · First Aid · Medicine",
+      "connects_to": [
+        "egen-beat-lensen",
+        "egen-clue-tonearr"
+      ]
+    },
+    {
+      "id": "egen-clue-handleliste",
+      "title": "Eget: Hartmans handleliste",
+      "where": "Lensen",
+      "description": "I legevesken Hartman lot stå igjen. Den sier hvorfor han dro, og at han har tenkt å gjøre arbeidet ferdig.",
+      "points": "sant",
+      "found": false,
+      "connects_to": [
+        "egen-handout-handleliste",
+        "egen-beat-hartman-borte"
+      ]
+    },
+    {
+      "id": "egen-clue-tonearr",
+      "title": "Eget: Tonene i huden",
+      "where": "Dr. Ash",
+      "description": "Notene Hartman skar inn i huden gror til arr. Ash får en vedvarende fobi, og arrene blir merket Hartman skal følge i et senere scenario: han tror at de synger.",
+      "points": "sant",
+      "found": false,
+      "connects_to": [
+        "egen-beat-hartman-borte",
+        "npc-erik-hartman"
+      ]
     }
   ],
   "npcs": [
@@ -1713,7 +2024,25 @@
       "description": "Undersøker åstedet i Petersons lugar sammen med førstestyrmann Schramm, og holder funnene for seg selv, som han har fått ordre om.",
       "skills": "Medicine 60 %, First Aid 70 %, Science (Biology) 45 %",
       "stats_note": "Spillklart forslag — det trykte scenarioet har disse i Appendix A. Juster fritt.",
-      "notes": "En nyttig inngang for helter med medisinsk bakgrunn — kollegial høflighet er en enkel vei inn i lugaren."
+      "notes": "En nyttig inngang for helter med medisinsk bakgrunn — kollegial høflighet er en enkel vei inn i lugaren.\n\nEGET TILLEGG: Han ble gal da brystkassen til Margareth ga etter under hendene hans. Han hørte en tone, og noe svarte: englekoret — Pipes of Leng som stemmes i lasterom 7. Han tror brystkassen er et instrument og at pipene må fôres med liv. Han så dr. Ash ved medisinskapet, og tror Ash hørte den første tonen. Tar Ash onsdag kveld, binder ham i lensen og går i land i Honolulu torsdag for å skaffe utstyr. Kommer ikke tilbake — han er spart til et senere scenario.",
+      "stats": {
+        "STR": "55",
+        "CON": "60",
+        "SIZ": "60",
+        "DEX": "60",
+        "INT": "80",
+        "POW": "45",
+        "EDU": "85",
+        "HP": "12",
+        "DB": "+0",
+        "Move": "8",
+        "SAN": "0 (gal)"
+      },
+      "combat": [
+        "Skalpell 40 %, 1D4",
+        "Sprøyte med Ash sin medisinblanding: CON-slag, ellers bevisstløs i 1D6 timer",
+        "Ingen kriger — flykter heller enn å slåss"
+      ]
     },
     {
       "id": "npc-other-crew",
@@ -2047,6 +2376,43 @@
       "description": "FØRSTE KLASSE: Xin Yu, Yan Zou, Sissy McPatrick, Neal Westner, Deliah Conningway, Rupert Cocksure.\n\nSPESIALKLASSE: Ru Li, Shen Liu, Arthur Sellkirk, Maud Rendox, Jasper Conway, Lottie Unser.\n\nTREDJE KLASSE: Peng Chen, Fu Wang, Lan Wu, Daiyu Tang, Billy Royston, Ethel Rind, Paul Scott.\n\nLUGARKAMERATER PÅ TREDJE KLASSE: brødrene Po Liang og Po Hau, Pai Gow-givere innleid til kasinokvelden, og marinegast Olaf Gustavsen fra minesveiperen Abilene.\n\nUNDERHOLDERE: jazz- og kabaretsangerne Rebecca McCormick og Antonio Portaluppi.",
       "stats_note": "Statister — ingen karakteristikker nødvendig.",
       "notes": "678 passasjerer om bord. De andre passasjerene har omtrent ingenting bedre å gjøre enn å sladre og spekulere, og de fleste gjør det gjerne i det vide og brede med heltene."
+    },
+    {
+      "id": "egen-npc-skytteren",
+      "name": "Skytteren (druknet)",
+      "category": "Antagonist",
+      "role": "Kommer tilbake fra sjøen i stormen",
+      "description": "Mannen som bablet om englekoret og dro Beefcake med seg over rekka. Nå klatrer han inn gjennom vinduene i ballsalen: oppsvulmet, tang i håret, uten øyne.",
+      "stats": {
+        "STR": "90",
+        "CON": "100",
+        "SIZ": "75",
+        "DEX": "45",
+        "INT": "—",
+        "POW": "50",
+        "HP": "17",
+        "DB": "+1D4",
+        "Build": "1",
+        "Move": "7",
+        "Armor": "2"
+      },
+      "combat": [
+        "Slag 55 %, 1D3+1D4",
+        "Grep 55 %: prøver å dra offeret ut gjennom vinduet — slik han gjorde forrige gang",
+        "Kjenner ikke smerte, og blir ikke slått bevisstløs av en Major Wound"
+      ],
+      "special": "Når han treffes, renner det sjøvann og småkrabber ut av ham. Når han faller, renner han ut i sjøvann og tang, og stormen stilner i samme øyeblikk.",
+      "sanity_loss": "0/1D6",
+      "stats_note": "Eget tillegg — juster etter Beefcake.",
+      "notes": "Eget tillegg. Se scenen «Eget: Stormen i ballsalen».\n\n«Englekoret har befalt meg» er Bunny Bates' replikk i boka. Var Skytteren Bates, er han død etter denne kampen — og da dominerer skapningen stuert Martin Aimesworthy i stedet, som overtar Bates' rolle i alle senere scener."
+    },
+    {
+      "id": "egen-npc-margareth",
+      "name": "Margareth",
+      "category": "Mannskap",
+      "role": "Helsesekretær — død 9. desember",
+      "description": "En gammel, gammel dame som hadde vært helsesekretær lenger enn dr. Hartman hadde vært lege. Fikk hjerteinfarkt da hun så Beefcake igjen. Hartman knuste brystkassen hennes under gjenopplivingen.",
+      "notes": "Eget tillegg. Ligger i kjølerommet, med brystet åpnet og katgut spent over ribbeina."
     }
   ],
   "handouts": [
@@ -2083,6 +2449,28 @@
       "connects_to": [
         "clue-suicide-note-wrong",
         "npc-virginia-ridley"
+      ]
+    },
+    {
+      "id": "egen-handout-journal",
+      "title": "Eget: Hartmans journal",
+      "found": false,
+      "description": "Skipslegens journal, på skrivebordet på legekontoret. Lesingen koster Sanity 0/1D3.",
+      "read_aloud": "  9. des. Pasient: helsesekretær Margareth, 74 år.\n  Myocardinfarkt. HLR i 14 min. Sternum gav etter. Exitus.\n\n  Lyden. Det var ikke ben. Det var en tone — en dyp c.\n  Noe svarte. Jeg har ikke sovet.\n\n  Thorax er et instrument. Costae er piper.\n  Hvorfor lærte de oss aldri det?\n\n  Koret vil ha ham som hørte den første tonen.\n  Han sto ved skapet. Han hørte den. Jeg så ham.\n\n  Jeg tar ham ned der skroget synger lavest,\n  til pipene er stemt.",
+      "aside": "Skissene av brystkasser som orgelpiper står i margen. Medicine ser at anatomien er korrekt.",
+      "connects_to": [
+        "egen-clue-journal"
+      ]
+    },
+    {
+      "id": "egen-handout-handleliste",
+      "title": "Eget: Hartmans handleliste",
+      "found": false,
+      "description": "I legevesken Hartman lot stå igjen i lensen.",
+      "read_aloud": "  Til Honolulu:\n  Pianotråd, stål, 0,5 mm\n  Kanyler nr. 18, ett dusin\n  Gummislange, 4 m\n  Stemmegafler: C, E, G\n  Sølvnitrat",
+      "aside": "Det tomme glasset i lensen er merket med den siste tonen. Han mangler én.",
+      "connects_to": [
+        "egen-clue-handleliste"
       ]
     }
   ],
@@ -2581,6 +2969,19 @@
       "tactic": "678 passasjerer og 315 mann besetning har femten døgn å fylle. Kjør minst én HENDELSE per spilledøgn, uavhengig av hvor etterforskningen står — også, og særlig, når den står stille.\n\nNytten er tredelt. Den skjuler hva som er spor og hva som er støy, slik at spillerne må vurdere i stedet for å følge en snor. Den gir dem venner og fiender om bord som betyr noe i finalen. Og den gjør skipet til et sted i stedet for en kulisse — som er halve grunnen til at scenarioet foregår på et skip i det hele tatt.",
       "pressure": "Tar tyngden av jakten uten å ta bort plottet.",
       "used": false
+    },
+    {
+      "id": "egen-tac-ballsalen",
+      "title": "Eget: Kampen i ballsalen",
+      "category": "Motstander",
+      "mechanic": "Skytteren mot Beefcake med bare nevene, i et rom som er i ferd med å rives i stykker av stormen.",
+      "tactic": "RUNDE 1–2: Beefcake alene. Glassbiter på et dansegulv som er glatt av regn — DEX-slag for å stå. Vindkast velter palmene. Papirlyktene svinger, og en kan ta fyr.\n\nSKYTTEREN vil ikke drepe — han vil ha Beefcake med seg ut. Hvert vellykket grep drar ham ett skritt nærmere de knuste vinduene; tre skritt, og han er ute.\n\nRUNDE 3: Franz kommer fra broen. RUNDE 4: Dagrun og Skjoldvår. Kontrabassen bandet etterlot seg er et godt improvisert våpen.",
+      "pressure": "STR 99 mot havet som vil ha ham tilbake — og en klokke i form av vinduene.",
+      "used": false,
+      "connects_to": [
+        "egen-beat-stormen",
+        "egen-npc-skytteren"
+      ]
     }
   ]
 }

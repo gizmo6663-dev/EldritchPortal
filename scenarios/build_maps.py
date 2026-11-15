@@ -27,6 +27,9 @@ alene, uten handoff-pakka:
 
     python3 scenarios/build_maps.py --bare-lys
 
+Egne gjenstander og spor (Keeperens tillegg) står i
+bestiary/kart_tillegg.json og legges på til slutt, også med --bare-lys.
+
 Ut:
     bestiary/battlemaps.json
     web/maps/<no>-<id>/bg.webp
@@ -50,6 +53,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 UT_JSON = os.path.join(REPO, "bestiary", "battlemaps.json")
 UT_BILDER = os.path.join(REPO, "web", "maps")
 LYS_JSON = os.path.join(REPO, "bestiary", "lys_rom.json")
+TILLEGG_JSON = os.path.join(REPO, "bestiary", "kart_tillegg.json")
 
 # Luft mellom spritene i atlaset, så nærmeste-nabo-skalering ikke
 # drar en pikselrad fra naboen med seg inn i kanten.
@@ -402,6 +406,92 @@ def legg_paa_lys(ut):
                 r["lys"]["hav"] = {"celle": HAV_CELLE, "rader": rader}
 
 
+# ------------------------------------------------------------------
+# Egne tillegg. Gjenstander og spor som ikke står i handoff-pakka —
+# Keeperens egne scener. Bildene hentes fra andre rom og kopieres inn
+# i rommets atlas, så hvert rom fortsatt har ett atlas. Alt merkes
+# «eget», så appen kan vise hva som er tillegg.
+# ------------------------------------------------------------------
+
+def _atlas_bilde(r):
+    return Image.open(os.path.join(UT_BILDER, r["dir"], r["atlas"])).convert("RGBA")
+
+
+def utvid_atlas(r, rom, nye):
+    """Legg nye bilder til høyre i rommets atlas. nye: {nøkkel: (rom, sprite)}."""
+    atlas = _atlas_bilde(r)
+    biter = []
+    for nokkel, (fra, sprite) in nye.items():
+        kilde = rom[fra]
+        fx, fy, fw, fh = kilde["frames"][sprite]
+        biter.append((nokkel, _atlas_bilde(kilde).crop((fx, fy, fx + fw, fy + fh))))
+    bredde = atlas.width + sum(b.width + LUFT for _, b in biter)
+    hoyde_ = max([atlas.height] + [b.height for _, b in biter])
+    ny = Image.new("RGBA", (bredde, hoyde_), (0, 0, 0, 0))
+    ny.paste(atlas, (0, 0))
+    x = atlas.width + LUFT
+    for nokkel, bit in biter:
+        ny.paste(bit, (x, 0))
+        r["frames"][nokkel] = [x, 0, bit.width, bit.height]
+        x += bit.width + LUFT
+    navn, _ = skriv(ny, os.path.join(UT_BILDER, r["dir"]), "sprites")
+    r["atlas"] = navn
+    r["atlasW"], r["atlasH"] = ny.width, ny.height
+
+
+def legg_til_tillegg(ut):
+    """Gjenstandene og sporene i bestiary/kart_tillegg.json."""
+    if not os.path.exists(TILLEGG_JSON):
+        return 0
+    with open(TILLEGG_JSON, encoding="utf-8") as f:
+        tillegg = json.load(f)
+    rom = {r["id"]: r for r in ut["rooms"]}
+    antall = 0
+    for rid, t in tillegg.get("rom", {}).items():
+        if rid not in rom:
+            sys.exit("kart_tillegg.json nevner rom som ikke finnes: " + rid)
+        r = rom[rid]
+        nokkel = lambda fra, sprite: sprite if fra == rid else fra + "-" + sprite
+        nye = collections.OrderedDict()
+        for ting in t.get("ting", []):
+            fra, sprite = ting["fra"]
+            if fra not in rom or sprite not in rom[fra]["frames"]:
+                sys.exit("kart_tillegg.json: fant ikke %s/%s" % (fra, sprite))
+            k = nokkel(fra, sprite)
+            if k not in r["frames"]:
+                nye[k] = (fra, sprite)
+        if nye:
+            utvid_atlas(r, rom, nye)
+        plass = {i["id"]: n for n, i in enumerate(r["items"])}
+        for ting in t.get("ting", []):
+            item = collections.OrderedDict(
+                (k, v) for k, v in ting.items() if k != "fra")
+            item["sprite"] = nokkel(*ting["fra"])
+            item.setdefault("rotation", 0)
+            item.setdefault("z", 10)
+            item["eget"] = True
+            if "h" not in item:
+                h = hoyde(item)
+                if h:
+                    item["h"] = h
+            elif not item["h"]:
+                del item["h"]
+            if item["id"] in plass:
+                r["items"][plass[item["id"]]] = item
+            else:
+                r["items"].append(item)
+            antall += 1
+        titler = {c.get("t"): n for n, c in enumerate(r["clues"])}
+        for spor in t.get("spor", []):
+            spor = dict(spor, eget=True)
+            if spor["t"] in titler:
+                r["clues"][titler[spor["t"]]] = spor
+            else:
+                r["clues"].append(spor)
+            antall += 1
+    return antall
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -419,9 +509,11 @@ def main():
         with open(UT_JSON, encoding="utf-8") as f:
             ut = json.load(f, object_pairs_hook=collections.OrderedDict)
         legg_paa_lys(ut)
+        tillegg = legg_til_tillegg(ut)
         with open(UT_JSON, "w", encoding="utf-8") as f:
             json.dump(ut, f, ensure_ascii=False, indent=1)
             f.write("\n")
+        print("%d egne gjenstander og spor" % tillegg)
         hoyder = sum(1 for r in ut["rooms"] for i in r["items"] if i.get("h"))
         print("%d gjenstander har høyde, %d rom har lysdata"
               % (hoyder, sum(1 for r in ut["rooms"] if r["lys"])))
@@ -496,6 +588,7 @@ def main():
         ut["rooms"].append(r)
 
     legg_paa_lys(ut)
+    legg_til_tillegg(ut)
     with open(UT_JSON, "w", encoding="utf-8") as f:
         json.dump(ut, f, ensure_ascii=False, indent=1)
         f.write("\n")
